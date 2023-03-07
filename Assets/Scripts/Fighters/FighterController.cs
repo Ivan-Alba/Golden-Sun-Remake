@@ -45,7 +45,7 @@ public class FighterController : MonoBehaviour
             //WHILE FAR
             if (Vector3.Distance(transform.position, target.position) > 3)
             {
-                float speed = 2;
+                float speed = 1.5f;
 
                 //TODO LERP OR SMOOTH DAMP?
                 Vector3 velocity = new Vector3();
@@ -72,7 +72,7 @@ public class FighterController : MonoBehaviour
             }
             else
             {
-                float speed = 3;
+                float speed = 2.5f;
                 fighterAnim.SetFloat("Move", -speed);
                 transform.position = Vector3.Lerp(transform.position, startPosition, speed * Time.deltaTime);
             }
