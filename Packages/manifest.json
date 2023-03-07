@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.coffee.softmask-for-ugui": "file:C:/Users/Sheyki/Desktop/Golden Sun Remake Resources/SoftMaskForUGUI-1.0.2/SoftMaskForUGUI-1.0.2",
+    "com.coffee.softmask-for-ugui": "https://github.com/mob-sakai/SoftMaskForUGUI.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.cinemachine": "2.8.6",
     "com.unity.collab-proxy": "1.15.15",
