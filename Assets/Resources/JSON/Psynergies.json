@@ -1,0 +1,41 @@
+{
+  "$type":"System.Collections.Generic.List`1[[Psynergy, Assembly-CSharp]], mscorlib", "$values":
+  [
+    {
+      "Name":"Coger",
+      "Description":"Permite coger objetos fuera de tu alcance",
+      "SlugName":"Catch",
+      "PpCost": 3,
+      "IsWorldPsynergy" : true,
+      "IsBattlePsynergy" : false,
+      "Type" : "WORLD",
+      "Element": "NoElemental",
+      "TargetType": "NO_TARGET"
+    },
+
+    {
+      "Name":"Cura",
+      "Description":"Recupera una pequeña cantidad de PV",
+      "SlugName":"Cure",
+      "PpCost": 4,
+      "IsWorldPsynergy" : false,
+      "IsBattlePsynergy" : true,
+      "Type" : "HEALING",
+      "Element": "Venus",
+      "TargetType": "ONE_TARGET"
+    },
+
+     {
+      "Name":"Llamas",
+      "Description":"Inflige pequeños daños de fuego",
+      "SlugName":"Flare",
+      "PpCost": 4,
+      "IsWorldPsynergy" : false,
+      "IsBattlePsynergy" : true,
+      "Type" : "ATTACK",
+      "Element": "Mars",
+      "TargetType": "MULTI_TARGET"
+     }
+
+  ]
+}

@@ -1,0 +1,301 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class MenuController : MonoBehaviour
+{
+    PostProcessVolume ppv;
+    Bloom bloom;
+    float initialBloomValue;
+    bool increasing = true;
+    int cursorIndex;
+    bool animating;
+    bool onSubMenu;
+
+
+    //-------------UI elements----------------//
+    GameObject optionsPanel;
+    GameObject heroPanel;
+    List<GameObject> menuOptions = new List<GameObject>();
+    TextMeshProUGUI goldEarned;
+    TextMeshProUGUI timePlayed;
+    TextMeshProUGUI location;
+    GameObject cursorImage;
+    GameObject botPage;
+    GameObject topPage;
+
+    //Minimap
+    GameObject minimap;
+
+    //Menu options objects
+    GameObject inventory;
+
+    PlayerController playerController;
+    void Awake()
+    {
+        minimap = GameObject.FindGameObjectWithTag("Minimap");
+        if (GameObject.Find("Bloom") != null)
+        {
+            ppv = GameObject.Find("Bloom").GetComponent<PostProcessVolume>();
+            ppv.profile.TryGetSettings(out bloom);
+            initialBloomValue = bloom.intensity.value;
+        }
+        botPage = transform.Find("Back").Find("Bot").gameObject;
+        topPage = transform.Find("Back").Find("Top").gameObject;
+
+        goldEarned = botPage.transform.Find("GoldEarned").GetComponent<TextMeshProUGUI>();
+        timePlayed = botPage.transform.Find("TotalTime").GetComponent<TextMeshProUGUI>();
+        location = botPage.transform.Find("Location").GetComponent<TextMeshProUGUI>();
+
+        optionsPanel = transform.Find("OptionsPanel").gameObject;
+        heroPanel = transform.Find("HeroPanel").gameObject;
+        cursorImage = optionsPanel.transform.Find("Cursor").gameObject;
+        for (int i = 0; i < optionsPanel.transform.Find("Options").transform.childCount; i++)
+        {
+            menuOptions.Add(optionsPanel.transform.Find("Options").GetChild(i).gameObject);
+        }
+
+        //Menu options
+        inventory = transform.Find("Inventory").gameObject;
+
+        //Player controller
+        playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+    }
+
+    private void RefreshLocation()
+    {
+        location.SetText($"Localización: <color=#FFEB04>{SceneManager.GetActiveScene().name}");
+    }
+
+    private void RefreshGold()
+    {
+        goldEarned.SetText($"Oro: <color=#FFEB04>{GameManager.instance.TotalGold} monedas");
+
+    }
+
+    private void RefreshTime()
+    {
+        //TimeSpan time = TimeSpan.FromSeconds(GameManager.instance.TotalPlayed);
+        TimeSpan time = TimeSpan.FromSeconds(Time.realtimeSinceStartup);
+        timePlayed.SetText($"Tiempo de juego: <color=#FFEB04>{time.ToString("hh':'mm':'ss")}");
+    }
+
+    private void OnEnable()
+    {
+        animating = true;
+        cursorIndex = 0;
+        menuOptions[0].GetComponent<TextMeshProUGUI>().color = Color.yellow;
+        menuOptions[0].transform.Find("Highlight").gameObject.SetActive(true);
+        SetCursorPosition();
+
+
+        if (GameManager.instance != null)
+        {
+            SetHeros();
+            RefreshGold();
+            RefreshTime();
+            RefreshLocation();
+            Time.timeScale = 0;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (bloom != null) bloom.intensity.value = initialBloomValue;
+
+        foreach (GameObject option in menuOptions)
+        {
+            option.GetComponent<TextMeshProUGUI>().color = Color.white;
+            option.transform.Find("Highlight").gameObject.SetActive(false);
+        }
+        Time.timeScale = 1;
+        minimap.transform.parent.gameObject.SetActive(true);
+        playerController.StopPlayerController = false;
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //BloomEffect();
+        RefreshTime();
+        RefreshGold();
+
+
+
+        if (!animating && !onSubMenu)
+        {
+            //Options Movement
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(false);
+                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
+                if (cursorIndex + 1 >= menuOptions.Count)
+                {
+                    cursorIndex = 0;
+                }
+                else
+                {
+                    cursorIndex += 1;
+                }
+
+                SetCursorPosition();
+
+                menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
+                menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(true);
+
+            }
+
+            //Options Movement
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(false);
+                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
+                if (cursorIndex - 1 < 0)
+                {
+                    cursorIndex = menuOptions.Count - 1;
+                }
+                else
+                {
+                    cursorIndex -= 1;
+                }
+
+                SetCursorPosition();
+                menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(true);
+                menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
+            }
+
+            //SELECT AN OPTION FROM MENU
+            if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+            {
+                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                StartCoroutine(OpenSubMenu());
+                Debug.Log($"Opcion seleccionada: {menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().text}");
+            }
+
+            //CLOSE MAIN MENU
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                animating = true;
+                gameObject.GetComponent<Animator>().SetTrigger("exit");
+
+            }
+        }
+    }
+
+    private IEnumerator OpenSubMenu()
+    {
+        animating = true;
+        gameObject.GetComponent<Animator>().SetTrigger("enterSub");
+        yield return new WaitForSecondsRealtime(0.7f);
+        OpenSubmenu(cursorIndex);
+    }
+
+    public void BackFromSubmenu()
+    {
+        SetHeros();
+        RefreshGold();
+        heroPanel.SetActive(true);
+        optionsPanel.SetActive(true);
+        gameObject.GetComponent<Animator>().SetTrigger("exitSub");
+        onSubMenu = false;
+        topPage.GetComponentInChildren<TextMeshProUGUI>().SetText("Menú principal");
+    }
+
+    private void SetHeros()
+    {
+        List<GameObject> heroItem = new List<GameObject>();
+
+
+        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        {
+            heroItem.Add(heroPanel.transform.GetChild(i).gameObject);
+            //Set hero info
+            heroItem[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
+            heroItem[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            heroItem[i].transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
+                ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
+            heroItem[i].transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
+                              ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
+            heroItem[i].transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Level}");
+            heroItem[i].transform.Find("NextLevel").GetComponent<TextMeshProUGUI>().SetText($"Siguiente nivel:\n{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp}");
+
+
+            //Bars
+            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
+            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
+
+            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
+            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
+
+            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp;
+            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Xp;
+
+            heroItem[i].SetActive(true);
+        }
+
+
+
+    }
+
+    private void SetCursorPosition()
+    {
+        cursorImage.transform.position = new Vector3(cursorImage.transform.position.x,
+            menuOptions[cursorIndex].transform.position.y, cursorImage.transform.position.z);
+    }
+
+    private void OpenSubmenu(int cursorIndex)
+    {
+        switch (cursorIndex)
+        {
+            case 0: //Inventory
+                inventory.SetActive(true);
+                heroPanel.SetActive(false);
+                optionsPanel.SetActive(false);
+                topPage.GetComponentInChildren<TextMeshProUGUI>().SetText("Inventario");
+                break;
+        }
+        onSubMenu = true;
+    }
+
+    public void ExitMenu()
+    {
+        gameObject.SetActive(false);
+    }
+
+    private void BloomEffect()
+    {
+        //ANIMACION BACKGROUND INCREMENTANDO BLOOM
+        if (bloom.intensity.value < 20 && increasing)
+        {
+            bloom.intensity.value = bloom.intensity.value + 1;
+        }
+        else if (bloom.intensity.value == 20)
+        {
+            increasing = false;
+            bloom.intensity.value = bloom.intensity.value - 1;
+        }
+        else if (bloom.intensity.value == 10 && !increasing)
+        {
+            increasing = true;
+            bloom.intensity.value = bloom.intensity.value + 1;
+        }
+        else
+        {
+            bloom.intensity.value = bloom.intensity.value - 1;
+        }
+
+    }
+
+    public void FinishAnimation()
+    {
+        animating = false;
+    }
+}
