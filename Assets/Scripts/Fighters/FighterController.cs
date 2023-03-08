@@ -33,7 +33,7 @@ public class FighterController : MonoBehaviour
         sounds = GetComponent<Sounds>();
         stats = gameObject.GetComponent<FighterStats>();
         fighterController = gameObject.GetComponent<FighterController>();
-        floatingTextPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/FloatingText.prefab");
+        floatingTextPrefab = Resources.Load("Prefabs/FloatingText") as GameObject;
     }
 
     // Update is called once per frame
