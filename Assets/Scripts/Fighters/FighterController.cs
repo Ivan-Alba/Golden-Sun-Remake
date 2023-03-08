@@ -72,7 +72,7 @@ public class FighterController : MonoBehaviour
             }
             else
             {
-                float speed = 2.5f;
+                float speed = 2.7f;
                 fighterAnim.SetFloat("Move", -speed);
                 transform.position = Vector3.Lerp(transform.position, startPosition, speed * Time.deltaTime);
             }
