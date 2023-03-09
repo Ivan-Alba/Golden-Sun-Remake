@@ -72,3 +72,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/Toon Fantasy Nature/Terrain/Layer_TFF_Terrain_Sand_1A_D.terrainlayer
 Assets/Toon Fantasy Nature/Terrain/Layer_TFF_Terrain_Grass_1A_D.terrainlayer
+Assets/Toon Fantasy Nature/Terrain/TFF_Terrain_Grass_1A_D.tif
+Assets/Toon Fantasy Nature/Terrain/TFF_Terrain_Sand_1A_D.tif
+Assets/Toon Fantasy Nature/Terrain/TFF_Terrain_Grass_1A_D.tif.meta
+Assets/Toon Fantasy Nature/Terrain/TFF_Terrain_Sand_1A_D.tif.meta
