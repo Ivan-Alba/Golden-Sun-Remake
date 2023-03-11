@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
         {
             party.Add(GameObject.Find("Isaac"));
             party.Add(GameObject.Find("Garet"));
+
         }
 
         DontDestroyOnLoad(gameObject);

@@ -295,12 +295,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xp: 9
-  gold: 7
+  xp: 12
+  gold: 9
   ph: 1
-  itemEasyDrop: 
+  itemEasyDrop: Herb
   itemRareDrop: 
-  itemVeryRareDrop: 
+  itemVeryRareDrop: Life_Water
+  itemEasyRatio: 25
+  itemRareRatio: 0
+  itemVeryRareRatio: 1
 --- !u!1 &2963706915915002197
 GameObject:
   m_ObjectHideFlags: 0

@@ -39,6 +39,7 @@ public class BattleManager : MonoBehaviour
     //RESULTS SCREEN
     ResultsScreenController resultsController;
     int totalXpEarned, totalPhEarned, totalGoldEarned;
+    Dictionary<Item, int> totalItemsObtained;
 
     //BATTLE FIELD POSITIONS
     GameObject battleField;
@@ -68,9 +69,9 @@ public class BattleManager : MonoBehaviour
     private void Awake()
     {
         mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        victoryMusic = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Music/FanfareVictory.ogg");
-        gameOverMusic = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Music/GameOverMusic.ogg");
-        battleMusic = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Music/battleMusic.mp3");
+        victoryMusic = Resources.Load("Music/FanfareVictory") as AudioClip;
+        gameOverMusic = Resources.Load("Music/GameOverMusic") as AudioClip;
+        battleMusic = Resources.Load("Music/battleMusic") as AudioClip;
         logoTransition = transform.Find("LogoCross").gameObject.GetComponent<Animator>();
         player = GameObject.Find("Player");
         musicController = GameObject.Find("MusicController").GetComponent<AudioSource>();
@@ -85,8 +86,10 @@ public class BattleManager : MonoBehaviour
         //Result screen controller
         resultsController = transform.Find("ResultsScreen").GetComponent<ResultsScreenController>();
         fieldMusic = musicController.clip;
-
         battleUIController = transform.GetComponent<BattleUIController>();
+        //Total Items Rresult
+        totalItemsObtained = new Dictionary<Item, int>();
+
 
         //BATTLE FIELD SETTINGS HERO POSITIONS AND UI HERO INFO PANELS
         battleField = transform.Find("BattleField").gameObject;
@@ -94,11 +97,13 @@ public class BattleManager : MonoBehaviour
         {
             heroPositions[i] = battleField.transform.Find($"Hero{i}").gameObject;
             if (i < GameManager.instance.GetParty().Count)
-            battleUIController.SetHeroInfoPanel(i);
+                battleUIController.SetHeroInfoPanel(i);
         }
 
         minimap = GameObject.FindGameObjectWithTag("Minimap");
     }
+
+
 
     // Update is called once per frame
     void Update()
@@ -177,7 +182,8 @@ public class BattleManager : MonoBehaviour
                     }
                 }
             }
-        } else
+        }
+        else
 
         if (selectingTarget) //Selectint target/s for command selected
         {
@@ -226,7 +232,8 @@ public class BattleManager : MonoBehaviour
                 selectingTarget = false;
                 StartCoroutine(PerformAction());
             }
-        } else if (choosingList)
+        }
+        else if (choosingList)
         {
 
             if (Input.GetKeyDown(KeyCode.R)) //Returns back to choose a new command
@@ -267,7 +274,7 @@ public class BattleManager : MonoBehaviour
     }
 
     //TODO ENEMIGOS DE OTRAS FUENTES
-    public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null, 
+    public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null,
         List<GameObject> preSetEnemies = null)
     {
 
@@ -289,7 +296,7 @@ public class BattleManager : MonoBehaviour
         musicController.Play();
 
         //START BATTLE TRANSITION
-        StartCoroutine(StartBattle(enemyInitiator)); 
+        StartCoroutine(StartBattle(enemyInitiator));
     }
 
     private IEnumerator StartBattle(GameObject firstEnemy)
@@ -306,7 +313,7 @@ public class BattleManager : MonoBehaviour
         //SET HEROS
         int i = 0;
         if (GameManager.instance.GetParty().Count <= 2) i = 1;
-        
+
         foreach (GameObject hero in GameManager.instance.GetParty())
         {
             fighters.Add(hero);
@@ -393,7 +400,7 @@ public class BattleManager : MonoBehaviour
     {
         battleUIController.ShowBattleCanvas(true);
         turnsOrdered = turnController.SetTurns(fighters);
-        turnController.CurrentFighter.GetComponent<FighterController>().StartsTurn();       
+        turnController.CurrentFighter.GetComponent<FighterController>().StartsTurn();
 
         waitingAction = true;
     }
@@ -420,7 +427,8 @@ public class BattleManager : MonoBehaviour
                 {
                     //ESCOGER TARGET ALEATORIAMENTE ENTRE LOS HEROES
                     targetStats = turnController.CurrentFighter.SelectRandomEnemy(heroList).GetComponent<FighterStats>();
-                } else
+                }
+                else
                 {
                     targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
                 }
@@ -448,9 +456,51 @@ public class BattleManager : MonoBehaviour
             if (targetStats.gameObject.CompareTag("Enemy"))
             {
                 //ENEMY DEFEATED
+
                 totalXpEarned += targetStats.transform.GetComponent<EnemyDrop>().Xp;
                 totalGoldEarned += targetStats.transform.GetComponent<EnemyDrop>().Gold;
                 totalPhEarned += targetStats.transform.GetComponent<EnemyDrop>().Ph;
+
+                Item itemToAdd = null;
+                //Randomize loot
+                float randomDrop = Random.Range(0f, 100f);
+                if (targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareRatio)
+                {
+                    itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop);
+                }
+                else
+                {
+                    randomDrop = Random.Range(0f, 100f);
+                    if (targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemRareRatio)
+                    {
+                        itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop);
+                    }
+                    else
+                    {
+                        randomDrop = Random.Range(0f, 100f);
+                        if (targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemEasyRatio)
+                        {
+                            itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop);
+
+                        }
+                    }
+
+                }
+
+                if (itemToAdd != null)
+                {
+                    if (totalItemsObtained.ContainsKey(itemToAdd))
+                    {
+                        totalItemsObtained[itemToAdd] += 1;
+                    }
+                    else
+                    {
+                        totalItemsObtained.Add(itemToAdd, 1);
+                    }
+                }
+
+                //----------------------------------------------------
+
 
                 fighters.Remove(targetStats.gameObject);
                 Destroy(targetStats.gameObject);
@@ -480,8 +530,8 @@ public class BattleManager : MonoBehaviour
         else if (deadHeroes == heroList.Count)
         {
             GameOver();
-        } 
-        else 
+        }
+        else
         {
             TurnFinished();
         }
@@ -514,7 +564,7 @@ public class BattleManager : MonoBehaviour
         yield return new WaitForSeconds(3);
 
         //SHOW RESULTS
-        StartCoroutine(resultsController.ShowResults(heroList, totalXpEarned, totalPhEarned, totalGoldEarned));
+        StartCoroutine(resultsController.ShowResults(heroList, totalXpEarned, totalPhEarned, totalGoldEarned, totalItemsObtained));
         while (!resultsController.ResultsFinished)
         {
             yield return null;

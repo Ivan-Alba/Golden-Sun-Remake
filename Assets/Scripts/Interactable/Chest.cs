@@ -43,6 +43,8 @@ public class Chest : Interactable
         StartCoroutine(notifController.AddNotification($"Has obtenido: {itemFounded.ItemName}", itemFounded.Icon));
         InventoryController.Instance.AddItem(itemSlug);
 
+        yield return new WaitForSeconds(1);
+
         player.GetComponent<PlayerController>().StopPlayerController = false;
 
     }

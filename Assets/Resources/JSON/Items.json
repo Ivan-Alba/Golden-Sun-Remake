@@ -29,7 +29,7 @@
 
     {
       "$type":"Consumable, Assembly-CSharp",
-      "ItemName":"Antidoto",
+      "ItemName":"Antídoto",
       "ItemDescription":"Cura el estado veneno",
       "ItemSlug":"Antidote",
       "ItemPrice": 30,
@@ -38,21 +38,10 @@
       "UseInMenu" : true
     },
 
-     {
-      "$type":"Consumable, Assembly-CSharp",
-      "ItemName":"Antidoto",
-      "ItemDescription":"Cura el estado veneno",
-      "ItemSlug":"Antidote",
-      "ItemPrice": 30,
-      "CanSell" : true,
-      "ObjectType" : "Item", 
-      "UseInMenu" : true
-    },
-
-     {
+    {
       "$type":"Consumable, Assembly-CSharp",
       "ItemName":"Agua de vida",
-      "ItemDescription":"Trae de vuelta a un aliado ca�do",
+      "ItemDescription":"Trae de vuelta a un aliado caído",
       "ItemSlug":"Life_Water",
       "ItemPrice": 1000,
       "CanSell" : true,
@@ -93,6 +82,18 @@
       "UseInMenu" : false
     },
 
+    
+    {
+      "$type":"Equipable, Assembly-CSharp",
+      "ItemName":"Telaraña",
+      "ItemDescription":"Tela pegajosa obtenida de las arañas. Se utiliza para crear objetos.",
+      "ItemSlug":"Spiderweb",
+      "ItemPrice": 80,
+      "CanSell" : true,
+      "ObjectType" : "Resource", 
+      "UseInMenu" : false
+    },
+
     {
       "$type":"Equipable, Assembly-CSharp",
       "ItemName":"Estrella de Marte",
@@ -103,6 +104,7 @@
       "ObjectType" : "Special", 
       "UseInMenu" : false
     }
+
 
   ]
 }

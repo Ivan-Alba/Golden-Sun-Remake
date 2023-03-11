@@ -2668,20 +2668,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Seta verdosa
-  level: 2
-  maxHp: 45
-  currHp: 45
-  maxPp: 12
-  currPp: 12
-  strenght: 7
-  defense: 4
-  wisdom: 9
-  spirit: 8
-  agility: 7
-  luck: 5
+  _name: "Ara\xF1a"
+  level: 4
+  maxHp: 220
+  currHp: 220
+  maxPp: 14
+  currPp: 14
+  strenght: 10
+  defense: 6
+  wisdom: 8
+  spirit: 10
+  agility: 9
+  luck: 7
   avatar: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
-  xp: 50
+  xp: 0
 --- !u!114 &7902641766905574895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2706,9 +2706,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xp: 50
-  gold: 8
+  xp: 90
+  gold: 20
   ph: 1
-  itemEasyDrop: 
-  itemRareDrop: 
-  itemVeryRareDrop: 
+  itemEasyDrop: Spiderweb
+  itemRareDrop: Antidote
+  itemVeryRareDrop: Metal_Bracelet
+  itemEasyRatio: 30
+  itemRareRatio: 10
+  itemVeryRareRatio: 3

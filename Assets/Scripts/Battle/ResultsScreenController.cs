@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Xml;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +9,7 @@ using UnityEngine.UI;
 public class ResultsScreenController : MonoBehaviour
 {
     TextMeshProUGUI xpText, phText, goldText, heroName, heroLevel, heroNextLevel, confirmText;
+    GameObject itemsPanel;
     Slider xpBar;
     Sounds resultSounds;
     List<GameObject> heroList = new List<GameObject>();
@@ -20,6 +23,7 @@ public class ResultsScreenController : MonoBehaviour
         xpText = transform.Find("InfoPanel").Find("XpPanel").Find("XpText").GetComponent<TextMeshProUGUI>();
         phText = transform.Find("InfoPanel").Find("PhPanel").Find("PhText").GetComponent<TextMeshProUGUI>();
         goldText = transform.Find("InfoPanel").Find("GoldPanel").Find("GoldText").GetComponent<TextMeshProUGUI>();
+        itemsPanel = transform.Find("InfoPanel").Find("ItemPanel").gameObject;
         confirmText = transform.Find("PressConfirm").gameObject.GetComponent<TextMeshProUGUI>();
         confirmText.SetText($"Pulsa {GameManager.instance.KeyConfirm} para continuar");
 
@@ -71,11 +75,12 @@ public class ResultsScreenController : MonoBehaviour
         }
 
     }
-    public IEnumerator ShowResults(List<GameObject> heroList, int xpEarned, int phEarned, int goldEarned)
+    public IEnumerator ShowResults(List<GameObject> heroList, int xpEarned, int phEarned, int goldEarned, Dictionary<Item, int> totalItemsObtained)
     {
+
         this.heroList = heroList;
         SetInitConfig();
-        
+
         //CROSSFADE
         while (gameObject.GetComponent<CanvasGroup>().alpha < 1)
         {
@@ -85,17 +90,40 @@ public class ResultsScreenController : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
 
-        //RCOMPENSAS DE XP, ITEMS, ETC
+        //----------------------RECOMPENSAS DE XP, ITEMS, ETC--------------------------------
+
+        //------------------ITEMS------------------
+        int initY = 130;
+        int offsetY = 60;
+        int iterat = 0;
+        foreach (KeyValuePair<Item, int> entry in totalItemsObtained)
+        {
+            // do something with entry.Value or entry.Key
+            Debug.Log($"Enemigo deja caer: {entry.Key.ItemName}");
+            GameObject newItem = Instantiate(Resources.Load("Prefabs/ResultScreenItem"), itemsPanel.transform) as GameObject;
+            newItem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 290);
+            newItem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, 0, initY + (offsetY * iterat));
+            newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = entry.Key.ItemName;
+            newItem.transform.Find("ElementIcon").gameObject.SetActive(false);
+            newItem.transform.Find("Icon").GetComponent<Image>().sprite = entry.Key.Icon;
+            newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().text = entry.Value.ToString();
+            for (int i = 0; i < entry.Value; i++)
+            {
+                InventoryController.Instance.AddItem(entry.Key.ItemSlug);
+            }
+            iterat++;
+        }
 
 
-        //-------------------ANIMATE NUMBERS AND BAR CONFIGURATION---------------------------
+
+        //--ANIMATE NUMBERS AND BAR CONFIGURATION--
         int previousValue = 0;
         int stepAmount;
         int countFPS = 30;
         float duration = 0.4f;
         WaitForSeconds Wait = new WaitForSeconds(duration / countFPS);
 
-        //-----------------XP----------------------
+        //-------------------XP--------------------
         resultSounds.PlaySound(0);
         stepAmount = Mathf.CeilToInt((xpEarned - previousValue) / (countFPS * duration));
 
@@ -117,7 +145,8 @@ public class ResultsScreenController : MonoBehaviour
                 {
                     transform.Find("HeroPanel").Find($"Hero{i}").GetComponent<CanvasGroup>().alpha = 0.5f;
 
-                } else
+                }
+                else
                 {
                     FighterStats heroStats = heroList[i].GetComponent<FighterStats>();
                     xpBar = transform.Find("HeroPanel").Find($"Hero{i}").Find("XpBar").GetComponent<Slider>();
@@ -209,6 +238,13 @@ public class ResultsScreenController : MonoBehaviour
         {
             transform.Find("HeroPanel").Find($"Hero{i}").gameObject.SetActive(false);
             transform.Find("HeroPanel").Find($"Hero{i}").GetComponent<CanvasGroup>().alpha = 1;
+        }
+        for (int i = 0; i < itemsPanel.transform.childCount; i++)
+        {
+            if (itemsPanel.transform.GetChild(i).gameObject.name != "Items")
+            {
+                Destroy(itemsPanel.transform.GetChild(i).gameObject);
+            }
         }
     }
 }

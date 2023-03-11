@@ -1942,12 +1942,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _name: Cangretante
-  level: 6
+  level: 7
   maxHp: 320
   currHp: 320
   maxPp: 20
   currPp: 20
-  strenght: 13
+  strenght: 14
   defense: 10
   wisdom: 7
   spirit: 8
@@ -2142,8 +2142,11 @@ MonoBehaviour:
   gold: 90
   ph: 2
   itemEasyDrop: 
-  itemRareDrop: 
-  itemVeryRareDrop: 
+  itemRareDrop: Nut
+  itemVeryRareDrop: Great_Axe
+  itemEasyRatio: 0
+  itemRareRatio: 10
+  itemVeryRareRatio: 2
 --- !u!1 &6772819039177238622
 GameObject:
   m_ObjectHideFlags: 0
