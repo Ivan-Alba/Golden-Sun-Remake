@@ -147,12 +147,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.Q) && aiming)
         {
-            gameObject.GetComponent<PlayerAiming>().Reset();
-            mainCamera.GetComponent<Camera>().enabled = true;
-            aimCamera.enabled = false;
-            aimImageUI.SetActive(false);
-            transform.GetComponent<PlayerAiming>().enabled = false;
-            aiming = false;
+            StopAiming();
         }
 
 
@@ -256,6 +251,10 @@ public class PlayerController : MonoBehaviour
         //OPEN MAIN MENU
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            if (aiming)
+            {
+                StopAiming();
+            }
 
             stopPlayerController = true;
             mainMenu.SetActive(true);
@@ -264,6 +263,16 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    private void StopAiming()
+    {
+        gameObject.GetComponent<PlayerAiming>().Reset();
+        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, transform.eulerAngles.z);
+        mainCamera.GetComponent<Camera>().enabled = true;
+        aimCamera.enabled = false;
+        aimImageUI.SetActive(false);
+        transform.GetComponent<PlayerAiming>().enabled = false;
+        aiming = false;
+    }
     private void FixedUpdate()
     {
         //RAYCAST
@@ -291,8 +300,8 @@ public class PlayerController : MonoBehaviour
     {
         for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
         {
-            partyInfoBar.transform.GetChild(i).transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
-            partyInfoBar.transform.GetChild(i).transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
+            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
             partyInfoBar.transform.GetChild(i).transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
                 ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
             partyInfoBar.transform.GetChild(i).transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText

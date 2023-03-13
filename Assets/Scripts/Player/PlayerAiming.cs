@@ -8,10 +8,11 @@ public class PlayerAiming : MonoBehaviour
     public Cinemachine.AxisState yAxis;
 
     private Transform cameraLookAt;
+    private Transform aimParent;
 
     private void Awake()
     {
-        cameraLookAt = transform.Find("Aim").Find("CameraLookAt");
+        aimParent = transform.Find("Aim");
     }
 
     private void OnEnable()
@@ -30,7 +31,27 @@ public class PlayerAiming : MonoBehaviour
     {
         xAxis.Update(Time.fixedDeltaTime);
         yAxis.Update(Time.fixedDeltaTime);
-        cameraLookAt.eulerAngles = new Vector3(yAxis.Value, xAxis.Value, 0);
-        transform.eulerAngles = new Vector3(yAxis.Value,xAxis.Value, transform.eulerAngles.z);
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x ,xAxis.Value, transform.eulerAngles.z);
+        aimParent.eulerAngles = new Vector3(yAxis.Value, xAxis.Value, 0);
+
+        Ray ray = aimParent.Find("AimCamera").GetComponent<Camera>().ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit))
+        {
+
+            if (hit.transform.gameObject != null)
+            {
+               
+
+            }
+            else
+            {
+                
+            }
+            Debug.Log("RayHit = " + hit.transform.gameObject.name);
+        }
+
+
+
     }
 }

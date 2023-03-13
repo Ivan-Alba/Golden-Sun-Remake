@@ -74,6 +74,7 @@ public class FighterStats : MonoBehaviour
         CharacterStats.Add(new BaseStat(agility, ((Stats)8).ToString(), "Influye en la velocidad en batalla"));
         CharacterStats.Add(new BaseStat(luck, ((Stats)9).ToString(), "Influye en la capacidad de crítico"));
 
+        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
