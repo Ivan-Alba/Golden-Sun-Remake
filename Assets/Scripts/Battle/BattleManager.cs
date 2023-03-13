@@ -273,6 +273,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+
     //TODO ENEMIGOS DE OTRAS FUENTES
     public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null,
         List<GameObject> preSetEnemies = null)
@@ -316,8 +317,12 @@ public class BattleManager : MonoBehaviour
 
         foreach (GameObject hero in GameManager.instance.GetParty())
         {
-            fighters.Add(hero);
-            heroList.Add(hero);
+            //IF HERO IS ALIVE
+            if (hero.GetComponent<FighterStats>().CurrHp != 0)
+            {
+                fighters.Add(hero);
+                heroList.Add(hero);
+            }
             //HERO POSITIONS
             hero.transform.position = heroPositions[i++].transform.position;
         }
@@ -426,7 +431,7 @@ public class BattleManager : MonoBehaviour
                 if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
                 {
                     //ESCOGER TARGET ALEATORIAMENTE ENTRE LOS HEROES
-                    targetStats = turnController.CurrentFighter.SelectRandomEnemy(heroList).GetComponent<FighterStats>();
+                    targetStats = turnController.CurrentFighter.SelectRandomTarget(heroList).GetComponent<FighterStats>();
                 }
                 else
                 {
@@ -511,6 +516,9 @@ public class BattleManager : MonoBehaviour
             {
                 deadHeroes = 0;
                 //HERO DEFEATED
+                fighters.Remove(targetStats.gameObject);
+
+
                 foreach (GameObject hero in heroList) //CONTAMOS CUANTOS HEROES HAY MUERTOS
                 {
                     if (hero.GetComponent<FighterStats>().CurrHp <= 0)
@@ -627,6 +635,7 @@ public class BattleManager : MonoBehaviour
     {
         GameObject crossfade = transform.Find("Crossfade").gameObject;
         crossfade.SetActive(true);
+        crossfade.transform.Find("GameOver").gameObject.SetActive(true);
         crossfade.GetComponent<Animator>().SetTrigger("start");
         musicController.clip = gameOverMusic;
         musicController.Play();

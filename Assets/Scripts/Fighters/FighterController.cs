@@ -196,7 +196,7 @@ public class FighterController : MonoBehaviour
         fighterAnim.SetBool("defense", false);
     }
 
-    public GameObject SelectRandomEnemy(List<GameObject> fighters)
+    public GameObject SelectRandomTarget(List<GameObject> fighters)
     {
         GameObject targetSelected = null;
         if (gameObject.CompareTag("Hero"))

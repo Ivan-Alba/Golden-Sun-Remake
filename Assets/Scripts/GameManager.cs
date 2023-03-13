@@ -58,6 +58,22 @@ public class GameManager : MonoBehaviour
 
     }
 
+
+    public void ChangeGameSpeed()
+    {
+        Debug.Log("Change game speed:");
+        if (Time.timeScale == 2f)
+        {
+            Time.timeScale = 1f;
+            Debug.Log($"SpeedChanged to {Time.timeScale}");
+        }
+        else
+        {
+            Time.timeScale = 2f;
+            Debug.Log($"SpeedChanged to {Time.timeScale}");
+
+        }
+    }
     // Start is called before the first frame update
     void Start()
     {

@@ -35,11 +35,10 @@ public class Ai : MonoBehaviour
     }
     private void Update()
     {
-
         //Check if player is inside alert radius of enemy
         followingPlayer = Physics.CheckSphere(transform.position, followRadius, playerMask);
 
-
+        //Following player
         if (followingPlayer && Vector3.Distance(player.transform.position, transform.parent.gameObject.transform.position) <= maxFollowDistance)
         {
             StopAllCoroutines();
@@ -57,7 +56,6 @@ public class Ai : MonoBehaviour
             {
                 StartCoroutine(Roaming());
                 canMove = false;
-
             }
             animator.SetFloat("Move", agent.velocity.magnitude);
         }
@@ -65,6 +63,14 @@ public class Ai : MonoBehaviour
 
     }
 
+    public void CollissionWithPlayer()
+
+    {
+        followingPlayer = false;
+        followSpeed = 0;
+        transform.GetComponent<Animator>().enabled = false;
+        transform.GetComponent<NavMeshAgent>().enabled = false;
+    }
 
     private IEnumerator Roaming()
     {

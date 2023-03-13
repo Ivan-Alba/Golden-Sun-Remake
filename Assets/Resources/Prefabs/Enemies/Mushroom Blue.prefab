@@ -219,7 +219,7 @@ Transform:
   m_GameObject: {fileID: 1522870604737576521}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.00000058114523}
   m_LocalPosition: {x: 278.38, y: 3, z: 78.3}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1528632710931549595}
@@ -483,10 +483,10 @@ MonoBehaviour:
   gold: 9
   ph: 1
   itemEasyDrop: Herb
-  itemRareDrop: 
-  itemVeryRareDrop: Life_Water
   itemEasyRatio: 25
+  itemRareDrop: 
   itemRareRatio: 0
+  itemVeryRareDrop: Life_Water
   itemVeryRareRatio: 1
 --- !u!1 &1523180442495747819
 GameObject:

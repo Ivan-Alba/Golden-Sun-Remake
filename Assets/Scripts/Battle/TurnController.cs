@@ -10,8 +10,8 @@ public class TurnController : MonoBehaviour
     FighterController currentFighter;
 
     bool firstTurn = true;
-    int maxTurnBoxes;
-    
+    int maxTurnBoxes = 6;
+
     //LIST WITH TURNS OF FIGHTERS
     List<KeyValuePair<GameObject, int>> turnsOrdered;
 

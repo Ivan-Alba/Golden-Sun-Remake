@@ -88,7 +88,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (StopPlayerController)
+        if (StopPlayerController) //IF CONTROLER STOPPED
         {
             staminaBar.SetActive(false);
             return;
