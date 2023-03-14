@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
     GameObject objectHit;
 
     //-------------UI ELEMENTS---------------//
+    Transform playerCanvas;
     //Stamina bar
     private GameObject iconCanvas;
     private GameObject staminaBar;
@@ -38,6 +39,10 @@ public class PlayerController : MonoBehaviour
     //Character Info Bar
     GameObject partyInfoBar;
     bool partyInfoBarActive;
+
+    //-----------------------------------------------------------
+
+
 
     /**
      * WEAPON HIT WORLD MAP
@@ -65,6 +70,9 @@ public class PlayerController : MonoBehaviour
         audioSource = gameObject.GetComponent<AudioSource>();
         //weaponCollider = weaponObject.GetComponent<BoxCollider>();
 
+
+        //-----PLAYER UI------
+        playerCanvas = transform.Find("PlayerCanvas");
         //Stamina bar
         iconCanvas = transform.Find("IconCanvas").gameObject;
         staminaBar = iconCanvas.transform.Find("StaminaBar").gameObject;
@@ -75,11 +83,11 @@ public class PlayerController : MonoBehaviour
         mainMenu.SetActive(false);
 
         //Minimap
-        minimap = transform.Find("PlayerCanvas").Find("Minimap").gameObject;
+        minimap = playerCanvas.Find("Minimap").gameObject;
 
         //Aim
         aimCamera = transform.Find("Aim").Find("AimCamera").GetComponent<Camera>();
-        aimImageUI = transform.Find("PlayerCanvas").transform.Find("Aim").gameObject;
+        aimImageUI = playerCanvas.transform.Find("Aim").gameObject;
 
         //PartyInfoBar
         partyInfoBar = transform.Find("PlayerCanvas").Find("PartyInfoBar").gameObject;
@@ -97,7 +105,8 @@ public class PlayerController : MonoBehaviour
         if (GameManager.instance.InBattle) //IF BATTLE DISABLE UPDATE
         {
             staminaBar.SetActive(false);
-            if (partyInfoBarActive) {
+            if (partyInfoBarActive)
+            {
                 StartCoroutine(ShowPartyInfoBar(false));
             }
             return;
@@ -109,7 +118,41 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //INTERACT 
+
+        //----------------CHANGE HERO-------------------
+
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            GameManager.instance.ChangeActiveHero(1);
+            RefreshPartyInfo();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            GameManager.instance.ChangeActiveHero(2);
+            RefreshPartyInfo();
+
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            GameManager.instance.ChangeActiveHero(3);
+            RefreshPartyInfo();
+
+        }
+
+
+        //--------CHANGE PSYNERGY SHORTCUTS----------
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            //USE PSYNERGY 1 IN CLOSE OBJECT
+
+        } else if (Input.GetKey(KeyCode.Alpha1))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel();
+        }
+
+        //-----------------INTERACT -------------
         if (objectHit != null & objectHit.CompareTag("Interactable") &&
             Vector3.Distance(objectHit.transform.position, transform.position) < 2) //IF CLOSE AN INTERACTABLE OBJECT
         {
@@ -149,6 +192,9 @@ public class PlayerController : MonoBehaviour
         {
             StopAiming();
         }
+
+        //-----------WORLD PSYNERGY----------
+
 
 
         //-------------MOVEMENT--------------

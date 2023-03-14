@@ -29,6 +29,10 @@ public class GameManager : MonoBehaviour
     public bool InBattle { get => inBattle; set => inBattle = value; }
     public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
 
+    private GameObject activeHero;
+
+    public GameObject ActiveHero { get => activeHero; set => activeHero = value; }
+
     public KeyCode KeyCancel => KEY_CANCEL;
 
     public List<GameObject> GetParty()
@@ -54,6 +58,8 @@ public class GameManager : MonoBehaviour
 
         }
 
+        activeHero = party[0];
+
         DontDestroyOnLoad(gameObject);
 
     }
@@ -74,10 +80,20 @@ public class GameManager : MonoBehaviour
 
         }
     }
-    // Start is called before the first frame update
-    void Start()
+  
+    public void ChangeActiveHero(int index)
     {
+        if (party.Count > index)
+        {
+            //Cambiamos hero de posición
+            GameObject currentHero = party[0];
+            party[0] = party[index];
+            party[index] = currentHero;
+            activeHero = party[0];
+        }
     }
+
+
 
     // Update is called once per frame
     void Update()

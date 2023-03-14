@@ -12,6 +12,7 @@ TagManager:
   - Interactable
   - ContentScrollView
   - Minimap
+  - CatchReactive
   layers:
   - Default
   - TransparentFX
