@@ -149,7 +149,52 @@ public class PlayerController : MonoBehaviour
 
         } else if (Input.GetKey(KeyCode.Alpha1))
         {
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel();
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 0);
+        } else if (Input.GetKeyUp(KeyCode.Alpha1))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            //USE PSYNERGY 2 IN CLOSE OBJECT
+
+        }
+        else if (Input.GetKey(KeyCode.Alpha2))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 1);
+        }
+        else if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 1);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            //USE PSYNERGY 3 IN CLOSE OBJECT
+
+        }
+        else if (Input.GetKey(KeyCode.Alpha3))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 2);
+        }
+        else if (Input.GetKeyUp(KeyCode.Alpha3))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 2);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            //USE PSYNERGY 4 IN CLOSE OBJECT
+
+        }
+        else if (Input.GetKey(KeyCode.Alpha4))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 3);
+        }
+        else if (Input.GetKeyUp(KeyCode.Alpha4))
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 3);
         }
 
         //-----------------INTERACT -------------

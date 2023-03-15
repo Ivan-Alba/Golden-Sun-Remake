@@ -26,7 +26,7 @@ public class PlayerAiming : MonoBehaviour
         {
             
             //PSINERGIA ASIGNADA A 1 BUSCAR TAG EN JSON
-            Psynergy usedPsynergy = (Psynergy)PsynergyWorldController.Instance.HeroShortcuts[GameManager.instance.ActiveHero].GetValue(0);
+            Psynergy usedPsynergy = (Psynergy)PsynergyWorldController.Instance.HeroShortcuts[GameManager.instance.ActiveHero.name].GetValue(0);
             if (usedPsynergy != null)
             {
                 Debug.Log($"Has usado la psinergía: {usedPsynergy.SlugName}");

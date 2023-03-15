@@ -59,9 +59,6 @@ public class GameManager : MonoBehaviour
         }
 
         activeHero = party[0];
-
-        DontDestroyOnLoad(gameObject);
-
     }
 
 
@@ -90,6 +87,7 @@ public class GameManager : MonoBehaviour
             party[0] = party[index];
             party[index] = currentHero;
             activeHero = party[0];
+            PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
         }
     }
 
