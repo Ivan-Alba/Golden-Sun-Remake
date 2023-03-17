@@ -8,14 +8,14 @@ public class PsynergyWorldController : MonoBehaviour
 {
     public static PsynergyWorldController Instance { get; set; }
 
-    public Dictionary<string, Psynergy[]> heroShortcuts;
+    public Dictionary<GameObject, Psynergy[]> heroShortcuts;
 
     //UI
     GameObject psynergyPanel;
     Transform psynergyChoosePanel;
     int chooseIndex;
 
-    public Dictionary<string, Psynergy[]> HeroShortcuts { get => heroShortcuts; set => heroShortcuts = value; }
+    public Dictionary<GameObject, Psynergy[]> HeroShortcuts { get => heroShortcuts; set => heroShortcuts = value; }
 
     private void Awake()
     {
@@ -28,7 +28,7 @@ public class PsynergyWorldController : MonoBehaviour
             Instance = this;
             psynergyPanel = GameObject.Find("PsynergyPanel");
             psynergyChoosePanel = psynergyPanel.transform.Find("PsynergyChoosePanel");
-            heroShortcuts = new Dictionary<string, Psynergy[]>();
+            heroShortcuts = new Dictionary<GameObject, Psynergy[]>();
         }
     }
 
@@ -39,32 +39,32 @@ public class PsynergyWorldController : MonoBehaviour
 
     public void Initialize()
     {
-        
+
         for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
         {
             Psynergy[] newPsynergyLayer = new Psynergy[4];
-            heroShortcuts.Add(GameManager.instance.GetParty()[i].name, newPsynergyLayer);
+            heroShortcuts.Add(GameManager.instance.GetParty()[i], newPsynergyLayer);
         }
         ResfreshShortcutsUI(GameManager.instance.ActiveHero);
     }
 
     public void SetShortcut(GameObject hero, Psynergy psynergy, int position)
     {
-        if (HeroShortcuts.ContainsKey(hero.name))
+        if (HeroShortcuts.ContainsKey(hero))
         {
             //Recuperamos psinergías ya asignadas
 
             for (int i = 0; i < 4; i++)
             {
-                Psynergy currentShortcut = (Psynergy)HeroShortcuts[hero.name].GetValue(i);
+                Psynergy currentShortcut = (Psynergy)HeroShortcuts[hero].GetValue(i);
                 if (i == position)
                 {
                     //Cambiamos psinergía posición
                     currentShortcut = psynergy;
                 }
-                Debug.Log(hero.name);
+                Debug.Log(hero);
                 //Introducimos el array en el dictionary de heroes con la psinergía cambiada
-                HeroShortcuts[hero.name].SetValue(currentShortcut, i);
+                HeroShortcuts[hero].SetValue(currentShortcut, i);
 
             }
         }
@@ -72,13 +72,136 @@ public class PsynergyWorldController : MonoBehaviour
         ResfreshShortcutsUI(hero);
     }
 
+
+    public void UsePsynergy(int position, GameObject target)
+    {
+        Psynergy usedPsynergy = (Psynergy)HeroShortcuts[GameManager.instance.ActiveHero].GetValue(position);
+        if (usedPsynergy != null)
+        {
+            if (target != null)
+            {
+                Debug.Log($"Has usado la psinergía: {usedPsynergy.SlugName} en {target.name}");
+                //Comprobamos si el tag coincide con la psinergía usada
+                if (target.tag == $"{usedPsynergy.SlugName}Reactive")
+                {
+                    //LLAMAR SCRIPT REACTIVO PARA ACTUAR
+                    target.GetComponent<PsynergyReactive>().React();
+
+                }
+
+            } else
+            {
+                //AUTOTARGET?
+            }
+        }
+    }
+
     public void ChoosePanelMoveUp()
     {
+        chooseIndex--;
+        RefreshPsynergyChoosePanel();
+    }
+
+    public void ChoosePanelMoveDown()
+    {
+        chooseIndex++;
+        RefreshPsynergyChoosePanel();
+    }
+    public void RefreshPsynergyChoosePanel()
+    {
+        List<Psynergy> allPsynergies = GameManager.instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
+        List<Psynergy> worldPsynergies = new List<Psynergy>();
+
+        for (int i = 0; i < allPsynergies.Count; i++)
+        {
+            if (allPsynergies[i].IsWorldPsynergy)
+            {
+                worldPsynergies.Add(allPsynergies[i]);
+            }
+        }
+
+        if (chooseIndex < 0)
+        {
+            chooseIndex = worldPsynergies.Count - 1;
+        }
+        else if (chooseIndex >= worldPsynergies.Count)
+        {
+            chooseIndex = 0;
+        }
+
+        if (worldPsynergies.Count >= 3)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 2)
+                {
+                    if (chooseIndex - 1 < 0)
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[worldPsynergies.Count - 1].SlugName}");
+                    }
+                    else
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex - 1].SlugName}");
+
+                    }
+                }
+                else if (i == 1)
+                {
+                    if (chooseIndex + 1 == worldPsynergies.Count)
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[0].SlugName}");
+
+                    }
+                    else
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex + 1].SlugName}");
+
+                    }
+                }
+                else
+                {
+                    psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex].SlugName}");
+                }
+                psynergyChoosePanel.Find("Mask").Find($"Icon{i}").gameObject.SetActive(true);
+            }
+
+        }
+        else if (worldPsynergies.Count == 2)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == 0)
+                {
+                    psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex].SlugName}");
+                    psynergyChoosePanel.Find("Mask").Find($"Icon{i}").gameObject.SetActive(true);
+                }
+                else if (i == 1)
+                {
+                    if (chooseIndex + 1 >= worldPsynergies.Count)
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[0].SlugName}");
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex + 1].SlugName}");
+                        psynergyChoosePanel.Find("Mask").Find($"Icon{i}").gameObject.SetActive(true);
+                    }
+                }
+
+            }
+        }
+        else if (worldPsynergies.Count == 1)
+        {
+            psynergyChoosePanel.Find("Mask").Find("Icon0").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[0].SlugName}");
+            psynergyChoosePanel.Find("Mask").Find("Icon0").gameObject.SetActive(true);
+        }
 
     }
 
     public void ShowPsynergyChoosePanel(bool active, int position)
     {
+
         List<Psynergy> allPsynergies = GameManager.instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
         List<Psynergy> worldPsynergies = new List<Psynergy>();
 
@@ -132,6 +255,7 @@ public class PsynergyWorldController : MonoBehaviour
         {
             SetShortcut(GameManager.instance.ActiveHero, worldPsynergies[chooseIndex], position);
             psynergyChoosePanel.gameObject.SetActive(false);
+            chooseIndex = 0;
         }
     }
 
@@ -143,9 +267,9 @@ public class PsynergyWorldController : MonoBehaviour
         {
             GameObject iconObject = psynergyPanel.transform.Find($"Icon{i}").gameObject;
 
-            if (heroShortcuts[hero.name] != null)
+            if (heroShortcuts[hero] != null)
             {
-                Psynergy currentPsynergy = (Psynergy)HeroShortcuts[hero.name].GetValue(i);
+                Psynergy currentPsynergy = (Psynergy)HeroShortcuts[hero].GetValue(i);
 
                 if (currentPsynergy != null)
                 {

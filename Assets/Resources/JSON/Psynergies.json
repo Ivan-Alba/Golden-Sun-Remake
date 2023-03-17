@@ -14,6 +14,18 @@
     },
 
     {
+      "Name":"Mover",
+      "Description":"Permite mover objetos del entorno",
+      "SlugName":"Move",
+      "PpCost": 2,
+      "IsWorldPsynergy" : true,
+      "IsBattlePsynergy" : false,
+      "Type" : "WORLD",
+      "Element": "NoElemental",
+      "TargetType": "NO_TARGET"
+    },
+
+    {
       "Name":"Cura",
       "Description":"Recupera una pequeña cantidad de PV",
       "SlugName":"Cure",
@@ -30,7 +42,7 @@
       "Description":"Inflige pequeños daños de fuego",
       "SlugName":"Flare",
       "PpCost": 4,
-      "IsWorldPsynergy" : false,
+      "IsWorldPsynergy" : true,
       "IsBattlePsynergy" : true,
       "Type" : "ATTACK",
       "Element": "Mars",

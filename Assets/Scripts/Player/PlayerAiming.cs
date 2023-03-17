@@ -24,25 +24,7 @@ public class PlayerAiming : MonoBehaviour
         //KEY 1
         if (!isPsynergyAnimation && Input.GetKey(KeyCode.Alpha1) && target != null)
         {
-            
-            //PSINERGIA ASIGNADA A 1 BUSCAR TAG EN JSON
-            Psynergy usedPsynergy = (Psynergy)PsynergyWorldController.Instance.HeroShortcuts[GameManager.instance.ActiveHero.name].GetValue(0);
-            if (usedPsynergy != null)
-            {
-                Debug.Log($"Has usado la psinergía: {usedPsynergy.SlugName}");
-                //SI TARGET == PSINERGIA TAG
-                if (target.tag == $"{usedPsynergy.SlugName}Reactive")
-                {
-                    //LLAMAR PSINERGÍA USO
-
-                    Destroy(target.gameObject);
-
-                }
-            } else
-            {
-                Debug.Log($"No hay psinergía asignada");
-            }
-
+            PsynergyWorldController.Instance.UsePsynergy(0, target);
         };
     }
 
@@ -63,8 +45,8 @@ public class PlayerAiming : MonoBehaviour
     {
         xAxis.Update(Time.fixedDeltaTime);
         yAxis.Update(Time.fixedDeltaTime);
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, xAxis.Value, transform.eulerAngles.z);
-        aimParent.eulerAngles = new Vector3(yAxis.Value, xAxis.Value, 0);
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, xAxis.Value * 0.3f, transform.eulerAngles.z);
+        aimParent.eulerAngles = new Vector3(yAxis.Value * 0.3f, xAxis.Value * 0.3f, 0);
 
         Ray ray = aimParent.Find("AimCamera").GetComponent<Camera>().ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit hit;

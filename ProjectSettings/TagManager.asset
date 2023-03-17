@@ -13,6 +13,7 @@ TagManager:
   - ContentScrollView
   - Minimap
   - CatchReactive
+  - MoveReactive
   layers:
   - Default
   - TransparentFX

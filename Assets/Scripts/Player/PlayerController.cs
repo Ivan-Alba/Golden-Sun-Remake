@@ -19,7 +19,10 @@ public class PlayerController : MonoBehaviour
     Animator cloackAnim;
     AudioSource audioSource;
     [SerializeField] Transform mainCamera;
+
+    //---Psynergy-----
     GameObject objectHit;
+    bool inChoosePsynergyBar;
 
     //-------------UI ELEMENTS---------------//
     Transform playerCanvas;
@@ -91,6 +94,7 @@ public class PlayerController : MonoBehaviour
 
         //PartyInfoBar
         partyInfoBar = transform.Find("PlayerCanvas").Find("PartyInfoBar").gameObject;
+        
     }
 
     // Update is called once per frame
@@ -117,6 +121,7 @@ public class PlayerController : MonoBehaviour
             staminaBar.SetActive(false);
             return;
         }
+
 
 
         //----------------CHANGE HERO-------------------
@@ -146,55 +151,80 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             //USE PSYNERGY 1 IN CLOSE OBJECT
+            PsynergyWorldController.Instance.UsePsynergy(0, null);
 
-        } else if (Input.GetKey(KeyCode.Alpha1))
+        } else if (Input.GetKey(KeyCode.Alpha1) && !inChoosePsynergyBar)
         {
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 0);
-        } else if (Input.GetKeyUp(KeyCode.Alpha1))
+            inChoosePsynergyBar = true;
+        } else if (Input.GetKeyUp(KeyCode.Alpha1) && inChoosePsynergyBar)
         {
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 0);
+            inChoosePsynergyBar = false;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             //USE PSYNERGY 2 IN CLOSE OBJECT
+            PsynergyWorldController.Instance.UsePsynergy(1, null);
 
         }
-        else if (Input.GetKey(KeyCode.Alpha2))
+        else if (Input.GetKey(KeyCode.Alpha2) && !inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = true;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 1);
         }
-        else if (Input.GetKeyUp(KeyCode.Alpha2))
+        else if (Input.GetKeyUp(KeyCode.Alpha2) && inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = false;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 1);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             //USE PSYNERGY 3 IN CLOSE OBJECT
+            PsynergyWorldController.Instance.UsePsynergy(2, null);
 
         }
-        else if (Input.GetKey(KeyCode.Alpha3))
+        else if (Input.GetKey(KeyCode.Alpha3) && !inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = true;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 2);
         }
-        else if (Input.GetKeyUp(KeyCode.Alpha3))
+        else if (Input.GetKeyUp(KeyCode.Alpha3) && inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = false;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 2);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             //USE PSYNERGY 4 IN CLOSE OBJECT
+            PsynergyWorldController.Instance.UsePsynergy(3, null);
+
 
         }
-        else if (Input.GetKey(KeyCode.Alpha4))
+        else if (Input.GetKey(KeyCode.Alpha4) && !inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = true;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 3);
         }
-        else if (Input.GetKeyUp(KeyCode.Alpha4))
+        else if (Input.GetKeyUp(KeyCode.Alpha4) && inChoosePsynergyBar)
         {
+            inChoosePsynergyBar = false;
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 3);
+        }
+
+        //--------MOVE PSYNERGY BAR-------
+
+        if (inChoosePsynergyBar && Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveUp();
+        }
+
+        if (inChoosePsynergyBar && Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveDown();
         }
 
         //-----------------INTERACT -------------
