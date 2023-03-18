@@ -434,7 +434,7 @@ public class InventoryUI : MonoBehaviour
             option.GetComponent<TextMeshProUGUI>().color = Color.white;
         }
         gameObject.SetActive(false);
-        gameObject.transform.parent.GetComponent<MenuController>().BackFromSubmenu();
+        transform.parent.GetComponent<MenuController>().BackFromSubmenu();
     }
 
     private void ItemListGoDown()

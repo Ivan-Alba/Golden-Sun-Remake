@@ -10,8 +10,10 @@ public class HeroEquipment : MonoBehaviour
 
     public static int EquipmentSlots { get => equipmentSlots; set => equipmentSlots = value; }
     public Equipable[] EquippedItems { get => equippedItems; set => equippedItems = value; }
+    public static string[] SlotsName { get => slotsName; set => slotsName = value; }
 
-    public enum slots {
+    public enum slotsIndex
+    {
         WEAPON,
         SHIELD,
         HELMET,
@@ -20,6 +22,15 @@ public class HeroEquipment : MonoBehaviour
         BOOTS,
         SPECIAL
     }
+    private static string[] slotsName = new string[] {
+        "Weapon",
+        "Shield",
+        "Helmet",
+        "Armor",
+        "Hands",
+        "Boots",
+        "Accessory"
+    };
 
     private void Awake()
     {

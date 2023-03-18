@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
 
     public void Start()
     {
-        party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slots.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
+        party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slotsIndex.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
 
     }
 

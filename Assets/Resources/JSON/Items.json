@@ -69,7 +69,7 @@
       "ItemSlug":"Metal_Bracelet",
       "ItemPrice": 350,
       "CanSell" : true,
-      "ObjectType" : "Armor", 
+      "ObjectType" : "Hands", 
       "UseInMenu" : false,
       "StatName" : ["DEFENSE"],
       "StatValue" : [2]
