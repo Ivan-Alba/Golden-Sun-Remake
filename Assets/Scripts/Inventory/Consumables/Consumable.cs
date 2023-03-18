@@ -5,17 +5,12 @@ using UnityEngine;
 
 public class Consumable : Item 
 {
-    /**public Consumable(string _itemSlug, string _itemName, string _itemDescription, string _statBonus, int _value, bool _canSell )
-    {
 
-        this.ItemSlug = itemSlug;
-        this.ItemName = itemName;
-        this.ItemDescription = itemDescription;
-        this.statBonus = statBonus;
-        this.value = value;
-        this.CanSell = canSell;
-    }*/
-    
+    string statBonus;
+    int bonusValue;
+
+    public string StatBonus { get => statBonus; set => statBonus = value; }
+    public int BonusValue { get => bonusValue; set => bonusValue = value; }
 
     public void Consume(FighterStats target, Action<bool, string> callback)
     {

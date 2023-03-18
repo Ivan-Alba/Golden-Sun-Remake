@@ -53,7 +53,7 @@ public class BattleManager : MonoBehaviour
     TurnController turnController;
 
     //Minimap
-    GameObject minimap;
+    GameObject playerCanvas;
 
     BattleUIController battleUIController;
 
@@ -100,7 +100,7 @@ public class BattleManager : MonoBehaviour
                 battleUIController.SetHeroInfoPanel(i);
         }
 
-        minimap = GameObject.FindGameObjectWithTag("Minimap");
+        playerCanvas = GameObject.Find("PlayerCanvas");
     }
 
 
@@ -337,8 +337,8 @@ public class BattleManager : MonoBehaviour
         //DESTROY WORLD ENEMY
         Destroy(firstEnemy);
 
-        //HideMinimap
-        minimap.SetActive(false);
+        //HidePlayerCanvas
+        playerCanvas.SetActive(false);
 
         //ANIMACIÓN CAMARA INTRO BATLLA
         battleCameraController.IntroBattle();
@@ -599,7 +599,7 @@ public class BattleManager : MonoBehaviour
         }
 
         //Show minimap
-        minimap.SetActive(true);
+        playerCanvas.SetActive(true);
 
         //CAMBIAMOS A CAMARA MUNDO
         battleCameraController.SetOffBattleCamera();

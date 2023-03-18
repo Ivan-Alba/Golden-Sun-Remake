@@ -55,12 +55,16 @@ public class GameManager : MonoBehaviour
         {
             party.Add(GameObject.Find("Isaac"));
             party.Add(GameObject.Find("Garet"));
-
         }
 
         activeHero = party[0];
     }
 
+    public void Start()
+    {
+        party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slots.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
+
+    }
 
     public void ChangeGameSpeed()
     {

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 
-public abstract class Item 
+public class Item 
 {
 
     string itemSlug, itemName, itemDescription;
-    int itemPrice, bonusValue;
-    string objectType, statBonus;
+    int itemPrice;
+    string objectType;
     bool canSell, useInMenu;
     Sprite icon;
 
@@ -19,8 +19,6 @@ public abstract class Item
     public bool CanSell { get => canSell; set => canSell = value; }
     public bool UseInMenu { get => useInMenu; set => useInMenu = value; }
     public string ObjectType { get => objectType; set => objectType = value; }
-    public string StatBonus { get => statBonus; set => statBonus = value; }
-    public int BonusValue { get => bonusValue; set => bonusValue = value; }
 
     public Sprite Icon { get => icon; set => icon = value; }
 }

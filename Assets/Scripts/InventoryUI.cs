@@ -59,7 +59,7 @@ public class InventoryUI : MonoBehaviour
     {
         if (animating) return;
 
-        //PRESS DOWN ARROW KEY
+        //---------PRESS DOWN ARROW KEY----------
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             if (onItemList)
@@ -102,7 +102,7 @@ public class InventoryUI : MonoBehaviour
 
         }
 
-        //PRESS UP ARROW KEY
+        //---------PRESS UP ARROW KEY----------
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (onItemList)
@@ -144,7 +144,7 @@ public class InventoryUI : MonoBehaviour
             }
         }
 
-        //PRESS KEY CONFIRM
+        //------------PRESS KEY CONFIRM-------------------------
         if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
         {
 
@@ -204,7 +204,7 @@ public class InventoryUI : MonoBehaviour
             }
         }
 
-        //PRESS BACK KEY
+        //--------------PRESS BACK KEY-----------------
         if (Input.GetKeyDown(GameManager.instance.KeyCancel))
         {
             GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
@@ -239,7 +239,7 @@ public class InventoryUI : MonoBehaviour
         }
 
 
-        //PRESS RIGHT KEY
+        //----------PRESS RIGHT KEY------------
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             if (onItemList)
@@ -249,7 +249,7 @@ public class InventoryUI : MonoBehaviour
             }
         }
 
-        //PRESS LEFT KEY
+        //--------------PRESS LEFT KEY---------
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             if (onItemList)

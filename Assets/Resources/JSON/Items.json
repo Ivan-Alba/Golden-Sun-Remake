@@ -57,7 +57,9 @@
       "ItemPrice": 560,
       "CanSell" : true,
       "ObjectType" : "Weapon", 
-      "UseInMenu" : false
+      "UseInMenu" : false,
+      "StatName" : ["STRENGHT", "DEFENSE", "HP"],
+      "StatValue" : [3, 2, 20]
     },
 
      {
@@ -68,7 +70,9 @@
       "ItemPrice": 350,
       "CanSell" : true,
       "ObjectType" : "Armor", 
-      "UseInMenu" : false
+      "UseInMenu" : false,
+      "StatName" : ["DEFENSE"],
+      "StatValue" : [2]
     },
 
     {
@@ -79,12 +83,14 @@
       "ItemPrice": 2300,
       "CanSell" : true,
       "ObjectType" : "Accessory", 
-      "UseInMenu" : false
+      "UseInMenu" : false,
+      "StatName" : ["WISDOM", "LUCK"],
+      "StatValue" : [5, 5]
     },
 
     
     {
-      "$type":"Equipable, Assembly-CSharp",
+      "$type":"Item, Assembly-CSharp",
       "ItemName":"Telaraña",
       "ItemDescription":"Tela pegajosa obtenida de las arañas. Se utiliza para crear objetos.",
       "ItemSlug":"Spiderweb",
@@ -95,7 +101,7 @@
     },
 
     {
-      "$type":"Equipable, Assembly-CSharp",
+      "$type":"Item, Assembly-CSharp",
       "ItemName":"Estrella de Marte",
       "ItemDescription":"Una de las cuatro Estrellas Elementales. Contiene el poder de Marte",
       "ItemSlug":"Mars_Star",

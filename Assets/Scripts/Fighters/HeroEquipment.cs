@@ -1,18 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class HeroEquipment : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    private static int equipmentSlots = 7;
+    private Equipable[] equippedItems;
+
+    public static int EquipmentSlots { get => equipmentSlots; set => equipmentSlots = value; }
+    public Equipable[] EquippedItems { get => equippedItems; set => equippedItems = value; }
+
+    public enum slots {
+        WEAPON,
+        SHIELD,
+        HELMET,
+        ARMOR,
+        HANDS,
+        BOOTS,
+        SPECIAL
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Awake()
     {
-        
+        EquippedItems = new Equipable[EquipmentSlots];
+    }
+
+    public void SetEquipment(int slot, Equipable item)
+    {
+        if (EquippedItems[slot] != null)
+        {
+            //QUITAMOS ITEM YA EQUIPADO
+            RemoveEquipment(slot);
+        }
+        //AÑADIMOS NUEVO ITEM
+        EquippedItems[slot] = item;
+        //AÑADIMOS STAT BONUS
+        for (int i = 0; i < item.StatName.Length; i++)
+        {
+            gameObject.GetComponent<FighterStats>().addStatBonus(item.StatName[i], item.StatValue[i]);
+        }
+
+    }
+
+    public void RemoveEquipment(int slot)
+    {
+        for (int i = 0; i < EquippedItems[slot].StatName.Length; i++)
+        {
+            //QUITAR STATBONUS DE EQUIPO ACTUAL
+            gameObject.GetComponent<FighterStats>().RemoveStatBonus(EquippedItems[slot].StatName[i], EquippedItems[slot].StatValue[i]);
+            EquippedItems[slot] = null;
+        }
     }
 }

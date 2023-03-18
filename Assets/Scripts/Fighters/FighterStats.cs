@@ -84,6 +84,16 @@ public class FighterStats : MonoBehaviour
 
     }
 
+    public void addStatBonus(string statName, int bonusValue) 
+    {
+        characterStats.Find(x => x.StatName == statName).AddStatBonus(new StatBonus(bonusValue));
+    }
+
+    public void RemoveStatBonus(string statName, int bonusValue)
+    {
+        characterStats.Find(x => x.StatName == statName).RemoveStatBonus(new StatBonus(bonusValue));
+    }
+
     public void AddConsumableEffect(string stat, int value)
     {
         switch (stat)

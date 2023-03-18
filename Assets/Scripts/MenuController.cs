@@ -34,6 +34,7 @@ public class MenuController : MonoBehaviour
 
     //Menu options objects
     GameObject inventory;
+    GameObject equipment;
 
     PlayerController playerController;
     void Awake()
@@ -62,6 +63,7 @@ public class MenuController : MonoBehaviour
 
         //Menu options
         inventory = transform.Find("Inventory").gameObject;
+        equipment = transform.Find("Equipment").gameObject;
 
         //Player controller
         playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
@@ -257,11 +259,16 @@ public class MenuController : MonoBehaviour
         {
             case 0: //Inventory
                 inventory.SetActive(true);
-                heroPanel.SetActive(false);
-                optionsPanel.SetActive(false);
                 topPage.GetComponentInChildren<TextMeshProUGUI>().SetText("Inventario");
                 break;
+
+            case 2: //Equipment
+                equipment.SetActive(true);
+                topPage.GetComponentInChildren<TextMeshProUGUI>().SetText("Equipamiento");
+                break;
         }
+        heroPanel.SetActive(false);
+        optionsPanel.SetActive(false);
         onSubMenu = true;
     }
 
