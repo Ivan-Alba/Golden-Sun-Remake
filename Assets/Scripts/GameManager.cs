@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +20,7 @@ public class GameManager : MonoBehaviour
 
     //PARTY INFO
     List<GameObject> party = new List<GameObject>();
+    GameObject player;
 
     //GAME INFO
     int totalGold;
@@ -57,6 +60,7 @@ public class GameManager : MonoBehaviour
             party.Add(GameObject.Find("Garet"));
         }
 
+        player = GameObject.FindGameObjectWithTag("Player");
         activeHero = party[0];
     }
 
@@ -81,7 +85,7 @@ public class GameManager : MonoBehaviour
 
         }
     }
-  
+
     public void ChangeActiveHero(int index)
     {
         if (party.Count > index)
@@ -92,6 +96,15 @@ public class GameManager : MonoBehaviour
             party[index] = currentHero;
             activeHero = party[0];
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
+
+            //CHANGE MODEL
+
+            for (int i = 0; i < player.transform.Find("Model").childCount; i++)
+            {
+                player.transform.Find("Model").GetChild(i).gameObject.SetActive(false);
+            }
+            player.transform.Find("Model").Find($"{activeHero.name}_world").gameObject.SetActive(true);
+            player.GetComponent<PlayerController>().PlayerAnim = player.transform.Find("Model").Find($"{activeHero.name}_world").GetComponent<Animator>();
         }
     }
 

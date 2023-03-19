@@ -44,6 +44,10 @@ public class HeroEquipment : MonoBehaviour
             //QUITAMOS ITEM YA EQUIPADO
             RemoveEquipment(slot);
         }
+
+        //Restamos item del inventario
+        InventoryController.Instance.LoseItem(item.ItemSlug, 1);
+
         //AÑADIMOS NUEVO ITEM
         EquippedItems[slot] = item;
         //AÑADIMOS STAT BONUS
@@ -56,10 +60,16 @@ public class HeroEquipment : MonoBehaviour
 
     public void RemoveEquipment(int slot)
     {
-        for (int i = 0; i < EquippedItems[slot].StatName.Length; i++)
+        if (EquippedItems[slot] != null)
         {
-            //QUITAR STATBONUS DE EQUIPO ACTUAL
-            gameObject.GetComponent<FighterStats>().RemoveStatBonus(EquippedItems[slot].StatName[i], EquippedItems[slot].StatValue[i]);
+
+            for (int i = 0; i < EquippedItems[slot].StatName.Length; i++)
+            {
+                //QUITAR STATBONUS DE EQUIPO ACTUAL
+                gameObject.GetComponent<FighterStats>().RemoveStatBonus(EquippedItems[slot].StatName[i], EquippedItems[slot].StatValue[i]);
+                //Devolvemos ítem al inventario
+            }
+            InventoryController.Instance.AddItem(EquippedItems[slot].ItemSlug);
             EquippedItems[slot] = null;
         }
     }

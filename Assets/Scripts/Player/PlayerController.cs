@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
     CharacterController controller;
     Animator playerAnim;
     Animator cloackAnim;
-    AudioSource audioSource;
     [SerializeField] Transform mainCamera;
 
     //---Psynergy-----
@@ -62,15 +61,14 @@ public class PlayerController : MonoBehaviour
 
     private bool stopPlayerController;
     public bool StopPlayerController { get => stopPlayerController; set => stopPlayerController = value; }
+    public Animator PlayerAnim { get => playerAnim; set => playerAnim = value; }
 
     private void Awake()
     {
         controller = gameObject.GetComponent<CharacterController>();
-        playerAnim = gameObject.GetComponent<Animator>();
         //TODO SI EL PLAYER ES ISAAC
         cloackAnim = GameObject.Find("CloackIsaac").GetComponent<Animator>();
 
-        audioSource = gameObject.GetComponent<AudioSource>();
         //weaponCollider = weaponObject.GetComponent<BoxCollider>();
 
 
@@ -94,7 +92,11 @@ public class PlayerController : MonoBehaviour
 
         //PartyInfoBar
         partyInfoBar = transform.Find("PlayerCanvas").Find("PartyInfoBar").gameObject;
-        
+    }
+
+    private void Start()
+    {
+        playerAnim = transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -286,7 +288,7 @@ public class PlayerController : MonoBehaviour
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
-            playerAnim.SetBool("isMoving", true);
+            PlayerAnim.SetBool("isMoving", true);
             cloackAnim.SetBool("isMoving", true);
 
 
@@ -294,7 +296,7 @@ public class PlayerController : MonoBehaviour
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             if (Input.GetKey(KeyCode.LeftShift)) //RUN PRESSED
             {
-                playerAnim.SetBool("isRunning", true);
+                PlayerAnim.SetBool("isRunning", true);
                 cloackAnim.SetBool("isRunning", true);
 
                 controller.Move(moveDirection.normalized * (speed * 2) * Time.deltaTime);
@@ -306,7 +308,7 @@ public class PlayerController : MonoBehaviour
             }
             else //RUN NOT PRESSED
             {
-                playerAnim.SetBool("isRunning", false);
+                PlayerAnim.SetBool("isRunning", false);
                 cloackAnim.SetBool("isRunning", false);
 
                 controller.Move(moveDirection.normalized * speed * Time.deltaTime);
@@ -318,14 +320,14 @@ public class PlayerController : MonoBehaviour
         }
         else //NOT MOVING
         {
-            playerAnim.SetBool("isMoving", false);
+            PlayerAnim.SetBool("isMoving", false);
             cloackAnim.SetBool("isMoving", false);
 
             //IDLE LONG TIME ANIMATION
             timeCount += Time.deltaTime;
             if (timeCount >= secondsInIdle)
             {
-                playerAnim.SetTrigger("longTime");
+                PlayerAnim.SetTrigger("longTime");
                 timeCount = 1;
             }
 
@@ -503,12 +505,6 @@ public class PlayerController : MonoBehaviour
     private void ShowStaminaBar(bool value)
     {
         staminaBar.SetActive(value);
-    }
-
-    //Method called by walk/run animations
-    public void playFootprints()
-    {
-        audioSource.Play();
     }
 
     private void OnTriggerStay(Collider other)

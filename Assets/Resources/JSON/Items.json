@@ -58,7 +58,7 @@
       "CanSell" : true,
       "ObjectType" : "Weapon", 
       "UseInMenu" : false,
-      "StatName" : ["STRENGHT", "DEFENSE", "HP"],
+      "StatName" : ["STRENGHT", "DEFENSE", "MAXHP"],
       "StatValue" : [3, 2, 20]
     },
 
@@ -84,7 +84,7 @@
       "CanSell" : true,
       "ObjectType" : "Accessory", 
       "UseInMenu" : false,
-      "StatName" : ["WISDOM", "LUCK"],
+      "StatName" : ["MAXPP", "WISDOM"],
       "StatValue" : [5, 5]
     },
 

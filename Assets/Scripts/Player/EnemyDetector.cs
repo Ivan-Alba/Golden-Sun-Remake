@@ -29,7 +29,7 @@ public class EnemyDetector : MonoBehaviour
             GameManager.instance.InBattle = true;
             player.transform.GetComponent<CharacterController>().SimpleMove(new Vector3(0,0,0));
             player.transform.LookAt(new Vector3(other.transform.position.x, transform.parent.position.y, other.transform.position.z));
-            player.GetComponent<Animator>().SetTrigger("attacked");
+            player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("attacked");
 
             other.gameObject.GetComponent<Animator>().enabled = false;
             enemyTouched = other;

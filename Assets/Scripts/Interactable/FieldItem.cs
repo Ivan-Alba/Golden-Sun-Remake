@@ -6,6 +6,7 @@ public class FieldItem : Interactable
 {
     private GameObject player;
     private Animator cloackIsaacAnim;
+    private Animator playerAnimator;
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player");
@@ -18,8 +19,6 @@ public class FieldItem : Interactable
     public override void Interact()
     {
         StartCoroutine(pickItem());
-
-
     }
 
     private IEnumerator pickItem()
@@ -27,9 +26,9 @@ public class FieldItem : Interactable
         //STOPS PLAYERS MOVEMENT
         player.GetComponent<PlayerController>().StopPlayerController = true;
 
-        player.GetComponent<Animator>().SetTrigger("pickFloor");
+        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("pickFloor");
         //CLOACK ANIM
-        cloackIsaacAnim.SetTrigger("pick");
+        //cloackIsaacAnim.SetTrigger("pick");
         yield return new WaitForSeconds(1);
 
 

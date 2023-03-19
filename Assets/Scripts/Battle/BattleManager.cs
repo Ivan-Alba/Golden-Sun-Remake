@@ -290,7 +290,7 @@ public class BattleManager : MonoBehaviour
         GameManager.instance.InBattle = true;
 
 
-        player.GetComponent<Animator>().enabled = false;
+        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().enabled = false;
 
         //BATTLE MUSIC
         musicController.clip = battleMusic;
@@ -614,7 +614,7 @@ public class BattleManager : MonoBehaviour
 
         //UNACTIVE BATTLE IN GAME MANAGER
         GameManager.instance.InBattle = false;
-        player.GetComponent<Animator>().enabled = true;
+        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().enabled = true;
 
         //REPRODUCIMOS MUSICA DE ZONA
         musicController.clip = fieldMusic;

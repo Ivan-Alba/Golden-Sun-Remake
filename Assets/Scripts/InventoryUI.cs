@@ -289,7 +289,7 @@ public class InventoryUI : MonoBehaviour
             case 2: //Armors
                 foreach (Item item in InventoryController.Instance.PlayerItems.Keys)
                 {
-                    if (item.ObjectType == "Armor")
+                    if (item.ObjectType == "Armor" || item.ObjectType == "Hands" || item.ObjectType == "Boots" || item.ObjectType == "Shield")
                     {
                         SetElement(item);
                     }

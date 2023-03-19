@@ -10,6 +10,7 @@ public class EquipmentUI : MonoBehaviour
 {
     List<GameObject> itemList;
     Equipable[] equippedItems;
+    List<Equipable> equipableList;
 
     int optionsIndex;
     int slotsIndex;
@@ -55,7 +56,6 @@ public class EquipmentUI : MonoBehaviour
         animating = false;
         selectingOption = true;
         currentHero = GameManager.instance.GetParty()[0];
-        equippedItems = currentHero.GetComponent<HeroEquipment>().EquippedItems;
         optionsIndex = 0;
         slotsIndex = 0;
         itemListIndex = 0;
@@ -81,10 +81,19 @@ public class EquipmentUI : MonoBehaviour
         //-----PRESS CONFIRM KEY------
         if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
         {
+            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
             if (selectingEquipment)
             {
-                //SELECTIN EQUIP FOR A SLOT
+                //SELECTING EQUIP FOR A SLOT
                 selectingEquipment = false;
+                if (equipableList.Count > 0)
+                {
+                    currentHero.GetComponent<HeroEquipment>().SetEquipment(slotsIndex, (Equipable)ItemDatabase.Instance.GetItem(equipableList[itemListIndex].ItemSlug));
+                }
+                else
+                {
+                    currentHero.GetComponent<HeroEquipment>().RemoveEquipment(slotsIndex);
+                }
                 RefreshEquipInfo();
                 equipmentListPanel.gameObject.SetActive(false);
                 ResetContent();
@@ -96,17 +105,16 @@ public class EquipmentUI : MonoBehaviour
             {
                 //SELECTING GEAR SLOT
                 selectingSlot = false;
-                SetEquipmentListForSlot();
+                ShowGearForSlot();
                 slots[slotsIndex].GetChild(0).Find("Highlight").GetComponent<Animator>().enabled = false;
                 equipmentListPanel.gameObject.SetActive(true);
                 itemListIndex = 0;
                 if (itemList.Count > 0)
                 {
                     itemList[itemListIndex].transform.Find("Highlight").gameObject.SetActive(true);
-                } else
-                {
-                    //AÑADIR HUECO VACÍO/QUITAR ITEM
+                    itemList[itemListIndex].transform.Find("Name").GetComponent<TextMeshProUGUI>().color = Color.white;
                 }
+                ShowStatsDifference();
                 selectingEquipment = true;
             }
             else if (selectingOption)
@@ -116,6 +124,7 @@ public class EquipmentUI : MonoBehaviour
                 slotsIndex = 0;
                 options[optionsIndex].transform.Find("Highlight").GetComponent<Animator>().enabled = false;
                 slots[slotsIndex].GetChild(0).Find("Highlight").gameObject.SetActive(true);
+                slots[slotsIndex].GetChild(0).Find("Name").GetComponent<TextMeshProUGUI>().color = Color.yellow;
                 selectingSlot = true;
             }
         }
@@ -124,12 +133,14 @@ public class EquipmentUI : MonoBehaviour
         //-----PRESS BACK KEY------
         if (Input.GetKeyDown(GameManager.instance.KeyCancel))
         {
+            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
             if (selectingEquipment)
             {
                 //SELECTIN EQUIP FOR A SLOT
                 selectingEquipment = false;
                 slots[slotsIndex].GetChild(0).Find("Highlight").GetComponent<Animator>().enabled = true;
                 equipmentListPanel.gameObject.SetActive(false);
+                RefreshEquipInfo();
                 ResetContent();
                 itemList = new List<GameObject>();
                 selectingSlot = true;
@@ -140,6 +151,7 @@ public class EquipmentUI : MonoBehaviour
                 selectingSlot = false;
                 slots[slotsIndex].GetChild(0).Find("Highlight").gameObject.SetActive(false);
                 options[optionsIndex].Find("Highlight").GetComponent<Animator>().enabled = true;
+                slots[slotsIndex].GetChild(0).Find("Name").GetComponent<TextMeshProUGUI>().color = Color.white;
                 selectingOption = true;
             }
             else if (selectingOption)
@@ -243,7 +255,7 @@ public class EquipmentUI : MonoBehaviour
         }
     }
 
-    private void SetEquipmentListForSlot()
+    private void ShowGearForSlot()
     {
         //GET ALL EQUIPABLE ON INVENTORY ITEMS AND FILTER BY SLOT
         Dictionary<Equipable, int> filteredGear = new Dictionary<Equipable, int>();
@@ -259,6 +271,7 @@ public class EquipmentUI : MonoBehaviour
         }
 
         //ADD TO SCROLL VIEW
+        equipableList = new List<Equipable>();
         foreach (KeyValuePair<Equipable, int> gearPiece in filteredGear)
         {
             GameObject newItem = Instantiate(gearPiecePrefab, equipScrollContent);
@@ -267,6 +280,7 @@ public class EquipmentUI : MonoBehaviour
             //No mostramos cantidad en pantalla de equipo
             newItem.transform.Find("Quantity").GetComponent<TextMeshProUGUI>().text = gearPiece.Value.ToString();
             itemList.Add(newItem);
+            equipableList.Add(gearPiece.Key);
         }
 
         if (itemList.Count == 0)
@@ -281,13 +295,15 @@ public class EquipmentUI : MonoBehaviour
 
     private void ResetContent()
     {
-       foreach (GameObject item in itemList)
+        foreach (GameObject item in itemList)
         {
             Destroy(item);
         }
     }
     private void RefreshEquipInfo()
     {
+        equippedItems = currentHero.GetComponent<HeroEquipment>().EquippedItems;
+
         //BACKGROUND IMAGE
         equipInfo.Find("Background").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{currentHero.name}_full");
 
@@ -312,16 +328,98 @@ public class EquipmentUI : MonoBehaviour
 
         //STATS INFO
         Transform statsInfo = equipInfo.Find("StatsInfo");
+        List<BaseStat> currentHeroStats = currentHero.GetComponent<FighterStats>().CharacterStats;
 
-        statsInfo.Find("HP").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrHp} / {currentHero.GetComponent<FighterStats>().MaxHp}";
-        statsInfo.Find("PP").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrPp} / {currentHero.GetComponent<FighterStats>().MaxPp}";
-        statsInfo.Find("Strenght").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Strenght}";
-        statsInfo.Find("Defense").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Defense}";
-        statsInfo.Find("Wisdom").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Wisdom}";
-        statsInfo.Find("Spirit").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Spirit}";
-        statsInfo.Find("Agility").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Agility}";
-        statsInfo.Find("Luck").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().Luck}";
+        for (int i = 0; i < currentHeroStats.Count; i++)
+        {
+            if (currentHeroStats[i].StatName == "MAXHP")
+            {
+                statsInfo.Find("HP").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrHp} / {currentHero.GetComponent<FighterStats>().MaxHp}";
+            }
+            else if (currentHeroStats[i].StatName == "MAXPP")
+            {
+                statsInfo.Find("PP").Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrPp} / {currentHero.GetComponent<FighterStats>().MaxPp}";
+            } else
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHeroStats[i].GetFinalValue()}";
+            }
+            statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().color = Color.white;
+        }
 
+    }
+
+    private void ShowStatsDifference()
+    {
+        Equipable newPiece = null;
+
+        if (equipableList.Count > itemListIndex)
+        {
+            newPiece = equipableList[itemListIndex];
+        }
+
+        Equipable currentPiece = currentHero.GetComponent<HeroEquipment>().EquippedItems[slotsIndex];
+        List<BaseStat> currentHeroStats = currentHero.GetComponent<FighterStats>().CharacterStats;
+
+        for (int i = 0; i < currentHeroStats.Count; i++)
+        {
+            //CURRENT VALUE
+            int currentValue = currentHeroStats[i].GetFinalValue();
+
+            //CURRENT EQUIP BONUS
+            int currentPieceBonus = 0;
+
+            if (currentPiece != null)
+            {
+                for (int x = 0; x < currentPiece.StatName.Length; x++)
+                {
+                    if (currentPiece.StatName[x] == currentHeroStats[i].StatName)
+                    {
+                        currentPieceBonus = currentPiece.StatValue[x];
+                    }
+                }
+            }
+
+            //NEW EQUIP BONUS
+            int newPieceBonus = 0;
+            if (newPiece != null)
+            {
+                for (int x = 0; x < newPiece.StatName.Length; x++)
+                {
+                    if (newPiece.StatName[x] == currentHeroStats[i].StatName)
+                    {
+                        newPieceBonus = newPiece.StatValue[x];
+                    }
+                }
+            }
+
+            int newValue = currentValue - currentPieceBonus + newPieceBonus;
+
+            //Mostrar new value
+            Transform statsInfo = equipInfo.Find("StatsInfo");
+            if (i == 0)
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrHp} / {newValue}";
+            }
+            else if (i == 1)
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrPp} / {newValue}";
+            }
+            else
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().text = newValue.ToString();
+            }
+
+            //Mostrar diferencia
+            int difference = newValue - currentValue;
+            if (difference > 0)
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().color = Color.green;
+            }
+            else if (difference < 0)
+            {
+                statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().color = Color.red;
+            }
+        }
     }
 
     private IEnumerator BackToMainMenu()

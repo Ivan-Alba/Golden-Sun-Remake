@@ -29,7 +29,7 @@ public class Chest : Interactable
 
         //Stop player movement
         player.GetComponent<PlayerController>().StopPlayerController = true;
-        player.GetComponent<Animator>().SetTrigger("pickChest");
+        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("pickChest");
 
         yield return new WaitForSeconds(1f);
         Animator anim = gameObject.GetComponent<Animator>();

@@ -41,16 +41,16 @@ public class FighterStats : MonoBehaviour
 
     public string Name { get => _name; set => _name = value; }
     public int Level { get => level; set => level = value; }
-    public int MaxHp { get => maxHp; set => maxHp = value; }
+    public int MaxHp { get => characterStats[0].GetFinalValue(); set => maxHp = value; }
     public int CurrHp { get => currHp; set => currHp = value; }
-    public int MaxPp { get => maxPp; set => maxPp = value; }
+    public int MaxPp { get => characterStats[1].GetFinalValue(); set => maxPp = value; }
     public int CurrPp { get => currPp; set => currPp = value; }
-    public int Strenght { get => strenght; set => strenght = value; }
-    public int Defense { get => defense; set => defense = value; }
-    public int Wisdom { get => wisdom; set => wisdom = value; }
-    public int Spirit { get => spirit; set => spirit = value; }
-    public int Agility { get => agility; set => agility = value; }
-    public int Luck { get => luck; set => luck = value; }
+    public int Strenght { get => characterStats[2].GetFinalValue(); set => strenght = value; }
+    public int Defense { get => characterStats[3].GetFinalValue(); set => defense = value; }
+    public int Wisdom { get => characterStats[4].GetFinalValue(); set => wisdom = value; }
+    public int Spirit { get => characterStats[5].GetFinalValue(); set => spirit = value; }
+    public int Agility { get => characterStats[6].GetFinalValue(); set => agility = value; }
+    public int Luck { get => characterStats[7].GetFinalValue(); set => luck = value; }
     public int Xp { get => xp; set => xp = value; }
     public Sprite Avatar { get => avatar; set => avatar = value; }
     public int NextLevelXp { get => nextLevelXp; set => nextLevelXp = value; }
@@ -60,13 +60,8 @@ public class FighterStats : MonoBehaviour
     private void Awake()
     {
         NextLevelXp = level * 125 + (125 * level / 2);
-
-    }
-
-    private void Start()
-    {
-        CharacterStats.Add(new BaseStat(maxHp, ((Stats)0).ToString(), "Puntos de vida máximos"));
-        CharacterStats.Add(new BaseStat(maxPp, ((Stats)2).ToString(), "Puntos psinergicos máximos"));
+        CharacterStats.Add(new BaseStat(maxHp, ((Stats)1).ToString(), "Puntos de vida máximos"));
+        CharacterStats.Add(new BaseStat(maxPp, ((Stats)3).ToString(), "Puntos psinergicos máximos"));
         CharacterStats.Add(new BaseStat(strenght, ((Stats)4).ToString(), "Aumenta el daño físico inflingido"));
         CharacterStats.Add(new BaseStat(defense, ((Stats)5).ToString(), "Disminuye el daño físico recibido"));
         CharacterStats.Add(new BaseStat(wisdom, ((Stats)6).ToString(), "Aumenta el daño mágico inflingido"));
@@ -74,14 +69,18 @@ public class FighterStats : MonoBehaviour
         CharacterStats.Add(new BaseStat(agility, ((Stats)8).ToString(), "Influye en la velocidad en batalla"));
         CharacterStats.Add(new BaseStat(luck, ((Stats)9).ToString(), "Influye en la capacidad de crítico"));
 
+      
+    }
+
+    private void Start()
+    {
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare")); 
+        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-
     }
 
     public void addStatBonus(string statName, int bonusValue) 

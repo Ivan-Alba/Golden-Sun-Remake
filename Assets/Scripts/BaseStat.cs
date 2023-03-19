@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BaseStat
@@ -25,7 +26,15 @@ public class BaseStat
 
     public void RemoveStatBonus(StatBonus statBonus)
     {
-        this.baseAdditives.Remove(statBonus);
+        StatBonus itemToRemove = this.baseAdditives.FindLast(x => x.BonusValue == statBonus.BonusValue);
+        if (itemToRemove != null)
+        {
+            this.baseAdditives.Remove(itemToRemove);
+        } else
+        {
+            StatBonus negativeBonusToAdd = new StatBonus(-statBonus.BonusValue);
+            AddStatBonus(negativeBonusToAdd);
+        }
     }
 
     public int GetFinalValue()
