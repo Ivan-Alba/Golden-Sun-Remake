@@ -379,7 +379,7 @@ public class InventoryUI : MonoBehaviour
     {
         for (int i = 0; i < herosList.Count; i++)
         {
-            herosList[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}Avatar");
+            herosList[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}_avatar");
             herosList[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Name);
             herosList[i].transform.Find("HP").GetComponent<TextMeshProUGUI>()
                 .SetText($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");

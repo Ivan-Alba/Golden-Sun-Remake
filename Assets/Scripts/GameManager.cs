@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Animations;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
@@ -69,10 +70,34 @@ public class GameManager : MonoBehaviour
         activeHero = party[0];
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnLevelFinishedLoading;
+    }
+
+    void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("Level Loaded");
+        Debug.Log(scene.name);
+        Debug.Log(mode);
+
+
+        // LoadSceneState();
+        if (SaveManager.loadedData != null)
+        {
+            LoadData();
+        }
+    }
+
     public void Start()
     {
         party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slotsIndex.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
 
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnLevelFinishedLoading;
     }
 
     public void ChangeGameSpeed()
@@ -120,37 +145,25 @@ public class GameManager : MonoBehaviour
         SaveManager.Save(player.transform);
     }
 
-    public void Load()
+
+    private void LoadData()
     {
-        LoadingData = true;
-        StartCoroutine(LoadData());
-       
-    }
+        loadingData = true;
+        GameData dataToLoad = SaveManager.loadedData;
 
-    private IEnumerator LoadData()
-    {
-        GameData dataToLoad;
-        dataToLoad = SaveManager.Load();
-        if (dataToLoad != null)
-        {
-            //---Scene----
-            
-            player.GetComponent<Animator>().enabled = false;
-            player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]); 
-            player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
+        //---Scene----    
+        player.GetComponent<Animator>().enabled = false;
+        player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
+        player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
 
-            //Game
-            totalGold = dataToLoad.totalGold;
-            totalPlayed = dataToLoad.totalTime;
+        //---Game---
+        totalPlayed = dataToLoad.totalTime;
+        totalGold = dataToLoad.totalGold;
 
+        player.GetComponent<Animator>().enabled = true;
 
-            yield return new WaitForSeconds(0.5f);
-
-            player.GetComponent<Animator>().enabled = true;
-
-
-        }
         loadingData = false;
+        SaveManager.loadedData = null;
     }
 
     // Update is called once per frame

@@ -431,20 +431,35 @@ public class PlayerController : MonoBehaviour
     {
         for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
-            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}Avatar");
-            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            GameObject currentHero = GameManager.Instance.GetParty()[i];
+
+            //Avatar background color
+            switch (currentHero.name)
+            {
+                case "Isaac":
+                    //partyInfoBar.transform.GetChild(i).transform.Find("Avatar").GetComponent<Image>().color = Color.yellow;
+                    break;
+                case "Garet":
+                    //partyInfoBar.transform.GetChild(i).transform.Find("Avatar").GetComponent<Image>().color = redGaret;
+                    break;
+                case "Ivan":
+                    break;
+            }
+
+            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{currentHero.name}_avatar");
+            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(currentHero.GetComponent<FighterStats>().Name);
             partyInfoBar.transform.GetChild(i).transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
-                ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
+                ($"{currentHero.GetComponent<FighterStats>().CurrHp}/{currentHero.GetComponent<FighterStats>().MaxHp}");
             partyInfoBar.transform.GetChild(i).transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
-                              ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
-            partyInfoBar.transform.GetChild(i).transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Level}");
+                              ($"{currentHero.GetComponent<FighterStats>().CurrPp}/{currentHero.GetComponent<FighterStats>().MaxPp}");
+            partyInfoBar.transform.GetChild(i).transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {currentHero.GetComponent<FighterStats>().Level}");
 
             //Bars
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
+            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().maxValue =currentHero.GetComponent<FighterStats>().MaxHp;
+            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().value = currentHero.GetComponent<FighterStats>().CurrHp;
 
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
+            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().maxValue = currentHero.GetComponent<FighterStats>().MaxPp;
+            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().value = currentHero.GetComponent<FighterStats>().CurrPp;
 
             partyInfoBar.transform.GetChild(i).gameObject.SetActive(true);
         }

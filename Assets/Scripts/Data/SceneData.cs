@@ -1,6 +1,8 @@
+using Palmmedia.ReportGenerator.Core.Reporting.Builders.Rendering;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class GameData
@@ -9,12 +11,13 @@ public class GameData
     public float[] playerRotation = new float[3];
     public int totalGold;
     public float totalTime;
+    public string currentSceneName;
 
     public GameData(Transform player)
     {
 
         //----SCENE DATA----
-
+        currentSceneName = SceneManager.GetActiveScene().name;
         //position
         playerPosition[0] = player.position.x;
         playerPosition[1] = player.position.y;

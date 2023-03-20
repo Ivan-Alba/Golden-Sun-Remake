@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class SaveManager {
 
-    
+    public static GameData loadedData = null;
     public static void Save(Transform player)
     {
         GameData dataToSave = new GameData(player);
@@ -29,6 +29,7 @@ public static class SaveManager {
             GameData sceneData = (GameData)bf.Deserialize(fs);
             fs.Close();
             Debug.Log("Datos cargados");
+            loadedData = sceneData;
             return sceneData;
         } else
         {

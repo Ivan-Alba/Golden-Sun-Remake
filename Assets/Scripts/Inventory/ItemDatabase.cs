@@ -32,6 +32,7 @@ public class ItemDatabase : MonoBehaviour
         itemList.ForEach(x => x.Icon = Resources.Load<Sprite>($"Images/Icons/Items/{x.ObjectType}/{x.ItemSlug}"));
 
         //DEBUG ALL ITEMS TO PLAYER
+
         itemList.ForEach(x => InventoryController.Instance.AddItem(x.ItemSlug));
     }
 

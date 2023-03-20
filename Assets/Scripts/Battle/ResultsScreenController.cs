@@ -59,7 +59,7 @@ public class ResultsScreenController : MonoBehaviour
         for (int i = 0; i < heroList.Count; i++)
         {
             transform.Find("HeroPanel").Find($"Hero{i}").gameObject.SetActive(true);
-
+            transform.Find("HeroPanel").Find($"Hero{i}").Find("Mask").Find("Avatar").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{heroList[i].name}_avatar");
             heroName = transform.Find("HeroPanel").Find($"Hero{i}").Find("NameText").GetComponent<TextMeshProUGUI>();
             heroLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>();
             heroNextLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("NextLevelText").GetComponent<TextMeshProUGUI>();
@@ -167,7 +167,7 @@ public class ResultsScreenController : MonoBehaviour
                         xpBar.maxValue = heroStats.NextLevelXp;
                         //REFRESH HERO LEVEL TEXT
                         heroLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>();
-                        heroLevel.SetText($"NV: {heroStats.Level.ToString()}");
+                        heroLevel.SetText($"NV: {heroStats.Level}");
                     }
 
                     //NEXT LEVEL DROP XP
