@@ -40,12 +40,12 @@ public class PsynergyWorldController : MonoBehaviour
     public void Initialize()
     {
 
-        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
             Psynergy[] newPsynergyLayer = new Psynergy[4];
-            heroShortcuts.Add(GameManager.instance.GetParty()[i], newPsynergyLayer);
+            heroShortcuts.Add(GameManager.Instance.GetParty()[i], newPsynergyLayer);
         }
-        ResfreshShortcutsUI(GameManager.instance.ActiveHero);
+        ResfreshShortcutsUI(GameManager.Instance.ActiveHero);
     }
 
     public void SetShortcut(GameObject hero, Psynergy psynergy, int position)
@@ -75,7 +75,7 @@ public class PsynergyWorldController : MonoBehaviour
 
     public void UsePsynergy(int position, GameObject target)
     {
-        Psynergy usedPsynergy = (Psynergy)HeroShortcuts[GameManager.instance.ActiveHero].GetValue(position);
+        Psynergy usedPsynergy = (Psynergy)HeroShortcuts[GameManager.Instance.ActiveHero].GetValue(position);
         if (usedPsynergy != null)
         {
             if (target != null)
@@ -109,7 +109,7 @@ public class PsynergyWorldController : MonoBehaviour
     }
     public void RefreshPsynergyChoosePanel()
     {
-        List<Psynergy> allPsynergies = GameManager.instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
+        List<Psynergy> allPsynergies = GameManager.Instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
         List<Psynergy> worldPsynergies = new List<Psynergy>();
 
         for (int i = 0; i < allPsynergies.Count; i++)
@@ -202,7 +202,7 @@ public class PsynergyWorldController : MonoBehaviour
     public void ShowPsynergyChoosePanel(bool active, int position)
     {
 
-        List<Psynergy> allPsynergies = GameManager.instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
+        List<Psynergy> allPsynergies = GameManager.Instance.ActiveHero.GetComponent<FighterStats>().Psynergies;
         List<Psynergy> worldPsynergies = new List<Psynergy>();
 
         for (int i = 0; i < allPsynergies.Count; i++)
@@ -253,7 +253,7 @@ public class PsynergyWorldController : MonoBehaviour
         }
         else
         {
-            SetShortcut(GameManager.instance.ActiveHero, worldPsynergies[chooseIndex], position);
+            SetShortcut(GameManager.Instance.ActiveHero, worldPsynergies[chooseIndex], position);
             psynergyChoosePanel.gameObject.SetActive(false);
             chooseIndex = 0;
         }

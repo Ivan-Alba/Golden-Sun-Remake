@@ -25,7 +25,7 @@ public class ResultsScreenController : MonoBehaviour
         goldText = transform.Find("InfoPanel").Find("GoldPanel").Find("GoldText").GetComponent<TextMeshProUGUI>();
         itemsPanel = transform.Find("InfoPanel").Find("ItemPanel").gameObject;
         confirmText = transform.Find("PressConfirm").gameObject.GetComponent<TextMeshProUGUI>();
-        confirmText.SetText($"Pulsa {GameManager.instance.KeyConfirm} para continuar");
+        confirmText.SetText($"Pulsa {GameManager.Instance.KeyConfirm} para continuar");
 
         resultSounds = gameObject.GetComponent<Sounds>();
     }
@@ -36,9 +36,9 @@ public class ResultsScreenController : MonoBehaviour
     {
         if (waitingConfirmation)
         {
-            if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                 waitingConfirmation = false;
                 ResultsFinished = true;
             }
@@ -223,7 +223,7 @@ public class ResultsScreenController : MonoBehaviour
         resultSounds.StopSound();
 
         //PUT GOLD ON GAME TOTAL AMOUNT
-        GameManager.instance.TotalGold += goldEarned;
+        GameManager.Instance.TotalGold += goldEarned;
 
         //SHOW EXIT MESSAGE
         waitingConfirmation = true;

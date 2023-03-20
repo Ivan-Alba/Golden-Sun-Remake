@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     Animator playerAnim;
     Animator cloackAnim;
     [SerializeField] Transform mainCamera;
+    AudioSource audioSource;
 
     //---Psynergy-----
     GameObject objectHit;
@@ -68,6 +69,7 @@ public class PlayerController : MonoBehaviour
         controller = gameObject.GetComponent<CharacterController>();
         //TODO SI EL PLAYER ES ISAAC
         cloackAnim = GameObject.Find("CloackIsaac").GetComponent<Animator>();
+        audioSource = gameObject.GetComponent<AudioSource>();
 
         //weaponCollider = weaponObject.GetComponent<BoxCollider>();
 
@@ -92,23 +94,29 @@ public class PlayerController : MonoBehaviour
 
         //PartyInfoBar
         partyInfoBar = transform.Find("PlayerCanvas").Find("PartyInfoBar").gameObject;
+
+
+        playerAnim = GetComponent<Animator>();
+
+
     }
 
-    private void Start()
-    {
-        playerAnim = transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>();
-    }
 
     // Update is called once per frame
     void Update()
     {
+        if (GameManager.Instance.LoadingData)
+        {
+            return;
+        }
+
         if (StopPlayerController) //IF CONTROLER STOPPED
         {
             staminaBar.SetActive(false);
             return;
         }
 
-        if (GameManager.instance.InBattle) //IF BATTLE DISABLE UPDATE
+        if (GameManager.Instance.InBattle) //IF BATTLE DISABLE UPDATE
         {
             staminaBar.SetActive(false);
             if (partyInfoBarActive)
@@ -130,19 +138,19 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            GameManager.instance.ChangeActiveHero(1);
+            GameManager.Instance.ChangeActiveHero(1);
             RefreshPartyInfo();
         }
 
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            GameManager.instance.ChangeActiveHero(2);
+            GameManager.Instance.ChangeActiveHero(2);
             RefreshPartyInfo();
 
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            GameManager.instance.ChangeActiveHero(3);
+            GameManager.Instance.ChangeActiveHero(3);
             RefreshPartyInfo();
 
         }
@@ -237,7 +245,7 @@ public class PlayerController : MonoBehaviour
             SetIconVisible(true);
             Debug.Log("INTERACTUAR");
 
-            if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
             {
                 SetIconVisible(false);
                 objectHit.GetComponent<Interactable>().Interact();
@@ -247,7 +255,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             SetIconVisible(false);
-            if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
             {
                 //OpenWorldPsynergyPanel
 
@@ -421,22 +429,22 @@ public class PlayerController : MonoBehaviour
 
     private void RefreshPartyInfo()
     {
-        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
-            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
-            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}Avatar");
+            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Name);
             partyInfoBar.transform.GetChild(i).transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
-                ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
+                ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
             partyInfoBar.transform.GetChild(i).transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
-                              ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
-            partyInfoBar.transform.GetChild(i).transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Level}");
+                              ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
+            partyInfoBar.transform.GetChild(i).transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Level}");
 
             //Bars
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
+            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
+            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
 
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
+            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
+            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
 
             partyInfoBar.transform.GetChild(i).gameObject.SetActive(true);
         }
@@ -496,6 +504,11 @@ public class PlayerController : MonoBehaviour
             iconCanvas.transform.Find("Icon").gameObject.SetActive(false);
         }
     }
+    public void playFootprints()
+    {
+        audioSource.Play();
+    }
+
 
     public void RefreshStaminaBar(float value)
     {

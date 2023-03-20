@@ -26,7 +26,7 @@ public class FieldItem : Interactable
         //STOPS PLAYERS MOVEMENT
         player.GetComponent<PlayerController>().StopPlayerController = true;
 
-        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("pickFloor");
+        player.GetComponent<Animator>().SetTrigger("pickFloor");
         //CLOACK ANIM
         //cloackIsaacAnim.SetTrigger("pick");
         yield return new WaitForSeconds(1);
@@ -43,7 +43,7 @@ public class FieldItem : Interactable
         }
         //Add item to inventory
         InventoryController.Instance.AddItem(itemName);
-        GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
+        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
         //INVISIBLE
         gameObject.transform.position = new Vector3(0, -1000, 0);
         yield return new WaitForSeconds(0.7f);

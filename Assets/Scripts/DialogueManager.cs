@@ -11,7 +11,7 @@ public class DialogueManager : MonoBehaviour
     private TextMeshProUGUI dialogueText, nameText;
     private int dialogueIndex;
     private bool inDialogue;
-    private string name;
+    private string _name;
     private bool keyPressed;
 
     private GameObject element = null;
@@ -41,13 +41,13 @@ public class DialogueManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(GameManager.instance.KeyConfirm) && !keyPressed && inDialogue) {
+        if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed && inDialogue) {
             keyPressed = true;
-            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+            GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             ContinueDialogue();
         }
 
-        if (Input.GetKeyUp(GameManager.instance.KeyConfirm))
+        if (Input.GetKeyUp(GameManager.Instance.KeyConfirm))
         {
             keyPressed = false;
         }
@@ -60,7 +60,7 @@ public class DialogueManager : MonoBehaviour
         dialogueIndex = 0;
         dialogueLines = new List<string>(lines.Length);
         dialogueLines.AddRange(lines);
-        this.name = name;
+        this._name = name;
         this.element = element;
         CreateDialogue();
 
@@ -69,9 +69,9 @@ public class DialogueManager : MonoBehaviour
     private void CreateDialogue()
     {
         dialogueText.SetText(dialogueLines[dialogueIndex]);
-        if (name != null)
+        if (_name != null)
         {
-            nameText.SetText(name);
+            nameText.SetText(_name);
             nameText.transform.parent.gameObject.SetActive(true);
         } else
         {

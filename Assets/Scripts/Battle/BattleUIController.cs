@@ -139,7 +139,7 @@ public class BattleUIController : MonoBehaviour
 
         SetInfoText();
         RefreshButtonAnimation();
-        GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
     }
 
     public void ShowOrdersPanel(bool choice)
@@ -162,7 +162,7 @@ public class BattleUIController : MonoBehaviour
 
     public void RefreshHeroInfoPanel()
     {
-        List<GameObject> heroParty = GameManager.instance.GetParty();
+        List<GameObject> heroParty = GameManager.Instance.GetParty();
         for (int i = 0; i < heroParty.Count; i++)
         {
             GameObject hp = heroInfoPanels[i].transform.Find("Hp").gameObject;
@@ -321,11 +321,11 @@ public class BattleUIController : MonoBehaviour
             case "Psynergy":
                 if (contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>().color != Color.grey)
                 {
-                    GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                     return contentItems[contentCursorIndex].name;
                 } else
                 {
-                    GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                     return null;
                 }
             default:

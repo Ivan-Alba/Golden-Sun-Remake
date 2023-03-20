@@ -1,12 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance = null;
+    private static GameManager instance = null;
     public const int CONFIRM_SOUND = 0;
     public const int MOVE_SOUND = 1;
     public const int NEGATIVE_SOUND = 2;
@@ -17,6 +18,7 @@ public class GameManager : MonoBehaviour
     private const KeyCode KEY_CANCEL = KeyCode.R;
 
     private bool inBattle = false;
+    private bool loadingData = false;
 
     //PARTY INFO
     List<GameObject> party = new List<GameObject>();
@@ -38,6 +40,9 @@ public class GameManager : MonoBehaviour
 
     public KeyCode KeyCancel => KEY_CANCEL;
 
+    public bool LoadingData { get => loadingData; set => loadingData = value; }
+    public static GameManager Instance { get => instance; set => instance = value; }
+
     public List<GameObject> GetParty()
     {
         return party;
@@ -45,11 +50,11 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
         }
-        else if (instance != this)
+        else if (Instance != this)
         {
             Destroy(gameObject);
         }
@@ -98,22 +103,63 @@ public class GameManager : MonoBehaviour
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
 
             //CHANGE MODEL
-
             for (int i = 0; i < player.transform.Find("Model").childCount; i++)
             {
                 player.transform.Find("Model").GetChild(i).gameObject.SetActive(false);
             }
             player.transform.Find("Model").Find($"{activeHero.name}_world").gameObject.SetActive(true);
-            player.GetComponent<PlayerController>().PlayerAnim = player.transform.Find("Model").Find($"{activeHero.name}_world").GetComponent<Animator>();
+
+            //CHANGE ANIMATION CONTROLLER
+            player.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<AnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
+            player.GetComponent<Animator>().avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
         }
     }
 
+    public void Save()
+    {
+        SaveManager.Save(player.transform);
+    }
 
+    public void Load()
+    {
+        LoadingData = true;
+        StartCoroutine(LoadData());
+       
+    }
+
+    private IEnumerator LoadData()
+    {
+        GameData dataToLoad;
+        dataToLoad = SaveManager.Load();
+        if (dataToLoad != null)
+        {
+            //---Scene----
+            
+            player.GetComponent<Animator>().enabled = false;
+            player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]); 
+            player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
+
+            //Game
+            totalGold = dataToLoad.totalGold;
+            totalPlayed = dataToLoad.totalTime;
+
+
+            yield return new WaitForSeconds(0.5f);
+
+            player.GetComponent<Animator>().enabled = true;
+
+
+        }
+        loadingData = false;
+    }
 
     // Update is called once per frame
     void Update()
     {
-        TotalPlayed += Time.deltaTime;
+        if (!loadingData)
+        {
+            TotalPlayed += Time.deltaTime;
+        }
     }
 
 

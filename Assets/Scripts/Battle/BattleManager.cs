@@ -96,7 +96,7 @@ public class BattleManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             heroPositions[i] = battleField.transform.Find($"Hero{i}").gameObject;
-            if (i < GameManager.instance.GetParty().Count)
+            if (i < GameManager.Instance.GetParty().Count)
                 battleUIController.SetHeroInfoPanel(i);
         }
 
@@ -133,10 +133,10 @@ public class BattleManager : MonoBehaviour
 
 
                 //Press the confirm Key to select an order
-                if (Input.GetKeyDown(GameManager.instance.KeyConfirm) && !keyPressed)
+                if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed)
                 {
                     keyPressed = true;
-                    GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
 
                     //Depending on order
                     switch (battleUIController.CommandSelected)
@@ -190,13 +190,13 @@ public class BattleManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.RightArrow)) //Right target
             {
                 SelectRightTarget();
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             }
 
             if (Input.GetKeyDown(KeyCode.LeftArrow)) //Left target
             {
                 SelectLeftTarget();
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             }
 
             if (Input.GetKeyDown(KeyCode.R)) //Returns back to choose a new command
@@ -208,7 +208,7 @@ public class BattleManager : MonoBehaviour
                 //Disable highlights for selected target on turnbar
                 battleUIController.HideSelectedTarget();
 
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                 waitingAction = true;
                 selectingTarget = false;
             }
@@ -216,7 +216,7 @@ public class BattleManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.E) && !keyPressed) //Target selected
             {
                 keyPressed = true;
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
 
                 //Hide elements
                 battleUIController.ShowOrdersPanel(false);
@@ -238,13 +238,13 @@ public class BattleManager : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.R)) //Returns back to choose a new command
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                 waitingAction = true;
                 choosingList = false;
                 battleUIController.ShowContentPanel(false);
             }
 
-            if (Input.GetKeyDown(GameManager.instance.KeyConfirm) && !keyPressed) //Skill or item selected
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed) //Skill or item selected
             {
                 if (battleUIController.GetContentItem() != null)
                 {
@@ -255,13 +255,13 @@ public class BattleManager : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.UpArrow) && !keyPressed) //Move content panel
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 battleUIController.MoveContentPanel("UP");
             }
 
             if (Input.GetKeyDown(KeyCode.DownArrow) && !keyPressed) //Move content panel
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 battleUIController.MoveContentPanel("DOWN");
             }
         }
@@ -287,10 +287,10 @@ public class BattleManager : MonoBehaviour
         respawnController = respawnZone.GetComponent<RespawnController>();
 
         //ACTIVE GLOBAL VARIABLE IN BATTLE
-        GameManager.instance.InBattle = true;
+        GameManager.Instance.InBattle = true;
 
 
-        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().enabled = false;
+        player.GetComponent<Animator>().enabled = false;
 
         //BATTLE MUSIC
         musicController.clip = battleMusic;
@@ -313,9 +313,9 @@ public class BattleManager : MonoBehaviour
 
         //SET HEROS
         int i = 0;
-        if (GameManager.instance.GetParty().Count <= 2) i = 1;
+        if (GameManager.Instance.GetParty().Count <= 2) i = 1;
 
-        foreach (GameObject hero in GameManager.instance.GetParty())
+        foreach (GameObject hero in GameManager.Instance.GetParty())
         {
             //IF HERO IS ALIVE
             if (hero.GetComponent<FighterStats>().CurrHp != 0)
@@ -613,15 +613,15 @@ public class BattleManager : MonoBehaviour
         }
 
         //UNACTIVE BATTLE IN GAME MANAGER
-        GameManager.instance.InBattle = false;
-        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().enabled = true;
+        GameManager.Instance.InBattle = false;
+        player.GetComponent<Animator>().enabled = true;
 
         //REPRODUCIMOS MUSICA DE ZONA
         musicController.clip = fieldMusic;
         musicController.Play();
 
         //RESET HEROS CD
-        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
             heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
             heroList[i].GetComponent<FighterController>().SetOffDefense();

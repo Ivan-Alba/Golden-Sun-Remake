@@ -128,7 +128,7 @@ public class TurnController : MonoBehaviour
         battleUIController.ShowOrdersPanel(true);
         battleUIController.ShowTurnsPanel(true);
 
-        GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
     }
 
     public void HideTurnCamera()

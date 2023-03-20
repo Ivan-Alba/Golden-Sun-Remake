@@ -18,11 +18,11 @@ public class Consumable : Item
         switch (StatBonus) {
             case "HP":
             if (target.CurrHp != 0 && target.CurrHp < target.MaxHp) {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CURE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CURE_SOUND);
                 target.AddConsumableEffect(StatBonus, BonusValue);
                 callback(true, ItemSlug);
             } else { //No se puede usar el ítem
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                 callback(false, ItemSlug);
             }
             break;

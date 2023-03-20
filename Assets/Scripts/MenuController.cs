@@ -76,14 +76,14 @@ public class MenuController : MonoBehaviour
 
     private void RefreshGold()
     {
-        goldEarned.SetText($"Oro: <color=#FFEB04>{GameManager.instance.TotalGold} monedas");
+        goldEarned.SetText($"Oro: <color=#FFEB04>{GameManager.Instance.TotalGold} monedas");
 
     }
 
     private void RefreshTime()
     {
         //TimeSpan time = TimeSpan.FromSeconds(GameManager.instance.TotalPlayed);
-        TimeSpan time = TimeSpan.FromSeconds(Time.realtimeSinceStartup);
+        TimeSpan time = TimeSpan.FromSeconds(GameManager.Instance.TotalPlayed);
         timePlayed.SetText($"Tiempo de juego: <color=#FFEB04>{time.ToString("hh':'mm':'ss")}");
     }
 
@@ -96,7 +96,7 @@ public class MenuController : MonoBehaviour
         SetCursorPosition();
 
 
-        if (GameManager.instance != null)
+        if (GameManager.Instance != null)
         {
             SetHeros();
             RefreshGold();
@@ -124,6 +124,7 @@ public class MenuController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GameManager.Instance.TotalPlayed += Time.unscaledDeltaTime;
         //BloomEffect();
         RefreshTime();
         RefreshGold();
@@ -136,7 +137,7 @@ public class MenuController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.DownArrow))
             {
                 menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (cursorIndex + 1 >= menuOptions.Count)
                 {
@@ -158,7 +159,7 @@ public class MenuController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
                 menuOptions[cursorIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (cursorIndex - 1 < 0)
                 {
@@ -175,9 +176,9 @@ public class MenuController : MonoBehaviour
             }
 
             //SELECT AN OPTION FROM MENU
-            if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                 StartCoroutine(OpenSubMenu());
                 Debug.Log($"Opcion seleccionada: {menuOptions[cursorIndex].GetComponent<TextMeshProUGUI>().text}");
             }
@@ -216,29 +217,29 @@ public class MenuController : MonoBehaviour
         List<GameObject> heroItem = new List<GameObject>();
 
 
-        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
             heroItem.Add(heroPanel.transform.GetChild(i).gameObject);
             //Set hero info
-            heroItem[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
-            heroItem[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            heroItem[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}Avatar");
+            heroItem[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Name);
             heroItem[i].transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
-                ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
+                ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
             heroItem[i].transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
-                              ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
-            heroItem[i].transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Level}");
-            heroItem[i].transform.Find("NextLevel").GetComponent<TextMeshProUGUI>().SetText($"Siguiente nivel:\n{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp}");
+                              ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
+            heroItem[i].transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Level}");
+            heroItem[i].transform.Find("NextLevel").GetComponent<TextMeshProUGUI>().SetText($"Siguiente nivel:\n{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp}");
 
 
             //Bars
-            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
-            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
+            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
+            heroItem[i].transform.Find("HPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
 
-            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
-            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
+            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
+            heroItem[i].transform.Find("PPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
 
-            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp;
-            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Xp;
+            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().NextLevelXp;
+            heroItem[i].transform.Find("XPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Xp;
 
             heroItem[i].SetActive(true);
         }

@@ -26,10 +26,10 @@ public class EnemyDetector : MonoBehaviour
             //Debug.Log("Contacto enemigo: " + other.gameObject.name);
             transform.GetComponent<AudioSource>().PlayOneShot(AudioCollision);
             other.gameObject.GetComponent<Ai>().CollissionWithPlayer();
-            GameManager.instance.InBattle = true;
+            GameManager.Instance.InBattle = true;
             player.transform.GetComponent<CharacterController>().SimpleMove(new Vector3(0,0,0));
             player.transform.LookAt(new Vector3(other.transform.position.x, transform.parent.position.y, other.transform.position.z));
-            player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("attacked");
+            player.GetComponent<Animator>().SetTrigger("attacked");
 
             other.gameObject.GetComponent<Animator>().enabled = false;
             enemyTouched = other;

@@ -55,16 +55,16 @@ public class EquipmentUI : MonoBehaviour
     {
         animating = false;
         selectingOption = true;
-        currentHero = GameManager.instance.GetParty()[0];
+        currentHero = GameManager.Instance.GetParty()[0];
         optionsIndex = 0;
         slotsIndex = 0;
         itemListIndex = 0;
-        options = new Transform[GameManager.instance.GetParty().Count];
+        options = new Transform[GameManager.Instance.GetParty().Count];
         for (int i = 0; i < options.Length; i++)
         {
             options[i] = transform.Find("Options").GetChild(i);
             options[i].gameObject.SetActive(true);
-            options[i].GetComponent<TextMeshProUGUI>().text = GameManager.instance.GetParty()[i].name;
+            options[i].GetComponent<TextMeshProUGUI>().text = GameManager.Instance.GetParty()[i].name;
         }
         options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(true);
         options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
@@ -79,9 +79,9 @@ public class EquipmentUI : MonoBehaviour
             return;
         }
         //-----PRESS CONFIRM KEY------
-        if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+        if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
         {
-            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+            GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
             if (selectingEquipment)
             {
                 //SELECTING EQUIP FOR A SLOT
@@ -131,9 +131,9 @@ public class EquipmentUI : MonoBehaviour
 
 
         //-----PRESS BACK KEY------
-        if (Input.GetKeyDown(GameManager.instance.KeyCancel))
+        if (Input.GetKeyDown(GameManager.Instance.KeyCancel))
         {
-            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+            GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
             if (selectingEquipment)
             {
                 //SELECTIN EQUIP FOR A SLOT
@@ -173,7 +173,7 @@ public class EquipmentUI : MonoBehaviour
             else if (selectingSlot)
             {
                 slots[slotsIndex].GetChild(0).Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 slots[slotsIndex].GetChild(0).Find("Name").GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (slotsIndex + 1 >= slots.Count)
                 {
@@ -190,7 +190,7 @@ public class EquipmentUI : MonoBehaviour
             else if (selectingOption)
             {
                 options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (optionsIndex + 1 >= options.Length)
                 {
@@ -203,7 +203,7 @@ public class EquipmentUI : MonoBehaviour
 
                 options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
                 options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(true);
-                currentHero = GameManager.instance.GetParty()[optionsIndex];
+                currentHero = GameManager.Instance.GetParty()[optionsIndex];
                 RefreshEquipInfo();
             }
         }
@@ -219,7 +219,7 @@ public class EquipmentUI : MonoBehaviour
             else if (selectingSlot)
             {
                 slots[slotsIndex].GetChild(0).Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 slots[slotsIndex].GetChild(0).Find("Name").GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (slotsIndex - 1 < 0)
                 {
@@ -236,7 +236,7 @@ public class EquipmentUI : MonoBehaviour
             else if (selectingOption)
             {
                 options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (optionsIndex - 1 < 0)
                 {
@@ -249,7 +249,7 @@ public class EquipmentUI : MonoBehaviour
 
                 options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(true);
                 options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
-                currentHero = GameManager.instance.GetParty()[optionsIndex];
+                currentHero = GameManager.Instance.GetParty()[optionsIndex];
                 RefreshEquipInfo();
             }
         }

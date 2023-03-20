@@ -41,7 +41,7 @@ public class InventoryUI : MonoBehaviour
         itemInfo = gameObject.transform.Find("ItemsPanel").Find("ItemInfo").gameObject;
         heroUseItemPanel = gameObject.transform.Find("HeroPanel").gameObject;
         herosList = new List<GameObject>();
-        for (int i = 0; i < GameManager.instance.GetParty().Count; i++)
+        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
             heroUseItemPanel.transform.GetChild(i).gameObject.SetActive(true);
             herosList.Add(heroUseItemPanel.transform.GetChild(i).gameObject);
@@ -64,12 +64,12 @@ public class InventoryUI : MonoBehaviour
         {
             if (onItemList)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 ItemListGoDown();
             }
             else if (selectingItemTarget)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 if (heroIndex < herosList.Count - 1)
                 {
                     heroIndex++;
@@ -83,7 +83,7 @@ public class InventoryUI : MonoBehaviour
             else
             {
                 inventoryOptionsUI[menuIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 inventoryOptionsUI[menuIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (menuIndex + 1 >= inventoryOptionsUI.Count)
                 {
@@ -107,12 +107,12 @@ public class InventoryUI : MonoBehaviour
         {
             if (onItemList)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 ItemListGoUp();
             }
             else if (selectingItemTarget)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 if (heroIndex != 0)
                 {
                     heroIndex--;
@@ -126,7 +126,7 @@ public class InventoryUI : MonoBehaviour
             else
             {
                 inventoryOptionsUI[menuIndex].transform.Find("Highlight").gameObject.SetActive(false);
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 inventoryOptionsUI[menuIndex].GetComponent<TextMeshProUGUI>().color = Color.white;
                 if (menuIndex - 1 < 0)
                 {
@@ -145,7 +145,7 @@ public class InventoryUI : MonoBehaviour
         }
 
         //------------PRESS KEY CONFIRM-------------------------
-        if (Input.GetKeyDown(GameManager.instance.KeyConfirm))
+        if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
         {
 
             if (onItemList) //ON ITEM SELECTION
@@ -156,7 +156,7 @@ public class InventoryUI : MonoBehaviour
                     Debug.Log($"Objeto seleccionado {itemsList[itemIndex].ItemName}");
                     elementsList[itemIndex].transform.Find("Highlight").GetComponent<Animator>().enabled = false;
                     //MOSTRAR PERSONAJES SOBRE EL QUE USAR OBJETO
-                    GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                     if (itemIndex % 2 == 0)
                     {
                         //HERO PANEL A LA DERECHA
@@ -180,15 +180,15 @@ public class InventoryUI : MonoBehaviour
             else if (selectingItemTarget)
             {
                 //USE ITEM ON CHARACTER
-                InventoryController.Instance.ConsumeItem((Consumable)itemsList[itemIndex], GameManager.instance.GetParty()[heroIndex].GetComponent<FighterStats>());
+                InventoryController.Instance.ConsumeItem((Consumable)itemsList[itemIndex], GameManager.Instance.GetParty()[heroIndex].GetComponent<FighterStats>());
                 RefreshHeroPanel();
                 RefreshInventory();
-                Debug.Log($"Vas a usar {itemsList[itemIndex].ItemName} en {GameManager.instance.GetParty()[heroIndex].gameObject.name}");
+                Debug.Log($"Vas a usar {itemsList[itemIndex].ItemName} en {GameManager.Instance.GetParty()[heroIndex].gameObject.name}");
 
             }
             else //ON MENU OPTIONS
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                 inventoryOptionsUI[menuIndex].GetComponentInChildren<Animator>().enabled = false;
                 SetElementHighlight();
                 onItemList = true;
@@ -205,9 +205,9 @@ public class InventoryUI : MonoBehaviour
         }
 
         //--------------PRESS BACK KEY-----------------
-        if (Input.GetKeyDown(GameManager.instance.KeyCancel))
+        if (Input.GetKeyDown(GameManager.Instance.KeyCancel))
         {
-            GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+            GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
 
             if (onItemList) //BACK TO MENU OPTIONS
             {
@@ -244,7 +244,7 @@ public class InventoryUI : MonoBehaviour
         {
             if (onItemList)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 ItemListGoRight();
             }
         }
@@ -254,7 +254,7 @@ public class InventoryUI : MonoBehaviour
         {
             if (onItemList)
             {
-                GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 ItemListGoLeft();
             }
         }
@@ -379,19 +379,19 @@ public class InventoryUI : MonoBehaviour
     {
         for (int i = 0; i < herosList.Count; i++)
         {
-            herosList[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.instance.GetParty()[i].name}Avatar");
-            herosList[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Name);
+            herosList[i].transform.Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{GameManager.Instance.GetParty()[i].name}Avatar");
+            herosList[i].transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Name);
             herosList[i].transform.Find("HP").GetComponent<TextMeshProUGUI>()
-                .SetText($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
+                .SetText($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp}");
             herosList[i].transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
-                              ($"{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
-            herosList[i].transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.instance.GetParty()[i].GetComponent<FighterStats>().Level}");
+                              ($"{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp}/{GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp}");
+            herosList[i].transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().Level}");
 
             //Bars
-            herosList[i].transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
-            herosList[i].transform.Find("HPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
-            herosList[i].transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
-            herosList[i].transform.Find("PPBar").GetComponent<Slider>().value = GameManager.instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
+            herosList[i].transform.Find("HPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxHp;
+            herosList[i].transform.Find("HPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrHp;
+            herosList[i].transform.Find("PPBar").GetComponent<Slider>().maxValue = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().MaxPp;
+            herosList[i].transform.Find("PPBar").GetComponent<Slider>().value = GameManager.Instance.GetParty()[i].GetComponent<FighterStats>().CurrPp;
         }
 
     }

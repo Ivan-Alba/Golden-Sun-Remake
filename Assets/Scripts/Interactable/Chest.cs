@@ -29,7 +29,7 @@ public class Chest : Interactable
 
         //Stop player movement
         player.GetComponent<PlayerController>().StopPlayerController = true;
-        player.transform.Find("Model").Find($"{GameManager.instance.ActiveHero.name}_world").GetComponent<Animator>().SetTrigger("pickChest");
+        player.GetComponent<Animator>().SetTrigger("pickChest");
 
         yield return new WaitForSeconds(1f);
         Animator anim = gameObject.GetComponent<Animator>();
@@ -39,7 +39,7 @@ public class Chest : Interactable
         yield return new WaitForSeconds(2);
 
         // ITEM OBTAINED
-        GameManager.instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
+        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
         StartCoroutine(notifController.AddNotification($"Has obtenido: {itemFounded.ItemName}", itemFounded.Icon));
         InventoryController.Instance.AddItem(itemSlug);
 
