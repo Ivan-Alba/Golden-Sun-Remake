@@ -21,7 +21,11 @@ public class GameData
     //Party
     public int totalGold;
     public float totalTime;
-    public List<GameObject> party = new List<GameObject>();
+    public List<string> party = new List<string>();
+    public List<List<BaseStat>> heroStats = new List<List<BaseStat>>();
+    public List<int[]> heroLevelAndXp = new List<int[]>();
+    public List<int[]> heroCurrHpPp = new List<int[]>();
+    //public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
 
 
     //JSON CONSTRUCTOR
@@ -56,7 +60,19 @@ public class GameData
         //total time played
         totalTime = GameManager.Instance.TotalPlayed;
         //party
+        foreach(GameObject hero in GameManager.Instance.GetParty())
+        {
+            party.Add(hero.name);
+            heroStats.Add(hero.GetComponent<FighterStats>().CharacterStats);
+            //Level and XP
+            int[] xpLevel = new int[3] { hero.GetComponent<FighterStats>().Level, hero.GetComponent<FighterStats>().Xp, hero.GetComponent<FighterStats>().NextLevelXp };
+            heroLevelAndXp.Add(xpLevel);
+            //Current HP and PP
+            int[] currentPpHp = new int[2] { hero.GetComponent<FighterStats>().CurrHp, hero.GetComponent<FighterStats>().CurrPp };
+            heroCurrHpPp.Add(currentPpHp);
+            //heroPsynergy.Add(hero.GetComponent<FighterStats>().Psynergies);
 
+        }
 
         //----HERO DATA ---
 

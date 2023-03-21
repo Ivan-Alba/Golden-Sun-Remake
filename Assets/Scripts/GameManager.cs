@@ -1,12 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine.SceneManagement;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using Unity.VisualScripting;
-using System.Linq;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -56,20 +52,22 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            player = GameObject.FindGameObjectWithTag("Player");
         }
         else if (Instance != this)
         {
             Destroy(gameObject);
         }
 
-        if (!party.Contains(GameObject.Find("Isaac")))
+        if (SaveManager.loadedData == null)
         {
-            party.Add(GameObject.Find("Isaac"));
-            party.Add(GameObject.Find("Garet"));
+            if (!party.Contains(GameObject.Find("Isaac")))
+            {
+                party.Add(GameObject.Find("Isaac"));
+                party.Add(GameObject.Find("Garet"));
+            }
+            activeHero = party[0];
         }
-
-        player = GameObject.FindGameObjectWithTag("Player");
-        activeHero = party[0];
     }
 
     private void OnEnable()
@@ -130,17 +128,22 @@ public class GameManager : MonoBehaviour
             activeHero = party[0];
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
 
-            //CHANGE MODEL
-            for (int i = 0; i < player.transform.Find("Model").childCount; i++)
-            {
-                player.transform.Find("Model").GetChild(i).gameObject.SetActive(false);
-            }
-            player.transform.Find("Model").Find($"{activeHero.name}_world").gameObject.SetActive(true);
-
-            //CHANGE ANIMATION CONTROLLER
-            player.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<AnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
-            player.GetComponent<Animator>().avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
+            changeModelHero();
         }
+    }
+
+    private void changeModelHero()
+    {
+        //CHANGE MODEL
+        for (int i = 0; i < player.transform.Find("Model").childCount; i++)
+        {
+            player.transform.Find("Model").GetChild(i).gameObject.SetActive(false);
+        }
+        player.transform.Find("Model").Find($"{activeHero.name}_world").gameObject.SetActive(true);
+
+        //CHANGE ANIMATION CONTROLLER
+        player.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<AnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
+        player.GetComponent<Animator>().avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
     }
 
     public void Save()
@@ -149,26 +152,47 @@ public class GameManager : MonoBehaviour
     }
 
 
+    //SEPARAR EN SAVEMANAGER?
     private void LoadData()
     {
         GameData dataToLoad = SaveManager.loadedData;
 
-        //---Scene----    
+        //----------Scene---------    
         player.GetComponent<Animator>().enabled = false;
         player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
         player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
 
-        //---GameManager---
+        //----------GameManager--------
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
 
+        //--------------Party---------
+        foreach (string heroName in dataToLoad.party)
+        {
+            party.Add(GameObject.Find(heroName));
+        }
+        activeHero = party[0];
+        changeModelHero();
+
+        //Hero stats
+        for (int i = 0; i < party.Count; i++)
+        {
+            party[i].GetComponent<FighterStats>().CharacterStats = dataToLoad.heroStats[i];
+            party[i].GetComponent<FighterStats>().Level = dataToLoad.heroLevelAndXp[i][0];
+            party[i].GetComponent<FighterStats>().Xp = dataToLoad.heroLevelAndXp[i][1];
+            party[i].GetComponent<FighterStats>().NextLevelXp = dataToLoad.heroLevelAndXp[i][2];
+            party[i].GetComponent<FighterStats>().CurrHp = dataToLoad.heroCurrHpPp[i][0];
+            party[i].GetComponent<FighterStats>().CurrPp = dataToLoad.heroCurrHpPp[i][1];
+        }
+
+
+
         //Inventory
         List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
-        foreach (KeyValuePair<Item,int> pair in itemsList)
+        foreach (KeyValuePair<Item, int> pair in itemsList)
         {
             InventoryController.Instance.AddItem(pair.Key.ItemSlug, pair.Value);
         }
-
 
         player.GetComponent<Animator>().enabled = true;
 

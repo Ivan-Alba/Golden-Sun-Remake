@@ -1,18 +1,25 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using UnityEngine;
+using System;
 
+[Serializable]
 public class Psynergy
 {
 
     string name, description, slugName;
     int ppCost;
     bool isWorldPsynergy, isBattlePsynergy;
-    Sprite icon;
-    Sprite elementIcon;
     Elements element;
     Types type;
     TargetTypes targetType;
+
+    [NonSerialized]
+    Sprite icon;
+    [NonSerialized]
+    Sprite elementIcon;
+
+   
 
 
     public string Name { get => name; set => name = value; }
@@ -27,8 +34,6 @@ public class Psynergy
     public Types Type { get => type; set => type = value; }
     public Elements Element { get => element; set => element = value; }
     public TargetTypes TargetType { get => targetType; set => targetType = value; }
-
-
 
     public Sprite Icon { get => icon; set => icon = value; }
     public Sprite ElementIcon { get => elementIcon; set => elementIcon = value; }
