@@ -5,6 +5,8 @@ using UnityEditor.Animations;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using static UnityEditor.Experimental.GraphView.GraphView;
+using Unity.VisualScripting;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -85,6 +87,7 @@ public class GameManager : MonoBehaviour
         // LoadSceneState();
         if (SaveManager.loadedData != null)
         {
+            loadingData = true;
             LoadData();
         }
     }
@@ -148,7 +151,6 @@ public class GameManager : MonoBehaviour
 
     private void LoadData()
     {
-        loadingData = true;
         GameData dataToLoad = SaveManager.loadedData;
 
         //---Scene----    
@@ -156,14 +158,25 @@ public class GameManager : MonoBehaviour
         player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
         player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
 
-        //---Game---
+        //---GameManager---
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
+
+        //Inventory
+        List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
+        foreach (KeyValuePair<Item,int> pair in itemsList)
+        {
+            InventoryController.Instance.AddItem(pair.Key.ItemSlug, pair.Value);
+        }
+
 
         player.GetComponent<Animator>().enabled = true;
 
         loadingData = false;
+
+        //AL TERMINAR DE CARGAR TODO
         SaveManager.loadedData = null;
+
     }
 
     // Update is called once per frame

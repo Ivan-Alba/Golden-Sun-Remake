@@ -67,8 +67,9 @@ public class HeroEquipment : MonoBehaviour
             {
                 //QUITAR STATBONUS DE EQUIPO ACTUAL
                 gameObject.GetComponent<FighterStats>().RemoveStatBonus(EquippedItems[slot].StatName[i], EquippedItems[slot].StatValue[i]);
-                //Devolvemos ítem al inventario
             }
+
+            //Devolvemos ítem al inventario
             InventoryController.Instance.AddItem(EquippedItems[slot].ItemSlug);
             EquippedItems[slot] = null;
         }

@@ -28,18 +28,18 @@ public class InventoryController : MonoBehaviour
         }
     }
 
-    public void AddItem(string itemSlug)
+    public void AddItem(string itemSlug, int quantity = 1)
     {
         Debug.Log($"Obtenido {itemSlug}");
 
         Item itemToAdd = ItemDatabase.Instance.GetItem(itemSlug);
         if (playerItems.ContainsKey(itemToAdd))
         {
-            playerItems[itemToAdd] += 1;
+            playerItems[itemToAdd] += quantity;
         }
         else
         {
-            playerItems.Add(itemToAdd, 1);
+            playerItems.Add(itemToAdd, quantity);
         }
 
         Debug.Log($"{PlayerItems.Count} objetos en el inventario");

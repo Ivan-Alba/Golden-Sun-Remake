@@ -9,10 +9,9 @@ public class ItemDatabase : MonoBehaviour
     public static ItemDatabase Instance { get; set; }
     private List<Item> itemList { get; set; }
 
-
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
+
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -33,7 +32,7 @@ public class ItemDatabase : MonoBehaviour
 
         //DEBUG ALL ITEMS TO PLAYER
 
-        itemList.ForEach(x => InventoryController.Instance.AddItem(x.ItemSlug));
+        //itemList.ForEach(x => InventoryController.Instance.AddItem(x.ItemSlug));
     }
 
     public Item GetItem(string itemSlug)

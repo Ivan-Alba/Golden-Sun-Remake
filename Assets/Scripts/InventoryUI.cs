@@ -151,30 +151,33 @@ public class InventoryUI : MonoBehaviour
             if (onItemList) //ON ITEM SELECTION
             {
                 //USE ITEM IF USABLE ON MENU
-                if (itemsList[itemIndex].UseInMenu)
+                if (itemsList.Count > 0)
                 {
-                    Debug.Log($"Objeto seleccionado {itemsList[itemIndex].ItemName}");
-                    elementsList[itemIndex].transform.Find("Highlight").GetComponent<Animator>().enabled = false;
-                    //MOSTRAR PERSONAJES SOBRE EL QUE USAR OBJETO
-                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
-                    if (itemIndex % 2 == 0)
+                    if (itemsList[itemIndex].UseInMenu)
                     {
-                        //HERO PANEL A LA DERECHA
-                        heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 319, 0);
-                        heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, -319, 0);
+                        Debug.Log($"Objeto seleccionado {itemsList[itemIndex].ItemName}");
+                        elementsList[itemIndex].transform.Find("Highlight").GetComponent<Animator>().enabled = false;
+                        //MOSTRAR PERSONAJES SOBRE EL QUE USAR OBJETO
+                        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                        if (itemIndex % 2 == 0)
+                        {
+                            //HERO PANEL A LA DERECHA
+                            heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 319, 0);
+                            heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, -319, 0);
+                        }
+                        else
+                        {
+                            //HERO PANEL A LA IZQUIERDA
+                            heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 102, 0);
+                            heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, -102, 0);
+                        }
+                        RefreshHeroPanel();
+                        heroUseItemPanel.SetActive(true);
+                        selectingItemTarget = true;
+                        onItemList = false;
+                        heroIndex = 0;
+                        SetHeroHighlight();
                     }
-                    else
-                    {
-                        //HERO PANEL A LA IZQUIERDA
-                        heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 102, 0);
-                        heroUseItemPanel.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, -102, 0);
-                    }
-                    RefreshHeroPanel();
-                    heroUseItemPanel.SetActive(true);
-                    selectingItemTarget = true;
-                    onItemList = false;
-                    heroIndex = 0;
-                    SetHeroHighlight();
                 }
             }
             else if (selectingItemTarget)
