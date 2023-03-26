@@ -13,7 +13,6 @@ public class Psynergy
     Elements element;
     Types type;
     TargetTypes targetType;
-
     [NonSerialized]
     Sprite icon;
     [NonSerialized]
@@ -28,6 +27,8 @@ public class Psynergy
     public int PpCost { get => ppCost; set => ppCost = value; }
     public bool IsWorldPsynergy { get => isWorldPsynergy; set => isWorldPsynergy = value; }
     public bool IsBattlePsynergy { get => isBattlePsynergy; set => isBattlePsynergy = value; }
+    public Sprite Icon { get => icon; set => icon = value; }
+    public Sprite ElementIcon { get => elementIcon; set => elementIcon = value; }
 
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -35,9 +36,7 @@ public class Psynergy
     public Elements Element { get => element; set => element = value; }
     public TargetTypes TargetType { get => targetType; set => targetType = value; }
 
-    public Sprite Icon { get => icon; set => icon = value; }
-    public Sprite ElementIcon { get => elementIcon; set => elementIcon = value; }
-
+  
     public enum Elements
     {
         Venus,
@@ -64,6 +63,12 @@ public class Psynergy
         NO_TARGET
     }
 
+    //JSON CONSTRUCTOR
+    public Psynergy()
+    {
+
+    }
+
     public Psynergy(string name, string description, string slugName, int ppCost, bool isWorldPsynergy,
         bool isBattlePsynergy, Types type, Elements elementType, TargetTypes targetType)
     {
@@ -76,7 +81,6 @@ public class Psynergy
         this.type = type;
         this.element = elementType;
         this.targetType = targetType;
-        this.Icon = Resources.Load<Sprite>($"Images/Icons/Psynergies/{this.SlugName}");
     }
 
     public void SetElementIcon()

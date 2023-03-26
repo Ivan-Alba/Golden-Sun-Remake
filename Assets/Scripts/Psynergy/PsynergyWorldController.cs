@@ -34,7 +34,10 @@ public class PsynergyWorldController : MonoBehaviour
 
     private void Start()
     {
-        Initialize();
+        if (heroShortcuts.Count == 0)
+        {
+            Initialize();
+        }
     }
 
     public void Initialize()
@@ -253,7 +256,11 @@ public class PsynergyWorldController : MonoBehaviour
         }
         else
         {
-            SetShortcut(GameManager.Instance.ActiveHero, worldPsynergies[chooseIndex], position);
+            if (worldPsynergies.Count > 0)
+            {
+                SetShortcut(GameManager.Instance.ActiveHero, worldPsynergies[chooseIndex], position);
+            }
+
             psynergyChoosePanel.gameObject.SetActive(false);
             chooseIndex = 0;
         }

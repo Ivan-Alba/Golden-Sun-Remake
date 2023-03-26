@@ -169,6 +169,7 @@ public class PlayerController : MonoBehaviour
             inChoosePsynergyBar = true;
         } else if (Input.GetKeyUp(KeyCode.Alpha1) && inChoosePsynergyBar)
         {
+            
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 0);
             inChoosePsynergyBar = false;
         }
