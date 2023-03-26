@@ -13,7 +13,7 @@ public class TitleMenu : MonoBehaviour
 
     public void ContinueButton()
     {
-       GameData dataSaved = SaveManager.Load();
+       GameData dataSaved = SaveManager.Load(0);
 
         //CHARGE SCREEN
 

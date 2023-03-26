@@ -30,6 +30,7 @@ public class PsynergyDatabase : MonoBehaviour
         psynergyList = JsonConvert.DeserializeObject<List<Psynergy>>(Resources.Load("JSON/Psynergies").ToString(), settings);
         //psynergyList.ForEach(x => Debug.Log(x.ToString()));
         psynergyList.ForEach(x => x.SetElementIcon());
+        psynergyList.ForEach(x => x.Icon = Resources.Load<Sprite>($"Images/Icons/Psynergies/{x.SlugName}"));
     }
 
     public Psynergy GetPsynergy(string psynergySlug)

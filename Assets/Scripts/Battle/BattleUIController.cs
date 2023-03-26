@@ -81,7 +81,7 @@ public class BattleUIController : MonoBehaviour
         int i = 0;
         foreach (Transform turnUIElement in turnsUIElements)
         {
-            turnUIElement.gameObject.GetComponent<Image>().sprite = turnsOrdered.ElementAt(i++).Key.GetComponent<FighterStats>().Avatar;
+            turnUIElement.gameObject.GetComponent<Image>().sprite = turnsOrdered.ElementAt(i++).Key.GetComponent<FighterStats>().TurnBarImage;
         }
     }
 

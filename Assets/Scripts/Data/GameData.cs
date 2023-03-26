@@ -25,8 +25,9 @@ public class GameData
     public List<List<BaseStat>> heroStats = new List<List<BaseStat>>();
     public List<int[]> heroLevelAndXp = new List<int[]>();
     public List<int[]> heroCurrHpPp = new List<int[]>();
-    //public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
-
+    public List<Equipable[]> heroEquippedGear = new List<Equipable[]>();
+    public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
+    public List<KeyValuePair<string, Psynergy[]>> heroShortcuts = new List<KeyValuePair<string, Psynergy[]>>();
 
     //JSON CONSTRUCTOR
     public GameData()
@@ -52,7 +53,6 @@ public class GameData
 
        playerItems = InventoryController.Instance.PlayerItems.ToList();
 
-
         //---PARTY DATA----
 
         //total gold
@@ -60,6 +60,7 @@ public class GameData
         //total time played
         totalTime = GameManager.Instance.TotalPlayed;
         //party
+        int i = 0;
         foreach(GameObject hero in GameManager.Instance.GetParty())
         {
             party.Add(hero.name);
@@ -70,15 +71,25 @@ public class GameData
             //Current HP and PP
             int[] currentPpHp = new int[2] { hero.GetComponent<FighterStats>().CurrHp, hero.GetComponent<FighterStats>().CurrPp };
             heroCurrHpPp.Add(currentPpHp);
-            //heroPsynergy.Add(hero.GetComponent<FighterStats>().Psynergies);
 
+            //Psynergy
+            heroPsynergy.Add(hero.GetComponent<FighterStats>().Psynergies);
+            foreach(Psynergy psy in heroPsynergy[i])
+            {
+                psy.Icon = null;
+                psy.ElementIcon = null;
+            }
+
+            //Equipment
+            heroEquippedGear.Add(hero.GetComponent<HeroEquipment>().EquippedItems);
         }
 
-        //----HERO DATA ---
-
-        //stats
-
-
+        //PsynergyShortcuts
+        foreach(KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.heroShortcuts)
+        {
+            KeyValuePair<string, Psynergy[]> item = new KeyValuePair<string, Psynergy[]>(heroShortcut.Key.name, heroShortcut.Value);
+            heroShortcuts.Add(item);
+        }
 
 
     }

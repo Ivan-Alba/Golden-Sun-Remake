@@ -568,7 +568,7 @@ MonoBehaviour:
   spirit: 8
   agility: 7
   luck: 5
-  avatar: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
+  turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
   xp: 50
 --- !u!114 &7902641766905574895
 MonoBehaviour:

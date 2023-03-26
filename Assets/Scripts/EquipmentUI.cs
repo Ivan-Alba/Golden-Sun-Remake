@@ -305,7 +305,7 @@ public class EquipmentUI : MonoBehaviour
         equippedItems = currentHero.GetComponent<HeroEquipment>().EquippedItems;
 
         //BACKGROUND IMAGE
-        equipInfo.Find("Background").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{currentHero.name}_full");
+        transform.Find("Background").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{currentHero.name}_full");
 
         //EQUIPED ITEMS
         Transform equipedList = equipInfo.Find("EquippedList");
@@ -327,7 +327,7 @@ public class EquipmentUI : MonoBehaviour
         }
 
         //STATS INFO
-        Transform statsInfo = equipInfo.Find("StatsInfo");
+        Transform statsInfo = transform.Find("StatsInfo");
         List<BaseStat> currentHeroStats = currentHero.GetComponent<FighterStats>().CharacterStats;
 
         for (int i = 0; i < currentHeroStats.Count; i++)
@@ -395,7 +395,7 @@ public class EquipmentUI : MonoBehaviour
             int newValue = currentValue - currentPieceBonus + newPieceBonus;
 
             //Mostrar new value
-            Transform statsInfo = equipInfo.Find("StatsInfo");
+            Transform statsInfo = transform.Find("StatsInfo");
             if (i == 0)
             {
                 statsInfo.GetChild(i).Find("Value").GetComponent<TextMeshProUGUI>().text = $"{currentHero.GetComponent<FighterStats>().CurrHp} / {newValue}";

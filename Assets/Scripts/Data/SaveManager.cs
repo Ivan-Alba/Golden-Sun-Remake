@@ -9,11 +9,13 @@ using UnityEngine;
 public static class SaveManager
 {
 
-    public static GameData loadedData = null;
-    public static void Save(Transform player)
+    public static GameData[] loadedData = null;
+    public static void Save(int fileIndex)
     {
+        Transform player = GameObject.FindGameObjectWithTag("Player").transform;
+
         GameData dataToSave = new GameData(player);
-        string dataPath = Application.persistentDataPath + "/savedData.json";
+        string dataPath = Application.persistentDataPath + $"/savedData{fileIndex}.json";
 
         string json = JsonConvert.SerializeObject(dataToSave, Formatting.Indented, new JsonSerializerSettings
         {
@@ -26,9 +28,9 @@ public static class SaveManager
     }
 
 
-    public static GameData Load()
+    public static GameData Load(int fileIndex)
     {
-        string dataPath = Application.persistentDataPath + "/savedData.json";
+        string dataPath = Application.persistentDataPath + $"/savedData{fileIndex}.json";
         if (File.Exists(dataPath))
         {
             string json = File.ReadAllText(dataPath);
@@ -38,7 +40,8 @@ public static class SaveManager
                 TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
             });
             Debug.Log("Datos cargados");
-            loadedData = gameData;
+            loadedData = new GameData[1];
+            loadedData[0] = gameData;
             return gameData;
         }
         else
@@ -46,5 +49,17 @@ public static class SaveManager
             return null;
         }
     }
+
+    public static int CountFiles()
+    {
+        int fileCount = 0;
+        while (File.Exists(Application.persistentDataPath + $"/savedData{fileCount}.json"))
+        {
+            fileCount++;
+        }
+
+        return fileCount;
+    }
+        
 
 }

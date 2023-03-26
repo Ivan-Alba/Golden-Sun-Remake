@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine.SceneManagement;
 using UnityEngine;
-
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -92,7 +92,7 @@ public class GameManager : MonoBehaviour
 
     public void Start()
     {
-        party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slotsIndex.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
+        //party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slotsIndex.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
 
     }
 
@@ -146,27 +146,21 @@ public class GameManager : MonoBehaviour
         player.GetComponent<Animator>().avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
     }
 
-    public void Save()
-    {
-        SaveManager.Save(player.transform);
-    }
-
-
     //SEPARAR EN SAVEMANAGER?
     private void LoadData()
     {
-        GameData dataToLoad = SaveManager.loadedData;
+        GameData dataToLoad = SaveManager.loadedData[0];
 
-        //----------Scene---------    
+        //------------SCENE------------    
         player.GetComponent<Animator>().enabled = false;
         player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
         player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
 
-        //----------GameManager--------
+        //----------GAMEMANAGER--------
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
 
-        //--------------Party---------
+        //------------PARTY----------
         foreach (string heroName in dataToLoad.party)
         {
             party.Add(GameObject.Find(heroName));
@@ -174,7 +168,7 @@ public class GameManager : MonoBehaviour
         activeHero = party[0];
         changeModelHero();
 
-        //Hero stats
+        //--Hero settings---
         for (int i = 0; i < party.Count; i++)
         {
             party[i].GetComponent<FighterStats>().CharacterStats = dataToLoad.heroStats[i];
@@ -183,11 +177,35 @@ public class GameManager : MonoBehaviour
             party[i].GetComponent<FighterStats>().NextLevelXp = dataToLoad.heroLevelAndXp[i][2];
             party[i].GetComponent<FighterStats>().CurrHp = dataToLoad.heroCurrHpPp[i][0];
             party[i].GetComponent<FighterStats>().CurrPp = dataToLoad.heroCurrHpPp[i][1];
+
+            //---Psynergies---
+            party[i].GetComponent<FighterStats>().Psynergies = dataToLoad.heroPsynergy[i];
+
+         
+            //---Equipment---
+            party[i].GetComponent<HeroEquipment>().EquippedItems = dataToLoad.heroEquippedGear[i];
+
+            //Get equipped gear icons
+            foreach (Equipable equipPiece in party[i].GetComponent<HeroEquipment>().EquippedItems)
+            {
+                if (equipPiece != null)
+                {
+                    equipPiece.Icon = ItemDatabase.Instance.GetItem(equipPiece.ItemSlug).Icon;
+                }
+            }
         }
 
+        //---Psynergies shortcuts---
+        foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)
+        {
+            PsynergyWorldController.Instance.HeroShortcuts.Add(GameObject.Find(heroShortcut.Key), heroShortcut.Value);
+        }
+        PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
 
 
-        //Inventory
+
+
+        //---------INVENTORY---------
         List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
         foreach (KeyValuePair<Item, int> pair in itemsList)
         {
@@ -198,9 +216,11 @@ public class GameManager : MonoBehaviour
 
         loadingData = false;
 
-        //AL TERMINAR DE CARGAR TODO
-        SaveManager.loadedData = null;
 
+
+
+        //----FINISH LOAD-----
+        SaveManager.loadedData = null;
     }
 
     // Update is called once per frame

@@ -33,7 +33,7 @@ public class FighterStats : MonoBehaviour
     [SerializeField] string _name;
     [SerializeField] int level;
     [SerializeField] int maxHp, currHp, maxPp, currPp, strenght, defense, wisdom, spirit, agility, luck;
-    [SerializeField] Sprite avatar;
+    [SerializeField] Sprite turnBarImage;
     [SerializeField] int xp;
 
     //LISTA ITEMS DROP
@@ -54,7 +54,7 @@ public class FighterStats : MonoBehaviour
     public int Agility { get => characterStats[6].GetFinalValue(); set => agility = value; }
     public int Luck { get => characterStats[7].GetFinalValue(); set => luck = value; }
     public int Xp { get => xp; set => xp = value; }
-    public Sprite Avatar { get => avatar; set => avatar = value; }
+    public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
     public int NextLevelXp { get => nextLevelXp; set => nextLevelXp = value; }
     public List<Psynergy> Psynergies { get => psynergies; set => psynergies = value; }
     public List<BaseStat> CharacterStats { get => characterStats; set => characterStats = value; }
@@ -76,13 +76,14 @@ public class FighterStats : MonoBehaviour
 
     private void Start()
     {
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
+       /* psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
+       */
     }
 
     public void addStatBonus(string statName, int bonusValue) 
@@ -151,7 +152,7 @@ public class FighterStats : MonoBehaviour
         switch (level)
         {
             case 2:
-                psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
+                psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
                 break;
         }
     }
