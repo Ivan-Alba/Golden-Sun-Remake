@@ -129,13 +129,32 @@ public class FighterController : MonoBehaviour
             yield return null;
         }
 
-        //ATTACK ANIMATION
-        fighterAnim.SetTrigger("attack");
-        sounds.PlaySound(1);
+        //CRITICAL CALC
+        bool isCritical = false;
+        if (Random.Range(0, 100) < stats.Luck)
+        {
+            isCritical = true;
+        }
+
+        //DAMAGE CALC
+        int damage = ((stats.Strenght - targetStats.Defense / 2) * ((20 + stats.Strenght) / 20));
+
+        if (isCritical)
+        {
+            //CRITICAL ATTACK ANIMATION
+
+            damage = damage * 2;
+        }
+        else
+        {
+            //ATTACK ANIMATION
+            fighterAnim.SetTrigger("attack");
+            sounds.PlaySound(1);
+        }
+
         yield return new WaitForSeconds(0.5f);//simulamos tiempo de animacion
 
         //DO PHYSICAL DAMAGE
-        int damage = ((stats.Strenght - targetStats.Defense / 2) * ((20 + stats.Strenght) / 20));
         if (targetController.isDefending) damage = damage / 2;
         damage = damage + (int)Random.Range(damage * 0.3f, damage * 0.5f);
 

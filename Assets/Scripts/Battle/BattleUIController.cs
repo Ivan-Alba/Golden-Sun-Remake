@@ -229,7 +229,7 @@ public class BattleUIController : MonoBehaviour
                 {
                     GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
                     newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(psynergy.Name);
-                    newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText($"{psynergy.PpCost.ToString()} PP");
+                    newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText($"{psynergy.PpCost} PP");
                     newItem.transform.Find("Icon").GetComponent<Image>().sprite = psynergy.Icon;
                     newItem.transform.Find("ElementIcon").GetComponent<Image>().sprite = psynergy.ElementIcon;
                     newItem.name = psynergy.SlugName;
@@ -241,6 +241,7 @@ public class BattleUIController : MonoBehaviour
                     }
                     contentItems.Add(newItem);
                 }
+
 
                 contentCursorIndex = 0;
                 helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[0].Description);

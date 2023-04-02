@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour
 
     CharacterController controller;
     Animator playerAnim;
-    Animator cloackAnim;
     [SerializeField] Transform mainCamera;
     AudioSource audioSource;
 
@@ -68,7 +67,6 @@ public class PlayerController : MonoBehaviour
     {
         controller = gameObject.GetComponent<CharacterController>();
         //TODO SI EL PLAYER ES ISAAC
-        cloackAnim = GameObject.Find("CloackIsaac").GetComponent<Animator>();
         audioSource = gameObject.GetComponent<AudioSource>();
 
         //weaponCollider = weaponObject.GetComponent<BoxCollider>();
@@ -298,15 +296,12 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
             PlayerAnim.SetBool("isMoving", true);
-            cloackAnim.SetBool("isMoving", true);
-
 
 
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             if (Input.GetKey(KeyCode.LeftShift)) //RUN PRESSED
             {
                 PlayerAnim.SetBool("isRunning", true);
-                cloackAnim.SetBool("isRunning", true);
 
                 controller.Move(moveDirection.normalized * (speed * 2) * Time.deltaTime);
 
@@ -318,7 +313,6 @@ public class PlayerController : MonoBehaviour
             else //RUN NOT PRESSED
             {
                 PlayerAnim.SetBool("isRunning", false);
-                cloackAnim.SetBool("isRunning", false);
 
                 controller.Move(moveDirection.normalized * speed * Time.deltaTime);
 
@@ -330,7 +324,6 @@ public class PlayerController : MonoBehaviour
         else //NOT MOVING
         {
             PlayerAnim.SetBool("isMoving", false);
-            cloackAnim.SetBool("isMoving", false);
 
             //IDLE LONG TIME ANIMATION
             timeCount += Time.deltaTime;
