@@ -142,7 +142,7 @@ public class FighterController : MonoBehaviour
         if (isCritical)
         {
             //CRITICAL ATTACK ANIMATION
-
+            fighterAnim.SetTrigger("attack");
             damage = damage * 2;
         }
         else

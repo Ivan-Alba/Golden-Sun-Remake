@@ -3,16 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MenuController : MonoBehaviour
 {
-    PostProcessVolume ppv;
-    Bloom bloom;
-    float initialBloomValue;
-    bool increasing = true;
     int cursorIndex;
     bool animating;
     bool onSubMenu;
@@ -41,12 +36,7 @@ public class MenuController : MonoBehaviour
     void Awake()
     {
         minimap = GameObject.FindGameObjectWithTag("Minimap");
-        if (GameObject.Find("Bloom") != null)
-        {
-            ppv = GameObject.Find("Bloom").GetComponent<PostProcessVolume>();
-            ppv.profile.TryGetSettings(out bloom);
-            initialBloomValue = bloom.intensity.value;
-        }
+       
         botPage = transform.Find("Back").Find("Bot").gameObject;
         topPage = transform.Find("Back").Find("Top").gameObject;
 
@@ -110,8 +100,6 @@ public class MenuController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (bloom != null) bloom.intensity.value = initialBloomValue;
-
         foreach (GameObject option in menuOptions)
         {
             option.GetComponent<TextMeshProUGUI>().color = Color.white;
@@ -127,7 +115,6 @@ public class MenuController : MonoBehaviour
     void Update()
     {
         GameManager.Instance.TotalPlayed += Time.unscaledDeltaTime;
-        //BloomEffect();
         RefreshTime();
         RefreshGold();
 
@@ -284,29 +271,6 @@ public class MenuController : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void BloomEffect()
-    {
-        //ANIMACION BACKGROUND INCREMENTANDO BLOOM
-        if (bloom.intensity.value < 20 && increasing)
-        {
-            bloom.intensity.value = bloom.intensity.value + 1;
-        }
-        else if (bloom.intensity.value == 20)
-        {
-            increasing = false;
-            bloom.intensity.value = bloom.intensity.value - 1;
-        }
-        else if (bloom.intensity.value == 10 && !increasing)
-        {
-            increasing = true;
-            bloom.intensity.value = bloom.intensity.value + 1;
-        }
-        else
-        {
-            bloom.intensity.value = bloom.intensity.value - 1;
-        }
-
-    }
 
     public void FinishAnimation()
     {

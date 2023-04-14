@@ -7,7 +7,6 @@ using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityEditor.Progress;
-using static UnityEngine.Rendering.PostProcessing.SubpixelMorphologicalAntialiasing;
 
 public class InventoryUI : MonoBehaviour
 {

@@ -103,6 +103,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        RefreshPartyInfo();
+
         if (GameManager.Instance.LoadingData)
         {
             return;
@@ -117,10 +119,10 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance.InBattle) //IF BATTLE DISABLE UPDATE
         {
             staminaBar.SetActive(false);
-            if (partyInfoBarActive)
+            /*if (partyInfoBarActive)
             {
                 StartCoroutine(ShowPartyInfoBar(false));
-            }
+            }*/
             return;
         }
 
@@ -340,7 +342,7 @@ public class PlayerController : MonoBehaviour
 
         //------------SHOW PARTY INFO BAR-----------//
 
-        if (timeCount >= 1 && !aiming && !partyInfoBarActive)
+        /*if (timeCount >= 1 && !aiming && !partyInfoBarActive)
         {
             RefreshPartyInfo();
             StartCoroutine(ShowPartyInfoBar(true));
@@ -350,7 +352,7 @@ public class PlayerController : MonoBehaviour
         if (timeCount < 1 && partyInfoBarActive)
         {
             StartCoroutine(ShowPartyInfoBar(false));
-        }
+        }*/
 
 
 
@@ -459,7 +461,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private IEnumerator ShowPartyInfoBar(bool choice)
+    /*private IEnumerator ShowPartyInfoBar(bool choice)
     {
         if (choice)
         {
@@ -477,7 +479,7 @@ public class PlayerController : MonoBehaviour
             }
             partyInfoBar.SetActive(false);
         }
-    }
+    }*/
 
     public GameObject GameObjectForward()
     {

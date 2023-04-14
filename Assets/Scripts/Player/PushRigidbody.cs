@@ -9,7 +9,6 @@ public class PushRigidbody : MonoBehaviour
     private float targetMass;
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        Debug.Log("OnControllerColliderHit");
         Rigidbody otherRigidbody = hit.collider.attachedRigidbody;
 
         if (otherRigidbody == null || otherRigidbody.isKinematic)
