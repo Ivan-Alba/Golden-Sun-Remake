@@ -83,7 +83,7 @@ public class BattleCameraController : MonoBehaviour
 
     public void SetTurnCameraOnHero(GameObject hero)
     {
-        Instantiate(turnCameraPrefab, hero.transform);
+        Instantiate(turnCameraPrefab, hero.transform.Find("ContainerTurnCamera"));
     }
 
     public void DestoyTurnCamera(GameObject hero)

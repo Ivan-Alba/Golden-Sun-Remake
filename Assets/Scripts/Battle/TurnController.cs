@@ -118,7 +118,7 @@ public class TurnController : MonoBehaviour
     private void SetHeroTurn()
     {
         //Turn Camera
-        turnCamera = Instantiate(turnCameraPrefab, turnsOrdered.ElementAt(0).Key.transform).GetComponent<Camera>();
+        turnCamera = Instantiate(turnCameraPrefab, turnsOrdered.ElementAt(0).Key.transform.Find("ContainerTurnCamera")).GetComponent<Camera>();
         turnCamera.gameObject.SetActive(true);
         turnCameraMask = turnCamera.transform.GetComponentInChildren<Image>().gameObject;
         turnCameraMask.GetComponent<Animator>().SetTrigger("enter");

@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
     private GameObject iconCanvas;
     private GameObject staminaBar;
     private Slider staminaSlider;
+    bool enoughStaminaToRun = true;
     //Minimap
     GameObject minimap;
     //AIM
@@ -40,7 +41,6 @@ public class PlayerController : MonoBehaviour
 
     //Character Info Bar
     GameObject partyInfoBar;
-    bool partyInfoBarActive;
 
     //-----------------------------------------------------------
 
@@ -301,7 +301,7 @@ public class PlayerController : MonoBehaviour
 
 
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            if (Input.GetKey(KeyCode.LeftShift)) //RUN PRESSED
+            if (Input.GetKey(KeyCode.LeftShift) && enoughStaminaToRun) //RUN PRESSED
             {
                 PlayerAnim.SetBool("isRunning", true);
 
@@ -524,6 +524,24 @@ public class PlayerController : MonoBehaviour
     public void RefreshStaminaBar(float value)
     {
         staminaSlider.value += value;
+        if (staminaSlider.value < 30)
+        {
+            staminaSlider.fillRect.GetComponent<Image>().color = Color.red;
+        } else
+        {
+            staminaSlider.fillRect.GetComponent<Image>().color = new Color(0.94f, 0.71f, 0);
+        }
+
+        if (staminaSlider.value < 5)
+        {
+            //CHARACTER TIRED
+            enoughStaminaToRun = false;
+        } else if (!enoughStaminaToRun && staminaSlider.value > 30)
+        {
+            enoughStaminaToRun = true;
+        }
+
+
     }
 
     private void ShowStaminaBar(bool value)
