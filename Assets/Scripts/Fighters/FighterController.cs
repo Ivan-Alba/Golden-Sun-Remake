@@ -45,7 +45,7 @@ public class FighterController : MonoBehaviour
             //WHILE FAR
             if (Vector3.Distance(transform.position, target.position) > 3)
             {
-                float speed = 4.5f;
+                float speed = 6f;
 
                 //TODO LERP OR SMOOTH DAMP?
                 Vector3 velocity = new Vector3();
@@ -72,9 +72,9 @@ public class FighterController : MonoBehaviour
             }
             else
             {
-                float speed = 2.7f;
+                float speed = 8.5f;
                 fighterAnim.SetFloat("Move", -speed);
-                transform.position = Vector3.Lerp(transform.position, startPosition, speed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, startPosition, speed * Time.deltaTime);
             }
         }
 
@@ -161,7 +161,7 @@ public class FighterController : MonoBehaviour
 
         //DOING DAMAGE
         targetController.ReceiveDamage(damage);
-        yield return new WaitForSeconds(0.5f);
+        //yield return new WaitForSeconds(0.5f);
 
         //WAIT ANIMATION CALLS AttackDone()
         while (comingBack || transform.position != startPosition)
@@ -179,6 +179,11 @@ public class FighterController : MonoBehaviour
         fighterAnim.SetTrigger("receiveHit");
         sounds.PlaySound(2);
         stats.CurrHp -= damage;
+
+        if (stats.CurrHp < 0)
+        {
+            stats.CurrHp = 0;
+        }
 
         GameObject text;
         Vector3 offset;
@@ -234,8 +239,17 @@ public class FighterController : MonoBehaviour
 
     public void AttackDone() //CALLED BY ANIMATIONS
     {
+
         //COME BACK TO START POSITION WHEN ANIMATION DONE
+        StartCoroutine(WaitAfterAttack());
+    }
+
+    private IEnumerator WaitAfterAttack()
+    {
+        //TIME AFTER ATTACK TIL COMING BACK
+        yield return new WaitForSeconds(0.5f);
         comingBack = true;
     }
+
 
 }

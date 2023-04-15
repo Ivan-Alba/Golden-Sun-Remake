@@ -308,7 +308,7 @@ public class PlayerController : MonoBehaviour
                 controller.Move(moveDirection.normalized * (speed * 2) * Time.deltaTime);
 
                 //REFRESH STAMINA BAR
-                RefreshStaminaBar(-2);
+                RefreshStaminaBar(-10 * Time.deltaTime);
 
 
             }
@@ -319,7 +319,7 @@ public class PlayerController : MonoBehaviour
                 controller.Move(moveDirection.normalized * speed * Time.deltaTime);
 
                 //REFRESH STAMINA BAR
-                RefreshStaminaBar(1);
+                RefreshStaminaBar(7 * Time.deltaTime);
 
             }
         }
@@ -336,7 +336,7 @@ public class PlayerController : MonoBehaviour
             }
 
             //REFRESH STAMINA BAR
-            RefreshStaminaBar(1);
+            RefreshStaminaBar(7 * Time.deltaTime);
         }
 
 

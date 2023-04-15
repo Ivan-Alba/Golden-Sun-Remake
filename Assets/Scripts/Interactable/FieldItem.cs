@@ -29,7 +29,7 @@ public class FieldItem : Interactable
         player.GetComponent<Animator>().SetTrigger("pickFloor");
         //CLOACK ANIM
         //cloackIsaacAnim.SetTrigger("pick");
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(2.2f);
 
 
         //Show notification
