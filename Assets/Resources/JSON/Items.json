@@ -10,6 +10,7 @@
       "CanSell" : true,
       "ObjectType" : "Item", 
       "UseInMenu" : true,
+      "UseInBattle": true,
       "StatBonus" : "HP",
       "BonusValue" : 30
     },
@@ -23,6 +24,7 @@
       "CanSell" : true,
       "ObjectType" : "Item", 
       "UseInMenu" : true,
+      "UseInBattle": true,
       "StatBonus" : "HP",
       "BonusValue" : 100
     },
@@ -35,7 +37,8 @@
       "ItemPrice": 30,
       "CanSell" : true,
       "ObjectType" : "Item", 
-      "UseInMenu" : true
+      "UseInMenu" : true,
+      "UseInBattle": true
     },
 
     {
@@ -46,7 +49,8 @@
       "ItemPrice": 1000,
       "CanSell" : true,
       "ObjectType" : "Item", 
-      "UseInMenu" : true
+      "UseInMenu" : true,
+      "UseInBattle": true
     },
 
      {
@@ -58,6 +62,7 @@
       "CanSell" : true,
       "ObjectType" : "Weapon", 
       "UseInMenu" : false,
+      "UseInBattle": false,
       "StatName" : ["STRENGHT", "DEFENSE", "MAXHP"],
       "StatValue" : [3, 2, 20]
     },
@@ -71,6 +76,7 @@
       "CanSell" : true,
       "ObjectType" : "Hands", 
       "UseInMenu" : false,
+      "UseInBattle": false,
       "StatName" : ["DEFENSE"],
       "StatValue" : [2]
     },
@@ -84,6 +90,7 @@
       "CanSell" : true,
       "ObjectType" : "Accessory", 
       "UseInMenu" : false,
+      "UseInBattle": true,
       "StatName" : ["MAXPP", "WISDOM"],
       "StatValue" : [5, 5]
     },
@@ -97,7 +104,8 @@
       "ItemPrice": 80,
       "CanSell" : true,
       "ObjectType" : "Resource", 
-      "UseInMenu" : false
+      "UseInMenu" : false,
+      "UseInBattle": false
     },
 
     {
@@ -108,7 +116,8 @@
       "ItemPrice": 99999,
       "CanSell" : false,
       "ObjectType" : "Special", 
-      "UseInMenu" : false
+      "UseInMenu" : false,
+      "UseInBattle": false
     }
 
 

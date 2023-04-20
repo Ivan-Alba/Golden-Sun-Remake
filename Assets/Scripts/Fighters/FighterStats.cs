@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -134,7 +135,7 @@ public class FighterStats : MonoBehaviour
         }
     }
 
-    public void LevelUp()
+    public string LevelUp()
     {
         //EXPERIENCIA
         level += 1;
@@ -144,17 +145,48 @@ public class FighterStats : MonoBehaviour
 
 
         //APRENDE ALGUNA HABILIDAD?
-        LearnAbility();
+
+        string abilityLearned = LearnAbility();
+        if (abilityLearned != null )
+        {
+            return abilityLearned;
+        } else
+        {
+            return null;
+        }
     }
 
-    private void LearnAbility()
+    private string LearnAbility()
     {
-        switch (level)
+        //Cargar Json
+        HeroAbilitiesData abilitiesData = JsonUtility.FromJson<HeroAbilitiesData>(Resources.Load("JSON/HeroLearningData").ToString());
+
+        // Buscar el héroe por nombre.
+        HeroAbility heroAbility = abilitiesData.GetHeroAbility(_name);
+
+        if (heroAbility != null)
         {
-            case 2:
-                psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
-                break;
+            // Buscar la habilidad correspondiente al nivel del héroe.
+            string abilityName = heroAbility.GetAbilityName(level);
+
+            if (abilityName != null)
+            {
+                Debug.Log(_name + " aprenderá la habilidad " + abilityName + " en el nivel " + level + ".");
+                psynergies.Add(PsynergyDatabase.Instance.GetPsynergy(abilityName));
+                return abilityName;
+            }
+            else
+            {
+                Debug.Log(_name + " no aprenderá ninguna habilidad en el nivel " + level + ".");
+            }
         }
+        else
+        {
+            Debug.Log("El héroe " + _name + " no se encontró en los datos de habilidades.");
+        }
+
+        return null;
+
     }
 
 }

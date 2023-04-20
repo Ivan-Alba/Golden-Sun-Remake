@@ -45,8 +45,8 @@ public class SaveLoadUI : MonoBehaviour
         scrollBar = transform.Find("SavePanel").Find("FileScrollView").Find("Scrollbar Vertical");
         contentSave = transform.Find("SavePanel").Find("FileScrollView").Find("Viewport").Find("Content");
         contentLoad = transform.Find("LoadPanel").Find("FileScrollView").Find("Viewport").Find("Content");
-        saveFilePrefab = Resources.Load<GameObject>("Prefabs/SaveFile");
-        newSavePanelPrefab = Resources.Load<GameObject>("Prefabs/NewSavePanel");
+        saveFilePrefab = Resources.Load<GameObject>("Prefabs/UIComponents/SaveFile");
+        newSavePanelPrefab = Resources.Load<GameObject>("Prefabs/UIComponents/NewSavePanel");
 
         savePanel = transform.Find("SavePanel");
         loadPanel = transform.Find("LoadPanel");

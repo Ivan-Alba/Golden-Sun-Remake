@@ -48,7 +48,7 @@ public class EquipmentUI : MonoBehaviour
         }
         equipmentListPanel = transform.Find("ItemsPanel");
         equipScrollContent = equipmentListPanel.Find("ItemPanel").Find("Viewport").Find("Content");
-        gearPiecePrefab = Resources.Load<GameObject>("Prefabs/InventoryItem");
+        gearPiecePrefab = Resources.Load<GameObject>("Prefabs/UIComponents/InventoryItem");
     }
 
     private void OnEnable()

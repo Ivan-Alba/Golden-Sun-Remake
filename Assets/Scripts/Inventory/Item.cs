@@ -11,7 +11,7 @@ public class Item
     string itemSlug, itemName, itemDescription;
     int itemPrice;
     string objectType;
-    bool canSell, useInMenu;
+    bool canSell, useInMenu, useInBattle;
     [NonSerialized]
     Sprite icon;
 
@@ -23,4 +23,5 @@ public class Item
     public bool UseInMenu { get => useInMenu; set => useInMenu = value; }
     public string ObjectType { get => objectType; set => objectType = value; }
     public Sprite Icon { get => icon; set => icon = value; }
+    public bool UseInBattle { get => useInBattle; set => useInBattle = value; }
 }

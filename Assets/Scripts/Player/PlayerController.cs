@@ -226,7 +226,7 @@ public class PlayerController : MonoBehaviour
             PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 3);
         }
 
-        //--------MOVE PSYNERGY BAR-------
+        //-----------MOVE PSYNERGY BAR---------------
 
         if (inChoosePsynergyBar && Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -267,20 +267,14 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Q) && !aiming)
         {
-            if (mainCamera.GetComponent<Camera>().enabled == true) Camera.main.enabled = false;
-            aimCamera.enabled = true;
-            aimImageUI.SetActive(true);
-            transform.GetComponent<PlayerAiming>().enabled = true;
-            aiming = true;
+            StartAiming();
+           
         }
 
         if (Input.GetKeyUp(KeyCode.Q) && aiming)
         {
             StopAiming();
         }
-
-        //-----------WORLD PSYNERGY----------
-
 
 
         //-------------MOVEMENT--------------
@@ -388,6 +382,16 @@ public class PlayerController : MonoBehaviour
             minimap.transform.parent.gameObject.SetActive(false);
         }
 
+    }
+
+
+    private void StartAiming()
+    {
+        if (mainCamera.GetComponent<Camera>().enabled == true) Camera.main.enabled = false;
+        aimCamera.enabled = true;
+        aimImageUI.SetActive(true);
+        transform.GetComponent<PlayerAiming>().enabled = true;
+        aiming = true;
     }
 
     private void StopAiming()

@@ -12,7 +12,7 @@ public class NotificationController : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        notifPrefab = Resources.Load("Prefabs/Notification") as GameObject;
+        notifPrefab = Resources.Load("Prefabs/UIComponents/Notification") as GameObject;
         container = gameObject.GetComponentInChildren<ContentSizeFitter>().gameObject;
     }
 

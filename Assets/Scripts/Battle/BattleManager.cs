@@ -21,12 +21,16 @@ public class BattleManager : MonoBehaviour
 
     Animator logoTransition;
     GameObject mainCamera;
+    float[] pointerOriginalY;
 
-    //VICTORY ANIMATION
+
+    //NEXT ACTION
+    string nextAction_targetType;
+    int nextAction_targetSize;
+
 
     //RESPAWN CONTROLLER
     RespawnController respawnController;
-    GameObject respawnPoint;
 
     //LISTS WITH FIGHTERS
     List<GameObject> enemiesList = new List<GameObject>();
@@ -100,6 +104,7 @@ public class BattleManager : MonoBehaviour
                 battleUIController.SetHeroInfoPanel(i);
         }
 
+        pointerOriginalY = new float[maxEnemiesInBattle];
         playerCanvas = GameObject.Find("PlayerCanvas");
     }
 
@@ -142,7 +147,8 @@ public class BattleManager : MonoBehaviour
                     switch (battleUIController.CommandSelected)
                     {
                         case 0: //ATTACK
-                            SelectDefaultTarget();
+                            SelectDefaultTarget("ONE_TARGET");
+                            nextAction_targetType = "ONE_TARGET";
                             waitingAction = false;
                             selectingTarget = true;
                             break;
@@ -185,7 +191,7 @@ public class BattleManager : MonoBehaviour
         }
         else
 
-        if (selectingTarget) //Selectint target/s for command selected
+        if (selectingTarget) //SELECTING TARGET/S FOR ACTION
         {
             if (Input.GetKeyDown(KeyCode.RightArrow)) //Right target
             {
@@ -199,7 +205,7 @@ public class BattleManager : MonoBehaviour
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             }
 
-            if (Input.GetKeyDown(KeyCode.R)) //Returns back to choose a new command
+            if (Input.GetKeyDown(KeyCode.R)) //Back Button
             {
                 for (int i = 0; i < enemyPositions.Length; i++) //Hide pointers
                 {
@@ -209,8 +215,26 @@ public class BattleManager : MonoBehaviour
                 battleUIController.HideSelectedTarget();
 
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
-                waitingAction = true;
-                selectingTarget = false;
+
+                switch (battleUIController.CommandSelected)
+                {
+                    case 0: //ATTACK
+                        waitingAction = true;
+                        selectingTarget = false;
+                        break;
+                    case 1: //PSYNERGY
+                        selectingTarget = false;
+                        choosingList = true;
+                        break;
+                    case 2: //DJINN
+                        break;
+                    case 3: //SUMMON
+                        break;
+                    case 5: //ITEM
+                        break;
+
+                }
+                
             }
 
             if (Input.GetKeyDown(KeyCode.E) && !keyPressed) //Target selected
@@ -248,7 +272,27 @@ public class BattleManager : MonoBehaviour
             {
                 if (battleUIController.GetContentItem() != null)
                 {
-                    Debug.Log($"Lanzas psinergía {battleUIController.GetContentItem()}");
+                    choosingList = false;
+                    selectingTarget = true;
+                    if (battleUIController.CommandSelected == 1) { // PSYNERGY
+                        Psynergy psinergySelected = PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem());
+                        if (psinergySelected.TargetType.ToString() == "MULTI_TARGET")
+                        {
+                            SelectDefaultTarget(psinergySelected.TargetType.ToString(), psinergySelected.TargetSize);
+                            nextAction_targetType = psinergySelected.TargetType.ToString();
+                            nextAction_targetSize = psinergySelected.TargetSize;
+                        }
+                        else
+                        {
+                            SelectDefaultTarget(PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem()).TargetType.ToString());
+                            nextAction_targetType = psinergySelected.TargetType.ToString();
+                        }
+
+                        Debug.Log($"Psinergía {battleUIController.GetContentItem()} target tipo: {PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem()).TargetType.ToString()}");
+                    } else if (battleUIController.CommandSelected == 5)//ITEMS
+                    {
+
+                    }
                 }
             }
 
@@ -283,7 +327,6 @@ public class BattleManager : MonoBehaviour
         enemyPositions = new GameObject[enemiesOnBattle];
 
         //RESPAWN OBJECTS
-        respawnPoint = respawnZone;
         respawnController = respawnZone.GetComponent<RespawnController>();
 
         //ACTIVE GLOBAL VARIABLE IN BATTLE
@@ -384,12 +427,16 @@ public class BattleManager : MonoBehaviour
             enemiesList[i].GetComponent<AudioSource>().spatialBlend = 0;
             fighters.Add(enemiesList[i]);
 
-            //SET POINTERS POSITION
-            GameObject pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
-            pointer.transform.position = new Vector3(pointer.transform.position.x,
-                pointer.transform.position.y + enemiesList[i].GetComponent<BoxCollider>().bounds.size.y,
-                pointer.transform.position.z);
+            pointerOriginalY[i] = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").position.y;
+
+            //SET TOP POINTERS POSITION
+            GameObject topPointer = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").gameObject;
+            topPointer.transform.position = new Vector3(topPointer.transform.position.x,
+                topPointer.transform.position.y + enemiesList[i].GetComponent<BoxCollider>().bounds.size.y,
+                topPointer.transform.position.z);
         }
+
+       
 
         //INITIALIZE FIGHTERS FIRST TURN CD BY AGILITY
         foreach (GameObject fighter in fighters)
@@ -627,6 +674,15 @@ public class BattleManager : MonoBehaviour
             heroList[i].GetComponent<FighterController>().SetOffDefense();
         }
 
+
+        //SAVE START TOP POINTERS POSITION
+        for (int i = 0; i < enemiesOnBattle; i++)
+        {
+            Transform currentPosition = enemyPositions[i].transform.Find("Pointer").Find("TopPointer");
+            currentPosition.position = new Vector3(currentPosition.position.x, pointerOriginalY[i], currentPosition.position.z);
+
+        }
+
         Destroy(this);
     }
 
@@ -642,25 +698,111 @@ public class BattleManager : MonoBehaviour
         Debug.Log("GAMEOVER");
     }
 
-    private void SelectDefaultTarget()
+    private void SelectDefaultTarget(string targetType, int targetSize = 0, int i = 0)
     {
-        int i = 0;
 
-        while (enemiesList[i] == null)
+        GameObject pointer;
+        List<GameObject> enemiesPointed = new List<GameObject>();
+
+        foreach(GameObject position in enemyPositions)
         {
-            i++;
+            position.transform.Find("Pointer").gameObject.SetActive(false);
         }
 
-        //ACTIVE POINTER AND SET POSITION OVER ENEMY
-        GameObject pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
-        pointer.SetActive(true);
+        switch (targetType)
+        {
+            case "ONE_TARGET":
+            
+                while (enemiesList[i] == null)
+                {
+                    i++;
+                }
 
+                //ADD ENEMY TO SELECTED AND ACTIVE POINTER
+                pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
+                pointer.SetActive(true);
+                enemiesPointed.Add(enemiesList[i]);
+                actualTarget = i;
+                //SHOW ON TURN BAR ENEMY SELECTED
+                battleUIController.ShowSelectedTarget(enemiesPointed);
+                break;
 
-        actualTarget = i;
+            case "MULTI_TARGET":
+                while (enemiesList[i] == null)
+                {
+                    i++;
+                }
 
-        //SHOW ON TURN BAR ENEMY SELECTED
-        battleUIController.ShowSelectedTarget(enemiesList[actualTarget]);
+                actualTarget = i;
+
+                //ADD ENEMY TO SELECTED AND ACTIVE POINTER
+                enemiesPointed.Add(enemiesList[i]);
+                pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
+                pointer.SetActive(true);
+
+                
+                switch (targetSize) //HOW MANY ENEMIES TARGETS ACTION
+                {
+                    case 3:
+                        switch (i) //ACTIVATE POINTERS OF SIDE'S ENEMIES
+                        {
+                            case 0:
+                                if (enemiesList.Count > 1 && enemiesList[1] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[1]);
+                                    pointer = enemyPositions[1].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+
+                                if (enemiesList.Count > 2 && enemiesList[2] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[2]);
+                                    pointer = enemyPositions[2].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+                                break;
+
+                            case 1:
+                                if (enemiesList.Count > 3 && enemiesList[3] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[3]);
+                                    pointer = enemyPositions[3].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+
+                                if (enemiesList[0] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[0]);
+                                    pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+                                break;
+                            case 2:
+                                if (enemiesList.Count > 4 && enemiesList[4] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[4]);
+                                    pointer = enemyPositions[4].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+
+                                if (enemiesList[0] != null)
+                                {
+                                    enemiesPointed.Add(enemiesList[0]);
+                                    pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
+                                    pointer.SetActive(true);
+                                }
+                                break;
+                        }
+                        break;
+                    case 5:
+                        break;
+                }
+
+                battleUIController.ShowSelectedTarget(enemiesPointed);
+                break;
+        }
     }
+
 
     private void SelectRightTarget()
     {
@@ -710,7 +852,17 @@ public class BattleManager : MonoBehaviour
 
         if (actualTarget != nextTarget)
         {
-            //UNACTIVE CURRENT POINTER
+            switch (nextAction_targetType)
+            {
+                case "ONE_TARGET":
+                    SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
+                    break;
+                case "MULTI_TARGET":
+                    SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
+                    break;
+            }
+
+            /*//UNACTIVE CURRENT POINTER
             enemyPositions[actualTarget].transform.Find("Pointer").gameObject.SetActive(false);
             //ACTIVE NEXT POINTER
             enemyPositions[nextTarget].transform.Find("Pointer").gameObject.SetActive(true);
@@ -718,7 +870,7 @@ public class BattleManager : MonoBehaviour
             actualTarget = nextTarget;
 
             //SHOW ON TURN BAR ENEMY SELECTED
-            battleUIController.ShowSelectedTarget(enemiesList[actualTarget]);
+            battleUIController.ShowSelectedTarget(enemiesList[actualTarget]);*/
         }
 
     }
@@ -771,7 +923,18 @@ public class BattleManager : MonoBehaviour
 
         if (actualTarget != nextTarget)
         {
-            //UNACTIVE CURRENT POINTER
+
+            switch (nextAction_targetType)
+            {
+                case "ONE_TARGET":
+                    SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
+                    break;
+                case "MULTI_TARGET":
+                    SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
+                    break;
+            }
+
+            /*//UNACTIVE CURRENT POINTER
             enemyPositions[actualTarget].transform.Find("Pointer").gameObject.SetActive(false);
             //ACTIVE NEXT POINTER
             enemyPositions[nextTarget].transform.Find("Pointer").gameObject.SetActive(true);
@@ -779,7 +942,7 @@ public class BattleManager : MonoBehaviour
             actualTarget = nextTarget;
 
             //SHOW ON TURN BAR ENEMY SELECTED
-            battleUIController.ShowSelectedTarget(enemiesList[actualTarget]);
+            battleUIController.ShowSelectedTarget(enemiesList[actualTarget]);*/
         }
 
     }

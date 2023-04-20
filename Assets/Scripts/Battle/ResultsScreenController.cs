@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class ResultsScreenController : MonoBehaviour
 {
-    TextMeshProUGUI xpText, phText, goldText, heroName, heroLevel, heroNextLevel, confirmText;
+    TextMeshProUGUI xpText, phText, goldText, heroName, heroLevel, heroNextLevel, confirmText, abilityLearnedName;
     GameObject itemsPanel;
     Slider xpBar;
     Sounds resultSounds;
@@ -100,7 +100,7 @@ public class ResultsScreenController : MonoBehaviour
         {
             // do something with entry.Value or entry.Key
             Debug.Log($"Enemigo deja caer: {entry.Key.ItemName}");
-            GameObject newItem = Instantiate(Resources.Load("Prefabs/ResultScreenItem"), itemsPanel.transform) as GameObject;
+            GameObject newItem = Instantiate(Resources.Load("Prefabs/UIComponents/ResultScreenItem"), itemsPanel.transform) as GameObject;
             newItem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 290);
             newItem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, 0, initY + (offsetY * iterat));
             newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = entry.Key.ItemName;
@@ -160,7 +160,13 @@ public class ResultsScreenController : MonoBehaviour
                     if (heroStats.Xp >= heroStats.NextLevelXp) //LEVEL UP?
                     {
                         int surplus = heroStats.Xp - heroStats.NextLevelXp; //EXCEDENT XP
-                        heroStats.LevelUp();
+
+                        string newPsynergyLearned = heroStats.LevelUp();
+                        if (newPsynergyLearned != null)
+                        {
+                            StartCoroutine(AbilityLearned(i, newPsynergyLearned));
+                        }
+                        
                         heroStats.Xp += surplus;
                         //REFRESH BAR VALUES
                         xpBar.value = heroStats.Xp;
@@ -168,6 +174,7 @@ public class ResultsScreenController : MonoBehaviour
                         //REFRESH HERO LEVEL TEXT
                         heroLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>();
                         heroLevel.SetText($"NV: {heroStats.Level}");
+                        heroLevel.color = new Color(1, 0.72f, 0.08f);
                     }
 
                     //NEXT LEVEL DROP XP
@@ -230,6 +237,18 @@ public class ResultsScreenController : MonoBehaviour
         confirmText.gameObject.SetActive(true);
     }
 
+
+    private IEnumerator AbilityLearned(int index, string psynergySlugName)
+    {
+        Transform abilityLearnedPanel = transform.Find("HeroPanel").Find($"Hero{index}").Find("LearnAbility");
+        abilityLearnedName = abilityLearnedPanel.Find("AbilityName").GetComponent<TextMeshProUGUI>();
+
+        abilityLearnedPanel.GetComponent<Image>().sprite = PsynergyDatabase.Instance.GetPsynergy(psynergySlugName).Icon;
+        abilityLearnedName.text = PsynergyDatabase.Instance.GetPsynergy(psynergySlugName).Name;
+        abilityLearnedPanel.gameObject.SetActive(true);
+        yield return null;
+    }
+
     public void Reset()
     {
         resultsFinished = false;
@@ -238,6 +257,8 @@ public class ResultsScreenController : MonoBehaviour
         {
             transform.Find("HeroPanel").Find($"Hero{i}").gameObject.SetActive(false);
             transform.Find("HeroPanel").Find($"Hero{i}").GetComponent<CanvasGroup>().alpha = 1;
+            transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>().color = Color.white;
+            transform.Find("HeroPanel").Find($"Hero{i}").Find("LearnAbility").gameObject.SetActive(false);
         }
         for (int i = 0; i < itemsPanel.transform.childCount; i++)
         {

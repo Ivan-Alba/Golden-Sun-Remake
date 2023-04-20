@@ -1,0 +1,26 @@
+{
+  "heroes": [
+    {
+      "name": "Hans",
+      "abilities": [
+        {
+          "level": 2,
+          "name": "Cure"
+        },
+        {
+          "level": 4,
+          "name": "Catch"
+        }
+      ]
+    },
+    {
+      "name": "Garet",
+      "abilities": [
+        {
+          "level": 3,
+          "name": "Flames"
+        }
+      ]
+    }
+  ]
+}

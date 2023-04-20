@@ -16,7 +16,7 @@ public class BattleUIController : MonoBehaviour
     GameObject contentScrollView;
     GameObject contentItemPrefab;
     GameObject helpPanel;
-    List<GameObject> contentItems = new List<GameObject>();
+    List<GameObject> contentItems;
     int contentCursorIndex;
     string lastContent;
 
@@ -89,19 +89,23 @@ public class BattleUIController : MonoBehaviour
     {
         turnsPanel.SetActive(choice);
     }
-    public void ShowSelectedTarget(GameObject enemyPointed)
+    public void ShowSelectedTarget(List<GameObject> enemiesPointed)
     {
         //SHOW ON TURN BAR THE ENEMY TARGET
         for (int i = 0; i < maxTurnBoxes; i++)
         {
-            if (turnsOrdered.ElementAt(i).Key.Equals(enemyPointed))
+            foreach (GameObject enemy in enemiesPointed)
             {
-                turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(true);
+                if (turnsOrdered.ElementAt(i).Key.Equals(enemy))
+                {
+                    turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(true);
+                }
+                else
+                {
+                    turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
+                }
             }
-            else
-            {
-                turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
-            }
+            
         }
     }
     public void HideSelectedTarget()
@@ -221,30 +225,52 @@ public class BattleUIController : MonoBehaviour
     public void SetContentPanel(string order)
     {
         turnController = gameObject.GetComponent<TurnController>();
+        contentItems = new List<GameObject>();
         switch (order)
         {
             case "Psynergy":
                 lastContent = "Psynergy";
-                foreach (Psynergy psynergy in turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies)
+
+                if (turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies.Count != 0)
                 {
-                    GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
-                    newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(psynergy.Name);
-                    newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText($"{psynergy.PpCost} PP");
-                    newItem.transform.Find("Icon").GetComponent<Image>().sprite = psynergy.Icon;
-                    newItem.transform.Find("ElementIcon").GetComponent<Image>().sprite = psynergy.ElementIcon;
-                    newItem.name = psynergy.SlugName;
-                    if (turnController.CurrentFighter.GetComponent<FighterStats>().CurrPp < psynergy.PpCost) //Not enough PP to use a psynergy
+                    foreach (Psynergy psynergy in turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies)
                     {
-                        foreach (TextMeshProUGUI text in newItem.GetComponentsInChildren<TextMeshProUGUI>()) {
-                            text.color = Color.grey;
+                        if (psynergy.IsBattlePsynergy)
+                        {
+                            GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
+                            newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(psynergy.Name);
+                            newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText($"{psynergy.PpCost} PP");
+                            newItem.transform.Find("Icon").GetComponent<Image>().sprite = psynergy.Icon;
+                            newItem.transform.Find("ElementIcon").GetComponent<Image>().sprite = psynergy.ElementIcon;
+                            newItem.name = psynergy.SlugName;
+                            if (turnController.CurrentFighter.GetComponent<FighterStats>().CurrPp < psynergy.PpCost) //Not enough PP to use a psynergy
+                            {
+                                foreach (TextMeshProUGUI text in newItem.GetComponentsInChildren<TextMeshProUGUI>())
+                                {
+                                    text.color = Color.grey;
+                                }
+                            }
+                            contentItems.Add(newItem);
                         }
                     }
+                    helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[0].Description);
+
+
+                } else
+                {
+                    //NONE PSYNERGY
+                    GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
+                    newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText("");
+                    newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText("");
+                    newItem.transform.Find("Icon").GetComponent<Image>().enabled = false;
+                    newItem.transform.Find("ElementIcon").GetComponent<Image>().enabled = false;
+                    newItem.name = "";
                     contentItems.Add(newItem);
+                    helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText("No tienes psinergía.");
                 }
 
 
                 contentCursorIndex = 0;
-                helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[0].Description);
                 contentItems[0].transform.Find("Highlight").GetComponent<Image>().enabled = true;
                 break;
         }
@@ -309,7 +335,10 @@ public class BattleUIController : MonoBehaviour
             
         }
 
-        helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[contentCursorIndex].Description);
+        if (turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies.Count != 0)
+        {
+            helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[contentCursorIndex].Description);
+        }
 
 
 
@@ -320,7 +349,7 @@ public class BattleUIController : MonoBehaviour
         switch (lastContent)
         {
             case "Psynergy":
-                if (contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>().color != Color.grey)
+                if (contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>().color != Color.grey && contentItems[contentCursorIndex].name != "")
                 {
                     GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
                     return contentItems[contentCursorIndex].name;

@@ -35,7 +35,7 @@ public class InventoryUI : MonoBehaviour
     private void Awake()
     {
         elementsList = new List<GameObject>();
-        itemPrefab = Resources.Load<GameObject>("Prefabs/InventoryItem");
+        itemPrefab = Resources.Load<GameObject>("Prefabs/UIComponents/InventoryItem");
         content = gameObject.transform.GetComponentInChildren<GridLayoutGroup>().gameObject;
         itemInfo = gameObject.transform.Find("ItemsPanel").Find("ItemInfo").gameObject;
         heroUseItemPanel = gameObject.transform.Find("HeroPanel").gameObject;

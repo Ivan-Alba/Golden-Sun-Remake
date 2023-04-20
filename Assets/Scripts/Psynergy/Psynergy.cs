@@ -8,7 +8,7 @@ public class Psynergy
 {
 
     string name, description, slugName;
-    int ppCost;
+    int ppCost, targetSize;
     bool isWorldPsynergy, isBattlePsynergy;
     Elements element;
     Types type;
@@ -35,8 +35,8 @@ public class Psynergy
     public Types Type { get => type; set => type = value; }
     public Elements Element { get => element; set => element = value; }
     public TargetTypes TargetType { get => targetType; set => targetType = value; }
+    public int TargetSize { get => targetSize; set => targetSize = value; }
 
-  
     public enum Elements
     {
         Venus,
@@ -70,7 +70,7 @@ public class Psynergy
     }
 
     public Psynergy(string name, string description, string slugName, int ppCost, bool isWorldPsynergy,
-        bool isBattlePsynergy, Types type, Elements elementType, TargetTypes targetType)
+        bool isBattlePsynergy, Types type, Elements elementType, TargetTypes targetType, int targetSize = 0)
     {
         this.name = name;
         this.description = description;
@@ -81,6 +81,7 @@ public class Psynergy
         this.type = type;
         this.element = elementType;
         this.targetType = targetType;
+        this.targetSize = targetSize;
     }
 
     public void SetElementIcon()
