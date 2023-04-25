@@ -63,8 +63,28 @@
       "ObjectType" : "Weapon", 
       "UseInMenu" : false,
       "UseInBattle": false,
+      "BasePower": 35,
       "StatName" : ["STRENGHT", "DEFENSE", "MAXHP"],
-      "StatValue" : [3, 2, 20]
+      "StatValue" : [3, 2, 20],
+      "CriticalRate": 2
+    },
+
+     {
+      "$type":"Equipable, Assembly-CSharp",
+      "ItemName":"Espada rayo",
+      "ItemDescription":"Una espada que contiene el poder del rayo",
+      "ItemSlug":"Lightning_Sword",
+      "ItemPrice": 1500,
+      "CanSell" : true,
+      "ObjectType" : "Weapon", 
+      "UseInMenu" : false,
+      "UseInBattle": false,
+      "BasePower": 50,
+      "StatName" : ["STRENGHT", "LUCK"],
+      "StatValue" : [5, 5],
+      "CriticalRate": 4,
+      "Element": "Jupiter",
+      "ElementalPower": 20
     },
 
      {

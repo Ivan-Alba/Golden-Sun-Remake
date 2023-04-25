@@ -27,14 +27,15 @@
 
     {
       "Name":"Cura",
-      "Description":"Recupera una pequeña cantidad de PV",
+      "Description":"Recupera 70 PV",
       "SlugName":"Cure",
       "PpCost": 4,
       "IsWorldPsynergy" : false,
       "IsBattlePsynergy" : true,
       "Type" : "HEALING",
       "Element": "Venus",
-      "TargetType": "ONE_TARGET"
+      "TargetType": "ONE_TARGET",
+      "Power": 70
     },
 
      {
@@ -47,7 +48,8 @@
       "Type" : "ATTACK",
       "Element": "Mars",
       "TargetType": "MULTI_TARGET",
-      "TargetSize": 3
+      "TargetSize": 3,
+      "Power": 60
      }
 
   ]

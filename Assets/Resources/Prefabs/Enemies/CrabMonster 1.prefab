@@ -1948,7 +1948,7 @@ MonoBehaviour:
   currHp: 320
   maxPp: 20
   currPp: 20
-  strenght: 25
+  strenght: 15
   defense: 12
   wisdom: 7
   spirit: 8

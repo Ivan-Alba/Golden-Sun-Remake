@@ -25,6 +25,11 @@ public class BattleManager : MonoBehaviour
 
 
     //NEXT ACTION
+    Psynergy nextPsynergy;
+    Item nextItem;
+
+    List<GameObject> targetEnemies = new List<GameObject>();
+
     string nextAction_targetType;
     int nextAction_targetSize;
 
@@ -64,7 +69,6 @@ public class BattleManager : MonoBehaviour
     //AUXILIAR
     int enemiesOnBattle, enemiesDefeated, deadHeroes;
     bool keyPressed;
-    int commandSelected;
     int actualTarget;
     bool selectingTarget, waitingAction, choosingList;
 
@@ -274,18 +278,19 @@ public class BattleManager : MonoBehaviour
                 {
                     choosingList = false;
                     selectingTarget = true;
+
                     if (battleUIController.CommandSelected == 1) { // PSYNERGY
-                        Psynergy psinergySelected = PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem());
-                        if (psinergySelected.TargetType.ToString() == "MULTI_TARGET")
+                        nextPsynergy = PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem());
+                        if (nextPsynergy.TargetType.ToString() == "MULTI_TARGET")
                         {
-                            SelectDefaultTarget(psinergySelected.TargetType.ToString(), psinergySelected.TargetSize);
-                            nextAction_targetType = psinergySelected.TargetType.ToString();
-                            nextAction_targetSize = psinergySelected.TargetSize;
+                            SelectDefaultTarget(nextPsynergy.TargetType.ToString(), nextPsynergy.TargetSize);
+                            nextAction_targetType = nextPsynergy.TargetType.ToString();
+                            nextAction_targetSize = nextPsynergy.TargetSize;
                         }
                         else
                         {
                             SelectDefaultTarget(PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem()).TargetType.ToString());
-                            nextAction_targetType = psinergySelected.TargetType.ToString();
+                            nextAction_targetType = nextPsynergy.TargetType.ToString();
                         }
 
                         Debug.Log($"Psinergía {battleUIController.GetContentItem()} target tipo: {PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem()).TargetType.ToString()}");
@@ -460,7 +465,6 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator PerformAction()
     {
-        FighterStats performerStats = turnController.CurrentFighter.gameObject.GetComponent<FighterStats>();
         FighterStats targetStats = null;
 
         if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
@@ -468,8 +472,6 @@ public class BattleManager : MonoBehaviour
             //SELECCIONAR OPCIÓN CON UN RANDOM
             battleUIController.CommandSelected = Random.Range(0, 1);
         }
-
-        //List<FighterStats> multiTargetStats = new List<FighterStats>();
 
         switch (battleUIController.CommandSelected)
         {
@@ -479,6 +481,7 @@ public class BattleManager : MonoBehaviour
                 {
                     //ESCOGER TARGET ALEATORIAMENTE ENTRE LOS HEROES
                     targetStats = turnController.CurrentFighter.SelectRandomTarget(heroList).GetComponent<FighterStats>();
+                    targetEnemies.Add(targetStats.gameObject);
                 }
                 else
                 {
@@ -496,83 +499,70 @@ public class BattleManager : MonoBehaviour
                 turnController.CurrentFighter.ActionFinished = false;
 
                 break;
+
+            case 1: //PSYNERGY
+
+                battleUIController.ShowContentPanel(false);
+
+                StartCoroutine(turnController.CurrentFighter.UsePsynergy(nextPsynergy, enemyPositions[actualTarget], targetEnemies));
+
+                while (!turnController.CurrentFighter.ActionFinished)
+                {
+                    yield return null;
+                }
+
+                turnController.CurrentFighter.ActionFinished = false;
+
+                break;
+
             case 4:
                 turnController.CurrentFighter.SetUpDefense();
                 yield return new WaitForSeconds(1.5f);
                 break;
         }
 
+        CheckDefeated();
+    }
+
+    private void CheckDefeated()
+    {
         //Check if enemy/hero is dead after action
-        if (targetStats != null && targetStats.CurrHp <= 0)
+        foreach (GameObject target in targetEnemies)
         {
-            if (targetStats.gameObject.CompareTag("Enemy"))
+            FighterStats targetData = target.GetComponent<FighterStats>();
+            if (targetData != null && targetData.CurrHp <= 0)
             {
-                //ENEMY DEFEATED
-
-                totalXpEarned += targetStats.transform.GetComponent<EnemyDrop>().Xp;
-                totalGoldEarned += targetStats.transform.GetComponent<EnemyDrop>().Gold;
-                totalPhEarned += targetStats.transform.GetComponent<EnemyDrop>().Ph;
-
-                Item itemToAdd = null;
-                //Randomize loot
-                float randomDrop = Random.Range(0f, 100f);
-                if (targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareRatio)
+                if (targetData.gameObject.CompareTag("Enemy"))
                 {
-                    itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop);
+                    //ENEMY DEFEATED
+
+                    totalXpEarned += targetData.transform.GetComponent<EnemyDrop>().Xp;
+                    totalGoldEarned += targetData.transform.GetComponent<EnemyDrop>().Gold;
+                    totalPhEarned += targetData.transform.GetComponent<EnemyDrop>().Ph;
+
+                    GetItemLoot(targetData);
+
+                    fighters.Remove(targetData.gameObject);
+                    Destroy(targetData.gameObject);
+
+                    enemiesDefeated++;
                 }
                 else
                 {
-                    randomDrop = Random.Range(0f, 100f);
-                    if (targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemRareRatio)
-                    {
-                        itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop);
-                    }
-                    else
-                    {
-                        randomDrop = Random.Range(0f, 100f);
-                        if (targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemEasyRatio)
-                        {
-                            itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop);
-
-                        }
-                    }
+                    //HERO DEFEATED
+                    fighters.Remove(targetData.gameObject);
 
                 }
-
-                if (itemToAdd != null)
-                {
-                    if (totalItemsObtained.ContainsKey(itemToAdd))
-                    {
-                        totalItemsObtained[itemToAdd] += 1;
-                    }
-                    else
-                    {
-                        totalItemsObtained.Add(itemToAdd, 1);
-                    }
-                }
-
-                //----------------------------------------------------
-
-
-                fighters.Remove(targetStats.gameObject);
-                Destroy(targetStats.gameObject);
-
-                enemiesDefeated++;
             }
-            else
+        }
+
+        //CONTAMOS CUANTOS HEROES HAY MUERTOS
+        deadHeroes = 0;
+        foreach (GameObject hero in heroList)
+        {
+            if (hero.GetComponent<FighterStats>().CurrHp <= 0)
             {
-                deadHeroes = 0;
-                //HERO DEFEATED
-                fighters.Remove(targetStats.gameObject);
-
-
-                foreach (GameObject hero in heroList) //CONTAMOS CUANTOS HEROES HAY MUERTOS
-                {
-                    if (hero.GetComponent<FighterStats>().CurrHp <= 0)
-                    {
-                        deadHeroes++;
-                    }
-                }
+                deadHeroes++;
             }
         }
 
@@ -592,8 +582,50 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+    private void GetItemLoot(FighterStats targetStats)
+    {
+        //Randomize loot
+        Item itemToAdd = null;
+        float randomDrop = Random.Range(0f, 100f);
+        if (targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareRatio)
+        {
+            itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop);
+        }
+        else
+        {
+            randomDrop = Random.Range(0f, 100f);
+            if (targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemRareRatio)
+            {
+                itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop);
+            }
+            else
+            {
+                randomDrop = Random.Range(0f, 100f);
+                if (targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemEasyRatio)
+                {
+                    itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop);
+
+                }
+            }
+
+        }
+
+        if (itemToAdd != null)
+        {
+            if (totalItemsObtained.ContainsKey(itemToAdd))
+            {
+                totalItemsObtained[itemToAdd] += 1;
+            }
+            else
+            {
+                totalItemsObtained.Add(itemToAdd, 1);
+            }
+        }
+    }
+
     private void TurnFinished()
     {
+        targetEnemies = new List<GameObject>();
         SetTurns();
     }
 
@@ -702,8 +734,6 @@ public class BattleManager : MonoBehaviour
     {
 
         GameObject pointer;
-        List<GameObject> enemiesPointed = new List<GameObject>();
-
         foreach(GameObject position in enemyPositions)
         {
             position.transform.Find("Pointer").gameObject.SetActive(false);
@@ -721,10 +751,10 @@ public class BattleManager : MonoBehaviour
                 //ADD ENEMY TO SELECTED AND ACTIVE POINTER
                 pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
                 pointer.SetActive(true);
-                enemiesPointed.Add(enemiesList[i]);
+                targetEnemies.Add(enemiesList[i]);
                 actualTarget = i;
                 //SHOW ON TURN BAR ENEMY SELECTED
-                battleUIController.ShowSelectedTarget(enemiesPointed);
+                battleUIController.ShowSelectedTarget(targetEnemies);
                 break;
 
             case "MULTI_TARGET":
@@ -736,7 +766,7 @@ public class BattleManager : MonoBehaviour
                 actualTarget = i;
 
                 //ADD ENEMY TO SELECTED AND ACTIVE POINTER
-                enemiesPointed.Add(enemiesList[i]);
+                targetEnemies.Add(enemiesList[i]);
                 pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
                 pointer.SetActive(true);
 
@@ -749,14 +779,14 @@ public class BattleManager : MonoBehaviour
                             case 0:
                                 if (enemiesList.Count > 1 && enemiesList[1] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[1]);
+                                    targetEnemies.Add(enemiesList[1]);
                                     pointer = enemyPositions[1].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
 
                                 if (enemiesList.Count > 2 && enemiesList[2] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[2]);
+                                    targetEnemies.Add(enemiesList[2]);
                                     pointer = enemyPositions[2].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
@@ -765,14 +795,14 @@ public class BattleManager : MonoBehaviour
                             case 1:
                                 if (enemiesList.Count > 3 && enemiesList[3] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[3]);
+                                    targetEnemies.Add(enemiesList[3]);
                                     pointer = enemyPositions[3].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
 
                                 if (enemiesList[0] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[0]);
+                                    targetEnemies.Add(enemiesList[0]);
                                     pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
@@ -780,14 +810,14 @@ public class BattleManager : MonoBehaviour
                             case 2:
                                 if (enemiesList.Count > 4 && enemiesList[4] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[4]);
+                                    targetEnemies.Add(enemiesList[4]);
                                     pointer = enemyPositions[4].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
 
                                 if (enemiesList[0] != null)
                                 {
-                                    enemiesPointed.Add(enemiesList[0]);
+                                    targetEnemies.Add(enemiesList[0]);
                                     pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
                                     pointer.SetActive(true);
                                 }
@@ -798,7 +828,7 @@ public class BattleManager : MonoBehaviour
                         break;
                 }
 
-                battleUIController.ShowSelectedTarget(enemiesPointed);
+                battleUIController.ShowSelectedTarget(targetEnemies);
                 break;
         }
     }

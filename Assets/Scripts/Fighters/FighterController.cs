@@ -129,38 +129,29 @@ public class FighterController : MonoBehaviour
             yield return null;
         }
 
-        //CRITICAL CALC
-        bool isCritical = false;
-        if (Random.Range(0, 100) < stats.Luck)
+        //CALCULATE DAMAGE
+        int damage;
+        if (gameObject.tag == "Hero" && gameObject.GetComponent<HeroEquipment>().EquippedItems[0] != null)
         {
-            isCritical = true;
-        }
+            Equipable weapon = gameObject.GetComponent<HeroEquipment>().EquippedItems[0];
+            damage = CalculateDamage("Physical", weapon.BasePower, targetStats, weapon.Element);
 
-        //DAMAGE CALC
-        int damage = ((stats.Strenght - targetStats.Defense / 2) * ((20 + stats.Strenght) / 20));
-
-        if (isCritical)
-        {
-            //CRITICAL ATTACK ANIMATION
-            fighterAnim.SetTrigger("attack");
-            damage = damage * 2;
         }
         else
         {
-            //ATTACK ANIMATION
-            fighterAnim.SetTrigger("attack");
-            sounds.PlaySound(1);
+            damage = CalculateDamage("Physical", 20, targetStats, Psynergy.Elements.NoElemental);
         }
+
+        //ATTACK ANIMATION
+        fighterAnim.SetTrigger("attack");
+        sounds.PlaySound(1);
 
         yield return new WaitForSeconds(0.5f);//simulamos tiempo de animacion
 
         //DO PHYSICAL DAMAGE
         if (targetController.isDefending) damage = damage / 2;
-        damage = damage + (int)Random.Range(damage * 0.3f, damage * 0.5f);
-
-
-        //DOING DAMAGE
         targetController.ReceiveDamage(damage);
+
         //yield return new WaitForSeconds(0.5f);
 
         //WAIT ANIMATION CALLS AttackDone()
@@ -174,6 +165,137 @@ public class FighterController : MonoBehaviour
 
     }
 
+    public IEnumerator UsePsynergy(Psynergy psynergyToUse, GameObject actualTarget, List<GameObject> targets)
+    {
+        int psynergyCD = 60;
+
+        FighterController performerController = gameObject.GetComponent<FighterController>();
+        FighterStats performerStats = gameObject.GetComponent<FighterStats>();
+
+        performerController.NextTurnCD += psynergyCD - performerStats.Agility / 2;
+
+        //USE PSYNERGY ANIMATION
+        fighterAnim.SetTrigger("usePsynergy");
+        Instantiate(PsynergyDatabase.Instance.getElementAnimation(psynergyToUse), performerController.transform);
+
+        yield return new WaitForSeconds(2f);
+
+        Instantiate(psynergyToUse.BattleAnimationPrefab, actualTarget.transform);
+
+        yield return new WaitForSeconds(2f);
+
+        if (psynergyToUse.Type == Psynergy.Types.ATTACK)
+        {
+            //DAMAGE CALC
+
+            foreach (GameObject target in targets)
+            {
+                int magicalDamage = CalculateDamage("Psynergy", psynergyToUse.Power, target.GetComponent<FighterStats>(), psynergyToUse.Element);
+                target.GetComponent<FighterController>().ReceiveDamage(magicalDamage);
+            }
+        }
+        else if (psynergyToUse.Type == Psynergy.Types.HEALING)
+        {
+            Healing(psynergyToUse.Power, targets);
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        ActionFinished = true;
+    }
+
+
+    public int CalculateDamage(string attackType, int basePower, FighterStats targetStats, Psynergy.Elements attackElement = Psynergy.Elements.NoElemental)
+    {
+        switch (attackType)
+        {
+            case "Physical":
+
+                int criticalRate = 1;
+
+
+                // Si el ataque es de un elemento compatible con el arma, aumentar su poder
+                Equipable weapon = null;
+                Psynergy.Elements weaponElement;
+
+                if (gameObject.tag == "Hero" && gameObject.GetComponent<HeroEquipment>().EquippedItems[0] != null)
+                {
+                    weapon = gameObject.GetComponent<HeroEquipment>().EquippedItems[0];
+                    weaponElement = weapon.Element;
+                    criticalRate = weapon.CriticalRate;
+
+                    if (attackElement == weaponElement)
+                    {
+                        basePower += weapon.ElementalPower;
+                    }
+                }
+
+                // Si el ataque es un golpe crítico, duplicar el poder base
+                if (IsCriticalHit(criticalRate, stats.Luck))
+                {
+                    basePower *= 2;
+                }
+
+                // Calcular el modificador de daño en función del elemento del ataque
+                float modificadorElemento = 1.0f;
+                /*
+                if (defensor.ResistenciaElemento.ContainsKey(elemento))
+                {
+                    modificadorElemento = defensor.ResistenciaElemento[elemento];
+                }*/
+
+
+                // Calcular el modificador de daño en función de la defensa del defensor
+                float modificadorDefensa = targetStats.Defense / (targetStats.Defense + 5.0f);
+
+                // Calcular el daño final
+                int attackerLevel = stats.Level;
+                int attackerStrenght = stats.Strenght;
+                int targetDefense = stats.Defense;
+
+                float damageNotRounded = (((2 * attackerLevel + 10) / 30.0f) * (attackerStrenght / targetDefense) * basePower + 2) * modificadorElemento;
+                int finalDamage = Mathf.RoundToInt(damageNotRounded);
+
+                Debug.Log("Damage not rounded: " +damageNotRounded + " Final damage: " + finalDamage);
+                return finalDamage;
+
+
+            case "Psynergy":
+                float multiplier = 1;
+                int damage = Mathf.RoundToInt(stats.Wisdom * multiplier * basePower / targetStats.Spirit);
+
+                return damage;
+
+            default:
+                return 0;
+        }
+
+    }
+
+    public bool IsCriticalHit(int criticalRate, int charLuck, int otherFactors = 0)
+    {
+        // Calculate probability of critical hit
+        int critProb = criticalRate + charLuck / 2 + otherFactors;
+
+        // Generate a random number between 0 and 99
+        int rand = Random.Range(0, 100);
+
+        // Check if the attack is a critical hit
+        return rand <= critProb;
+    }
+
+
+    private void Healing(int power, List<GameObject> targets)
+    {
+        foreach (GameObject target in targets)
+        {
+            int beforeHealingHp = target.GetComponent<FighterStats>().CurrHp;
+            target.GetComponent<FighterStats>().AddBonusEffect("HP", power);
+            int hpRestored = target.GetComponent<FighterStats>().CurrHp - beforeHealingHp;
+            target.GetComponent<FighterController>().InstantiateFloatingText(hpRestored.ToString(), Color.green);
+        }
+    }
+
     public void ReceiveDamage(int damage)
     {
         fighterAnim.SetTrigger("receiveHit");
@@ -185,6 +307,16 @@ public class FighterController : MonoBehaviour
             stats.CurrHp = 0;
         }
 
+        InstantiateFloatingText(damage.ToString(), Color.white);
+
+        if (stats.CurrHp <= 0)
+        {
+            fighterAnim.SetTrigger("death");
+        }
+    }
+
+    private void InstantiateFloatingText(string number, Color textColor)
+    {
         GameObject text;
         Vector3 offset;
         if (gameObject.CompareTag("Hero"))
@@ -199,12 +331,10 @@ public class FighterController : MonoBehaviour
             text = Instantiate(floatingTextPrefab, transform.position + offset, Quaternion.identity);
 
         }
-        text.GetComponent<TextMeshPro>().SetText(damage.ToString());
+        text.GetComponent<TextMeshPro>().SetText(number.ToString());
+        text.GetComponent<TextMeshPro>().color = textColor;
 
-        if (stats.CurrHp <= 0)
-        {
-            fighterAnim.SetTrigger("death");
-        }
+
     }
 
     public void SetUpDefense()
@@ -226,7 +356,8 @@ public class FighterController : MonoBehaviour
         if (gameObject.CompareTag("Hero"))
         {
             //TODO IMPLEMENTAR ESTADO "LOCURA"?
-        } else
+        }
+        else
         {
             while (targetSelected == null || targetSelected.GetComponent<FighterStats>().CurrHp <= 0)
             {

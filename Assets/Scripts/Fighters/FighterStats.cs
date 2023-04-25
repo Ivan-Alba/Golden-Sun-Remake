@@ -97,7 +97,7 @@ public class FighterStats : MonoBehaviour
         characterStats.Find(x => x.StatName == statName).RemoveStatBonus(new StatBonus(bonusValue));
     }
 
-    public void AddConsumableEffect(string stat, int value)
+    public void AddBonusEffect(string stat, int value)
     {
         switch (stat)
         {

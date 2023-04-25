@@ -21,7 +21,7 @@ public class Consumable : Item
             case "HP":
             if (target.CurrHp != 0 && target.CurrHp < target.MaxHp) {
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CURE_SOUND);
-                target.AddConsumableEffect(StatBonus, BonusValue);
+                target.AddBonusEffect(StatBonus, BonusValue);
                 callback(true, ItemSlug);
             } else { //No se puede usar el ítem
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
