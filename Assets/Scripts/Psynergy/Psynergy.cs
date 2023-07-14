@@ -13,12 +13,8 @@ public class Psynergy
     Elements element;
     Types type;
     TargetTypes targetType;
-    [NonSerialized]
-    Sprite icon, elementIcon;
-    [NonSerialized]
-    GameObject battleAnimationPrefab;
-
-   
+    [JsonIgnore]
+    Sprite icon, elementIcon; 
 
 
     public string Name { get => name; set => name = value; }
@@ -27,17 +23,22 @@ public class Psynergy
     public int PpCost { get => ppCost; set => ppCost = value; }
     public bool IsWorldPsynergy { get => isWorldPsynergy; set => isWorldPsynergy = value; }
     public bool IsBattlePsynergy { get => isBattlePsynergy; set => isBattlePsynergy = value; }
+    public int TargetSize { get => targetSize; set => targetSize = value; }
+
+    [JsonIgnore]
     public Sprite Icon { get => icon; set => icon = value; }
+    [JsonIgnore]
     public Sprite ElementIcon { get => elementIcon; set => elementIcon = value; }
    
-    public int TargetSize { get => targetSize; set => targetSize = value; }
-    public GameObject BattleAnimationPrefab { get => battleAnimationPrefab; set => battleAnimationPrefab = value; }
-
 
 
     [JsonConverter(typeof(StringEnumConverter))]
     public Types Type { get => type; set => type = value; }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public Elements Element { get => element; set => element = value; }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public TargetTypes TargetType { get => targetType; set => targetType = value; }
     public int Power { get => power; set => power = value; }
 
@@ -70,11 +71,10 @@ public class Psynergy
     //JSON CONSTRUCTOR
     public Psynergy()
     {
-
     }
 
     public Psynergy(string name, string description, string slugName, int ppCost, int power, bool isWorldPsynergy,
-        bool isBattlePsynergy, Types type, Elements elementType, TargetTypes targetType, int targetSize = 0)
+        bool isBattlePsynergy, Types type, Elements element, TargetTypes targetType, int targetSize = 0)
     {
         this.name = name;
         this.description = description;
@@ -83,28 +83,22 @@ public class Psynergy
         this.isWorldPsynergy = isWorldPsynergy;
         this.isBattlePsynergy = isBattlePsynergy;
         this.type = type;
-        this.element = elementType;
+        this.element = element;
         this.targetType = targetType;
         this.targetSize = targetSize;
         this.power = power;
+
     }
 
     public void SetElementIcon()
     {
-        elementIcon = Resources.Load<Sprite>($"Images/Icons/{this.element}_Star");
-    }
-
-    public void SetBattleAnimationPrefab()
-    {
-        if (isBattlePsynergy)
-        {
-            battleAnimationPrefab = Resources.Load<GameObject>($"Prefabs/PsynergyVFX/{slugName}");
-        }
+        elementIcon = Resources.Load<Sprite>($"Images/Icons/{element}_Star");
+        icon = Resources.Load<Sprite>($"Images/Icons/Psynergies/{slugName}");
     }
 
     public override string ToString()
     {
-        return $"{name}: {description}. PP: {ppCost}, {type.ToString()}, {element}, {targetType}";
+        return $"{name}: {description}. PP: {ppCost}, {type}, {element}, {targetType}";
     }
 
     

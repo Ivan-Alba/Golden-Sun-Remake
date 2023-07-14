@@ -239,7 +239,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //-----------------INTERACT -------------
-        if (objectHit != null & objectHit.CompareTag("Interactable") &&
+        if (objectHit != null && objectHit.CompareTag("Interactable") &&
             Vector3.Distance(objectHit.transform.position, transform.position) < 2) //IF CLOSE AN INTERACTABLE OBJECT
         {
             //MOSTRAR BOTON O ICONO

@@ -77,10 +77,7 @@ public class GameManager : MonoBehaviour
 
     void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log("Level Loaded");
-        Debug.Log(scene.name);
-        Debug.Log(mode);
-
+        Debug.Log($"Level Loaded: {scene.name}");
 
         // LoadSceneState();
         if (SaveManager.loadedData != null)
@@ -92,7 +89,13 @@ public class GameManager : MonoBehaviour
 
     public void Start()
     {
-        
+        party[0].GetComponent<FighterStats>().LevelUp();
+         party[0].GetComponent<FighterStats>().LevelUp();
+         party[1].GetComponent<FighterStats>().LevelUp();
+         party[1].GetComponent<FighterStats>().LevelUp();
+         party[1].GetComponent<FighterStats>().LevelUp();
+
+
         //party[0].GetComponent<HeroEquipment>().SetEquipment((int)HeroEquipment.slotsIndex.HANDS, (Equipable)ItemDatabase.Instance.GetItem("Metal_Bracelet"));
 
     }
@@ -182,7 +185,7 @@ public class GameManager : MonoBehaviour
             //---Psynergies---
             party[i].GetComponent<FighterStats>().Psynergies = dataToLoad.heroPsynergy[i];
 
-         
+
             //---Equipment---
             party[i].GetComponent<HeroEquipment>().EquippedItems = dataToLoad.heroEquippedGear[i];
 
@@ -195,6 +198,10 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+
+
+        //Psynergy Icons
+        party.ForEach(x => x.GetComponent<FighterStats>().Psynergies.ForEach(x => x.SetElementIcon()));
 
         //---Psynergies shortcuts---
         foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)

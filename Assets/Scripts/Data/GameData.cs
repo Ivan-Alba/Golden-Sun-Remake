@@ -53,13 +53,14 @@ public class GameData
 
        playerItems = InventoryController.Instance.PlayerItems.ToList();
 
-        //---PARTY DATA----
+        //---GAME DATA----
 
         //total gold
         totalGold = GameManager.Instance.TotalGold;
         //total time played
         totalTime = GameManager.Instance.TotalPlayed;
-        //party
+
+        //---PARTY DATA----
         int i = 0;
         foreach(GameObject hero in GameManager.Instance.GetParty())
         {
@@ -74,11 +75,11 @@ public class GameData
 
             //Psynergy
             heroPsynergy.Add(hero.GetComponent<FighterStats>().Psynergies);
-            foreach(Psynergy psy in heroPsynergy[i])
+            /*foreach(Psynergy psy in heroPsynergy[i])
             {
                 psy.Icon = null;
                 psy.ElementIcon = null;
-            }
+            }*/
 
             //Equipment
             heroEquippedGear.Add(hero.GetComponent<HeroEquipment>().EquippedItems);

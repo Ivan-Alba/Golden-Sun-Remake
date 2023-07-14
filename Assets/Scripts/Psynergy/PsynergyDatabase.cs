@@ -14,12 +14,15 @@ public class PsynergyDatabase : MonoBehaviour
     GameObject venusElementCircle;
     GameObject noElementalCircle;
 
+    Dictionary<string, GameObject> psynergyBattleAnim = new Dictionary<string, GameObject>();
+
 
     public GameObject MarsElementCircle { get => marsElementCircle; set => marsElementCircle = value; }
     public GameObject JupiterElementCircle { get => jupiterElementCircle; set => jupiterElementCircle = value; }
     public GameObject MercuryElementCircle { get => mercuryElementCircle; set => mercuryElementCircle = value; }
     public GameObject VenusElementCircle { get => venusElementCircle; set => venusElementCircle = value; }
     public GameObject NoElementalCircle { get => noElementalCircle; set => noElementalCircle = value; }
+    public Dictionary<string, GameObject> PsynergyBattleAnim { get => psynergyBattleAnim; set => psynergyBattleAnim = value; }
 
 
     // Start is called before the first frame update
@@ -42,10 +45,8 @@ public class PsynergyDatabase : MonoBehaviour
     {
         JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
         psynergyList = JsonConvert.DeserializeObject<List<Psynergy>>(Resources.Load("JSON/Psynergies").ToString(), settings);
-        //psynergyList.ForEach(x => Debug.Log(x.ToString()));
         psynergyList.ForEach(x => x.SetElementIcon());
-        psynergyList.ForEach(x => x.SetBattleAnimationPrefab());
-        psynergyList.ForEach(x => x.Icon = Resources.Load<Sprite>($"Images/Icons/Psynergies/{x.SlugName}"));
+        psynergyList.ForEach(x => PsynergyBattleAnim.Add(x.SlugName, Resources.Load<GameObject>($"Prefabs/PsynergyVFX/{x.SlugName}")));
     }
 
     public Psynergy GetPsynergy(string psynergySlug)

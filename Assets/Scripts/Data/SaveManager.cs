@@ -19,8 +19,8 @@ public static class SaveManager
 
         string json = JsonConvert.SerializeObject(dataToSave, Formatting.Indented, new JsonSerializerSettings
         {
-            TypeNameHandling = TypeNameHandling.All,
-            TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
+           //TypeNameHandling = TypeNameHandling.All,
+            //TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
 
         });
         Debug.Log("Datos guardados");
@@ -36,8 +36,8 @@ public static class SaveManager
             string json = File.ReadAllText(dataPath);
             GameData gameData = JsonConvert.DeserializeObject<GameData>(json, new JsonSerializerSettings
             {
-                TypeNameHandling = TypeNameHandling.All,
-                TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
+                //TypeNameHandling = TypeNameHandling.All,
+                //TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
             });
             Debug.Log("Datos cargados");
             loadedData = new GameData[1];

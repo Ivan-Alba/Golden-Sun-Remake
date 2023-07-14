@@ -94,15 +94,13 @@ public class BattleUIController : MonoBehaviour
         //SHOW ON TURN BAR THE ENEMY TARGET
         for (int i = 0; i < maxTurnBoxes; i++)
         {
+            turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
+
             foreach (GameObject enemy in enemiesPointed)
             {
                 if (turnsOrdered.ElementAt(i).Key.Equals(enemy))
                 {
                     turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(true);
-                }
-                else
-                {
-                    turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
                 }
             }
             
@@ -175,26 +173,41 @@ public class BattleUIController : MonoBehaviour
 
             FighterStats heroStats = heroParty[i].GetComponent<FighterStats>();
 
+            //HP
             if (heroStats.CurrHp <= 0)
             {
                 hp.GetComponent<TextMeshProUGUI>().color = Color.red;
                 hp.GetComponent<TextMeshProUGUI>().SetText($"HP 0 / {heroStats.MaxHp}");
-
             }
-            else if (heroStats.CurrHp < heroStats.MaxHp * 0.3f)
+            else if (heroStats.CurrHp <= heroStats.MaxHp * 0.3f)
             {
                 hp.GetComponent<TextMeshProUGUI>().color = Color.yellow;
                 hp.GetComponent<TextMeshProUGUI>().SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
-
             }
             else
             {
-
                 hp.GetComponent<TextMeshProUGUI>().color = Color.white;
                 hp.GetComponent<TextMeshProUGUI>().SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
             }
 
-            pp.GetComponent<TextMeshProUGUI>().SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
+            //PP
+            if (heroStats.CurrPp <= 0)
+            {
+                pp.GetComponent<TextMeshProUGUI>().color = Color.red;
+                pp.GetComponent<TextMeshProUGUI>().SetText($"PP 0 / {heroStats.MaxPp}");
+            }
+            else if (heroStats.CurrPp <= heroStats.MaxPp * 0.3f)
+            {
+                pp.GetComponent<TextMeshProUGUI>().color = Color.yellow;
+                pp.GetComponent<TextMeshProUGUI>().SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
+            }
+            else
+            {
+                pp.GetComponent<TextMeshProUGUI>().color = Color.white;
+                pp.GetComponent<TextMeshProUGUI>().SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
+            }
+
+
             name.GetComponent<TextMeshProUGUI>().SetText($"{heroStats.Name}");
 
         }

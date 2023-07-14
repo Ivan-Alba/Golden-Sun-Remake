@@ -172,15 +172,19 @@ public class FighterController : MonoBehaviour
         FighterController performerController = gameObject.GetComponent<FighterController>();
         FighterStats performerStats = gameObject.GetComponent<FighterStats>();
 
+        //PP Cost
+        performerStats.CurrPp -= psynergyToUse.PpCost;
+
         performerController.NextTurnCD += psynergyCD - performerStats.Agility / 2;
 
         //USE PSYNERGY ANIMATION
         fighterAnim.SetTrigger("usePsynergy");
-        Instantiate(PsynergyDatabase.Instance.getElementAnimation(psynergyToUse), performerController.transform);
+        GameObject elementAnimation = Instantiate(PsynergyDatabase.Instance.getElementAnimation(psynergyToUse), performerController.transform);
 
         yield return new WaitForSeconds(2f);
 
-        Instantiate(psynergyToUse.BattleAnimationPrefab, actualTarget.transform);
+
+        GameObject animation = Instantiate(PsynergyDatabase.Instance.PsynergyBattleAnim[psynergyToUse.SlugName], actualTarget.transform);
 
         yield return new WaitForSeconds(2f);
 
@@ -200,6 +204,9 @@ public class FighterController : MonoBehaviour
         }
 
         yield return new WaitForSeconds(1f);
+
+        Destroy(animation);
+        Destroy(elementAnimation);
 
         ActionFinished = true;
     }

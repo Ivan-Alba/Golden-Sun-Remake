@@ -175,6 +175,15 @@ public class MenuController : MonoBehaviour
             //CLOSE MAIN MENU
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                animating = true;
+                gameObject.GetComponent<Animator>().SetTrigger("exit");
+
+            }
+
+            if (Input.GetKeyDown(GameManager.Instance.KeyCancel))
+            {
+                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                 animating = true;
                 gameObject.GetComponent<Animator>().SetTrigger("exit");
 
