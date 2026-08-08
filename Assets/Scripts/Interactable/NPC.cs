@@ -50,6 +50,10 @@ public class NPC : Interactable
 
         //DIALOG
         DialogueManager.instance.AddNewDialogue(dialogue, this.npcName, gameObject);
+        if  (this.npcName == "DEBUG_ALL_ITEMS")
+        {
+            InventoryController.Instance.AllItems();
+        }
 
     }
 

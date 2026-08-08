@@ -4,221 +4,201 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 using TMPro;
-using UnityEditor;
 
 public class BattleManager : MonoBehaviour
 {
+    [Header("Internal Prefab References")]
+    [SerializeField] private Transform audioCenter;
+    [SerializeField] private Animator logoTransition;
+    [SerializeField] private BattleCameraController battleCameraController;
+    [SerializeField] private ResultsScreenController resultsController;
+    [SerializeField] private GameObject battleField;
+    [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
-    GameObject player; //player reference
+    [Header("Audio Resources")]
+    [SerializeField] private AudioClip battleMusic;
+    [SerializeField] private AudioClip victoryMusic;
+    [SerializeField] private AudioClip gameOverMusic;
 
+    private GameObject player; // player reference
 
-    List<GameObject> party;
+    private List<GameObject> party;
 
-    //TODO REVISAR
-    int maxEnemiesInBattle = 3;
-    float transitionTime = 2;
+    // TODO REVISAR
+    private int maxEnemiesInBattle = 3;
+    private float transitionTime = 2;
 
-    //AUDIO CONTROLLER
-    AudioSource musicController;
-    AudioClip battleMusic, victoryMusic, gameOverMusic, fieldMusic;
+    // AUDIO CONTROLLER
+    private AudioSource musicController;
+    private AudioClip fieldMusic;
 
-    Animator logoTransition;
-    GameObject mainCamera;
-    float[] pointerOriginalY;
+    private GameObject mainCamera;
+    private float[] pointerOriginalY;
 
+    // NEXT ACTION
+    private Psynergy nextPsynergy;
+    private Item nextItem;
 
-    //NEXT ACTION
-    Psynergy nextPsynergy;
-    Item nextItem;
+    private List<GameObject> targetList = new List<GameObject>();
 
-    List<GameObject> targetList = new List<GameObject>();
+    private string nextAction_targetType;
+    private int nextAction_targetSize;
 
-    string nextAction_targetType;
-    int nextAction_targetSize;
+    // RESPAWN CONTROLLER
+    private RespawnController respawnController;
 
+    // LISTS WITH FIGHTERS
+    private List<GameObject> enemiesList = new List<GameObject>();
+    private List<GameObject> heroList = new List<GameObject>();
+    private List<GameObject> fighters = new List<GameObject>();
 
-    //RESPAWN CONTROLLER
-    RespawnController respawnController;
+    // RESULTS SCREEN
+    private int totalXpEarned, totalPhEarned, totalGoldEarned;
+    private Dictionary<Item, int> totalItemsObtained;
 
-    //LISTS WITH FIGHTERS
-    List<GameObject> enemiesList = new List<GameObject>();
-    List<GameObject> heroList = new List<GameObject>();
-    List<GameObject> fighters = new List<GameObject>();
+    // BATTLE FIELD POSITIONS
+    private GameObject[] enemyPositions;
 
-    //CAMERA CONTROLLER
-    BattleCameraController battleCameraController;
+    // LIST WITH TURNS OF FIGHTERS
+    private List<KeyValuePair<GameObject, int>> turnsOrdered;
 
-    //RESULTS SCREEN
-    ResultsScreenController resultsController;
-    int totalXpEarned, totalPhEarned, totalGoldEarned;
-    Dictionary<Item, int> totalItemsObtained;
+    // TURN CONTROLLER
+    private TurnController turnController;
 
-    //BATTLE FIELD POSITIONS
-    GameObject battleField;
-    GameObject[] heroPositions = new GameObject[4];
-    GameObject[] enemyPositions;
+    // Minimap
+    private GameObject playerCanvas;
 
-    //LIST WITH TURNS OF FIGHTERS
-    List<KeyValuePair<GameObject, int>> turnsOrdered;
+    private BattleUIController battleUIController;
 
-    //TURN CONTROLLER
-    TurnController turnController;
-
-    //Minimap
-    GameObject playerCanvas;
-
-    BattleUIController battleUIController;
-
-    //AUXILIAR
-    int enemiesOnBattle, enemiesDefeated, deadHeroes;
-    bool keyPressed;
-    int actualTarget;
-    bool selectingTarget, waitingAction, choosingList;
+    // AUXILIAR
+    private int enemiesOnBattle, enemiesDefeated, deadHeroes;
+    private bool keyPressed;
+    private int actualTarget;
+    private bool selectingTarget, waitingAction, choosingList;
 
     public bool WaitingAction { get => waitingAction; set => waitingAction = value; }
 
     private void Awake()
     {
+        // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
+        turnController = GetComponent<TurnController>();
+        battleUIController = GetComponent<BattleUIController>();
+
+        // --- EXTERNAL SCENE / CORE REFERENCES ---
         mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        victoryMusic = Resources.Load("Music/FanfareVictory") as AudioClip;
-        gameOverMusic = Resources.Load("Music/GameOverMusic") as AudioClip;
-        battleMusic = Resources.Load("Music/battleMusic") as AudioClip;
-        logoTransition = transform.Find("LogoCross").gameObject.GetComponent<Animator>();
         player = GameObject.Find("Player");
-        musicController = GameObject.Find("MusicController").GetComponent<AudioSource>();
+        playerCanvas = GameObject.Find("PlayerCanvas");
 
-        //Party members
-        party = GameManager.Instance.GetParty();
-
-        //BattleCamera controller
-        battleCameraController = GameObject.Find("BattleCamera").GetComponent<BattleCameraController>();
-
-        //Turn controller
-        turnController = transform.GetComponent<TurnController>();
-
-        //Result screen controller
-        resultsController = transform.Find("ResultsScreen").GetComponent<ResultsScreenController>();
-        fieldMusic = musicController.clip;
-        battleUIController = transform.GetComponent<BattleUIController>();
-        //Total Items Rresult
-        totalItemsObtained = new Dictionary<Item, int>();
-
-
-        //BATTLE FIELD SETTINGS HERO POSITIONS AND UI HERO INFO PANELS
-        battleField = transform.Find("BattleField").gameObject;
-        for (int i = 0; i < 4; i++)
+        GameObject musicObj = GameObject.Find("MusicController");
+        if (musicObj != null)
         {
-            heroPositions[i] = battleField.transform.Find($"Hero{i}").gameObject;
-            if (i < GameManager.Instance.GetParty().Count)
-                battleUIController.SetHeroInfoPanel(i);
+            musicController = musicObj.GetComponent<AudioSource>();
         }
 
+        // --- INITIALIZATION ---
         pointerOriginalY = new float[maxEnemiesInBattle];
-        playerCanvas = GameObject.Find("PlayerCanvas");
+
+        // Ensure clean state on scene load
+        ResetBattleVariables();
     }
 
-
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
+        // Guard Clause: Exit immediately if GameManager is not ready or game is not in battle
+        if (GameManager.Instance == null || !GameManager.Instance.InBattle) return;
+
         battleUIController.RefreshHeroInfoPanel();
 
-        if (waitingAction) //WHEN A TURN ENDS
+        if (waitingAction) // WHEN A TURN ENDS
         {
-            if (turnController.CurrentFighter.CompareTag("Enemy")) //If enemy's turn
+            if (turnController.CurrentFighter != null && turnController.CurrentFighter.CompareTag("Enemy")) // If enemy's turn
             {
-                waitingAction = false; //Starts enemy turn
-                StartCoroutine(PerformAction()); //Call IA to decide enemy actions
+                waitingAction = false; // Starts enemy turn
+                StartCoroutine(PerformAction()); // Call IA to decide enemy actions
             }
-            else //Hero turn decide orders 
+            else // Hero turn decide orders 
             {
-                //Move right in orders buttons
+                // Move right in orders buttons
                 if (Input.GetKeyDown(KeyCode.RightArrow))
                 {
                     battleUIController.ordersPanelMove("RIGHT");
                 }
 
-                //Move left in orders buttons
+                // Move left in orders buttons
                 if (Input.GetKeyDown(KeyCode.LeftArrow))
                 {
                     battleUIController.ordersPanelMove("LEFT");
                 }
 
-
-                //Press the confirm Key to select an order
+                // Press the confirm Key to select an order
                 if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed)
                 {
                     keyPressed = true;
                     GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
 
-                    //Depending on order
+                    // Depending on order
                     switch (battleUIController.CommandSelected)
                     {
-                        case 0: //ATTACK
+                        case 0: // ATTACK
                             SelectDefaultTarget("ONE_TARGET");
                             nextAction_targetType = "ONE_TARGET";
                             waitingAction = false;
                             selectingTarget = true;
                             break;
-                        case 1:
-                            //PSINERGÍA
+                        case 1: // PSINERGÍA
                             waitingAction = false;
                             choosingList = true;
                             battleUIController.SetContentPanel("Psynergy");
                             battleUIController.ShowContentPanel(true);
                             break;
-                        case 2:
-                            //DJINN
+                        case 2: // DJINN
                             break;
-                        case 3:
-                            //INVOCAR
+                        case 3: // INVOCAR
                             break;
-                        case 4:
-                            //DEFENSA
-                            //Hide elements
+                        case 4: // DEFENSA
                             battleUIController.ShowOrdersPanel(false);
                             turnController.HideTurnCamera();
                             StartCoroutine(PerformAction());
                             waitingAction = false;
                             break;
-                        case 5:
-                            //OBJETO
-                            turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().CurrHp =
-                                turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().MaxHp;
+                        case 5: // OBJETO
+                            if (turnsOrdered != null && turnsOrdered.Count > 0)
+                            {
+                                turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().CurrHp =
+                                    turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().MaxHp;
+                            }
                             break;
-                        case 6:
-                            //ESTADO
+                        case 6: // ESTADO
                             break;
-                        case 7:
-                            //HUIR
+                        case 7: // HUIR
                             break;
-
                     }
                 }
             }
         }
-        else
-
-        if (selectingTarget) //SELECTING TARGET/S FOR ACTION
+        else if (selectingTarget) // SELECTING TARGET/S FOR ACTION
         {
-            if (Input.GetKeyDown(KeyCode.RightArrow)) //Right target
+            if (Input.GetKeyDown(KeyCode.RightArrow)) // Right target
             {
                 SelectRightTarget();
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow)) //Left target
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) // Left target
             {
                 SelectLeftTarget();
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
             }
 
-            if (Input.GetKeyDown(KeyCode.R)) //Back Button
+            if (Input.GetKeyDown(KeyCode.R)) // Back Button
             {
-                for (int i = 0; i < enemyPositions.Length; i++) //Hide pointers
+                if (enemyPositions != null)
                 {
-                    enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
+                    for (int i = 0; i < enemyPositions.Length; i++) // Hide pointers
+                    {
+                        if (enemyPositions[i] != null)
+                            enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
+                    }
                 }
 
                 foreach (GameObject hero in GameManager.Instance.GetParty())
@@ -226,47 +206,48 @@ public class BattleManager : MonoBehaviour
                     hero.transform.Find("Pointer").gameObject.SetActive(false);
                 }
 
-                //Disable highlights for selected target on turnbar
+                // Disable highlights for selected target on turnbar
                 battleUIController.HideSelectedTarget();
 
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
 
                 switch (battleUIController.CommandSelected)
                 {
-                    case 0: //ATTACK
+                    case 0: // ATTACK
                         waitingAction = true;
                         selectingTarget = false;
                         break;
-                    case 1: //PSYNERGY
+                    case 1: // PSYNERGY
                         selectingTarget = false;
                         choosingList = true;
                         nextPsynergy = null;
                         break;
-                    case 2: //DJINN
+                    case 2: // DJINN
                         break;
-                    case 3: //SUMMON
+                    case 3: // SUMMON
                         break;
-                    case 5: //ITEM
+                    case 5: // ITEM
                         break;
-
                 }
-
             }
 
-            if (Input.GetKeyDown(KeyCode.E) && !keyPressed) //Target selected
+            if (Input.GetKeyDown(KeyCode.E) && !keyPressed) // Target selected
             {
                 keyPressed = true;
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
 
-                //Hide elements
+                // Hide elements
                 battleUIController.ShowOrdersPanel(false);
                 turnController.HideTurnCamera();
                 battleUIController.HideSelectedTarget();
 
-                //TODO pointers
-                for (int i = 0; i < enemyPositions.Length; i++)
+                if (enemyPositions != null)
                 {
-                    enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
+                    for (int i = 0; i < enemyPositions.Length; i++)
+                    {
+                        if (enemyPositions[i] != null)
+                            enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
+                    }
                 }
 
                 foreach (GameObject hero in GameManager.Instance.GetParty())
@@ -280,8 +261,7 @@ public class BattleManager : MonoBehaviour
         }
         else if (choosingList)
         {
-
-            if (Input.GetKeyDown(KeyCode.R)) //Returns back to choose a new command
+            if (Input.GetKeyDown(KeyCode.R)) // Returns back to choose a new command
             {
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
                 waitingAction = true;
@@ -289,7 +269,7 @@ public class BattleManager : MonoBehaviour
                 battleUIController.ShowContentPanel(false);
             }
 
-            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed) //Skill or item selected
+            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed) // Skill or item selected
             {
                 keyPressed = true;
 
@@ -298,8 +278,8 @@ public class BattleManager : MonoBehaviour
                     choosingList = false;
                     selectingTarget = true;
 
-                    if (battleUIController.CommandSelected == 1)
-                    { // PSYNERGY
+                    if (battleUIController.CommandSelected == 1) // PSYNERGY
+                    {
                         if (nextPsynergy.TargetType.ToString() == "MULTI_TARGET")
                         {
                             SelectDefaultTarget(nextPsynergy.TargetType.ToString(), nextPsynergy.TargetSize);
@@ -314,63 +294,77 @@ public class BattleManager : MonoBehaviour
 
                         Debug.Log($"Psinergía {nextPsynergy.Name} target tipo: {nextPsynergy.TargetType}");
                     }
-                    else if (battleUIController.CommandSelected == 5) //ITEMS
+                    else if (battleUIController.CommandSelected == 5) // ITEMS
                     {
 
                     }
                 }
             }
 
-
-            if (Input.GetKeyDown(KeyCode.UpArrow) && !keyPressed) //Move content panel
+            if (Input.GetKeyDown(KeyCode.UpArrow) && !keyPressed) // Move content panel
             {
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 battleUIController.MoveContentPanel("UP");
             }
 
-            if (Input.GetKeyDown(KeyCode.DownArrow) && !keyPressed) //Move content panel
+            if (Input.GetKeyDown(KeyCode.DownArrow) && !keyPressed) // Move content panel
             {
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 battleUIController.MoveContentPanel("DOWN");
             }
         }
 
-        //Auxiliar key pressed controller
+        // Auxiliar key pressed controller
         if (Input.GetKeyUp(KeyCode.E) && keyPressed)
         {
             keyPressed = false;
         }
     }
 
-
-    //TODO ENEMIGOS DE OTRAS FUENTES
     public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null,
         List<GameObject> preSetEnemies = null)
     {
+        ResetBattleVariables();
+
+        // Refresh dynamic party members and world audio
+        party = GameManager.Instance.GetParty();
+        if (musicController != null) fieldMusic = musicController.clip;
+
+        // Set up UI hero panels according to current party count
+        for (int i = 0; i < 4; i++)
+        {
+            if (i < party.Count)
+            {
+                battleUIController.SetHeroInfoPanel(i);
+            }
+        }
 
         enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
         enemyPositions = new GameObject[enemiesOnBattle];
 
-        //RESPAWN OBJECTS
-        respawnController = respawnZone.GetComponent<RespawnController>();
+        // RESPAWN OBJECTS
+        if (respawnZone != null)
+            respawnController = respawnZone.GetComponent<RespawnController>();
 
-        //ACTIVE GLOBAL VARIABLE IN BATTLE
+        // ACTIVE GLOBAL VARIABLE IN BATTLE
         GameManager.Instance.InBattle = true;
 
+        if (player != null) player.GetComponent<Animator>().enabled = false;
 
-        player.GetComponent<Animator>().enabled = false;
+        // BATTLE MUSIC
+        if (musicController != null)
+        {
+            musicController.clip = battleMusic;
+            musicController.Play();
+        }
 
-        //BATTLE MUSIC
-        musicController.clip = battleMusic;
-        musicController.Play();
-
-        //START BATTLE TRANSITION
+        // START BATTLE TRANSITION
         StartCoroutine(StartBattle(enemyInitiator));
     }
 
     private IEnumerator StartBattle(GameObject firstEnemy)
     {
-        //TRANSITION MAIN CAMERA TO BATTLE CAMERA
+        // TRANSITION MAIN CAMERA TO BATTLE CAMERA
         StartCoroutine(battleCameraController.StartTransition(mainCamera));
 
         while (!battleCameraController.TransitionDone)
@@ -378,41 +372,49 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-
-        //SET HEROS
+        // SET HEROS
         int i = 0;
         if (GameManager.Instance.GetParty().Count <= 2) i = 1;
 
         foreach (GameObject hero in GameManager.Instance.GetParty())
         {
-            //IF HERO IS ALIVE
+            // IF HERO IS ALIVE
             if (hero.GetComponent<FighterStats>().CurrHp != 0)
             {
                 fighters.Add(hero);
                 heroList.Add(hero);
             }
-            //HERO POSITIONS
+            // HERO POSITIONS
             hero.transform.position = heroPositions[i++].transform.position;
         }
 
-        //SET INFO ON HERO'S PANEL
+        // SET INFO ON HERO'S PANEL
         battleUIController.RefreshHeroInfoPanel();
 
-        //SET ENEMIES
+        // SET ENEMIES
         SetEnemiesOnBattle(firstEnemy);
 
+        // DESTROY WORLD ENEMY
+        if (firstEnemy != null) Destroy(firstEnemy);
 
-        //DESTROY WORLD ENEMY
-        Destroy(firstEnemy);
+        // HidePlayerCanvas
+        if (playerCanvas != null) playerCanvas.SetActive(false);
 
-        //HidePlayerCanvas
-        playerCanvas.SetActive(false);
-
-        //ANIMACIÓN CAMARA INTRO BATLLA
+        // ANIMACIÓN CAMARA INTRO BATLLA
         battleCameraController.IntroBattle();
         yield return new WaitForSeconds(2f);
 
-        //TODO BATTLE CAMERA FADE
+        // --- DYNAMIC AUDIO LISTENER SETUP ---
+        if (HybridAudioListener.Instance != null)
+        {
+            Transform battleCamTransform = battleCameraController != null ? battleCameraController.transform : null;
+
+            Transform centerTarget = audioCenter != null ? audioCenter : battleField.transform;
+
+            HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
+        }
+
+        // TODO BATTLE CAMERA FADE
         StartCoroutine(battleCameraController.StartTransition());
 
         while (!battleCameraController.TransitionDone)
@@ -424,19 +426,16 @@ public class BattleManager : MonoBehaviour
         SetTurns();
     }
 
-
-
     private void SetEnemiesOnBattle(GameObject firstEnemy)
     {
         GameObject enemyPlace;
         GameObject newEnemy;
 
-        //SET ENEMIES
         Debug.Log($"{enemiesOnBattle} enemigos");
 
         for (int i = 0; i < enemiesOnBattle; i++)
         {
-            if (i == 0) //FIRST ENEMY LIKE WORLD ENEMY
+            if (i == 0) // FIRST ENEMY LIKE WORLD ENEMY
             {
                 enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
                 newEnemy = respawnController.GetEnemyLike(firstEnemy);
@@ -454,24 +453,19 @@ public class BattleManager : MonoBehaviour
 
             pointerOriginalY[i] = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").position.y;
 
-            //SET TOP POINTERS POSITION
+            // SET TOP POINTERS POSITION
             GameObject topPointer = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").gameObject;
             topPointer.transform.position = new Vector3(topPointer.transform.position.x,
                 topPointer.transform.position.y + enemiesList[i].GetComponent<BoxCollider>().bounds.size.y,
                 topPointer.transform.position.z);
         }
 
-
-
-        //INITIALIZE FIGHTERS FIRST TURN CD BY AGILITY
+        // INITIALIZE FIGHTERS FIRST TURN CD BY AGILITY
         foreach (GameObject fighter in fighters)
         {
             fighter.GetComponent<FighterController>().NextTurnCD -= fighter.GetComponent<FighterStats>().Agility;
         }
-
     }
-
-
 
     private void SetTurns()
     {
@@ -482,24 +476,20 @@ public class BattleManager : MonoBehaviour
         waitingAction = true;
     }
 
-
     private IEnumerator PerformAction()
     {
         FighterStats targetStats = null;
 
         if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
         {
-            //SELECCIONAR OPCIÓN CON UN RANDOM
             battleUIController.CommandSelected = Random.Range(0, 1);
         }
 
         switch (battleUIController.CommandSelected)
         {
-            case 0: //ATACK
-
+            case 0: // ATTACK
                 if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
                 {
-                    //ESCOGER TARGET ALEATORIAMENTE ENTRE LOS HEROES
                     targetStats = turnController.CurrentFighter.SelectRandomTarget(heroList).GetComponent<FighterStats>();
                     targetList.Add(targetStats.gameObject);
                 }
@@ -508,7 +498,6 @@ public class BattleManager : MonoBehaviour
                     targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
                 }
 
-                //ATTACK METHOD
                 StartCoroutine(turnController.CurrentFighter.BasicAttack(targetStats.gameObject));
 
                 while (!turnController.CurrentFighter.ActionFinished)
@@ -517,11 +506,9 @@ public class BattleManager : MonoBehaviour
                 }
 
                 turnController.CurrentFighter.ActionFinished = false;
-
                 break;
 
-            case 1: //PSYNERGY
-
+            case 1: // PSYNERGY
                 battleUIController.ShowContentPanel(false);
 
                 if (nextPsynergy.Type == Psynergy.Types.HEALING)
@@ -539,12 +526,10 @@ public class BattleManager : MonoBehaviour
                 }
 
                 turnController.CurrentFighter.ActionFinished = false;
-
                 nextPsynergy = null;
-
                 break;
 
-            case 4:
+            case 4: // DEFENSE
                 turnController.CurrentFighter.SetUpDefense();
                 yield return new WaitForSeconds(1.5f);
                 break;
@@ -555,7 +540,6 @@ public class BattleManager : MonoBehaviour
 
     private void CheckDefeated()
     {
-        //Check if enemy/hero is dead after action
         foreach (GameObject target in targetList)
         {
             FighterStats targetData = target.GetComponent<FighterStats>();
@@ -563,8 +547,6 @@ public class BattleManager : MonoBehaviour
             {
                 if (targetData.gameObject.CompareTag("Enemy"))
                 {
-                    //ENEMY DEFEATED
-
                     totalXpEarned += targetData.transform.GetComponent<EnemyDrop>().Xp;
                     totalGoldEarned += targetData.transform.GetComponent<EnemyDrop>().Gold;
                     totalPhEarned += targetData.transform.GetComponent<EnemyDrop>().Ph;
@@ -578,14 +560,11 @@ public class BattleManager : MonoBehaviour
                 }
                 else
                 {
-                    //HERO DEFEATED
                     fighters.Remove(targetData.gameObject);
-
                 }
             }
         }
 
-        //CONTAMOS CUANTOS HEROES HAY MUERTOS
         deadHeroes = 0;
         foreach (GameObject hero in heroList)
         {
@@ -595,11 +574,9 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-
-        if (enemiesDefeated == enemiesList.Count) //All enemies defeated
+        if (enemiesDefeated == enemiesList.Count)
         {
             StartCoroutine(BattleWinned());
-            //battleCanvas.SetActive(false);
         }
         else if (deadHeroes == heroList.Count)
         {
@@ -613,7 +590,6 @@ public class BattleManager : MonoBehaviour
 
     private void GetItemLoot(FighterStats targetStats)
     {
-        //Randomize loot
         Item itemToAdd = null;
         float randomDrop = Random.Range(0f, 100f);
         if (targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareRatio)
@@ -633,10 +609,8 @@ public class BattleManager : MonoBehaviour
                 if (targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemEasyRatio)
                 {
                     itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop);
-
                 }
             }
-
         }
 
         if (itemToAdd != null)
@@ -658,60 +632,53 @@ public class BattleManager : MonoBehaviour
         SetTurns();
     }
 
-
     private IEnumerator BattleWinned()
     {
-        battleUIController.ShowBattleCanvas(false); //Disable battle canvas
+        battleUIController.ShowBattleCanvas(false);
 
-        //VICTORY FANFARE
-        musicController.clip = victoryMusic;
-        musicController.Play();
+        if (musicController != null)
+        {
+            musicController.clip = victoryMusic;
+            musicController.Play();
+        }
         yield return new WaitForSeconds(0.5f);
 
-        //ANIMACION VICTORIA
         foreach (GameObject hero in heroList)
         {
             if (hero.GetComponent<FighterStats>().CurrHp > 0)
                 hero.GetComponentInChildren<Animator>().SetBool("victoryPose", true);
         }
 
-        //TODO ANIMACION CÁMARA
         battleCameraController.Victory(turnsOrdered.ElementAt(0).Key);
         yield return new WaitForSeconds(3);
 
-        //SHOW RESULTS
         StartCoroutine(resultsController.ShowResults(heroList, totalXpEarned, totalPhEarned, totalGoldEarned, totalItemsObtained));
         while (!resultsController.ResultsFinished)
         {
             yield return null;
         }
 
-        //TRANSICION 
-        logoTransition.SetTrigger("start");
+        if (logoTransition != null) logoTransition.SetTrigger("start");
         yield return new WaitForSeconds(transitionTime);
 
         SetOffBattle();
     }
 
-
     private void SetOffBattle()
     {
-        //DESACTIVAR RESULTSCREEN
         resultsController.Reset();
 
-        //desactivar pose de victoria
         foreach (GameObject hero in heroList)
         {
             if (hero.GetComponent<FighterStats>().CurrHp > 0)
                 hero.GetComponentInChildren<Animator>().SetBool("victoryPose", false);
         }
 
-        //Show minimap
-        playerCanvas.SetActive(true);
+        if (playerCanvas != null) playerCanvas.SetActive(true);
+        PlayerUIManager.Instance.RefreshPartyInfo();
 
-        //CAMBIAMOS A CAMARA MUNDO
         battleCameraController.SetOffBattleCamera();
-        object[] Cams = GameObject.FindObjectsOfType(typeof(Camera));
+        Object[] Cams = GameObject.FindObjectsOfType(typeof(Camera));
         foreach (Camera C in Cams)
         {
             if (C.gameObject.CompareTag("MainCamera"))
@@ -720,33 +687,40 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        //UNACTIVE BATTLE IN GAME MANAGER
+        if (HybridAudioListener.Instance != null)
+        {
+            HybridAudioListener.Instance.ClearBattleReferences();
+        }
+
         GameManager.Instance.InBattle = false;
-        player.GetComponent<Animator>().enabled = true;
+        if (player != null) player.GetComponent<Animator>().enabled = true;
 
-        //REPRODUCIMOS MUSICA DE ZONA
-        musicController.clip = fieldMusic;
-        musicController.Play();
+        if (musicController != null)
+        {
+            musicController.clip = fieldMusic;
+            musicController.Play();
+        }
 
-        //RESET HEROS CD
         for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
-            heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
-            heroList[i].GetComponent<FighterController>().SetOffDefense();
+            if (i < heroList.Count)
+            {
+                heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
+                heroList[i].GetComponent<FighterController>().SetOffDefense();
+            }
         }
 
-
-        //SAVE START TOP POINTERS POSITION
         for (int i = 0; i < enemiesOnBattle; i++)
         {
-            Transform currentPosition = enemyPositions[i].transform.Find("Pointer").Find("TopPointer");
-            currentPosition.position = new Vector3(currentPosition.position.x, pointerOriginalY[i], currentPosition.position.z);
-
+            if (enemyPositions[i] != null)
+            {
+                Transform currentPosition = enemyPositions[i].transform.Find("Pointer").Find("TopPointer");
+                currentPosition.position = new Vector3(currentPosition.position.x, pointerOriginalY[i], currentPosition.position.z);
+            }
         }
 
-        Destroy(this);
+        ResetBattleVariables();
     }
-
 
     private void GameOver()
     {
@@ -754,24 +728,57 @@ public class BattleManager : MonoBehaviour
         crossfade.SetActive(true);
         crossfade.transform.Find("GameOver").gameObject.SetActive(true);
         crossfade.GetComponent<Animator>().SetTrigger("start");
-        musicController.clip = gameOverMusic;
-        musicController.Play();
+        if (musicController != null)
+        {
+            musicController.clip = gameOverMusic;
+            musicController.Play();
+        }
         Debug.Log("GAMEOVER");
     }
 
+    #region State Reset Logic
+
+    private void ResetBattleVariables()
+    {
+        fighters.Clear();
+        heroList.Clear();
+        enemiesList.Clear();
+        targetList.Clear();
+        if (turnsOrdered != null) turnsOrdered.Clear();
+
+        if (totalItemsObtained == null)
+            totalItemsObtained = new Dictionary<Item, int>();
+        else
+            totalItemsObtained.Clear();
+
+        totalXpEarned = 0;
+        totalGoldEarned = 0;
+        totalPhEarned = 0;
+        enemiesDefeated = 0;
+        enemiesOnBattle = 0;
+        deadHeroes = 0;
+        actualTarget = 0;
+
+        nextPsynergy = null;
+        nextItem = null;
+        waitingAction = false;
+        selectingTarget = false;
+        choosingList = false;
+        keyPressed = false;
+    }
+
+    #endregion
+
     private void SelectDefaultTarget(string targetType, int targetSize = 0, int i = 0)
     {
-
-        //ALLIES PSYNERGY TARGET
-
         if (nextPsynergy != null && nextPsynergy.Type == Psynergy.Types.HEALING)
         {
             Debug.Log("Healing Psynergy");
             GameObject pointer;
-            List<GameObject> party = GameManager.Instance.GetParty();
+            List<GameObject> currentParty = GameManager.Instance.GetParty();
             targetList = new List<GameObject>();
 
-            foreach (GameObject hero in party)
+            foreach (GameObject hero in currentParty)
             {
                 hero.transform.Find("Pointer").gameObject.SetActive(false);
             }
@@ -779,12 +786,10 @@ public class BattleManager : MonoBehaviour
             switch (targetType)
             {
                 case "ONE_TARGET":
-                    //HERO SELECTED 
-                    pointer = party[i].transform.Find("Pointer").gameObject;
+                    pointer = currentParty[i].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
-                    targetList.Add(party[i]);
+                    targetList.Add(currentParty[i]);
                     actualTarget = i;
-                    //SHOW ON TURN BAR ENEMY SELECTED
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
 
@@ -792,36 +797,29 @@ public class BattleManager : MonoBehaviour
                     break;
             }
         }
-
-        //ENEMIES PSYNERGY TARGET
-
         else
         {
-
-
             GameObject pointer;
             targetList = new List<GameObject>();
 
             foreach (GameObject position in enemyPositions)
             {
-                position.transform.Find("Pointer").gameObject.SetActive(false);
+                if (position != null)
+                    position.transform.Find("Pointer").gameObject.SetActive(false);
             }
 
             switch (targetType)
             {
                 case "ONE_TARGET":
-
                     while (enemiesList[i] == null)
                     {
                         i++;
                     }
 
-                    //ADD ENEMY TO SELECTED AND ACTIVE POINTER
                     pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
                     targetList.Add(enemiesList[i]);
                     actualTarget = i;
-                    //SHOW ON TURN BAR ENEMY SELECTED
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
 
@@ -833,16 +831,14 @@ public class BattleManager : MonoBehaviour
 
                     actualTarget = i;
 
-                    //ADD ENEMY TO SELECTED AND ACTIVE POINTER
                     targetList.Add(enemiesList[i]);
                     pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
 
-
-                    switch (targetSize) //HOW MANY ENEMIES TARGETS ACTION
+                    switch (targetSize)
                     {
                         case 3:
-                            switch (i) //ACTIVATE POINTERS OF SIDE'S ENEMIES
+                            switch (i)
                             {
                                 case 0:
                                     if (enemiesList.Count > 1 && enemiesList[1] != null)
@@ -899,10 +895,8 @@ public class BattleManager : MonoBehaviour
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
             }
-
         }
     }
-
 
     private void SelectRightTarget()
     {
@@ -918,19 +912,13 @@ public class BattleManager : MonoBehaviour
                 case 2:
                     switch (actualTarget)
                     {
-                        case 0:
-                            nextTarget = 1;
-                            break;
-                        case 1:
-                            nextTarget = 0;
-                            break;
+                        case 0: nextTarget = 1; break;
+                        case 1: nextTarget = 0; break;
                     }
                     break;
                 case 3:
-
                     break;
                 case 4:
-
                     break;
             }
 
@@ -945,18 +933,17 @@ public class BattleManager : MonoBehaviour
                         SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
                         break;
                 }
-
             }
         }
         else
         {
             switch (enemiesList.Count)
             {
-                case 1: //SI HAY 1 ENEMIGO
+                case 1:
                     nextTarget = 0;
                     break;
 
-                case 2: //SI HAY 2 ENEMIGOS
+                case 2:
                     switch (actualTarget)
                     {
                         case 0:
@@ -970,7 +957,7 @@ public class BattleManager : MonoBehaviour
                     }
                     break;
 
-                case 3: //SI HAY 3 ENEMIGOS
+                case 3:
                     switch (actualTarget)
                     {
                         case 0:
@@ -988,7 +975,6 @@ public class BattleManager : MonoBehaviour
                             if (enemiesList[1] != null) nextTarget = 1;
                             if (enemiesList[0] != null) nextTarget = 0;
                             break;
-
                     }
                     break;
             }
@@ -1004,10 +990,8 @@ public class BattleManager : MonoBehaviour
                         SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
                         break;
                 }
-
             }
         }
-
     }
 
     private void SelectLeftTarget()
@@ -1024,19 +1008,13 @@ public class BattleManager : MonoBehaviour
                 case 2:
                     switch (actualTarget)
                     {
-                        case 0:
-                            nextTarget = 1;
-                            break;
-                        case 1:
-                            nextTarget = 0;
-                            break;
+                        case 0: nextTarget = 1; break;
+                        case 1: nextTarget = 0; break;
                     }
                     break;
                 case 3:
-
                     break;
                 case 4:
-
                     break;
             }
 
@@ -1051,18 +1029,17 @@ public class BattleManager : MonoBehaviour
                         SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
                         break;
                 }
-
             }
         }
         else
         {
             switch (enemiesList.Count)
             {
-                case 1: //SI HAY 1 ENEMIGO
+                case 1:
                     nextTarget = 0;
                     break;
 
-                case 2: //SI HAY 2 ENEMIGOS
+                case 2:
                     switch (actualTarget)
                     {
                         case 0:
@@ -1076,7 +1053,7 @@ public class BattleManager : MonoBehaviour
                     }
                     break;
 
-                case 3: //SI HAY 3 ENEMIGOS
+                case 3:
                     switch (actualTarget)
                     {
                         case 0:
@@ -1094,14 +1071,12 @@ public class BattleManager : MonoBehaviour
                             if (enemiesList[0] != null) nextTarget = 0;
                             if (enemiesList[1] != null) nextTarget = 1;
                             break;
-
                     }
                     break;
             }
 
             if (actualTarget != nextTarget)
             {
-
                 switch (nextAction_targetType)
                 {
                     case "ONE_TARGET":
@@ -1112,7 +1087,6 @@ public class BattleManager : MonoBehaviour
                         break;
                 }
             }
-
         }
     }
 }

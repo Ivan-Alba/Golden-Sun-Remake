@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class TurnController : MonoBehaviour
 {
+
+    [Header("Turn Controller Settings & Prefabs")]
+    [SerializeField] private GameObject turnCameraPrefab;
+    [SerializeField] private BattleCameraController battleCameraController;
+
     //Variable with the gameObject of current fighter
     FighterController currentFighter;
 
@@ -16,11 +21,9 @@ public class TurnController : MonoBehaviour
     List<KeyValuePair<GameObject, int>> turnsOrdered;
 
     //CAMERA HERO
-    GameObject turnCameraPrefab;
     Camera turnCamera;
     GameObject turnCameraMask;
 
-    BattleCameraController battleCameraController;
     BattleUIController battleUIController;
 
     public int MaxTurnBoxes { get => maxTurnBoxes; set => maxTurnBoxes = value; }
@@ -28,8 +31,6 @@ public class TurnController : MonoBehaviour
 
     private void Awake()
     {
-        turnCameraPrefab = (GameObject)Resources.Load("Prefabs/TurnCamera");
-        battleCameraController = GameObject.Find("BattleCamera").GetComponent<BattleCameraController>();
         battleUIController = gameObject.GetComponent<BattleUIController>();
     }
 

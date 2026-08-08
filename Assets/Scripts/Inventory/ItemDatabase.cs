@@ -44,4 +44,13 @@ public class ItemDatabase : MonoBehaviour
         Debug.LogWarning("No se encuentra el item " + itemSlug);
         return null;
     }
+
+    public IEnumerable<Item> GetAllItems()
+    {
+        foreach (Item item in itemList)
+        {
+            yield return item;
+        }
+        Debug.LogWarning("No se encuentra el item " + itemList);
+    }
 }

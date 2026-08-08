@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4392.837, g: 2737.334, b: 1713.7031, a: 1}
+  m_IndirectSpecularColor: {r: 4617.5186, g: 3075.8945, b: 2335.2383, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -813,7 +813,7 @@ GameObject:
   - component: {fileID: 148009999}
   - component: {fileID: 148009998}
   - component: {fileID: 148009997}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Terrain_(-500.00, 0.00, 500.00)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2152,7 +2152,7 @@ GameObject:
   - component: {fileID: 411879138}
   - component: {fileID: 411879137}
   - component: {fileID: 411879136}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Terrain_(-500.00, 0.00, -1500.00)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2563,7 +2563,7 @@ GameObject:
   - component: {fileID: 474820884}
   - component: {fileID: 474820883}
   - component: {fileID: 474820882}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16693,6 +16693,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1395779684497768610, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: m_SlopeLimit
+      value: 45
+      objectReference: {fileID: 0}
+    - target: {fileID: 1395779684497768613, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: frontMargin
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1395779684497768613, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: edgeCheckOffset
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1395779684497768613, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: extraDropMargin
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1395779684497768613, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: maxDropDistance
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1395779684497768613, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1500955724642809341, guid: 82adbd6cba6ab6b49b7f9555939fa793, type: 3}
       propertyPath: m_LocalPosition.y
       value: 70.38

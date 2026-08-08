@@ -12,7 +12,7 @@ public class NotificationController : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        notifPrefab = Resources.Load("Prefabs/UIComponents/Notification") as GameObject;
+        notifPrefab = Resources.Load("Prefabs/UIComponents/PlayerUI/Notification") as GameObject;
         container = gameObject.GetComponentInChildren<ContentSizeFitter>().gameObject;
     }
 
@@ -32,17 +32,12 @@ public class NotificationController : MonoBehaviour
         {
             newNotification.GetComponent<CanvasGroup>().alpha += 0.2f;
             yield return new WaitForSeconds(0.1f);
-            Debug.Log("Hola");
         }
-        Debug.Log("LLEGO AQUI ANTES DEL WAIT");
 
         yield return new WaitForSeconds(3);
-        Debug.Log("LLEGO AQUI DESPUES DEL WAIT");
 
         while (newNotification.GetComponent<CanvasGroup>().alpha > 0)
         {
-            Debug.Log("LLEGO AQUI");
-
             newNotification.GetComponent<CanvasGroup>().alpha -= 0.2f;
             yield return new WaitForSeconds(0.1f);
         }

@@ -1,291 +1,198 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Serialized Fields
 
-    [SerializeField] float speed = 4f;
-    [SerializeField] float turnSmoothTime = 0.1f;
-    float turnSmoothVelocity;
+    [Header("Movement Settings")]
+    [SerializeField] private float speed = 4f;
+    [SerializeField] private float turnSmoothTime = 0.1f;
+    [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private float stickToGroundForce = -2f;
 
+    [Header("Stamina Settings")]
+    [SerializeField] private float maxStamina = 100f;
+    [SerializeField] private float staminaDrainRate = 10f;
+    [SerializeField] private float staminaRegenRate = 7f;
 
-    CharacterController controller;
-    Animator playerAnim;
-    [SerializeField] Transform mainCamera;
-    AudioSource audioSource;
+    [Header("Edge Detection Settings")]
+    [SerializeField] private float frontMargin = 0.8f;
+    [SerializeField] private float extraDropMargin = 0.2f;
+    [SerializeField] private LayerMask groundLayer;
 
-    //---Psynergy-----
-    GameObject objectHit;
-    bool inChoosePsynergyBar;
+    [Header("References")]
+    [SerializeField] private Transform mainCamera;
+    [SerializeField] private Camera aimCamera;
+    [SerializeField] private GameObject mainMenu;
 
-    //-------------UI ELEMENTS---------------//
-    Transform playerCanvas;
-    //Stamina bar
-    private GameObject iconCanvas;
-    private GameObject staminaBar;
-    private Slider staminaSlider;
-    bool enoughStaminaToRun = true;
-    //Minimap
-    GameObject minimap;
-    //AIM
-    GameObject aimImageUI;
-    Camera aimCamera;
-    bool aiming;
-    //MainMenu
-    GameObject mainMenu;
+    #endregion
 
-    //Character Info Bar
-    GameObject partyInfoBar;
+    #region Private Fields
 
-    //-----------------------------------------------------------
+    private CharacterController controller;
+    private Animator playerAnim;
+    private AudioSource audioSource;
 
+    private float verticalVelocity;
+    private float turnSmoothVelocity;
+    private float currentStamina;
+    private bool enoughStaminaToRun = true;
 
+    private GameObject objectHit;
+    private bool inChoosePsynergyBar;
+    private bool aiming;
 
-    /**
-     * WEAPON HIT WORLD MAP
-    [SerializeField] GameObject weaponObject;
-    private BoxCollider weaponCollider;  
-    int combo;
-    */
-
-    //LongTime idle animation
-    float timeCount;
-    float secondsInIdle = 15f;
-
-    //StopPlayerController
+    private float timeCount;
+    private readonly float secondsInIdle = 15f;
 
     private bool stopPlayerController;
+
+    #endregion
+
+    #region Properties
+
     public bool StopPlayerController { get => stopPlayerController; set => stopPlayerController = value; }
     public Animator PlayerAnim { get => playerAnim; set => playerAnim = value; }
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        controller = gameObject.GetComponent<CharacterController>();
-        //TODO SI EL PLAYER ES ISAAC
-        audioSource = gameObject.GetComponent<AudioSource>();
-
-        //weaponCollider = weaponObject.GetComponent<BoxCollider>();
-
-
-        //-----PLAYER UI------
-        playerCanvas = transform.Find("PlayerCanvas");
-        //Stamina bar
-        iconCanvas = transform.Find("IconCanvas").gameObject;
-        staminaBar = iconCanvas.transform.Find("StaminaBar").gameObject;
-        staminaSlider = staminaBar.GetComponent<Slider>();
-
-        //MainMenu
-        mainMenu = GameObject.Find("MainMenu");
-        mainMenu.SetActive(false);
-
-        //Minimap
-        minimap = playerCanvas.Find("Minimap").gameObject;
-
-        //Aim
-        aimCamera = transform.Find("Aim").Find("AimCamera").GetComponent<Camera>();
-        aimImageUI = playerCanvas.transform.Find("Aim").gameObject;
-
-        //PartyInfoBar
-        partyInfoBar = transform.Find("PlayerCanvas").Find("PartyInfoBar").gameObject;
-
-
+        controller = GetComponent<CharacterController>();
+        audioSource = GetComponent<AudioSource>();
         playerAnim = GetComponent<Animator>();
 
+        currentStamina = maxStamina;
 
+        if (mainMenu != null) mainMenu.SetActive(false);
     }
 
-
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        RefreshPartyInfo();
+        SubscribeToInputEvents();
 
-        if (GameManager.Instance.LoadingData)
+        if (PlayerUIManager.Instance != null)
         {
-            return;
+            PlayerUIManager.Instance.RefreshPartyInfo();
+            PlayerUIManager.Instance.UpdateStamina(currentStamina, maxStamina);
         }
+    }
 
-        if (StopPlayerController) //IF CONTROLER STOPPED
-        {
-            staminaBar.SetActive(false);
-            return;
-        }
+    private void OnEnable()
+    {
+        SubscribeToInputEvents();
+    }
 
-        if (GameManager.Instance.InBattle) //IF BATTLE DISABLE UPDATE
+    private void OnDisable()
+    {
+        UnsubscribeFromInputEvents();
+    }
+
+    private void Update()
+    {
+        if (GameManager.Instance.LoadingData) return;
+
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue)
         {
-            staminaBar.SetActive(false);
-            /*if (partyInfoBarActive)
+            if (PlayerUIManager.Instance != null)
             {
-                StartCoroutine(ShowPartyInfoBar(false));
-            }*/
-            return;
-        }
-
-        if (DialogueManager.instance.InDialogue) //IF DIALOG DISABLE UPDATE
-        {
-            staminaBar.SetActive(false);
-            return;
-        }
-
-
-
-        //----------------CHANGE HERO-------------------
-
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            GameManager.Instance.ChangeActiveHero(1);
-            RefreshPartyInfo();
-        }
-
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            GameManager.Instance.ChangeActiveHero(2);
-            RefreshPartyInfo();
-
-        }
-        if (Input.GetKeyDown(KeyCode.F3))
-        {
-            GameManager.Instance.ChangeActiveHero(3);
-            RefreshPartyInfo();
-
-        }
-
-
-        //--------CHANGE PSYNERGY SHORTCUTS----------
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            //USE PSYNERGY 1 IN CLOSE OBJECT
-            PsynergyWorldController.Instance.UsePsynergy(0, null);
-
-        } else if (Input.GetKey(KeyCode.Alpha1) && !inChoosePsynergyBar)
-        {
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 0);
-            inChoosePsynergyBar = true;
-        } else if (Input.GetKeyUp(KeyCode.Alpha1) && inChoosePsynergyBar)
-        {
-            
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 0);
-            inChoosePsynergyBar = false;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            //USE PSYNERGY 2 IN CLOSE OBJECT
-            PsynergyWorldController.Instance.UsePsynergy(1, null);
-
-        }
-        else if (Input.GetKey(KeyCode.Alpha2) && !inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = true;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 1);
-        }
-        else if (Input.GetKeyUp(KeyCode.Alpha2) && inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = false;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 1);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            //USE PSYNERGY 3 IN CLOSE OBJECT
-            PsynergyWorldController.Instance.UsePsynergy(2, null);
-
-        }
-        else if (Input.GetKey(KeyCode.Alpha3) && !inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = true;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 2);
-        }
-        else if (Input.GetKeyUp(KeyCode.Alpha3) && inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = false;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 2);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            //USE PSYNERGY 4 IN CLOSE OBJECT
-            PsynergyWorldController.Instance.UsePsynergy(3, null);
-
-
-        }
-        else if (Input.GetKey(KeyCode.Alpha4) && !inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = true;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(true, 3);
-        }
-        else if (Input.GetKeyUp(KeyCode.Alpha4) && inChoosePsynergyBar)
-        {
-            inChoosePsynergyBar = false;
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(false, 3);
-        }
-
-        //-----------MOVE PSYNERGY BAR---------------
-
-        if (inChoosePsynergyBar && Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            PsynergyWorldController.Instance.ChoosePanelMoveUp();
-        }
-
-        if (inChoosePsynergyBar && Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            PsynergyWorldController.Instance.ChoosePanelMoveDown();
-        }
-
-        //-----------------INTERACT -------------
-        if (objectHit != null && objectHit.CompareTag("Interactable") &&
-            Vector3.Distance(objectHit.transform.position, transform.position) < 2) //IF CLOSE AN INTERACTABLE OBJECT
-        {
-            //MOSTRAR BOTON O ICONO
-            SetIconVisible(true);
-            Debug.Log("INTERACTUAR");
-
-            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
-            {
-                SetIconVisible(false);
-                objectHit.GetComponent<Interactable>().Interact();
+                PlayerUIManager.Instance.SetStaminaBarVisible(false);
             }
+            return;
+        }
 
+        HandleGravity();
+        HandleMovement();
+        UpdateInteractionUI();
+    }
+
+    private void FixedUpdate()
+    {
+        // Forward Raycast for interactable detection
+        Ray ray = new Ray(transform.position + Vector3.up, transform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            Debug.DrawRay(transform.position + Vector3.up, transform.TransformDirection(Vector3.forward) * hit.distance, Color.yellow);
+            objectHit = hit.transform.gameObject;
         }
         else
         {
-            SetIconVisible(false);
-            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
-            {
-                //OpenWorldPsynergyPanel
-
-            }
+            objectHit = null;
         }
+    }
 
-        //----------------AIM----------------
-
-        if (Input.GetKey(KeyCode.Q) && !aiming)
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Interactable"))
         {
-            StartAiming();
-           
+            objectHit = other.gameObject;
         }
+    }
 
-        if (Input.GetKeyUp(KeyCode.Q) && aiming)
+    #endregion
+
+    #region Input Event Subscriptions
+
+    private void SubscribeToInputEvents()
+    {
+        if (InputManager.Instance == null) return;
+
+        UnsubscribeFromInputEvents();
+
+        InputManager.Instance.OnChangeHeroPressed += HandleChangeHero;
+        InputManager.Instance.OnInteractPressed += HandleInteraction;
+        InputManager.Instance.OnToggleMenuPressed += HandleMenuToggle;
+        InputManager.Instance.OnStartAimPressed += StartAiming;
+        InputManager.Instance.OnStopAimPressed += StopAiming;
+        InputManager.Instance.OnUsePsynergyPressed += HandleUsePsynergy;
+        InputManager.Instance.OnHoldPsynergyBarChanged += HandleHoldPsynergyBar;
+        InputManager.Instance.OnPsynergyNavigateUpPressed += HandlePsynergyUp;
+        InputManager.Instance.OnPsynergyNavigateDownPressed += HandlePsynergyDown;
+    }
+
+    private void UnsubscribeFromInputEvents()
+    {
+        if (InputManager.Instance == null) return;
+
+        InputManager.Instance.OnChangeHeroPressed -= HandleChangeHero;
+        InputManager.Instance.OnInteractPressed -= HandleInteraction;
+        InputManager.Instance.OnToggleMenuPressed -= HandleMenuToggle;
+        InputManager.Instance.OnStartAimPressed -= StartAiming;
+        InputManager.Instance.OnStopAimPressed -= StopAiming;
+        InputManager.Instance.OnUsePsynergyPressed -= HandleUsePsynergy;
+        InputManager.Instance.OnHoldPsynergyBarChanged -= HandleHoldPsynergyBar;
+        InputManager.Instance.OnPsynergyNavigateUpPressed -= HandlePsynergyUp;
+        InputManager.Instance.OnPsynergyNavigateDownPressed -= HandlePsynergyDown;
+    }
+
+    #endregion
+
+    #region Movement & Physics Logic
+
+    private void HandleGravity()
+    {
+        if (controller.isGrounded && verticalVelocity < 0)
         {
-            StopAiming();
+            verticalVelocity = stickToGroundForce;
         }
-
-
-        //-------------MOVEMENT--------------
-
-        float x = Input.GetAxisRaw("Horizontal");
-        float z = Input.GetAxisRaw("Vertical");
-        Vector3 direction = new Vector3(x, 0f, z).normalized;
-
-        if (direction.magnitude >= 0.1f) //IF MOVING
+        else
         {
-            timeCount = 0;
+            verticalVelocity += gravity * Time.deltaTime;
+        }
+    }
+
+    private void HandleMovement()
+    {
+        Vector2 inputMove = InputManager.Instance != null ? InputManager.Instance.MoveInput : Vector2.zero;
+        Vector3 direction = new Vector3(inputMove.x, 0f, inputMove.y).normalized;
+
+        if (direction.magnitude >= 0.1f)
+        {
+            timeCount = 0f;
 
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + mainCamera.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
@@ -293,273 +200,247 @@ public class PlayerController : MonoBehaviour
 
             PlayerAnim.SetBool("isMoving", true);
 
-
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            if (Input.GetKey(KeyCode.LeftShift) && enoughStaminaToRun) //RUN PRESSED
+
+            if (controller.isGrounded && IsEdgeAhead(moveDirection))
+            {
+                moveDirection = Vector3.zero;
+            }
+
+            bool isRunningInput = InputManager.Instance != null && InputManager.Instance.IsRunning;
+
+            if (isRunningInput && enoughStaminaToRun)
             {
                 PlayerAnim.SetBool("isRunning", true);
 
-                controller.Move(moveDirection.normalized * (speed * 2) * Time.deltaTime);
+                Vector3 movement = (moveDirection.normalized * (speed * 2f)) + new Vector3(0f, verticalVelocity, 0f);
+                controller.Move(movement * Time.deltaTime);
 
-                //REFRESH STAMINA BAR
-                RefreshStaminaBar(-10 * Time.deltaTime);
-
-
+                ModifyStamina(-staminaDrainRate * Time.deltaTime);
             }
-            else //RUN NOT PRESSED
+            else
             {
                 PlayerAnim.SetBool("isRunning", false);
 
-                controller.Move(moveDirection.normalized * speed * Time.deltaTime);
+                Vector3 movement = (moveDirection.normalized * speed) + new Vector3(0f, verticalVelocity, 0f);
+                controller.Move(movement * Time.deltaTime);
 
-                //REFRESH STAMINA BAR
-                RefreshStaminaBar(7 * Time.deltaTime);
-
+                ModifyStamina(staminaRegenRate * Time.deltaTime);
             }
         }
-        else //NOT MOVING
+        else
         {
             PlayerAnim.SetBool("isMoving", false);
 
-            //IDLE LONG TIME ANIMATION
+            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+
             timeCount += Time.deltaTime;
             if (timeCount >= secondsInIdle)
             {
                 PlayerAnim.SetTrigger("longTime");
-                timeCount = 1;
+                timeCount = 1f;
             }
 
-            //REFRESH STAMINA BAR
-            RefreshStaminaBar(7 * Time.deltaTime);
+            ModifyStamina(staminaRegenRate * Time.deltaTime);
         }
-
-
-        //------------SHOW PARTY INFO BAR-----------//
-
-        /*if (timeCount >= 1 && !aiming && !partyInfoBarActive)
-        {
-            RefreshPartyInfo();
-            StartCoroutine(ShowPartyInfoBar(true));
-        }
-
-
-        if (timeCount < 1 && partyInfoBarActive)
-        {
-            StartCoroutine(ShowPartyInfoBar(false));
-        }*/
-
-
-
-        /**---------ATTACK------------
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            playerAnim.SetInteger("combo", combo++);
-            playerAnim.SetTrigger("attack1");
-        }*/
-
-
-        //SHOW AND HIDE STAMINA BAR
-        if (staminaSlider.value >= staminaSlider.maxValue)
-        {
-            ShowStaminaBar(false);
-        }
-        else
-        {
-            ShowStaminaBar(true);
-        }
-
-
-        //OPEN MAIN MENU
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (aiming)
-            {
-                StopAiming();
-            }
-
-            stopPlayerController = true;
-            mainMenu.SetActive(true);
-            minimap.transform.parent.gameObject.SetActive(false);
-        }
-
     }
 
+    private bool IsEdgeAhead(Vector3 moveDirection)
+    {
+        float dynamicEdgeOffset = controller.radius + frontMargin;
+        float safetyMargin = 0.2f;
+        float rayStartHeight = controller.stepOffset + safetyMargin;
+        float maxWalkableDrop = controller.stepOffset + extraDropMargin;
+        float totalRayDistance = rayStartHeight + maxWalkableDrop;
+
+        Vector3 rayOrigin = transform.position + (moveDirection.normalized * dynamicEdgeOffset) + (Vector3.up * rayStartHeight);
+
+        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, totalRayDistance, groundLayer))
+        {
+            float slopeAngle = Vector3.Angle(Vector3.up, hit.normal);
+
+            if (slopeAngle > controller.slopeLimit)
+            {
+                Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.red);
+                return true;
+            }
+
+            Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.green);
+            return false;
+        }
+
+        Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.red);
+        return true;
+    }
+
+    #endregion
+
+    #region Input Event Handlers
+
+    private void HandleChangeHero(int heroIndex)
+    {
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+
+        GameManager.Instance.ChangeActiveHero(heroIndex);
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.RefreshPartyInfo();
+        }
+    }
+
+    private void HandleInteraction()
+    {
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+
+        if (objectHit != null && objectHit.CompareTag("Interactable") &&
+            Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
+        {
+            if (PlayerUIManager.Instance != null)
+            {
+                PlayerUIManager.Instance.SetInteractionIconVisible(false);
+            }
+            objectHit.GetComponent<Interactable>()?.Interact();
+        }
+    }
+
+    private void HandleMenuToggle()
+    {
+        if (aiming)
+        {
+            StopAiming();
+        }
+
+        stopPlayerController = true;
+
+        if (mainMenu != null) mainMenu.SetActive(true);
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.SetMinimapVisible(false);
+        }
+    }
+
+    private void HandleUsePsynergy(int slotIndex)
+    {
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        PsynergyWorldController.Instance.UsePsynergy(slotIndex, null);
+    }
+
+    private void HandleHoldPsynergyBar(int slotIndex, bool isHolding)
+    {
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+
+        inChoosePsynergyBar = isHolding;
+        PsynergyWorldController.Instance.ShowPsynergyChoosePanel(isHolding, slotIndex);
+    }
+
+    private void HandlePsynergyUp()
+    {
+        if (inChoosePsynergyBar)
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveUp();
+        }
+    }
+
+    private void HandlePsynergyDown()
+    {
+        if (inChoosePsynergyBar)
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveDown();
+        }
+    }
+
+    #endregion
+
+    #region Stamina & Interaction Helpers
+
+    private void ModifyStamina(float amount)
+    {
+        currentStamina = Mathf.Clamp(currentStamina + amount, 0f, maxStamina);
+
+        if (currentStamina < 5f)
+        {
+            enoughStaminaToRun = false;
+        }
+        else if (!enoughStaminaToRun && currentStamina > 30f)
+        {
+            enoughStaminaToRun = true;
+        }
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.UpdateStamina(currentStamina, maxStamina);
+        }
+    }
+
+    private void UpdateInteractionUI()
+    {
+        bool canInteract = objectHit != null && objectHit.CompareTag("Interactable") &&
+                           Vector3.Distance(objectHit.transform.position, transform.position) < 2f;
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.SetInteractionIconVisible(canInteract);
+        }
+    }
+
+    #endregion
+
+    #region Aiming Logic
 
     private void StartAiming()
     {
-        if (mainCamera.GetComponent<Camera>().enabled == true) Camera.main.enabled = false;
+        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (aiming) return;
+
+        if (mainCamera.GetComponent<Camera>().enabled) Camera.main.enabled = false;
         aimCamera.enabled = true;
-        aimImageUI.SetActive(true);
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.SetAimUIVisible(true);
+        }
+
         transform.GetComponent<PlayerAiming>().enabled = true;
         aiming = true;
     }
 
     private void StopAiming()
     {
+        if (!aiming) return;
+
         gameObject.GetComponent<PlayerAiming>().Reset();
-        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, transform.eulerAngles.z);
+        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, transform.eulerAngles.z);
         mainCamera.GetComponent<Camera>().enabled = true;
         aimCamera.enabled = false;
-        aimImageUI.SetActive(false);
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.SetAimUIVisible(false);
+        }
+
         transform.GetComponent<PlayerAiming>().enabled = false;
         aiming = false;
     }
-    private void FixedUpdate()
+
+    #endregion
+
+    #region Audio & Animation Callbacks
+
+    public void playFootprints()
     {
-        //RAYCAST
-        var ray = new Ray(this.transform.position + new Vector3(0, 1, 0), this.transform.forward);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-            Debug.DrawRay(transform.position + new Vector3(0, 1, 0), transform.TransformDirection(Vector3.forward) * hit.distance, Color.yellow);
+        if (audioSource == null) return;
 
-            if (hit.transform.gameObject != null)
-            {
-                objectHit = hit.transform.gameObject;
+        audioSource.pitch = Random.Range(0.9f, 1.1f);
 
-            }
-            else
-            {
-                objectHit = null;
-            }
-            //Debug.Log("RayHit = " + objectHit.name);
-        }
-
+        audioSource.PlayOneShot(audioSource.clip);
     }
-
-    private void RefreshPartyInfo()
-    {
-        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
-        {
-            GameObject currentHero = GameManager.Instance.GetParty()[i];
-
-            //Avatar background color
-            switch (currentHero.name)
-            {
-                case "Isaac":
-                    //partyInfoBar.transform.GetChild(i).transform.Find("Avatar").GetComponent<Image>().color = Color.yellow;
-                    break;
-                case "Garet":
-                    //partyInfoBar.transform.GetChild(i).transform.Find("Avatar").GetComponent<Image>().color = redGaret;
-                    break;
-                case "Ivan":
-                    break;
-            }
-
-            partyInfoBar.transform.GetChild(i).transform.Find("Avatar").Find("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Images/MainMenu/{currentHero.name}_avatar");
-            partyInfoBar.transform.GetChild(i).transform.Find("NamePanel").Find("Name").GetComponent<TextMeshProUGUI>().SetText(currentHero.GetComponent<FighterStats>().Name);
-            partyInfoBar.transform.GetChild(i).transform.Find("HP").GetComponent<TextMeshProUGUI>().SetText
-                ($"{currentHero.GetComponent<FighterStats>().CurrHp}/{currentHero.GetComponent<FighterStats>().MaxHp}");
-            partyInfoBar.transform.GetChild(i).transform.Find("PP").GetComponent<TextMeshProUGUI>().SetText
-                              ($"{currentHero.GetComponent<FighterStats>().CurrPp}/{currentHero.GetComponent<FighterStats>().MaxPp}");
-            partyInfoBar.transform.GetChild(i).transform.Find("Level").GetComponent<TextMeshProUGUI>().SetText($"Nivel: {currentHero.GetComponent<FighterStats>().Level}");
-
-            //Bars
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().maxValue =currentHero.GetComponent<FighterStats>().MaxHp;
-            partyInfoBar.transform.GetChild(i).transform.Find("HPBar").GetComponent<Slider>().value = currentHero.GetComponent<FighterStats>().CurrHp;
-
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().maxValue = currentHero.GetComponent<FighterStats>().MaxPp;
-            partyInfoBar.transform.GetChild(i).transform.Find("PPBar").GetComponent<Slider>().value = currentHero.GetComponent<FighterStats>().CurrPp;
-
-            partyInfoBar.transform.GetChild(i).gameObject.SetActive(true);
-        }
-    }
-
-    /*private IEnumerator ShowPartyInfoBar(bool choice)
-    {
-        if (choice)
-        {
-            partyInfoBar.SetActive(choice);
-            partyInfoBarActive = true;
-        }
-        else
-        {
-            partyInfoBarActive = false;
-            partyInfoBar.GetComponent<Animation>().Play("hide");
-
-            while (partyInfoBar.GetComponent<Animation>().isPlaying)
-            {
-                yield return new WaitForSecondsRealtime(0.1f);
-            }
-            partyInfoBar.SetActive(false);
-        }
-    }*/
 
     public GameObject GameObjectForward()
     {
         return objectHit;
     }
 
-    /**
-    public void AttackFinished()
-    {
-        combo = 0;
-        playerAnim.SetInteger("combo", combo);
-    }
-    **/
-
-    /**
-    public void PlaySwordSound()
-    {
-
-        AudioSource audioSource = weaponObject.GetComponent<AudioSource>();
-        audioSource.Play();
-
-    }
-    **/
-
-    public void SetIconVisible(bool active)
-    {
-        if (active)
-        {
-            iconCanvas.transform.Find("Icon").gameObject.SetActive(true);
-        }
-        else
-        {
-            iconCanvas.transform.Find("Icon").gameObject.SetActive(false);
-        }
-    }
-    public void playFootprints()
-    {
-        audioSource.Play();
-    }
-
-
-    public void RefreshStaminaBar(float value)
-    {
-        staminaSlider.value += value;
-        if (staminaSlider.value < 30)
-        {
-            staminaSlider.fillRect.GetComponent<Image>().color = Color.red;
-        } else
-        {
-            staminaSlider.fillRect.GetComponent<Image>().color = new Color(0.94f, 0.71f, 0);
-        }
-
-        if (staminaSlider.value < 5)
-        {
-            //CHARACTER TIRED
-            enoughStaminaToRun = false;
-        } else if (!enoughStaminaToRun && staminaSlider.value > 30)
-        {
-            enoughStaminaToRun = true;
-        }
-
-
-    }
-
-    private void ShowStaminaBar(bool value)
-    {
-        staminaBar.SetActive(value);
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.gameObject.CompareTag("Interactable"))
-        {
-            objectHit = other.gameObject;
-        }
-    }
-
-
+    #endregion
 }

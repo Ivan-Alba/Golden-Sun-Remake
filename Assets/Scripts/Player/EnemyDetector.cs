@@ -44,18 +44,14 @@ public class EnemyDetector : MonoBehaviour
     private IEnumerator StartBattle()
     {
         yield return new WaitForSeconds(0.3f);
-        //BATTLE UI CONTROLLER
-        battleManager.AddComponent<BattleUIController>();
 
-        //TURN CONTROLLER
-        battleManager.AddComponent<TurnController>();
-        //BATTLECAMERA CONTROLLER
-        //battleManager.AddComponent<BattleCameraController>();
+        // Obtenemos el componente permanente del GameObject de la escena y lanzamos la batalla
+        BattleManager bm = battleManager.GetComponent<BattleManager>();
+        if (bm != null)
+        {
+            bm.AwakeBatlle(enemyTouched.gameObject, enemyTouched.transform.parent.gameObject);
+        }
 
-        //TRANSICIÓN A BATALLA
-        battleManager.AddComponent<BattleManager>();
-
-        battleManager.GetComponent<BattleManager>().AwakeBatlle(enemyTouched.gameObject, enemyTouched.transform.parent.gameObject);
         battleLaunched = false;
     }
 }

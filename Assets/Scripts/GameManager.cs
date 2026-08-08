@@ -91,7 +91,8 @@ public class GameManager : MonoBehaviour
     {
         party[0].GetComponent<FighterStats>().LevelUp();
          party[0].GetComponent<FighterStats>().LevelUp();
-         party[1].GetComponent<FighterStats>().LevelUp();
+        party[0].GetComponent<FighterStats>().LevelUp();
+        party[1].GetComponent<FighterStats>().LevelUp();
          party[1].GetComponent<FighterStats>().LevelUp();
          party[1].GetComponent<FighterStats>().LevelUp();
 

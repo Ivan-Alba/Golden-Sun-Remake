@@ -46,6 +46,16 @@ public class InventoryController : MonoBehaviour
 
     }
 
+
+    public void AllItems()
+    {
+        foreach (var item in ItemDatabase.Instance.GetAllItems())
+        {
+            AddItem(item.ItemSlug, 1);
+        }
+    }
+
+
     public void LoseItem(string itemSlug, int quantity)
     {
         Item itemToLose = ItemDatabase.Instance.GetItem(itemSlug);

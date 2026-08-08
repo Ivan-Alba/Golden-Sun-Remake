@@ -9,21 +9,22 @@ using UnityEngine.UI;
 public class BattleUIController : MonoBehaviour
 {
 
-    //UI ELEMENTS
-    GameObject battleCanvas;
-    GameObject turnsPanel;
-    GameObject ordersPanel;
-    GameObject contentScrollView;
-    GameObject contentItemPrefab;
-    GameObject helpPanel;
+    [Header("UI Canvas & Panels")]
+    [SerializeField] private GameObject battleCanvas;
+    [SerializeField] private GameObject turnsPanel;
+    [SerializeField] private GameObject ordersPanel;
+    [SerializeField] private TextMeshProUGUI commandInfoText;
+    [SerializeField] private GameObject helpPanel;
+    [SerializeField] private GameObject contentScrollView;
+
+    [Header("UI Prefabs & Collections")]
+    [SerializeField] private GameObject contentItemPrefab;
+    [SerializeField] private List<GameObject> ordersButtons = new List<GameObject>();
+    [SerializeField] private GameObject[] heroInfoPanels = new GameObject[4];
+
     List<GameObject> contentItems;
     int contentCursorIndex;
     string lastContent;
-
-
-    
-    List<GameObject> ordersButtons = new List<GameObject>();
-    GameObject[] heroInfoPanels = new GameObject[4];
 
     //Turns settings
     TurnController turnController;
@@ -40,32 +41,33 @@ public class BattleUIController : MonoBehaviour
 
     private void Awake()
     {
-        //Awake UI elements
-        battleCanvas = transform.Find("BattleCanvas").gameObject;
-        turnsPanel = battleCanvas.transform.Find("TurnPanel").gameObject;
-        ordersPanel = battleCanvas.transform.Find("OrdersPanel").gameObject;
-        commandInfo = (ordersPanel.transform.Find("CommandInfoBorder").gameObject).transform.Find("CommandInfo").gameObject;
-        helpPanel = battleCanvas.transform.Find("HelpPanel").gameObject;
-
-        contentScrollView = battleCanvas.transform.Find("ContentPanel").GetChild(0).GetChild(0).GetChild(0).gameObject;
-        contentItemPrefab = Resources.Load("Prefabs/ContentItem") as GameObject;
-        foreach (Transform button in ordersPanel.transform.GetComponentInChildren<Transform>())
+        // --- POPULATE TURN BOXES FROM PANELS ---
+        turnsUIElements.Clear();
+        if (turnsPanel != null)
         {
-            if (button.gameObject.name.Contains("Button"))
+            foreach (Transform turn in turnsPanel.GetComponentsInChildren<Transform>())
             {
-                ordersButtons.Add(button.gameObject);
+                if (!turn.gameObject.Equals(turnsPanel) && !turn.gameObject.name.StartsWith("Highlight"))
+                {
+                    turnsUIElements.Add(turn);
+                }
             }
         }
 
-        //GUARDAMOS LOS GAMEOBJECT DE LOS CUADROS DE TURNO DE LA UI
-        foreach (Transform turn in turnsPanel.GetComponentsInChildren<Transform>())
-        {
-            if (!turn.gameObject.Equals(turnsPanel) && !turn.gameObject.name.StartsWith("Highlight")) turnsUIElements.Add(turn);
-        }
-
-
-        //NUMBER OF TURN BOXES
         maxTurnBoxes = turnsUIElements.Count;
+
+        // --- CACHE HERO PANELS IN PREFAB ---
+        for (int i = 0; i < 4; i++)
+        {
+            if (heroInfoPanels[i] == null && battleCanvas != null)
+            {
+                Transform panelTrans = battleCanvas.transform.Find($"Hero{i}Panel");
+                if (panelTrans != null)
+                {
+                    heroInfoPanels[i] = panelTrans.gameObject;
+                }
+            }
+        }
     }
 
     public void SetHeroInfoPanel(int i)
@@ -215,7 +217,10 @@ public class BattleUIController : MonoBehaviour
 
     private void SetInfoText()
     {
-        commandInfo.GetComponent<TextMeshProUGUI>().SetText(commandsText[commandSelected]);
+        if (commandInfoText != null)
+        {
+            commandInfoText.SetText(commandsText[commandSelected]);
+        }
     }
 
     private void RefreshButtonAnimation()
