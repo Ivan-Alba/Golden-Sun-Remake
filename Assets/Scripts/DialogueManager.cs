@@ -83,13 +83,14 @@ public class DialogueManager : MonoBehaviour
 
     private void ContinueDialogue()
     {
-        Debug.Log("ContinueDialogue");
         if (dialogueIndex < dialogueLines.Count -1)
         {
+            Debug.Log("ContinueDialogue");
             dialogueIndex++;
             CreateDialogue();
         } else
         {
+            Debug.Log("End of dialogue");
             StartCoroutine(CloseDialogue());
         }
     }

@@ -51,6 +51,5 @@ public class ItemDatabase : MonoBehaviour
         {
             yield return item;
         }
-        Debug.LogWarning("No se encuentra el item " + itemList);
     }
 }

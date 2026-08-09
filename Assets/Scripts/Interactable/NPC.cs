@@ -4,57 +4,81 @@ using UnityEngine;
 
 public class NPC : Interactable
 {
-    GameObject player;
+    [Header("NPC Settings")]
+    [SerializeField] private string npcName = "";
+    [SerializeField] private int rotationSpeed = 4;
 
-    //LOKATPLAYER
-    bool lookAtPlayer;
-    Quaternion initialRotation;
-    int rotationSpeed = 4;
-
-    
-    // TODO: DIALOGUE (SEARCH HOW TO USE JSON FILES)
-    [SerializeField] string npcName;
+    [Header("Dialogue Content")]
     public string[] dialogue;
 
-    //Getters and setters
+    private GameObject player;
+    private bool lookAtPlayer;
+    private Quaternion initialRotation;
+
+    // Getters and setters
     public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
     public string NpcName { get => npcName; set => npcName = value; }
 
     private void Awake()
     {
-        if (npcName == null) npcName = "";
+        if (string.IsNullOrEmpty(npcName)) npcName = "";
 
-            player = GameObject.FindGameObjectWithTag("Player");
+        // Cache initial spawn rotation
+        initialRotation = transform.rotation;
     }
 
     private void Update()
     {
         if (LookAtPlayer)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(player.transform.position - transform.position);
-            // Smoothly rotate towards the target point.
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            // Lazy search if player reference is missing
+            if (player == null)
+            {
+                player = GameObject.FindGameObjectWithTag("Player");
+            }
+
+            if (player != null)
+            {
+                // Calculate horizontal direction to prevent vertical tilt on slopes/hills
+                Vector3 direction = player.transform.position - transform.position;
+                direction.y = 0;
+
+                if (direction != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(direction);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                }
+            }
         }
         else
         {
+            // Return smoothly to original orientation
             transform.rotation = Quaternion.Slerp(transform.rotation, initialRotation, rotationSpeed * Time.deltaTime);
         }
-
     }
+
     public override void Interact()
     {
-        //LOOK AT PLAYER
+        // Ensure player is cached at interaction time
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        // Lock rotation and look at player
         initialRotation = transform.rotation;
         LookAtPlayer = true;
-        //transform.LookAt(new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z));
 
-        //DIALOG
-        DialogueManager.instance.AddNewDialogue(dialogue, this.npcName, gameObject);
-        if  (this.npcName == "DEBUG_ALL_ITEMS")
+        // Trigger Dialogue System
+        if (DialogueManager.instance != null)
+        {
+            DialogueManager.instance.AddNewDialogue(dialogue, npcName, gameObject);
+        }
+
+        // Debug Command
+        if (npcName == "DEBUG_ALL_ITEMS" && InventoryController.Instance != null)
         {
             InventoryController.Instance.AllItems();
         }
-
     }
-
 }

@@ -4,51 +4,85 @@ using UnityEngine;
 
 public class FieldItem : Interactable
 {
-    private GameObject player;
-    private Animator cloackIsaacAnim;
-    private Animator playerAnimator;
-    private void Awake()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player.transform.GetChild(0).name == "Isaac_world")
-        {
-            cloackIsaacAnim = GameObject.Find("CloackIsaac").GetComponent<Animator>();
-        }
-    }
+    [Header("Item Configuration")]
     public string itemName;
+
+    private GameObject player;
+
     public override void Interact()
     {
-        StartCoroutine(pickItem());
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        if (player != null)
+        {
+            StartCoroutine(PickItem());
+        }
+        else
+        {
+            Debug.LogWarning($"[FieldItem] Cannot pick {itemName}: Player object not found!");
+        }
     }
 
-    private IEnumerator pickItem()
+    private IEnumerator PickItem()
     {
-        //STOPS PLAYERS MOVEMENT
-        player.GetComponent<PlayerController>().StopPlayerController = true;
+        // 1. Stop Player Movement
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.StopPlayerController = true;
+        }
 
-        player.GetComponent<Animator>().SetTrigger("pickFloor");
-        //CLOACK ANIM
-        //cloackIsaacAnim.SetTrigger("pick");
+        // 2. Play Animation
+        Animator playerAnim = player.GetComponent<Animator>();
+        if (playerAnim != null)
+        {
+            playerAnim.SetTrigger("pickFloor");
+        }
+
         yield return new WaitForSeconds(2.2f);
 
-
-        //Show notification
-        if (notifController != null)
+        // 3. Show Notification UI
+        if (notifController != null && ItemDatabase.Instance != null)
         {
-            StartCoroutine(notifController.AddNotification
-                ($"Has encontrado: {ItemDatabase.Instance.GetItem(itemName).ItemName}",
-                ItemDatabase.Instance.GetItem(itemName).Icon));
-
-            Debug.Log("Coges Objeto");
+            var itemData = ItemDatabase.Instance.GetItem(itemName);
+            if (itemData != null)
+            {
+                StartCoroutine(notifController.AddNotification(
+                    $"Has encontrado: {itemData.ItemName}",
+                    itemData.Icon
+                ));
+            }
         }
-        //Add item to inventory
-        InventoryController.Instance.AddItem(itemName);
-        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
-        //INVISIBLE
-        gameObject.transform.position = new Vector3(0, -1000, 0);
+
+        // 4. Add item to Inventory and Play SFX
+        if (InventoryController.Instance != null)
+        {
+            InventoryController.Instance.AddItem(itemName);
+        }
+
+        if (GameManager.Instance != null)
+        {
+            Sounds soundSystem = GameManager.Instance.GetComponent<Sounds>();
+            if (soundSystem != null)
+            {
+                soundSystem.PlaySound(GameManager.ITEM_FOUNDED_SOUND);
+            }
+        }
+
+        // 5. Hide world object immediately to prevent re-interaction
+        transform.position = new Vector3(0, -1000f, 0);
+
         yield return new WaitForSeconds(0.7f);
-        player.GetComponent<PlayerController>().StopPlayerController = false;
+
+        // 6. Restore Player Movement and Destroy object
+        if (playerController != null)
+        {
+            playerController.StopPlayerController = false;
+        }
+
         Destroy(gameObject, 5f);
     }
-
 }

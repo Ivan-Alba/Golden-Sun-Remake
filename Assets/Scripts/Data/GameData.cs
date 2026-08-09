@@ -86,7 +86,7 @@ public class GameData
         }
 
         //PsynergyShortcuts
-        foreach(KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.heroShortcuts)
+        foreach(KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)
         {
             KeyValuePair<string, Psynergy[]> item = new KeyValuePair<string, Psynergy[]>(heroShortcut.Key.name, heroShortcut.Value);
             heroShortcuts.Add(item);

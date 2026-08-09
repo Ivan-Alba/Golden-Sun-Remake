@@ -9,21 +9,21 @@ public class Chest : Interactable
 
     private GameObject player;
 
-    private void Awake()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-    }
-
     public override void Interact()
     {
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+
         StartCoroutine(OpenChest());
-       
     }
 
     private IEnumerator OpenChest()
     {
         Item itemFounded;
         itemFounded = ItemDatabase.Instance.GetItem(itemSlug);
+
         //No Interactable anymore
         gameObject.tag = "Untagged";
 

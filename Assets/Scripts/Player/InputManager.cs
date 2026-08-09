@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // Enum for all rebindable actions in the game
 public enum InputAction
@@ -72,7 +73,6 @@ public class InputManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
         jsonFilePath = Path.Combine(Application.persistentDataPath, "controls.json");
         LoadControlBindings();
@@ -80,6 +80,9 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
+            return;
+
         if (GameManager.Instance != null && GameManager.Instance.LoadingData)
         {
             MoveInput = Vector2.zero;

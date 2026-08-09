@@ -5,56 +5,109 @@ using UnityEngine.UI;
 
 public class BattleCameraController : MonoBehaviour
 {
-    GameObject turnCameraPrefab;
-    GameObject victoryCameraPrefab;
 
-    bool transitionDone;
-    GameObject cameraRenderImage;
+    [Header("UI Render Transition")]
+    [SerializeField] private GameObject cameraRenderImage;
+
+    [Header("Camera Prefabs")]
+    [SerializeField] private GameObject turnCameraPrefab;
+    [SerializeField] private GameObject victoryCameraPrefab;
 
     GameObject victoryCamera;
     GameObject lastHitHero;
 
-
+    bool transitionDone;
     public bool TransitionDone { get => transitionDone; set => transitionDone = value; }
 
-    // Start is called before the first frame update
     void Awake()
     {
-        turnCameraPrefab = Resources.Load("Prefabs/TurnCamera") as GameObject;
-        victoryCameraPrefab = Resources.Load("Prefabs/VictoryPoseCamera") as GameObject;
-        cameraRenderImage = GameObject.Find("RenderImageCanvas").transform.GetChild(0).gameObject;
-    }
-
-    public IEnumerator StartTransition(GameObject cameraToFade = null)
-    {
-        if (cameraToFade == null)
+        // Load prefabs if not assigned in Inspector
+        if (turnCameraPrefab == null)
         {
-            cameraToFade = gameObject;
-        } 
-
-        transitionDone = false;
-
-        //TRANSICIÓN
-        RenderTexture renderTexture = (RenderTexture)Resources.Load("RenderTexture/CameraRender");
-        cameraToFade.GetComponent<Camera>().targetTexture = renderTexture;
-        cameraRenderImage.SetActive(true);
-
-        yield return new WaitForSeconds(1);
-
-        //CAMBIAMOS A CAMARA BATALLA
-        if (Camera.main != null)
-        {
-            Camera.main.enabled = false;
-
+            turnCameraPrefab = Resources.Load<GameObject>("Prefabs/TurnCamera");
         }
 
-        cameraToFade.GetComponent<Camera>().targetTexture = null;
-        cameraRenderImage.GetComponent<Animation>().Play();
-        transitionDone = true;
-        yield return new WaitForSeconds(2);
-        cameraRenderImage.SetActive(false);
-        cameraRenderImage.GetComponent<RawImage>().color = new Color(255, 255, 255, 255);
+        if (victoryCameraPrefab == null)
+        {
+            victoryCameraPrefab = Resources.Load<GameObject>("Prefabs/VictoryPoseCamera");
+        }
+
+        // Lazy search for RenderImageCanvas child if not assigned
+        if (cameraRenderImage == null)
+        {
+            GameObject canvasObj = GameObject.Find("RenderImageCanvas");
+            if (canvasObj != null && canvasObj.transform.childCount > 0)
+            {
+                cameraRenderImage = canvasObj.transform.GetChild(0).gameObject;
+            }
+        }
     }
+
+public IEnumerator StartTransition(GameObject cameraToFade = null)
+{
+    transitionDone = false;
+
+    // Determine which camera to freeze (MainCamera or BattleCamera)
+    GameObject targetObj = (cameraToFade != null) ? cameraToFade : gameObject;
+    Camera camToFreeze = targetObj.GetComponent<Camera>();
+
+    RenderTexture renderTexture = Resources.Load<RenderTexture>("RenderTexture/CameraRender");
+
+    // 1. Take INSTANT snapshot of the selected camera
+    if (camToFreeze != null && renderTexture != null)
+    {
+        camToFreeze.targetTexture = renderTexture;
+        camToFreeze.Render(); // Forces single frame render into texture
+        camToFreeze.targetTexture = null; // IMMEDIATELY release so it outputs to display again
+    }
+
+    // 2. Handle camera toggles if transitioning from World MainCamera
+    if (cameraToFade != null && cameraToFade != gameObject)
+    {
+        Camera worldCam = cameraToFade.GetComponent<Camera>();
+        if (worldCam != null) worldCam.enabled = false;
+
+        Camera battleCam = GetComponent<Camera>();
+        if (battleCam != null)
+        {
+            battleCam.enabled = true;
+            battleCam.targetTexture = null;
+        }
+    }
+
+    // 3. Show UI image containing frozen snapshot and play wipe/fade animation
+    if (cameraRenderImage != null)
+    {
+        cameraRenderImage.SetActive(true);
+        
+        Animation anim = cameraRenderImage.GetComponent<Animation>();
+        if (anim != null)
+        {
+            anim.Rewind();
+            anim.Play();
+        }
+    }
+
+    // Small delay to ensure snapshot is displayed on UI before notifying transition end
+    yield return new WaitForSeconds(0.1f);
+
+    // BattleCamera can now reposition itself behind the UI snapshot
+    transitionDone = true;
+
+    yield return new WaitForSeconds(1.5f);
+
+    // Hide UI overlay to reveal newly positioned BattleCamera
+    if (cameraRenderImage != null)
+    {
+        cameraRenderImage.SetActive(false);
+        
+        RawImage rawImg = cameraRenderImage.GetComponent<RawImage>();
+        if (rawImg != null)
+        {
+            rawImg.color = Color.white;
+        }
+    }
+}
 
     public void IntroBattle()
     {

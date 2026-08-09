@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.LoadingData) return;
+        if (GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
         if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue)
         {

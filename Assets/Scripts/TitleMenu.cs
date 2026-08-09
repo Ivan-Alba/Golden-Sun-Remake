@@ -8,7 +8,7 @@ public class TitleMenu : MonoBehaviour
 
     public void NewGameButton()
     {
-        SceneManager.LoadScene("Llanura de Tale");
+        GameManager.Instance.StartNewGame("Llanura de Tale", "Initial_Spawn");
     }
 
     public void ContinueButton()

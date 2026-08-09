@@ -84,17 +84,6 @@ public class BattleManager : MonoBehaviour
         turnController = GetComponent<TurnController>();
         battleUIController = GetComponent<BattleUIController>();
 
-        // --- EXTERNAL SCENE / CORE REFERENCES ---
-        mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        player = GameObject.Find("Player");
-        playerCanvas = GameObject.Find("PlayerCanvas");
-
-        GameObject musicObj = GameObject.Find("MusicController");
-        if (musicObj != null)
-        {
-            musicController = musicObj.GetComponent<AudioSource>();
-        }
-
         // --- INITIALIZATION ---
         pointerOriginalY = new float[maxEnemiesInBattle];
 
@@ -326,6 +315,26 @@ public class BattleManager : MonoBehaviour
     {
         ResetBattleVariables();
 
+
+        // --- EXTERNAL SCENE / CORE REFERENCES ---
+        if (mainCamera == null)
+            mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerCanvas == null)
+            playerCanvas = GameObject.Find("PlayerCanvas");
+
+        if (musicController == null)
+        {
+            GameObject musicObj = GameObject.Find("MusicController");
+            if (musicObj != null)
+            {
+                musicController = musicObj.GetComponent<AudioSource>();
+            }
+        }
+
         // Refresh dynamic party members and world audio
         party = GameManager.Instance.GetParty();
         if (musicController != null) fieldMusic = musicController.clip;
@@ -345,9 +354,6 @@ public class BattleManager : MonoBehaviour
         // RESPAWN OBJECTS
         if (respawnZone != null)
             respawnController = respawnZone.GetComponent<RespawnController>();
-
-        // ACTIVE GLOBAL VARIABLE IN BATTLE
-        GameManager.Instance.InBattle = true;
 
         if (player != null) player.GetComponent<Animator>().enabled = false;
 
@@ -400,9 +406,6 @@ public class BattleManager : MonoBehaviour
         // HidePlayerCanvas
         if (playerCanvas != null) playerCanvas.SetActive(false);
 
-        // ANIMACIÓN CAMARA INTRO BATLLA
-        battleCameraController.IntroBattle();
-        yield return new WaitForSeconds(2f);
 
         // --- DYNAMIC AUDIO LISTENER SETUP ---
         if (HybridAudioListener.Instance != null)
@@ -414,6 +417,14 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
         }
 
+        // ANIMACIÓN CAMARA INTRO BATLLA
+        battleCameraController.IntroBattle();
+        yield return new WaitForSeconds(2f);
+
+        // ENEMY ANIMATION INTRO
+        yield return new WaitForSeconds(1f);
+
+
         // TODO BATTLE CAMERA FADE
         StartCoroutine(battleCameraController.StartTransition());
 
@@ -424,6 +435,10 @@ public class BattleManager : MonoBehaviour
 
         battleCameraController.SetInitialIdle();
         SetTurns();
+
+        GameManager.Instance.InBattle = true;
+        GameManager.Instance.SetGameState(GameManager.GameState.InBattle);
+
     }
 
     private void SetEnemiesOnBattle(GameObject firstEnemy)
@@ -678,14 +693,8 @@ public class BattleManager : MonoBehaviour
         PlayerUIManager.Instance.RefreshPartyInfo();
 
         battleCameraController.SetOffBattleCamera();
-        Object[] Cams = GameObject.FindObjectsOfType(typeof(Camera));
-        foreach (Camera C in Cams)
-        {
-            if (C.gameObject.CompareTag("MainCamera"))
-            {
-                C.enabled = true;
-            }
-        }
+        
+        mainCamera.GetComponent<Camera>().enabled = true;
 
         if (HybridAudioListener.Instance != null)
         {
@@ -693,6 +702,8 @@ public class BattleManager : MonoBehaviour
         }
 
         GameManager.Instance.InBattle = false;
+        GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
+
         if (player != null) player.GetComponent<Animator>().enabled = true;
 
         if (musicController != null)
@@ -768,6 +779,15 @@ public class BattleManager : MonoBehaviour
     }
 
     #endregion
+
+
+    public void ChangeBattleSpeed()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ChangeGameSpeed();
+        }
+    }
 
     private void SelectDefaultTarget(string targetType, int targetSize = 0, int i = 0)
     {

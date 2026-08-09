@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Resources/Scenes/Llanura de Tale.unity
     guid: 3a1f9ab768c5d6e46816d6aacdfff487
+  - enabled: 1
+    path: Assets/Resources/Scenes/Test.unity
+    guid: bf7a578c41a4413488d35fdfbe259bb2
   m_configObjects: {}

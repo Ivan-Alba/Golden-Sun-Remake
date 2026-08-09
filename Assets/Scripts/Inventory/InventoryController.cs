@@ -30,7 +30,7 @@ public class InventoryController : MonoBehaviour
 
     public void AddItem(string itemSlug, int quantity = 1)
     {
-        Debug.Log($"Obtenido {itemSlug}");
+        Debug.Log($"<color=green>Obtenido {itemSlug}</color>");
 
         Item itemToAdd = ItemDatabase.Instance.GetItem(itemSlug);
         if (playerItems.ContainsKey(itemToAdd))
@@ -42,7 +42,12 @@ public class InventoryController : MonoBehaviour
             playerItems.Add(itemToAdd, quantity);
         }
 
-        Debug.Log($"{PlayerItems.Count} objetos en el inventario");
+        int totalItems = 0;
+        foreach (var kvp in PlayerItems)
+        {
+            totalItems += kvp.Value;
+        }
+        Debug.Log($"{totalItems} items en el inventario");
 
     }
 
@@ -83,4 +88,11 @@ public class InventoryController : MonoBehaviour
         }
     }
 
+    public void clearInventory()
+    {
+        if (playerItems != null)
+        {
+            playerItems.Clear();
+        }
+    }
 }
