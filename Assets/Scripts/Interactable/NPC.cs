@@ -4,20 +4,32 @@ using UnityEngine;
 
 public class NPC : Interactable
 {
+    #region Serialized Fields
+
     [Header("NPC Settings")]
     [SerializeField] private string npcName = "";
-    [SerializeField] private int rotationSpeed = 4;
+    [SerializeField] private float rotationSpeed = 4f;
 
     [Header("Dialogue Content")]
-    public string[] dialogue;
+    [SerializeField] private string[] dialogue;
 
-    private GameObject player;
+    #endregion
+
+    #region Private Fields
+
     private bool lookAtPlayer;
     private Quaternion initialRotation;
 
-    // Getters and setters
-    public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
+    #endregion
+
+    #region Properties
+
     public string NpcName { get => npcName; set => npcName = value; }
+    public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -29,18 +41,12 @@ public class NPC : Interactable
 
     private void Update()
     {
-        if (LookAtPlayer)
+        if (lookAtPlayer)
         {
-            // Lazy search if player reference is missing
-            if (player == null)
+            if (PlayerController.Instance != null)
             {
-                player = GameObject.FindGameObjectWithTag("Player");
-            }
-
-            if (player != null)
-            {
-                // Calculate horizontal direction to prevent vertical tilt on slopes/hills
-                Vector3 direction = player.transform.position - transform.position;
+                // Calculate horizontal direction to prevent vertical tilt on slopes
+                Vector3 direction = PlayerController.Instance.transform.position - transform.position;
                 direction.y = 0;
 
                 if (direction != Vector3.zero)
@@ -57,22 +63,26 @@ public class NPC : Interactable
         }
     }
 
+    #endregion
+
+    #region Interaction Logic
+
     public override void Interact()
     {
-        // Ensure player is cached at interaction time
-        if (player == null)
+        // Cache rotation and start looking at player
+        initialRotation = transform.rotation;
+        lookAtPlayer = true;
+
+        // Smoothly turn Player towards NPC
+        if (PlayerController.Instance != null)
         {
-            player = GameObject.FindGameObjectWithTag("Player");
+            StartCoroutine(RotatePlayerToNpc(PlayerController.Instance.transform));
         }
 
-        // Lock rotation and look at player
-        initialRotation = transform.rotation;
-        LookAtPlayer = true;
-
         // Trigger Dialogue System
-        if (DialogueManager.instance != null)
+        if (DialogueManager.Instance != null)
         {
-            DialogueManager.instance.AddNewDialogue(dialogue, npcName, gameObject);
+            DialogueManager.Instance.StartDialogue(dialogue, npcName, gameObject);
         }
 
         // Debug Command
@@ -81,4 +91,37 @@ public class NPC : Interactable
             InventoryController.Instance.AllItems();
         }
     }
+
+    /// <summary>
+    /// Call this method when dialogue ends to resume normal rotation behavior.
+    /// </summary>
+    public void EndDialogueLook()
+    {
+        lookAtPlayer = false;
+    }
+
+    private IEnumerator RotatePlayerToNpc(Transform playerTransform)
+    {
+        Vector3 direction = transform.position - playerTransform.position;
+        direction.y = 0; // Prevent tilting on vertical axes
+
+        if (direction == Vector3.zero) yield break;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        float elapsedTime = 0f;
+        float duration = 0.25f; // Fast, natural response time
+
+        Quaternion startRotation = playerTransform.rotation;
+
+        while (elapsedTime < duration)
+        {
+            playerTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        playerTransform.rotation = targetRotation;
+    }
+
+    #endregion
 }

@@ -25,7 +25,6 @@ public class BattleManager : MonoBehaviour
 
     // TODO REVISAR
     private int maxEnemiesInBattle = 3;
-    private float transitionTime = 2;
 
     // AUDIO CONTROLLER
     private AudioSource musicController;
@@ -93,7 +92,7 @@ public class BattleManager : MonoBehaviour
     private void Update()
     {
         // Guard Clause: Exit immediately if GameManager is not ready or game is not in battle
-        if (GameManager.Instance == null || !GameManager.Instance.InBattle) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
 
         battleUIController.RefreshHeroInfoPanel();
 
@@ -435,9 +434,7 @@ public class BattleManager : MonoBehaviour
         battleCameraController.SetInitialIdle();
         SetTurns();
 
-        GameManager.Instance.InBattle = true;
         GameManager.Instance.SetGameState(GameManager.GameState.InBattle);
-
     }
 
     private void SetEnemiesOnBattle(GameObject firstEnemy)
@@ -706,7 +703,6 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.ClearBattleReferences();
         }
 
-        GameManager.Instance.InBattle = false;
         GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
 
         if (player != null) player.GetComponent<Animator>().enabled = true;

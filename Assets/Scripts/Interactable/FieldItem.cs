@@ -1,63 +1,56 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FieldItem : Interactable
 {
     [Header("Item Configuration")]
-    public string itemName;
+    [SerializeField] private string itemName;
 
-    private GameObject player;
+    private bool itemPicked;
 
     public override void Interact()
     {
-        if (player == null)
-        {
-            player = GameObject.FindGameObjectWithTag("Player");
-        }
+        // Prevent multiple interactions while the picking routine is active
+        if (itemPicked) return;
 
-        if (player != null)
-        {
-            StartCoroutine(PickItem());
-        }
-        else
-        {
-            Debug.LogWarning($"[FieldItem] Cannot pick {itemName}: Player object not found!");
-        }
+        StartCoroutine(PickItemRoutine());
     }
 
-    private IEnumerator PickItem()
+    private IEnumerator PickItemRoutine()
     {
-        // 1. Stop Player Movement
-        PlayerController playerController = player.GetComponent<PlayerController>();
-        if (playerController != null)
+        itemPicked = true;
+
+        // 1. Lock gameplay and camera via GameState
+        if (GameManager.Instance != null)
         {
-            playerController.StopPlayerController = true;
+            GameManager.Instance.SetGameState(GameManager.GameState.Interacting);
         }
 
-        // 2. Play Animation
-        Animator playerAnim = player.GetComponent<Animator>();
-        if (playerAnim != null)
+        // Prevent further interaction triggers
+        gameObject.tag = "Untagged";
+
+        // 2. Play picking animation on Player
+        if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
         {
-            playerAnim.SetTrigger("pickFloor");
+            PlayerController.Instance.PlayerAnim.SetTrigger("pickFloor");
         }
 
         yield return new WaitForSeconds(2.2f);
 
-        // 3. Show Notification UI
-        if (NotifController != null && ItemDatabase.Instance != null)
+        // 3. Retrieve item data and show UI Notification
+        if (ItemDatabase.Instance != null)
         {
             var itemData = ItemDatabase.Instance.GetItem(itemName);
-            if (itemData != null)
+            if (itemData != null && NotificationController.Instance != null)
             {
-                StartCoroutine(NotifController.AddNotification(
+                StartCoroutine(NotificationController.Instance.AddNotification(
                     $"Has encontrado: {itemData.ItemName}",
                     itemData.Icon
                 ));
             }
         }
 
-        // 4. Add item to Inventory and Play SFX
+        // 4. Add item to Inventory and play SFX
         if (InventoryController.Instance != null)
         {
             InventoryController.Instance.AddItem(itemName);
@@ -65,22 +58,18 @@ public class FieldItem : Interactable
 
         if (GameManager.Instance != null)
         {
-            Sounds soundSystem = GameManager.Instance.GetComponent<Sounds>();
-            if (soundSystem != null)
-            {
-                soundSystem.PlaySound(GameManager.ITEM_FOUNDED_SOUND);
-            }
+            GameManager.Instance.GetComponent<Sounds>()?.PlaySound(GameManager.ITEM_FOUNDED_SOUND);
         }
 
-        // 5. Hide world object immediately to prevent re-interaction
-        transform.position = new Vector3(0, -1000f, 0);
+        // 5. Hide world object visually while processing cleanup
+        transform.position = new Vector3(0f, -1000f, 0f);
 
         yield return new WaitForSeconds(0.7f);
 
-        // 6. Restore Player Movement and Destroy object
-        if (playerController != null)
+        // 6. Restore game state back to free exploration
+        if (GameManager.Instance != null)
         {
-            playerController.StopPlayerController = false;
+            GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
         }
 
         Destroy(gameObject, 5f);

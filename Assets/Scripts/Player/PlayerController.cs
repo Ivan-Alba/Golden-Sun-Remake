@@ -28,7 +28,6 @@ public class PlayerController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform mainCamera;
     [SerializeField] private Camera aimCamera;
-    [SerializeField] private GameObject mainMenu;
 
     #endregion
 
@@ -50,13 +49,10 @@ public class PlayerController : MonoBehaviour
     private float timeCount;
     private readonly float secondsInIdle = 15f;
 
-    private bool stopPlayerController;
-
     #endregion
 
     #region Properties
 
-    public bool StopPlayerController { get => stopPlayerController; set => stopPlayerController = value; }
     public Animator PlayerAnim { get => playerAnim; set => playerAnim = value; }
 
     #endregion
@@ -65,7 +61,6 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton Pattern Assignment
         if (Instance == null)
         {
             Instance = this;
@@ -81,8 +76,6 @@ public class PlayerController : MonoBehaviour
         playerAnim = GetComponent<Animator>();
 
         currentStamina = maxStamina;
-
-        if (mainMenu != null) mainMenu.SetActive(false);
     }
 
     private void OnDestroy()
@@ -116,14 +109,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
-
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue))
+        // Abort execution and force Idle animation if the game is not in free exploration state
+        if (!IsWorldExploration())
         {
-            if (PlayerUIManager.Instance != null)
-            {
-                PlayerUIManager.Instance.SetStaminaBarVisible(false);
-            }
+            ResetMovementAnimations();
             return;
         }
 
@@ -157,7 +146,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Input Event Subscriptions
+    #region Input Subscriptions
 
     private void SubscribeToInputEvents()
     {
@@ -189,6 +178,94 @@ public class PlayerController : MonoBehaviour
         InputManager.Instance.OnHoldPsynergyBarChanged -= HandleHoldPsynergyBar;
         InputManager.Instance.OnPsynergyNavigateUpPressed -= HandlePsynergyUp;
         InputManager.Instance.OnPsynergyNavigateDownPressed -= HandlePsynergyDown;
+    }
+
+    #endregion
+
+    #region Input Event Handlers
+
+    private void HandleChangeHero(int heroIndex)
+    {
+        if (!IsWorldExploration()) return;
+
+        GameManager.Instance.ChangeActiveHero(heroIndex);
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.RefreshPartyInfo();
+        }
+    }
+
+    private void HandleInteraction()
+    {
+        if (!IsWorldExploration()) return;
+
+        if (objectHit != null && objectHit.CompareTag("Interactable") &&
+            Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
+        {
+            if (PlayerUIManager.Instance != null)
+            {
+                PlayerUIManager.Instance.SetInteractionIconVisible(false);
+            }
+            objectHit.GetComponent<Interactable>()?.Interact();
+        }
+    }
+
+    private void HandleMenuToggle()
+    {
+        if (!IsWorldExploration()) return;
+
+        if (aiming)
+        {
+            StopAiming();
+        }
+
+        if (MenuController.Instance != null)
+        {
+            MenuController.Instance.ShowMenu();
+        }
+    }
+
+    private void HandleUsePsynergy(int slotIndex)
+    {
+        if (!IsWorldExploration()) return;
+
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.UsePsynergy(slotIndex, null);
+        }
+    }
+
+    private void HandleHoldPsynergyBar(int slotIndex, bool isHolding)
+    {
+        if (!IsWorldExploration()) return;
+
+        inChoosePsynergyBar = isHolding;
+
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(isHolding, slotIndex);
+        }
+    }
+
+    private void HandlePsynergyUp()
+    {
+        if (!IsWorldExploration()) return;
+
+        if (inChoosePsynergyBar && PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveUp();
+        }
+    }
+
+    private void HandlePsynergyDown()
+    {
+        if (!IsWorldExploration()) return;
+
+        if (inChoosePsynergyBar && PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.ChoosePanelMoveDown();
+        }
     }
 
     #endregion
@@ -295,88 +372,73 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Resets movement animator parameters to force the player into Idle state.
+    /// Only writes to the Animator if movement parameters are currently true.
+    /// </summary>
+    public void ResetMovementAnimations()
+    {
+        if (playerAnim == null) return;
+
+        // Only set parameters if they are active to avoid continuous Animator writes
+        if (playerAnim.GetBool("isMoving"))
+        {
+            playerAnim.SetBool("isMoving", false);
+        }
+
+        if (playerAnim.GetBool("isRunning"))
+        {
+            playerAnim.SetBool("isRunning", false);
+        }
+    }
+
     #endregion
 
-    #region Input Event Handlers
+    #region Aiming Logic
 
-    private void HandleChangeHero(int heroIndex)
+    private void StartAiming()
     {
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
+        if (!IsWorldExploration()) return;
+        if (aiming) return;
 
-        GameManager.Instance.ChangeActiveHero(heroIndex);
+        if (mainCamera.GetComponent<Camera>().enabled) Camera.main.enabled = false;
+        aimCamera.enabled = true;
 
         if (PlayerUIManager.Instance != null)
         {
-            PlayerUIManager.Instance.RefreshPartyInfo();
+            PlayerUIManager.Instance.SetAimUIVisible(true);
         }
-    }
 
-    private void HandleInteraction()
-    {
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
-
-        if (objectHit != null && objectHit.CompareTag("Interactable") &&
-            Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
+        if (TryGetComponent<PlayerAiming>(out var aimingScript))
         {
-            if (PlayerUIManager.Instance != null)
-            {
-                PlayerUIManager.Instance.SetInteractionIconVisible(false);
-            }
-            objectHit.GetComponent<Interactable>()?.Interact();
+            aimingScript.enabled = true;
         }
+
+        aiming = true;
     }
 
-    private void HandleMenuToggle()
+    private void StopAiming()
     {
-        if (GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration)
+        // StopAiming can be triggered automatically during state transitions, 
+        // so we only check if aiming is currently active.
+        if (!aiming) return;
+
+        if (TryGetComponent<PlayerAiming>(out var aimingScript))
         {
-            if (aiming)
-            {
-                StopAiming();
-            }
-
-            stopPlayerController = true;
-
-            if (MenuController.Instance != null)
-            {
-                MenuController.Instance.ShowMenu();
-            }
-
-            if (PlayerUIManager.Instance != null)
-            {
-                PlayerUIManager.Instance.SetPlayerUIVisible(false);
-            }
+            aimingScript.Reset();
+            aimingScript.enabled = false;
         }
-    }
 
-    private void HandleUsePsynergy(int slotIndex)
-    {
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
-        PsynergyWorldController.Instance.UsePsynergy(slotIndex, null);
-    }
+        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, transform.eulerAngles.z);
+        mainCamera.GetComponent<Camera>().enabled = true;
+        aimCamera.enabled = false;
 
-    private void HandleHoldPsynergyBar(int slotIndex, bool isHolding)
-    {
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
-
-        inChoosePsynergyBar = isHolding;
-        PsynergyWorldController.Instance.ShowPsynergyChoosePanel(isHolding, slotIndex);
-    }
-
-    private void HandlePsynergyUp()
-    {
-        if (inChoosePsynergyBar)
+        if (PlayerUIManager.Instance != null)
         {
-            PsynergyWorldController.Instance.ChoosePanelMoveUp();
+            PlayerUIManager.Instance.SetAimUIVisible(false);
         }
-    }
 
-    private void HandlePsynergyDown()
-    {
-        if (inChoosePsynergyBar)
-        {
-            PsynergyWorldController.Instance.ChoosePanelMoveDown();
-        }
+        aiming = false;
     }
 
     #endregion
@@ -415,46 +477,15 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Aiming Logic
+    #region Utilities & Callbacks
 
-    private void StartAiming()
+    /// <summary>
+    /// Helper method to check if the game is currently in free exploration state.
+    /// </summary>
+    private bool IsWorldExploration()
     {
-        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
-        if (aiming) return;
-
-        if (mainCamera.GetComponent<Camera>().enabled) Camera.main.enabled = false;
-        aimCamera.enabled = true;
-
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetAimUIVisible(true);
-        }
-
-        transform.GetComponent<PlayerAiming>().enabled = true;
-        aiming = true;
+        return GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
     }
-
-    private void StopAiming()
-    {
-        if (!aiming) return;
-
-        gameObject.GetComponent<PlayerAiming>().Reset();
-        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, transform.eulerAngles.z);
-        mainCamera.GetComponent<Camera>().enabled = true;
-        aimCamera.enabled = false;
-
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetAimUIVisible(false);
-        }
-
-        transform.GetComponent<PlayerAiming>().enabled = false;
-        aiming = false;
-    }
-
-    #endregion
-
-    #region Audio & Animation Callbacks
 
     public void playFootprints()
     {

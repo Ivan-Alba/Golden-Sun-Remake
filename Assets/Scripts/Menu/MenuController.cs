@@ -120,10 +120,6 @@ public class MenuController : MonoBehaviour
             GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
         }
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetPlayerUIVisible(true);
-        }
     }
 
     /// <summary>

@@ -1,17 +1,20 @@
+using Cinemachine;
 using System.Collections.Generic;
 using UnityEditor.Animations;
-using UnityEngine.SceneManagement;
 using UnityEngine;
-using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public enum GameState
     {
+        None,
         TitleScreen,
         WorldExploration,
         InBattle,
         InMenu,
+        InDialogue,
+        Interacting,
         Cutscene,
         Loading
     }
@@ -27,12 +30,12 @@ public class GameManager : MonoBehaviour
     private const KeyCode KEY_CANCEL = KeyCode.R;
 
     [Header("Game State System")]
-    [SerializeField] private GameState currentState = GameState.TitleScreen;
+    [SerializeField] private GameState currentState = GameState.None;
 
     [Header("Persistent References")]
     [SerializeField] private GameObject playerMainCamera;
+    [SerializeField] private CinemachineFreeLook freeLookCamera;
 
-    private bool inBattle = false;
     private bool loadingData = false;
 
     // SCENE & SPAWN MANAGEMENT
@@ -40,7 +43,6 @@ public class GameManager : MonoBehaviour
 
     // PARTY INFO
     List<GameObject> party = new List<GameObject>();
-    GameObject player;
 
     // GAME INFO
     int totalGold;
@@ -50,7 +52,6 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState { get => currentState; private set => currentState = value; }
     public int TotalGold { get => totalGold; set => totalGold = value; }
     public KeyCode KeyConfirm { get => KEY_CONFIRM; }
-    public bool InBattle { get => inBattle; set => inBattle = value; }
     public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
 
     private GameObject activeHero;
@@ -67,12 +68,20 @@ public class GameManager : MonoBehaviour
         return party;
     }
 
+    #region Events
+
+    /// <summary>
+    /// Event triggered whenever the global GameState changes.
+    /// </summary>
+    public event System.Action<GameState> OnGameStateChanged;
+
+    #endregion
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            player = GameObject.FindGameObjectWithTag("Player");
 
             if (playerMainCamera == null)
             {
@@ -106,16 +115,18 @@ public class GameManager : MonoBehaviour
 
     public void SetGameState(GameState newState)
     {
-        Debug.Log("Game State changed from " +  currentState + " to " + newState);
+        // Avoid redundant state re-assignments and event triggers
+        if (currentState == newState) return;
+
+        Debug.Log("Game State changed from " + currentState + " to " + newState);
         currentState = newState;
 
-        // Sync legacy boolean for existing battle logic
-        inBattle = (currentState == GameState.InBattle);
+        // Notify all subscribed managers (e.g. PlayerUIManager, SoundManager)
+        OnGameStateChanged?.Invoke(currentState);
 
         // Auto-close persistent UI Menu when transitioning into non-menu states
         if (currentState != GameState.InMenu && MenuController.Instance != null)
         {
-            // Supposing your menu script has a CloseMenu / Hide method
             MenuController.Instance.CloseMenu();
         }
 
@@ -135,21 +146,25 @@ public class GameManager : MonoBehaviour
                 break;
 
             case GameState.InMenu:
+            case GameState.Interacting:
+            case GameState.InDialogue:
             case GameState.Cutscene:
             case GameState.Loading:
                 ToggleInputSystem(false);
+                ToggleCameraInput(false);
                 break;
         }
     }
 
     private void ToggleGameplaySystems(bool active)
     {
-        if (player != null)
+        if (PlayerController.Instance != null)
         {
-            player.SetActive(active);
+            PlayerController.Instance.gameObject.SetActive(active);
         }
 
         ToggleInputSystem(active);
+        ToggleCameraInput(active);
 
         if (playerMainCamera != null)
         {
@@ -165,12 +180,48 @@ public class GameManager : MonoBehaviour
         {
             inputMgr.enabled = active;
         }
+    }
 
-        if (PlayerController.Instance != null)
+    private float originalXSpeed = 300f;
+    private float originalYSpeed = 2f;
+    private bool speedsCached = false;
+
+    private void ToggleCameraInput(bool active)
+    {
+        if (freeLookCamera == null && playerMainCamera != null)
         {
-            PlayerController.Instance.StopPlayerController = !active;
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
+        }
+
+        if (freeLookCamera != null)
+        {
+            // Guardamos las velocidades configuradas la primera vez
+            if (!speedsCached)
+            {
+                originalXSpeed = freeLookCamera.m_XAxis.m_MaxSpeed;
+                originalYSpeed = freeLookCamera.m_YAxis.m_MaxSpeed;
+                speedsCached = true;
+            }
+
+            if (active)
+            {
+                // Restauramos el control de movimiento
+                freeLookCamera.m_XAxis.m_MaxSpeed = originalXSpeed;
+                freeLookCamera.m_YAxis.m_MaxSpeed = originalYSpeed;
+            }
+            else
+            {
+                // Bloqueamos la entrada poniendo la velocidad a 0 de forma instantánea
+                freeLookCamera.m_XAxis.m_MaxSpeed = 0f;
+                freeLookCamera.m_YAxis.m_MaxSpeed = 0f;
+
+                // Frenamos cualquier velocidad acumulada en ese fotograma
+                freeLookCamera.m_XAxis.m_InputAxisValue = 0f;
+                freeLookCamera.m_YAxis.m_InputAxisValue = 0f;
+            }
         }
     }
+
 
     #endregion
 
@@ -251,12 +302,6 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Level Loaded: {scene.name}");
 
-        // Refresh Player reference if lost
-        if (player == null)
-        {
-            player = GameObject.FindGameObjectWithTag("Player");
-        }
-
         // 1. Check if we are in Title screen
         if (scene.name.Equals("Title") || scene.name.Equals("MainMenu"))
         {
@@ -283,23 +328,29 @@ public class GameManager : MonoBehaviour
 
     private void RelocatePlayerToSpawnPoint()
     {
+        if (PlayerController.Instance == null) return;
+
         SpawnPoint[] spawnPoints = FindObjectsOfType<SpawnPoint>();
 
         foreach (SpawnPoint sp in spawnPoints)
         {
             if (sp.SpawnPointID == pendingSpawnID)
             {
-                if (player != null)
-                {
-                    // Temporarily disable CharacterController for direct transform modification
-                    CharacterController cc = player.GetComponent<CharacterController>();
-                    if (cc != null) cc.enabled = false;
+                Transform playerTransform = PlayerController.Instance.transform;
+                Vector3 previousPosition = playerTransform.position;
 
-                    player.transform.position = sp.transform.position;
-                    player.transform.rotation = sp.transform.rotation;
+                // Temporarily disable CharacterController for direct transform modification
+                CharacterController cc = playerTransform.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
 
-                    if (cc != null) cc.enabled = true;
-                }
+                playerTransform.position = sp.transform.position;
+                playerTransform.rotation = sp.transform.rotation;
+
+                // Align camera directly behind player upon spawn
+                ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
+
+                if (cc != null) cc.enabled = true;
+
                 break;
             }
         }
@@ -348,9 +399,9 @@ public class GameManager : MonoBehaviour
 
     private void changeModelHero()
     {
-        if (player == null || activeHero == null) return;
+        if (PlayerController.Instance == null || activeHero == null) return;
 
-        Transform modelTrans = player.transform.Find("Model");
+        Transform modelTrans = PlayerController.Instance.transform.Find("Model");
         if (modelTrans != null)
         {
             for (int i = 0; i < modelTrans.childCount; i++)
@@ -365,7 +416,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Animator anim = player.GetComponent<Animator>();
+        Animator anim = PlayerController.Instance.GetComponent<Animator>();
         if (anim != null)
         {
             anim.runtimeAnimatorController = Resources.Load<AnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
@@ -378,13 +429,27 @@ public class GameManager : MonoBehaviour
         GameData dataToLoad = SaveManager.loadedData[0];
 
         //------------SCENE------------    
-        if (player != null)
+        if (PlayerController.Instance != null)
         {
-            Animator anim = player.GetComponent<Animator>();
+            Transform playerTransform = PlayerController.Instance.transform;
+            Vector3 previousPosition = playerTransform.position;
+
+            Animator anim = playerTransform.GetComponent<Animator>();
             if (anim != null) anim.enabled = false;
 
-            player.transform.position = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
-            player.transform.eulerAngles = new Vector3(0, dataToLoad.playerRotation[1], 0);
+            CharacterController cc = playerTransform.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+
+            Vector3 targetPos = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
+            Quaternion targetRot = Quaternion.Euler(0, dataToLoad.playerRotation[1], 0);
+
+            playerTransform.position = targetPos;
+            playerTransform.rotation = targetRot;
+
+            // Align camera directly behind player upon load
+            ResetCameraBehindPlayer(playerTransform, targetRot, previousPosition);
+
+            if (cc != null) cc.enabled = true;
         }
 
         //----------GAMEMANAGER--------
@@ -469,7 +534,7 @@ public class GameManager : MonoBehaviour
         if (InventoryController.Instance != null)
         {
             InventoryController.Instance.clearInventory();
-            
+
             if (itemsList != null)
             {
                 foreach (KeyValuePair<Item, int> pair in itemsList)
@@ -479,9 +544,9 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (player != null)
+        if (PlayerController.Instance != null)
         {
-            Animator anim = player.GetComponent<Animator>();
+            Animator anim = PlayerController.Instance.GetComponent<Animator>();
             if (anim != null) anim.enabled = true;
         }
 
@@ -489,6 +554,30 @@ public class GameManager : MonoBehaviour
 
         //----FINISH LOAD-----
         SaveManager.loadedData = null;
+    }
+
+    /// <summary>
+    /// Warps Cinemachine target position and aligns the camera directly behind the player's orientation.
+    /// </summary>
+    private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
+    {
+        if (freeLookCamera == null && playerMainCamera != null)
+        {
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
+        }
+
+        if (freeLookCamera != null)
+        {
+            // 1. Notify Cinemachine of instant teleportation to prevent camera trailing
+            Vector3 deltaPosition = targetTransform.position - previousPosition;
+            freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
+
+            // 2. Align horizontal axis (X) to match target's forward orientation
+            freeLookCamera.m_XAxis.Value = targetRotation.eulerAngles.y;
+
+            // 3. Reset vertical orbit axis (Y) to neutral height ratio
+            freeLookCamera.m_YAxis.Value = 0.5f;
+        }
     }
 
     void Update()

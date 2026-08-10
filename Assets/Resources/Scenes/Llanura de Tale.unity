@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 2003931976}
-  m_IndirectSpecularColor: {r: 2734.248, g: 2250.9004, b: 2057.7793, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2689,6 +2689,7 @@ Transform:
   - {fileID: 1565872210}
   - {fileID: 344850857}
   - {fileID: 1998780028}
+  - {fileID: 1810744409}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2908,7 +2909,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1630743425}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3072,6 +3073,68 @@ Transform:
   m_Father: {fileID: 1505019802}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1810744408
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 1505019802}
+    m_Modifications:
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_RootOrder
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -15.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 19.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 94.44
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.96816564
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.25031078
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -28.992
+      objectReference: {fileID: 0}
+    - target: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1542678272890013981, guid: 022f3522f603a36448733639b03009d2, type: 3}
+      propertyPath: m_Name
+      value: WoodDoor
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 022f3522f603a36448733639b03009d2, type: 3}
+--- !u!4 &1810744409 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1168820337988793859, guid: 022f3522f603a36448733639b03009d2, type: 3}
+  m_PrefabInstance: {fileID: 1810744408}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1826969297
 GameObject:
   m_ObjectHideFlags: 0

@@ -61,7 +61,6 @@ public class GameData
         totalTime = GameManager.Instance.TotalPlayed;
 
         //---PARTY DATA----
-        int i = 0;
         foreach(GameObject hero in GameManager.Instance.GetParty())
         {
             party.Add(hero.name);

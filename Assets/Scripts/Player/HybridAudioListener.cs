@@ -27,7 +27,7 @@ public class HybridAudioListener : MonoBehaviour
         if (GameManager.Instance == null) return;
 
         // --- BATTLE MODE AUDIO ---
-        if (GameManager.Instance.InBattle)
+        if (GameManager.Instance.CurrentState == GameManager.GameState.InBattle)
         {
             if (battleCameraTransform != null)
             {
