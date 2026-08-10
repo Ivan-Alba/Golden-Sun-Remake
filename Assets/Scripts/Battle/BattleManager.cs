@@ -9,7 +9,6 @@ public class BattleManager : MonoBehaviour
 {
     [Header("Internal Prefab References")]
     [SerializeField] private Transform audioCenter;
-    [SerializeField] private Animator logoTransition;
     [SerializeField] private BattleCameraController battleCameraController;
     [SerializeField] private ResultsScreenController resultsController;
     [SerializeField] private GameObject battleField;
@@ -673,10 +672,16 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-        if (logoTransition != null) logoTransition.SetTrigger("start");
-        yield return new WaitForSeconds(transitionTime);
-
-        SetOffBattle();
+        // Transition
+        if (SceneTransitionManager.Instance != null)
+        {
+            yield return SceneTransitionManager.Instance.PlayFullTransitionRoutine(SetOffBattle);
+        }
+        else
+        {
+            // Fallback
+            SetOffBattle();
+        }
     }
 
     private void SetOffBattle()

@@ -16,8 +16,14 @@ public class TitleMenu : MonoBehaviour
        GameData dataSaved = SaveManager.Load(0);
 
         //CHARGE SCREEN
-
-        //CHARGE SCENE
-        SceneManager.LoadScene(dataSaved.currentSceneName); 
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadSceneWithTransition(dataSaved.currentSceneName);
+        }
+        else
+        {
+            // Fallback in case SceneTransitionManager is not present
+            SceneManager.LoadScene(dataSaved.currentSceneName);
+        }
     }
 }

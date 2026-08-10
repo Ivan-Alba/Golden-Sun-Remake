@@ -106,10 +106,18 @@ public class GameManager : MonoBehaviour
 
     public void SetGameState(GameState newState)
     {
+        Debug.Log("Game State changed from " +  currentState + " to " + newState);
         currentState = newState;
 
         // Sync legacy boolean for existing battle logic
         inBattle = (currentState == GameState.InBattle);
+
+        // Auto-close persistent UI Menu when transitioning into non-menu states
+        if (currentState != GameState.InMenu && MenuController.Instance != null)
+        {
+            // Supposing your menu script has a CloseMenu / Hide method
+            MenuController.Instance.CloseMenu();
+        }
 
         switch (currentState)
         {
@@ -127,9 +135,6 @@ public class GameManager : MonoBehaviour
                 break;
 
             case GameState.InMenu:
-                // Pauses world inputs, menu script will process UI
-                break;
-
             case GameState.Cutscene:
             case GameState.Loading:
                 ToggleInputSystem(false);
@@ -150,6 +155,7 @@ public class GameManager : MonoBehaviour
         {
             playerMainCamera.SetActive(active);
         }
+
     }
 
     private void ToggleInputSystem(bool active)
@@ -158,6 +164,11 @@ public class GameManager : MonoBehaviour
         if (inputMgr != null)
         {
             inputMgr.enabled = active;
+        }
+
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.StopPlayerController = !active;
         }
     }
 
@@ -221,8 +232,19 @@ public class GameManager : MonoBehaviour
 
     public void ChangeScene(string sceneName, string spawnID)
     {
+        SetGameState(GameState.Loading);
+
         pendingSpawnID = spawnID;
-        SceneManager.LoadScene(sceneName);
+
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadSceneWithTransition(sceneName);
+        }
+        else
+        {
+            // Fallback in case SceneTransitionManager is not present
+            SceneManager.LoadScene(sceneName);
+        }
     }
 
     void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
@@ -245,7 +267,6 @@ public class GameManager : MonoBehaviour
         // 2. If loading from save file
         if (SaveManager.loadedData != null)
         {
-            SetGameState(GameState.Loading);
             loadingData = true;
             LoadData();
             pendingSpawnID = null;
@@ -421,22 +442,40 @@ public class GameManager : MonoBehaviour
         //---Psynergies shortcuts---
         if (PsynergyWorldController.Instance != null)
         {
+            // 1. Prepara las claves del grupo actual con arrays limpios
             PsynergyWorldController.Instance.Initialize();
 
-            foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)
+            // 2. Carga y asigna los atajos guardados
+            if (dataToLoad.heroShortcuts != null)
             {
-                PsynergyWorldController.Instance.HeroShortcuts.Add(GameObject.Find(heroShortcut.Key), heroShortcut.Value);
+                foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)
+                {
+                    GameObject heroObj = GameObject.Find(heroShortcut.Key);
+
+                    if (heroObj != null && PsynergyWorldController.Instance.HeroShortcuts.ContainsKey(heroObj))
+                    {
+                        // Sobrescribimos el array del héroe existente
+                        PsynergyWorldController.Instance.HeroShortcuts[heroObj] = heroShortcut.Value;
+                    }
+                }
             }
+
+            // 3. Refrescamos la UI con los atajos del héroe activo
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
         }
 
         //---------INVENTORY---------
         List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
-        if (InventoryController.Instance != null && itemsList != null)
+        if (InventoryController.Instance != null)
         {
-            foreach (KeyValuePair<Item, int> pair in itemsList)
+            InventoryController.Instance.clearInventory();
+            
+            if (itemsList != null)
             {
-                InventoryController.Instance.AddItem(pair.Key.ItemSlug, pair.Value);
+                foreach (KeyValuePair<Item, int> pair in itemsList)
+                {
+                    InventoryController.Instance.AddItem(pair.Key.ItemSlug, pair.Value);
+                }
             }
         }
 

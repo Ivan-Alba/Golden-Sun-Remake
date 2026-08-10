@@ -40,7 +40,7 @@ public class Chest : Interactable
 
         // ITEM OBTAINED
         GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.ITEM_FOUNDED_SOUND);
-        StartCoroutine(notifController.AddNotification($"Has obtenido: {itemFounded.ItemName}", itemFounded.Icon));
+        StartCoroutine(NotifController.AddNotification($"Has obtenido: {itemFounded.ItemName}", itemFounded.Icon));
         InventoryController.Instance.AddItem(itemSlug);
 
         yield return new WaitForSeconds(1);

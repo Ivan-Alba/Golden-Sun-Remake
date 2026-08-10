@@ -80,6 +80,7 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
+        //Debug.Log(GameManager.Instance.CurrentState.ToString());
         if (GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
             return;
 

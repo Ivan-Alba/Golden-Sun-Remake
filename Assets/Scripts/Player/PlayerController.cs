@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    // Singleton Instance
+    public static PlayerController Instance { get; private set; }
+
     #region Serialized Fields
 
     [Header("Movement Settings")]
@@ -62,6 +65,17 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        // Singleton Pattern Assignment
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         controller = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
         playerAnim = GetComponent<Animator>();
@@ -69,6 +83,14 @@ public class PlayerController : MonoBehaviour
         currentStamina = maxStamina;
 
         if (mainMenu != null) mainMenu.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     private void Start()
@@ -94,9 +116,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
+        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue)
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue))
         {
             if (PlayerUIManager.Instance != null)
             {
@@ -279,7 +301,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleChangeHero(int heroIndex)
     {
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
 
         GameManager.Instance.ChangeActiveHero(heroIndex);
 
@@ -291,7 +313,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInteraction()
     {
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
 
         if (objectHit != null && objectHit.CompareTag("Interactable") &&
             Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
@@ -306,30 +328,36 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMenuToggle()
     {
-        if (aiming)
+        if (GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration)
         {
-            StopAiming();
-        }
+            if (aiming)
+            {
+                StopAiming();
+            }
 
-        stopPlayerController = true;
+            stopPlayerController = true;
 
-        if (mainMenu != null) mainMenu.SetActive(true);
+            if (MenuController.Instance != null)
+            {
+                MenuController.Instance.ShowMenu();
+            }
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetMinimapVisible(false);
+            if (PlayerUIManager.Instance != null)
+            {
+                PlayerUIManager.Instance.SetPlayerUIVisible(false);
+            }
         }
     }
 
     private void HandleUsePsynergy(int slotIndex)
     {
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
         PsynergyWorldController.Instance.UsePsynergy(slotIndex, null);
     }
 
     private void HandleHoldPsynergyBar(int slotIndex, bool isHolding)
     {
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
 
         inChoosePsynergyBar = isHolding;
         PsynergyWorldController.Instance.ShowPsynergyChoosePanel(isHolding, slotIndex);
@@ -391,7 +419,7 @@ public class PlayerController : MonoBehaviour
 
     private void StartAiming()
     {
-        if (StopPlayerController || GameManager.Instance.InBattle || DialogueManager.instance.InDialogue) return;
+        if (StopPlayerController || (GameManager.Instance != null && GameManager.Instance.InBattle) || (DialogueManager.instance != null && DialogueManager.instance.InDialogue)) return;
         if (aiming) return;
 
         if (mainCamera.GetComponent<Camera>().enabled) Camera.main.enabled = false;
@@ -433,7 +461,6 @@ public class PlayerController : MonoBehaviour
         if (audioSource == null) return;
 
         audioSource.pitch = Random.Range(0.9f, 1.1f);
-
         audioSource.PlayOneShot(audioSource.clip);
     }
 

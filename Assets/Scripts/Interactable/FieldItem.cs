@@ -45,12 +45,12 @@ public class FieldItem : Interactable
         yield return new WaitForSeconds(2.2f);
 
         // 3. Show Notification UI
-        if (notifController != null && ItemDatabase.Instance != null)
+        if (NotifController != null && ItemDatabase.Instance != null)
         {
             var itemData = ItemDatabase.Instance.GetItem(itemName);
             if (itemData != null)
             {
-                StartCoroutine(notifController.AddNotification(
+                StartCoroutine(NotifController.AddNotification(
                     $"Has encontrado: {itemData.ItemName}",
                     itemData.Icon
                 ));

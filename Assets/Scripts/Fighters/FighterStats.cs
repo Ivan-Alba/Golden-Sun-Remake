@@ -171,18 +171,18 @@ public class FighterStats : MonoBehaviour
 
             if (abilityName != null)
             {
-                Debug.Log(_name + " aprenderá la habilidad " + abilityName + " en el nivel " + level + ".");
+                //Debug.Log(_name + " aprenderá la habilidad " + abilityName + " en el nivel " + level + ".");
                 psynergies.Add(PsynergyDatabase.Instance.GetPsynergy(abilityName));
                 return abilityName;
             }
             else
             {
-                Debug.Log(_name + " no aprenderá ninguna habilidad en el nivel " + level + ".");
+                //Debug.Log(_name + " no aprenderá ninguna habilidad en el nivel " + level + ".");
             }
         }
         else
         {
-            Debug.Log("El héroe " + _name + " no se encontró en los datos de habilidades.");
+            //Debug.Log("El héroe " + _name + " no se encontró en los datos de habilidades.");
         }
 
         return null;

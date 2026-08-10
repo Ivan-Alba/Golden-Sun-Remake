@@ -40,10 +40,10 @@
 
      {
       "Name":"Llamas",
-      "Description":"Inflige pequeños daños de fuego",
+      "Description":"Inflige pequeï¿½os daï¿½os de fuego",
       "SlugName":"Flames",
       "PpCost": 4,
-      "IsWorldPsynergy" : true,
+      "IsWorldPsynergy" : false,
       "IsBattlePsynergy" : true,
       "Type" : "ATTACK",
       "Element": "Mars",

@@ -4,16 +4,27 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
-    protected NotificationController notifController;
+    private NotificationController notifController;
 
-    private void Start()
+    // Protected property with lazy loading to prevent NullReferenceExceptions
+    protected NotificationController NotifController
     {
-        notifController = GameObject.Find("Notifications").GetComponent<NotificationController>();
+        get
+        {
+            if (notifController == null)
+            {
+                GameObject notifObj = GameObject.Find("Notifications");
+                if (notifObj != null)
+                {
+                    notifController = notifObj.GetComponent<NotificationController>();
+                }
+            }
+            return notifController;
+        }
     }
 
     public virtual void Interact()
     {
 
     }
-
 }

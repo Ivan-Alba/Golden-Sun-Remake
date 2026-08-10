@@ -131,5 +131,9 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
+    public void SetPlayerUIVisible (bool visible)
+    {
+       gameObject.SetActive(visible);
+    }
     #endregion
 }
