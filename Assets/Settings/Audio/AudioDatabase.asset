@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 193db9163e65d3d4eb74a9bf98069cad, type: 3}
+  m_Name: AudioDatabase
+  m_EditorClassIdentifier: 
+  sceneBGMList:
+  - sceneName: Title
+    bgmClip: {fileID: 8300000, guid: 80c52dc338846764ba7e2f4bd75eba95, type: 3}
+    defaultVolume: 1
+  - sceneName: Llanura de Tale
+    bgmClip: {fileID: 8300000, guid: 7bc75dd0a3329914aaa0fff9041538ae, type: 3}
+    defaultVolume: 1
+  - sceneName: Tale
+    bgmClip: {fileID: 8300000, guid: 2775780ddbd97bc4487ec7c7e10a547e, type: 3}
+    defaultVolume: 1
+  - sceneName: battleBGM
+    bgmClip: {fileID: 8300000, guid: f7e428b32d07cdf48a1710c04ea59777, type: 3}
+    defaultVolume: 1
+  - sceneName: bossBattleBGM
+    bgmClip: {fileID: 8300000, guid: f7e428b32d07cdf48a1710c04ea59777, type: 3}
+    defaultVolume: 1
+  - sceneName: victoryBGM
+    bgmClip: {fileID: 8300000, guid: 3cd6779c95014dd4fa7a97cabaa1c4dd, type: 3}
+    defaultVolume: 1
+  - sceneName: gameOverBGM
+    bgmClip: {fileID: 8300000, guid: 9dd54cd9aca2d834ab530d8b8f77b391, type: 3}
+    defaultVolume: 1
+  sfxList:
+  - sfxType: 1
+    sfxClip: {fileID: 8300000, guid: d1b86caf6c3bb404aa8da97d9ac4f24d, type: 3}
+    defaultVolume: 1
+  - sfxType: 2
+    sfxClip: {fileID: 8300000, guid: 700c7e472b5cb6b41bea9a992dbb803c, type: 3}
+    defaultVolume: 1
+  - sfxType: 3
+    sfxClip: {fileID: 8300000, guid: 42d97baaffa20574ea4db8c2bd12bd1f, type: 3}
+    defaultVolume: 1
+  - sfxType: 5
+    sfxClip: {fileID: 8300000, guid: 906adc1e66317fa4095e5af893ebd582, type: 3}
+    defaultVolume: 1
+  - sfxType: 6
+    sfxClip: {fileID: 8300000, guid: bb543dc16f05be34cabd91d4e22d22e4, type: 3}
+    defaultVolume: 1
+  - sfxType: 7
+    sfxClip: {fileID: 8300000, guid: 4636f125eabce8140926e20641c89463, type: 3}
+    defaultVolume: 1

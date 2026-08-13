@@ -5,6 +5,18 @@ using System.Linq;
 using UnityEngine.UI;
 using TMPro;
 
+public enum BattleState
+{
+    None,
+    IntroTransition,      // Camera/Animation entering battle
+    WaitingTurnExecution, // Blocked inputs while attack/psynergy/enemy AI executes
+    CommandSelection,     // Choosing Attack, Psynergy, Djinn, Defense, Item, Escape...
+    SubMenuSelection,     // Navigating Psynergy list or Item list
+    TargetSelection,      // Selecting target enemy or ally
+    ResultsScreen,        // EXP, Gold and Loot screen
+    GameOverScreen        // Defeat screen
+}
+
 public class BattleManager : MonoBehaviour
 {
     [Header("Internal Prefab References")]
@@ -68,13 +80,24 @@ public class BattleManager : MonoBehaviour
 
     private BattleUIController battleUIController;
 
+    // BATTLE STATE MACHINE
+    private BattleState currentBattleState = BattleState.None;
+    public BattleState CurrentBattleState => currentBattleState;
+
     // AUXILIAR
     private int enemiesOnBattle, enemiesDefeated, deadHeroes;
-    private bool keyPressed;
     private int actualTarget;
-    private bool selectingTarget, waitingAction, choosingList;
 
-    public bool WaitingAction { get => waitingAction; set => waitingAction = value; }
+    // Backwards compatibility getter
+    public bool WaitingAction
+    {
+        get => currentBattleState == BattleState.CommandSelection;
+        set
+        {
+            if (!value && currentBattleState == BattleState.CommandSelection)
+                currentBattleState = BattleState.WaitingTurnExecution;
+        }
+    }
 
     private void Awake()
     {
@@ -89,181 +112,112 @@ public class BattleManager : MonoBehaviour
         ResetBattleVariables();
     }
 
+    private void OnEnable()
+    {
+        SubscribeToInputEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromInputEvents();
+    }
+
     private void Update()
     {
         // Guard Clause: Exit immediately if GameManager is not ready or game is not in battle
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
 
         battleUIController.RefreshHeroInfoPanel();
+    }
 
-        if (waitingAction) // WHEN A TURN ENDS
+    #region Input Event Subscriptions
+
+    private void SubscribeToInputEvents()
+    {
+        if (InputManager.Instance == null) return;
+
+        InputManager.Instance.OnBattleConfirmPressed += HandleConfirmPressed;
+        InputManager.Instance.OnBattleCancelPressed += HandleCancelPressed;
+        InputManager.Instance.OnBattleUpPressed += HandleUpPressed;
+        InputManager.Instance.OnBattleDownPressed += HandleDownPressed;
+        InputManager.Instance.OnBattleLeftPressed += HandleLeftPressed;
+        InputManager.Instance.OnBattleRightPressed += HandleRightPressed;
+    }
+
+    private void UnsubscribeFromInputEvents()
+    {
+        if (InputManager.Instance == null) return;
+
+        InputManager.Instance.OnBattleConfirmPressed -= HandleConfirmPressed;
+        InputManager.Instance.OnBattleCancelPressed -= HandleCancelPressed;
+        InputManager.Instance.OnBattleUpPressed -= HandleUpPressed;
+        InputManager.Instance.OnBattleDownPressed -= HandleDownPressed;
+        InputManager.Instance.OnBattleLeftPressed -= HandleLeftPressed;
+        InputManager.Instance.OnBattleRightPressed -= HandleRightPressed;
+    }
+
+    #endregion
+
+    #region Input Handlers by Battle State
+
+    private void HandleConfirmPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        switch (currentBattleState)
         {
-            if (turnController.CurrentFighter != null && turnController.CurrentFighter.CompareTag("Enemy")) // If enemy's turn
-            {
-                waitingAction = false; // Starts enemy turn
-                StartCoroutine(PerformAction()); // Call IA to decide enemy actions
-            }
-            else // Hero turn decide orders 
-            {
-                // Move right in orders buttons
-                if (Input.GetKeyDown(KeyCode.RightArrow))
-                {
-                    battleUIController.ordersPanelMove("RIGHT");
-                }
-
-                // Move left in orders buttons
-                if (Input.GetKeyDown(KeyCode.LeftArrow))
-                {
-                    battleUIController.ordersPanelMove("LEFT");
-                }
-
-                // Press the confirm Key to select an order
-                if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed)
-                {
-                    keyPressed = true;
-                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
-
-                    // Depending on order
-                    switch (battleUIController.CommandSelected)
-                    {
-                        case 0: // ATTACK
-                            SelectDefaultTarget("ONE_TARGET");
-                            nextAction_targetType = "ONE_TARGET";
-                            waitingAction = false;
-                            selectingTarget = true;
-                            break;
-                        case 1: // PSINERGÍA
-                            waitingAction = false;
-                            choosingList = true;
-                            battleUIController.SetContentPanel("Psynergy");
-                            battleUIController.ShowContentPanel(true);
-                            break;
-                        case 2: // DJINN
-                            break;
-                        case 3: // INVOCAR
-                            break;
-                        case 4: // DEFENSA
-                            battleUIController.ShowOrdersPanel(false);
-                            turnController.HideTurnCamera();
-                            StartCoroutine(PerformAction());
-                            waitingAction = false;
-                            break;
-                        case 5: // OBJETO
-                            if (turnsOrdered != null && turnsOrdered.Count > 0)
-                            {
-                                turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().CurrHp =
-                                    turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().MaxHp;
-                            }
-                            break;
-                        case 6: // ESTADO
-                            break;
-                        case 7: // HUIR
-                            break;
-                    }
-                }
-            }
-        }
-        else if (selectingTarget) // SELECTING TARGET/S FOR ACTION
-        {
-            if (Input.GetKeyDown(KeyCode.RightArrow)) // Right target
-            {
-                SelectRightTarget();
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftArrow)) // Left target
-            {
-                SelectLeftTarget();
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
-            }
-
-            if (Input.GetKeyDown(KeyCode.R)) // Back Button
-            {
-                if (enemyPositions != null)
-                {
-                    for (int i = 0; i < enemyPositions.Length; i++) // Hide pointers
-                    {
-                        if (enemyPositions[i] != null)
-                            enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
-                    }
-                }
-
-                foreach (GameObject hero in GameManager.Instance.GetParty())
-                {
-                    hero.transform.Find("Pointer").gameObject.SetActive(false);
-                }
-
-                // Disable highlights for selected target on turnbar
-                battleUIController.HideSelectedTarget();
-
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+            case BattleState.CommandSelection:
+                PlaySFX(SFXType.UI_Confirm);
 
                 switch (battleUIController.CommandSelected)
                 {
                     case 0: // ATTACK
-                        waitingAction = true;
-                        selectingTarget = false;
+                        SelectDefaultTarget("ONE_TARGET");
+                        nextAction_targetType = "ONE_TARGET";
+                        currentBattleState = BattleState.TargetSelection;
                         break;
+
                     case 1: // PSYNERGY
-                        selectingTarget = false;
-                        choosingList = true;
-                        nextPsynergy = null;
+                        currentBattleState = BattleState.SubMenuSelection;
+                        battleUIController.SetContentPanel("Psynergy");
+                        battleUIController.ShowContentPanel(true);
                         break;
+
                     case 2: // DJINN
                         break;
+
                     case 3: // SUMMON
                         break;
+
+                    case 4: // DEFENSE
+                        battleUIController.ShowOrdersPanel(false);
+                        turnController.HideTurnCamera();
+                        currentBattleState = BattleState.WaitingTurnExecution;
+                        StartCoroutine(PerformAction());
+                        break;
+
                     case 5: // ITEM
+                        if (turnsOrdered != null && turnsOrdered.Count > 0)
+                        {
+                            turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().CurrHp =
+                                turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().MaxHp;
+                        }
+                        break;
+
+                    case 6: // ESTADO
+                        break;
+
+                    case 7: // HUIR
                         break;
                 }
-            }
+                break;
 
-            if (Input.GetKeyDown(KeyCode.E) && !keyPressed) // Target selected
-            {
-                keyPressed = true;
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
-
-                // Hide elements
-                battleUIController.ShowOrdersPanel(false);
-                turnController.HideTurnCamera();
-                battleUIController.HideSelectedTarget();
-
-                if (enemyPositions != null)
+            case BattleState.SubMenuSelection:
+                string selectedContent = battleUIController.GetContentItem();
+                if ((nextPsynergy = PsynergyDatabase.Instance.GetPsynergy(selectedContent)) != null)
                 {
-                    for (int i = 0; i < enemyPositions.Length; i++)
-                    {
-                        if (enemyPositions[i] != null)
-                            enemyPositions[i].transform.Find("Pointer").gameObject.SetActive(false);
-                    }
-                }
-
-                foreach (GameObject hero in GameManager.Instance.GetParty())
-                {
-                    hero.transform.Find("Pointer").gameObject.SetActive(false);
-                }
-
-                selectingTarget = false;
-                StartCoroutine(PerformAction());
-            }
-        }
-        else if (choosingList)
-        {
-            if (Input.GetKeyDown(KeyCode.R)) // Returns back to choose a new command
-            {
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
-                waitingAction = true;
-                choosingList = false;
-                battleUIController.ShowContentPanel(false);
-            }
-
-            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed) // Skill or item selected
-            {
-                keyPressed = true;
-
-                if ((nextPsynergy = PsynergyDatabase.Instance.GetPsynergy(battleUIController.GetContentItem())) != null)
-                {
-                    choosingList = false;
-                    selectingTarget = true;
+                    PlaySFX(SFXType.UI_Confirm);
+                    currentBattleState = BattleState.TargetSelection;
 
                     if (battleUIController.CommandSelected == 1) // PSYNERGY
                     {
@@ -283,36 +237,142 @@ public class BattleManager : MonoBehaviour
                     }
                     else if (battleUIController.CommandSelected == 5) // ITEMS
                     {
-
+                        // TODO: Item targeting logic
                     }
                 }
-            }
+                break;
 
-            if (Input.GetKeyDown(KeyCode.UpArrow) && !keyPressed) // Move content panel
-            {
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
-                battleUIController.MoveContentPanel("UP");
-            }
+            case BattleState.TargetSelection:
+                PlaySFX(SFXType.UI_Confirm);
 
-            if (Input.GetKeyDown(KeyCode.DownArrow) && !keyPressed) // Move content panel
-            {
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
-                battleUIController.MoveContentPanel("DOWN");
-            }
-        }
+                // Hide target selection UI elements
+                battleUIController.ShowOrdersPanel(false);
+                turnController.HideTurnCamera();
+                battleUIController.HideSelectedTarget();
 
-        // Auxiliar key pressed controller
-        if (Input.GetKeyUp(KeyCode.E) && keyPressed)
-        {
-            keyPressed = false;
+                HideAllPointers();
+
+                currentBattleState = BattleState.WaitingTurnExecution;
+                StartCoroutine(PerformAction());
+                break;
+
+            case BattleState.ResultsScreen:
+                if (resultsController != null)
+                {
+                    resultsController.HandleConfirmInput();
+                }
+                break;
+
+            case BattleState.GameOverScreen:
+                break;
         }
     }
+
+    private void HandleCancelPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        switch (currentBattleState)
+        {
+            case BattleState.TargetSelection:
+                HideAllPointers();
+                battleUIController.HideSelectedTarget();
+                PlaySFX(SFXType.UI_Cancel);
+
+                switch (battleUIController.CommandSelected)
+                {
+                    case 0: // ATTACK
+                        currentBattleState = BattleState.CommandSelection;
+                        break;
+
+                    case 1: // PSYNERGY
+                        currentBattleState = BattleState.SubMenuSelection;
+                        nextPsynergy = null;
+                        break;
+
+                    case 2: // DJINN
+                        break;
+
+                    case 3: // SUMMON
+                        break;
+
+                    case 5: // ITEM
+                        break;
+                }
+                break;
+
+            case BattleState.SubMenuSelection:
+                PlaySFX(SFXType.UI_Cancel);
+                currentBattleState = BattleState.CommandSelection;
+                battleUIController.ShowContentPanel(false);
+                break;
+        }
+    }
+
+    private void HandleLeftPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        switch (currentBattleState)
+        {
+            case BattleState.CommandSelection:
+                battleUIController.ordersPanelMove("LEFT");
+                break;
+
+            case BattleState.TargetSelection:
+                SelectLeftTarget();
+                PlaySFX(SFXType.UI_Move);
+                break;
+        }
+    }
+
+    private void HandleRightPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        switch (currentBattleState)
+        {
+            case BattleState.CommandSelection:
+                battleUIController.ordersPanelMove("RIGHT");
+                break;
+
+            case BattleState.TargetSelection:
+                SelectRightTarget();
+                PlaySFX(SFXType.UI_Move);
+                break;
+        }
+    }
+
+    private void HandleUpPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        if (currentBattleState == BattleState.SubMenuSelection)
+        {
+            PlaySFX(SFXType.UI_Move);
+            battleUIController.MoveContentPanel("UP");
+        }
+    }
+
+    private void HandleDownPressed()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+
+        if (currentBattleState == BattleState.SubMenuSelection)
+        {
+            PlaySFX(SFXType.UI_Move);
+            battleUIController.MoveContentPanel("DOWN");
+        }
+    }
+
+    #endregion
+
+    #region Battle Lifecycle & Setup
 
     public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null,
         List<GameObject> preSetEnemies = null)
     {
         ResetBattleVariables();
-
 
         // --- EXTERNAL SCENE / CORE REFERENCES ---
         if (mainCamera == null)
@@ -368,6 +428,8 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator StartBattle(GameObject firstEnemy)
     {
+        currentBattleState = BattleState.IntroTransition;
+
         // TRANSITION MAIN CAMERA TO BATTLE CAMERA
         StartCoroutine(battleCameraController.StartTransition(mainCamera));
 
@@ -404,12 +466,10 @@ public class BattleManager : MonoBehaviour
         // HidePlayerCanvas
         if (playerCanvas != null) playerCanvas.SetActive(false);
 
-
         // --- DYNAMIC AUDIO LISTENER SETUP ---
         if (HybridAudioListener.Instance != null)
         {
             Transform battleCamTransform = battleCameraController != null ? battleCameraController.transform : null;
-
             Transform centerTarget = audioCenter != null ? audioCenter : battleField.transform;
 
             HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
@@ -421,7 +481,6 @@ public class BattleManager : MonoBehaviour
 
         // ENEMY ANIMATION INTRO
         yield return new WaitForSeconds(1f);
-
 
         // TODO BATTLE CAMERA FADE
         StartCoroutine(battleCameraController.StartTransition());
@@ -484,8 +543,20 @@ public class BattleManager : MonoBehaviour
         turnsOrdered = turnController.SetTurns(fighters);
         turnController.CurrentFighter.GetComponent<FighterController>().StartsTurn();
 
-        waitingAction = true;
+        if (turnController.CurrentFighter != null && turnController.CurrentFighter.CompareTag("Enemy"))
+        {
+            currentBattleState = BattleState.WaitingTurnExecution;
+            StartCoroutine(PerformAction());
+        }
+        else
+        {
+            currentBattleState = BattleState.CommandSelection;
+        }
     }
+
+    #endregion
+
+    #region Action Execution & Turn Flow
 
     private IEnumerator PerformAction()
     {
@@ -645,6 +716,7 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator BattleWinned()
     {
+        currentBattleState = BattleState.ResultsScreen;
         battleUIController.ShowBattleCanvas(false);
 
         if (musicController != null)
@@ -695,7 +767,7 @@ public class BattleManager : MonoBehaviour
         PlayerUIManager.Instance.RefreshPartyInfo();
 
         battleCameraController.SetOffBattleCamera();
-        
+
         mainCamera.GetComponent<Camera>().enabled = true;
 
         if (HybridAudioListener.Instance != null)
@@ -736,6 +808,8 @@ public class BattleManager : MonoBehaviour
 
     private void GameOver()
     {
+        currentBattleState = BattleState.GameOverScreen;
+
         GameObject crossfade = transform.Find("Crossfade").gameObject;
         crossfade.SetActive(true);
         crossfade.transform.Find("GameOver").gameObject.SetActive(true);
@@ -748,7 +822,44 @@ public class BattleManager : MonoBehaviour
         Debug.Log("GAMEOVER");
     }
 
-    #region State Reset Logic
+    #endregion
+
+    #region State & Target Helpers
+
+    private void PlaySFX(SFXType sfx)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(sfx);
+        }
+    }
+
+    private void HideAllPointers()
+    {
+        if (enemyPositions != null)
+        {
+            for (int i = 0; i < enemyPositions.Length; i++)
+            {
+                if (enemyPositions[i] != null)
+                {
+                    Transform pointer = enemyPositions[i].transform.Find("Pointer");
+                    if (pointer != null) pointer.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        if (GameManager.Instance != null && GameManager.Instance.GetParty() != null)
+        {
+            foreach (GameObject hero in GameManager.Instance.GetParty())
+            {
+                if (hero != null)
+                {
+                    Transform pointer = hero.transform.Find("Pointer");
+                    if (pointer != null) pointer.gameObject.SetActive(false);
+                }
+            }
+        }
+    }
 
     private void ResetBattleVariables()
     {
@@ -773,14 +884,8 @@ public class BattleManager : MonoBehaviour
 
         nextPsynergy = null;
         nextItem = null;
-        waitingAction = false;
-        selectingTarget = false;
-        choosingList = false;
-        keyPressed = false;
+        currentBattleState = BattleState.None;
     }
-
-    #endregion
-
 
     public void ChangeBattleSpeed()
     {
@@ -789,6 +894,10 @@ public class BattleManager : MonoBehaviour
             GameManager.Instance.ChangeGameSpeed();
         }
     }
+
+    #endregion
+
+    #region Target Selection Logic
 
     private void SelectDefaultTarget(string targetType, int targetSize = 0, int i = 0)
     {
@@ -892,6 +1001,7 @@ public class BattleManager : MonoBehaviour
                                         pointer.SetActive(true);
                                     }
                                     break;
+
                                 case 2:
                                     if (enemiesList.Count > 4 && enemiesList[4] != null)
                                     {
@@ -909,6 +1019,7 @@ public class BattleManager : MonoBehaviour
                                     break;
                             }
                             break;
+
                         case 5:
                             break;
                     }
@@ -1110,4 +1221,6 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
+
+    #endregion
 }

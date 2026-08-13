@@ -4,7 +4,7 @@
     {
       "Name":"Coger",
       "Description":"Permite coger objetos fuera de tu alcance",
-      "SlugName":"Catch",
+      "SlugName":"catch",
       "PpCost": 3,
       "IsWorldPsynergy" : true,
       "IsBattlePsynergy" : false,
@@ -16,7 +16,7 @@
     {
       "Name":"Mover",
       "Description":"Permite mover objetos del entorno",
-      "SlugName":"Move",
+      "SlugName":"move",
       "PpCost": 2,
       "IsWorldPsynergy" : true,
       "IsBattlePsynergy" : false,
@@ -28,7 +28,7 @@
     {
       "Name":"Cura",
       "Description":"Recupera 70 PV",
-      "SlugName":"Cure",
+      "SlugName":"cure",
       "PpCost": 4,
       "IsWorldPsynergy" : false,
       "IsBattlePsynergy" : true,
@@ -41,7 +41,7 @@
      {
       "Name":"Llamas",
       "Description":"Inflige peque�os da�os de fuego",
-      "SlugName":"Flames",
+      "SlugName":"flames",
       "PpCost": 4,
       "IsWorldPsynergy" : false,
       "IsBattlePsynergy" : true,

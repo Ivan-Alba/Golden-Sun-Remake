@@ -150,7 +150,7 @@ public class MenuController : MonoBehaviour
     #endregion
 
     void Update()
-    {
+    {/*
         // Solamente procesar inputs y lógica si la interfaz gráfica está visible
         if (!IsMenuOpen()) return;
 
@@ -205,7 +205,7 @@ public class MenuController : MonoBehaviour
                 animating = true;
                 menuRootPanel.GetComponent<Animator>()?.SetTrigger("exit");
             }
-        }
+        }*/
     }
 
     /// <summary>

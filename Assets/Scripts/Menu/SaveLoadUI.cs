@@ -117,7 +117,7 @@ public class SaveLoadUI : MonoBehaviour
     }
 
     private void Update()
-    {
+    {/*
 
         if (animating)
         {
@@ -320,7 +320,7 @@ public class SaveLoadUI : MonoBehaviour
                 options[optionsIndex].transform.Find("Highlight").gameObject.SetActive(true);
                 options[optionsIndex].GetComponent<TextMeshProUGUI>().color = Color.yellow;
             }
-        }
+        }*/
     }
 
     private IEnumerator BackToMainMenu()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -25,9 +26,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float extraDropMargin = 0.2f;
     [SerializeField] private LayerMask groundLayer;
 
-    [Header("References")]
+    [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
-    [SerializeField] private Camera aimCamera;
+    [SerializeField] private CinemachineFreeLook freeLookCamera;
+    [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
+    [SerializeField] private float aimRotationSpeed = 1200f;
+
+    [Header("Cinemachine Priority Settings")]
+    [SerializeField] private int defaultAimPriority = 0;
+    [SerializeField] private int activeAimPriority = 20;
 
     #endregion
 
@@ -36,6 +43,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Animator playerAnim;
     private AudioSource audioSource;
+    private CinemachinePOV aimPOV;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
@@ -43,8 +51,6 @@ public class PlayerController : MonoBehaviour
     private bool enoughStaminaToRun = true;
 
     private GameObject objectHit;
-    private bool inChoosePsynergyBar;
-    private bool aiming;
 
     private float timeCount;
     private readonly float secondsInIdle = 15f;
@@ -95,6 +101,12 @@ public class PlayerController : MonoBehaviour
             PlayerUIManager.Instance.RefreshPartyInfo();
             PlayerUIManager.Instance.UpdateStamina(currentStamina, maxStamina);
         }
+
+        if (aimVirtualCamera != null)
+        {
+            aimVirtualCamera.Priority = defaultAimPriority;
+            aimPOV = aimVirtualCamera.GetCinemachineComponent<CinemachinePOV>();
+        }
     }
 
     private void OnEnable()
@@ -109,7 +121,6 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // Abort execution and force Idle animation if the game is not in free exploration state
         if (!IsWorldExploration())
         {
             ResetMovementAnimations();
@@ -121,9 +132,16 @@ public class PlayerController : MonoBehaviour
         UpdateInteractionUI();
     }
 
+    private void LateUpdate()
+    {
+        if (InputManager.Instance != null && InputManager.Instance.IsAiming)
+        {
+            HandleAimRotation();
+        }
+    }
+
     private void FixedUpdate()
     {
-        // Forward Raycast for interactable detection
         Ray ray = new Ray(transform.position + Vector3.up, transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
@@ -160,9 +178,6 @@ public class PlayerController : MonoBehaviour
         InputManager.Instance.OnStartAimPressed += StartAiming;
         InputManager.Instance.OnStopAimPressed += StopAiming;
         InputManager.Instance.OnUsePsynergyPressed += HandleUsePsynergy;
-        InputManager.Instance.OnHoldPsynergyBarChanged += HandleHoldPsynergyBar;
-        InputManager.Instance.OnPsynergyNavigateUpPressed += HandlePsynergyUp;
-        InputManager.Instance.OnPsynergyNavigateDownPressed += HandlePsynergyDown;
     }
 
     private void UnsubscribeFromInputEvents()
@@ -175,9 +190,6 @@ public class PlayerController : MonoBehaviour
         InputManager.Instance.OnStartAimPressed -= StartAiming;
         InputManager.Instance.OnStopAimPressed -= StopAiming;
         InputManager.Instance.OnUsePsynergyPressed -= HandleUsePsynergy;
-        InputManager.Instance.OnHoldPsynergyBarChanged -= HandleHoldPsynergyBar;
-        InputManager.Instance.OnPsynergyNavigateUpPressed -= HandlePsynergyUp;
-        InputManager.Instance.OnPsynergyNavigateDownPressed -= HandlePsynergyDown;
     }
 
     #endregion
@@ -198,7 +210,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInteraction()
     {
-        if (!IsWorldExploration()) return;
+        if (!IsWorldExploration() || InputManager.Instance.IsAiming) return;
 
         if (objectHit != null && objectHit.CompareTag("Interactable") &&
             Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
@@ -213,9 +225,9 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMenuToggle()
     {
-        if (!IsWorldExploration()) return;
+        /*if (!IsWorldExploration()) return;
 
-        if (aiming)
+        if (InputManager.Instance != null && InputManager.Instance.IsAiming)
         {
             StopAiming();
         }
@@ -223,7 +235,7 @@ public class PlayerController : MonoBehaviour
         if (MenuController.Instance != null)
         {
             MenuController.Instance.ShowMenu();
-        }
+        }*/
     }
 
     private void HandleUsePsynergy(int slotIndex)
@@ -232,39 +244,16 @@ public class PlayerController : MonoBehaviour
 
         if (PsynergyWorldController.Instance != null)
         {
-            PsynergyWorldController.Instance.UsePsynergy(slotIndex, null);
-        }
-    }
+            // Get target currently highlighted by player aiming system
+            IPsynergyTargetable currentTarget = null;
 
-    private void HandleHoldPsynergyBar(int slotIndex, bool isHolding)
-    {
-        if (!IsWorldExploration()) return;
+            if (TryGetComponent<PlayerAiming>(out var aimingScript))
+            {
+                currentTarget = aimingScript.CurrentTarget;
+            }
 
-        inChoosePsynergyBar = isHolding;
-
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.ShowPsynergyChoosePanel(isHolding, slotIndex);
-        }
-    }
-
-    private void HandlePsynergyUp()
-    {
-        if (!IsWorldExploration()) return;
-
-        if (inChoosePsynergyBar && PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.ChoosePanelMoveUp();
-        }
-    }
-
-    private void HandlePsynergyDown()
-    {
-        if (!IsWorldExploration()) return;
-
-        if (inChoosePsynergyBar && PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.ChoosePanelMoveDown();
+            // Pass target (if any) to PsynergyWorldController
+            PsynergyWorldController.Instance.UsePsynergy(slotIndex, currentTarget);
         }
     }
 
@@ -289,13 +278,19 @@ public class PlayerController : MonoBehaviour
         Vector2 inputMove = InputManager.Instance != null ? InputManager.Instance.MoveInput : Vector2.zero;
         Vector3 direction = new Vector3(inputMove.x, 0f, inputMove.y).normalized;
 
+        bool isAimingState = InputManager.Instance != null && InputManager.Instance.IsAiming;
+
         if (direction.magnitude >= 0.1f)
         {
             timeCount = 0f;
 
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + mainCamera.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+            if (!isAimingState)
+            {
+                transform.rotation = Quaternion.Euler(0f, angle, 0f);
+            }
 
             PlayerAnim.SetBool("isMoving", true);
 
@@ -372,15 +367,10 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Resets movement animator parameters to force the player into Idle state.
-    /// Only writes to the Animator if movement parameters are currently true.
-    /// </summary>
     public void ResetMovementAnimations()
     {
         if (playerAnim == null) return;
 
-        // Only set parameters if they are active to avoid continuous Animator writes
         if (playerAnim.GetBool("isMoving"))
         {
             playerAnim.SetBool("isMoving", false);
@@ -399,10 +389,33 @@ public class PlayerController : MonoBehaviour
     private void StartAiming()
     {
         if (!IsWorldExploration()) return;
-        if (aiming) return;
 
-        if (mainCamera.GetComponent<Camera>().enabled) Camera.main.enabled = false;
-        aimCamera.enabled = true;
+        // 1. Instantly rotate player towards camera forward direction
+        if (mainCamera != null)
+        {
+            Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
+            if (cameraForward.sqrMagnitude > 0.001f)
+            {
+                transform.rotation = Quaternion.LookRotation(cameraForward);
+            }
+        }
+
+        // 2. Synchronize Aim POV with exact physical camera pitch angle (X-rotation)
+        if (freeLookCamera != null && aimPOV != null && mainCamera != null)
+        {
+            aimPOV.m_HorizontalAxis.Value = freeLookCamera.m_XAxis.Value;
+
+            float pitchAngle = mainCamera.eulerAngles.x;
+            if (pitchAngle > 180f) pitchAngle -= 360f;
+
+            aimPOV.m_VerticalAxis.Value = pitchAngle;
+        }
+
+        // 3. Switch priority to trigger Cinemachine Blend
+        if (aimVirtualCamera != null)
+        {
+            aimVirtualCamera.Priority = activeAimPriority;
+        }
 
         if (PlayerUIManager.Instance != null)
         {
@@ -413,15 +426,23 @@ public class PlayerController : MonoBehaviour
         {
             aimingScript.enabled = true;
         }
-
-        aiming = true;
     }
 
     private void StopAiming()
     {
-        // StopAiming can be triggered automatically during state transitions, 
-        // so we only check if aiming is currently active.
-        if (!aiming) return;
+        // Synchronize FreeLook Camera back with Aim POV orientation
+        if (freeLookCamera != null && aimPOV != null)
+        {
+            freeLookCamera.m_XAxis.Value = aimPOV.m_HorizontalAxis.Value;
+
+            float normalizedPitch = Mathf.InverseLerp(45f, -45f, aimPOV.m_VerticalAxis.Value);
+            freeLookCamera.m_YAxis.Value = Mathf.Clamp01(normalizedPitch);
+        }
+
+        if (aimVirtualCamera != null)
+        {
+            aimVirtualCamera.Priority = defaultAimPriority;
+        }
 
         if (TryGetComponent<PlayerAiming>(out var aimingScript))
         {
@@ -429,16 +450,23 @@ public class PlayerController : MonoBehaviour
             aimingScript.enabled = false;
         }
 
-        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, transform.eulerAngles.z);
-        mainCamera.GetComponent<Camera>().enabled = true;
-        aimCamera.enabled = false;
-
         if (PlayerUIManager.Instance != null)
         {
             PlayerUIManager.Instance.SetAimUIVisible(false);
         }
+    }
 
-        aiming = false;
+    private void HandleAimRotation()
+    {
+        if (mainCamera == null) return;
+
+        Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
+
+        if (cameraForward.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, aimRotationSpeed * Time.deltaTime);
+        }
     }
 
     #endregion
@@ -479,9 +507,6 @@ public class PlayerController : MonoBehaviour
 
     #region Utilities & Callbacks
 
-    /// <summary>
-    /// Helper method to check if the game is currently in free exploration state.
-    /// </summary>
     private bool IsWorldExploration()
     {
         return GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;

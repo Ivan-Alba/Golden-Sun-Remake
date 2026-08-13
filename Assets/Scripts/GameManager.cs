@@ -20,14 +20,6 @@ public class GameManager : MonoBehaviour
     }
 
     private static GameManager instance = null;
-    public const int CONFIRM_SOUND = 0;
-    public const int MOVE_SOUND = 1;
-    public const int NEGATIVE_SOUND = 2;
-    public const int CURE_SOUND = 3;
-    public const int ITEM_FOUNDED_SOUND = 4;
-
-    private const KeyCode KEY_CONFIRM = KeyCode.E;
-    private const KeyCode KEY_CANCEL = KeyCode.R;
 
     [Header("Game State System")]
     [SerializeField] private GameState currentState = GameState.None;
@@ -42,23 +34,20 @@ public class GameManager : MonoBehaviour
     private string pendingSpawnID = null;
 
     // PARTY INFO
-    List<GameObject> party = new List<GameObject>();
+    private List<GameObject> party = new List<GameObject>();
 
     // GAME INFO
-    int totalGold;
-    float totalPlayed;
+    private int totalGold;
+    private float totalPlayed;
 
     // Getters and setters
     public GameState CurrentState { get => currentState; private set => currentState = value; }
     public int TotalGold { get => totalGold; set => totalGold = value; }
-    public KeyCode KeyConfirm { get => KEY_CONFIRM; }
     public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
 
     private GameObject activeHero;
 
     public GameObject ActiveHero { get => activeHero; set => activeHero = value; }
-
-    public KeyCode KeyCancel => KEY_CANCEL;
 
     public bool LoadingData { get => loadingData; set => loadingData = value; }
     public static GameManager Instance { get => instance; set => instance = value; }
@@ -92,7 +81,6 @@ public class GameManager : MonoBehaviour
                     playerMainCamera = camTrans.gameObject;
                 }
             }
-
         }
         else if (Instance != this)
         {
@@ -115,16 +103,13 @@ public class GameManager : MonoBehaviour
 
     public void SetGameState(GameState newState)
     {
-        // Avoid redundant state re-assignments and event triggers
         if (currentState == newState) return;
 
         Debug.Log("Game State changed from " + currentState + " to " + newState);
         currentState = newState;
 
-        // Notify all subscribed managers (e.g. PlayerUIManager, SoundManager)
         OnGameStateChanged?.Invoke(currentState);
 
-        // Auto-close persistent UI Menu when transitioning into non-menu states
         if (currentState != GameState.InMenu && MenuController.Instance != null)
         {
             MenuController.Instance.CloseMenu();
@@ -141,7 +126,6 @@ public class GameManager : MonoBehaviour
                 break;
 
             case GameState.InBattle:
-                // Disable map controls while battle system operates
                 ToggleGameplaySystems(false);
                 break;
 
@@ -150,7 +134,7 @@ public class GameManager : MonoBehaviour
             case GameState.InDialogue:
             case GameState.Cutscene:
             case GameState.Loading:
-                ToggleInputSystem(false);
+                // Camera orbit is paused; InputManager handles switching context maps
                 ToggleCameraInput(false);
                 break;
         }
@@ -163,22 +147,11 @@ public class GameManager : MonoBehaviour
             PlayerController.Instance.gameObject.SetActive(active);
         }
 
-        ToggleInputSystem(active);
         ToggleCameraInput(active);
 
         if (playerMainCamera != null)
         {
             playerMainCamera.SetActive(active);
-        }
-
-    }
-
-    private void ToggleInputSystem(bool active)
-    {
-        InputManager inputMgr = GetComponentInChildren<InputManager>();
-        if (inputMgr != null)
-        {
-            inputMgr.enabled = active;
         }
     }
 
@@ -195,7 +168,6 @@ public class GameManager : MonoBehaviour
 
         if (freeLookCamera != null)
         {
-            // Guardamos las velocidades configuradas la primera vez
             if (!speedsCached)
             {
                 originalXSpeed = freeLookCamera.m_XAxis.m_MaxSpeed;
@@ -205,45 +177,35 @@ public class GameManager : MonoBehaviour
 
             if (active)
             {
-                // Restauramos el control de movimiento
                 freeLookCamera.m_XAxis.m_MaxSpeed = originalXSpeed;
                 freeLookCamera.m_YAxis.m_MaxSpeed = originalYSpeed;
             }
             else
             {
-                // Bloqueamos la entrada poniendo la velocidad a 0 de forma instantánea
                 freeLookCamera.m_XAxis.m_MaxSpeed = 0f;
                 freeLookCamera.m_YAxis.m_MaxSpeed = 0f;
 
-                // Frenamos cualquier velocidad acumulada en ese fotograma
                 freeLookCamera.m_XAxis.m_InputAxisValue = 0f;
                 freeLookCamera.m_YAxis.m_InputAxisValue = 0f;
             }
         }
     }
 
-
     #endregion
 
     #region New Game Flow
 
-    /// <summary>
-    /// Call this function from your Title Screen when pressing "New Game".
-    /// </summary>
     public void StartNewGame(string firstSceneName, string initialSpawnID)
     {
-        // 1. Reset game counters
         totalGold = 0;
         totalPlayed = 0f;
         party.Clear();
 
-        // 2. Clear inventory
         if (InventoryController.Instance != null)
         {
             InventoryController.Instance.clearInventory();
         }
 
-        // 3. Initialize default starting party
         GameObject isaac = GameObject.Find("Isaac");
         GameObject garet = GameObject.Find("Garet");
 
@@ -254,7 +216,6 @@ public class GameManager : MonoBehaviour
         {
             activeHero = party[0];
 
-            // Apply starting level ups if needed
             for (int i = 0; i < party.Count; i++)
             {
                 FighterStats stats = party[i].GetComponent<FighterStats>();
@@ -269,13 +230,13 @@ public class GameManager : MonoBehaviour
             changeModelHero();
         }
 
-        // 4. Initialize Psinergy Shortcuts
         if (PsynergyWorldController.Instance != null)
         {
             PsynergyWorldController.Instance.Initialize();
+            PsynergyWorldController.Instance.SetShortcut(party[0], PsynergyDatabase.Instance.GetPsynergy("catch"), 0);
+            Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").Name + " set to shortcut 0");
         }
 
-        // 5. Load first playable scene and set spawn target
         ChangeScene(firstSceneName, initialSpawnID);
     }
 
@@ -293,36 +254,31 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Fallback in case SceneTransitionManager is not present
             SceneManager.LoadScene(sceneName);
         }
     }
 
-    void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
+    private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"Level Loaded: {scene.name}");
 
-        // 1. Check if we are in Title screen
         if (scene.name.Equals("Title") || scene.name.Equals("MainMenu"))
         {
             SetGameState(GameState.TitleScreen);
             return;
         }
 
-        // 2. If loading from save file
         if (SaveManager.loadedData != null)
         {
             loadingData = true;
             LoadData();
             pendingSpawnID = null;
         }
-        // 3. If moving via SceneTeleporter or Starting New Game
         else if (!string.IsNullOrEmpty(pendingSpawnID))
         {
             RelocatePlayerToSpawnPoint();
         }
 
-        // Set state to Exploration after completing relocation/data setup
         SetGameState(GameState.WorldExploration);
     }
 
@@ -339,14 +295,12 @@ public class GameManager : MonoBehaviour
                 Transform playerTransform = PlayerController.Instance.transform;
                 Vector3 previousPosition = playerTransform.position;
 
-                // Temporarily disable CharacterController for direct transform modification
                 CharacterController cc = playerTransform.GetComponent<CharacterController>();
                 if (cc != null) cc.enabled = false;
 
                 playerTransform.position = sp.transform.position;
                 playerTransform.rotation = sp.transform.rotation;
 
-                // Align camera directly behind player upon spawn
                 ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
 
                 if (cc != null) cc.enabled = true;
@@ -355,7 +309,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        pendingSpawnID = null; // Clear pending ID
+        pendingSpawnID = null;
     }
 
     public void Start()
@@ -382,11 +336,7 @@ public class GameManager : MonoBehaviour
     {
         if (party.Count > index)
         {
-            // Swap hero order
-            GameObject currentHero = party[0];
-            party[0] = party[index];
-            party[index] = currentHero;
-            activeHero = party[0];
+            activeHero = party[index];
 
             if (PsynergyWorldController.Instance != null)
             {
@@ -428,7 +378,6 @@ public class GameManager : MonoBehaviour
     {
         GameData dataToLoad = SaveManager.loadedData[0];
 
-        //------------SCENE------------    
         if (PlayerController.Instance != null)
         {
             Transform playerTransform = PlayerController.Instance.transform;
@@ -446,17 +395,14 @@ public class GameManager : MonoBehaviour
             playerTransform.position = targetPos;
             playerTransform.rotation = targetRot;
 
-            // Align camera directly behind player upon load
             ResetCameraBehindPlayer(playerTransform, targetRot, previousPosition);
 
             if (cc != null) cc.enabled = true;
         }
 
-        //----------GAMEMANAGER--------
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
 
-        //------------PARTY----------
         party.Clear();
         foreach (string heroName in dataToLoad.party)
         {
@@ -467,7 +413,6 @@ public class GameManager : MonoBehaviour
         if (party.Count > 0) activeHero = party[0];
         changeModelHero();
 
-        //--Hero settings---
         for (int i = 0; i < party.Count; i++)
         {
             FighterStats stats = party[i].GetComponent<FighterStats>();
@@ -480,17 +425,14 @@ public class GameManager : MonoBehaviour
                 stats.CurrHp = dataToLoad.heroCurrHpPp[i][0];
                 stats.CurrPp = dataToLoad.heroCurrHpPp[i][1];
 
-                //---Psynergies---
                 stats.Psynergies = dataToLoad.heroPsynergy[i];
             }
 
             HeroEquipment equipment = party[i].GetComponent<HeroEquipment>();
             if (equipment != null)
             {
-                //---Equipment---
                 equipment.EquippedItems = dataToLoad.heroEquippedGear[i];
 
-                // Get equipped gear icons
                 foreach (Equipable equipPiece in equipment.EquippedItems)
                 {
                     if (equipPiece != null && ItemDatabase.Instance != null)
@@ -501,16 +443,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Psynergy Icons
         party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies.ForEach(p => p.SetElementIcon()));
 
-        //---Psynergies shortcuts---
         if (PsynergyWorldController.Instance != null)
         {
-            // 1. Prepara las claves del grupo actual con arrays limpios
             PsynergyWorldController.Instance.Initialize();
 
-            // 2. Carga y asigna los atajos guardados
             if (dataToLoad.heroShortcuts != null)
             {
                 foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)
@@ -519,17 +457,14 @@ public class GameManager : MonoBehaviour
 
                     if (heroObj != null && PsynergyWorldController.Instance.HeroShortcuts.ContainsKey(heroObj))
                     {
-                        // Sobrescribimos el array del héroe existente
                         PsynergyWorldController.Instance.HeroShortcuts[heroObj] = heroShortcut.Value;
                     }
                 }
             }
 
-            // 3. Refrescamos la UI con los atajos del héroe activo
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
         }
 
-        //---------INVENTORY---------
         List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
         if (InventoryController.Instance != null)
         {
@@ -551,14 +486,9 @@ public class GameManager : MonoBehaviour
         }
 
         loadingData = false;
-
-        //----FINISH LOAD-----
         SaveManager.loadedData = null;
     }
 
-    /// <summary>
-    /// Warps Cinemachine target position and aligns the camera directly behind the player's orientation.
-    /// </summary>
     private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
     {
         if (freeLookCamera == null && playerMainCamera != null)
@@ -568,19 +498,15 @@ public class GameManager : MonoBehaviour
 
         if (freeLookCamera != null)
         {
-            // 1. Notify Cinemachine of instant teleportation to prevent camera trailing
             Vector3 deltaPosition = targetTransform.position - previousPosition;
             freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
 
-            // 2. Align horizontal axis (X) to match target's forward orientation
             freeLookCamera.m_XAxis.Value = targetRotation.eulerAngles.y;
-
-            // 3. Reset vertical orbit axis (Y) to neutral height ratio
             freeLookCamera.m_YAxis.Value = 0.5f;
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (currentState != GameState.TitleScreen)
         {

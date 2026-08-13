@@ -57,7 +57,7 @@ public class InventoryUI : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {/*
         if (animating) return;
 
         //---------PRESS DOWN ARROW KEY----------
@@ -261,7 +261,7 @@ public class InventoryUI : MonoBehaviour
                 GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
                 ItemListGoLeft();
             }
-        }
+        }*/
 
     }
 

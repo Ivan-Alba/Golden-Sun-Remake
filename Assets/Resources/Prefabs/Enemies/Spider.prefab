@@ -83,7 +83,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7cf2e21f08ba96340b61fc60381ad6af, type: 2}
+  - {fileID: 2100000, guid: 1035394dba39c5b41a002d49c4b0cb88, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2470,7 +2470,7 @@ BoxCollider:
   m_Center: {x: -0.0017011762, y: 0.42420518, z: -0.027368963}
 --- !u!95 &7180290360672529954
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2487,7 +2487,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!195 &5038165136887044697
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2680,7 +2681,7 @@ MonoBehaviour:
   spirit: 10
   agility: 9
   luck: 7
-  avatar: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
+  turnBarImage: {fileID: 0}
   xp: 0
 --- !u!114 &7902641766905574895
 MonoBehaviour:
@@ -2710,8 +2711,8 @@ MonoBehaviour:
   gold: 20
   ph: 1
   itemEasyDrop: Spiderweb
-  itemRareDrop: Antidote
-  itemVeryRareDrop: Metal_Bracelet
   itemEasyRatio: 30
+  itemRareDrop: Antidote
   itemRareRatio: 10
+  itemVeryRareDrop: Metal_Bracelet
   itemVeryRareRatio: 3

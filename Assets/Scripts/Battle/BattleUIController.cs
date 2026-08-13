@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -143,7 +142,10 @@ public class BattleUIController : MonoBehaviour
 
         SetInfoText();
         RefreshButtonAnimation();
-        GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.MOVE_SOUND);
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.UI_Move);
+        }
     }
 
     public void ShowOrdersPanel(bool choice)
@@ -369,11 +371,17 @@ public class BattleUIController : MonoBehaviour
             case "Psynergy":
                 if (contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>().color != Color.grey && contentItems[contentCursorIndex].name != "")
                 {
-                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
+                    }
                     return contentItems[contentCursorIndex].name;
                 } else
                 {
-                    GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.NEGATIVE_SOUND);
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlaySFX(SFXType.UI_Cancel);
+                    }
                     return null;
                 }
             default:

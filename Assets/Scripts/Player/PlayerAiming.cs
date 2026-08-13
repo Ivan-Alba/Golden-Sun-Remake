@@ -1,69 +1,133 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAiming : MonoBehaviour
 {
-    public Cinemachine.AxisState xAxis;
-    public Cinemachine.AxisState yAxis;
+    #region Serialized Fields
 
-    private Transform cameraLookAt;
-    private Transform aimParent;
+    [Header("Detection Settings")]
+    [SerializeField] private float maxTargetDistance = 15f;
+    [SerializeField] private float sphereCastRadius = 0.6f;
+    [SerializeField] private LayerMask targetLayerMask;
 
-    private GameObject target;
-    public bool isPsynergyAnimation;
+    [Header("References")]
+    [SerializeField] private Transform mainCamera;
+
+    #endregion
+
+    #region Private Fields
+
+    private IPsynergyTargetable currentTarget;
+
+    #endregion
+
+    #region Properties
+
+    public IPsynergyTargetable CurrentTarget => currentTarget;
+
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        aimParent = transform.Find("Aim");
-        target = null;
+        if (mainCamera == null && Camera.main != null)
+        {
+            mainCamera = Camera.main.transform;
+        }
     }
 
     private void Update()
     {
+        PerformTargetDetection();
+    }
 
-        //KEY 1
-        if (!isPsynergyAnimation && Input.GetKey(KeyCode.Alpha1) && target != null)
+    private void OnDisable()
+    {
+        ClearCurrentTarget();
+    }
+
+    #endregion
+
+    #region Detection Logic
+
+    private void PerformTargetDetection()
+    {
+        if (mainCamera == null) return;
+
+        Ray ray = new Ray(mainCamera.position, mainCamera.forward);
+        IPsynergyTargetable detectedTarget = null;
+
+        // Perform thick SphereCast from camera along the view vector
+        if (Physics.SphereCast(ray, sphereCastRadius, out RaycastHit hit, maxTargetDistance, targetLayerMask))
         {
-            PsynergyWorldController.Instance.UsePsynergy(0, target);
-        };
-    }
-
-    private void OnEnable()
-    {
-        target = null;
-        yAxis.Value = transform.eulerAngles.x;
-        xAxis.Value = transform.eulerAngles.y;
-    }
-
-    // Update is called once per frame
-    public void Reset()
-    {
-        xAxis.Value = 0;
-        yAxis.Value = 0;
-    }
-    void FixedUpdate()
-    {
-        xAxis.Update(Time.fixedDeltaTime);
-        yAxis.Update(Time.fixedDeltaTime);
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, xAxis.Value * 0.3f, transform.eulerAngles.z);
-        aimParent.eulerAngles = new Vector3(yAxis.Value * 0.3f, xAxis.Value * 0.3f, 0);
-
-        Ray ray = aimParent.Find("AimCamera").GetComponent<Camera>().ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-
-            if (hit.transform.gameObject != null)
+            if (hit.collider.TryGetComponent<IPsynergyTargetable>(out var targetable))
             {
-                target = hit.transform.gameObject;
-            }
-            else
-            {
-                target = null;
+                if (targetable.CanBeTargeted())
+                {
+                    detectedTarget = targetable;
+                }
             }
         }
 
+        // Target changed detection
+        if (detectedTarget != currentTarget)
+        {
+            // Clear previous target
+            if (currentTarget != null)
+            {
+                currentTarget.OnTargetLost();
+            }
 
+            // Assign new target
+            currentTarget = detectedTarget;
 
+            if (currentTarget != null)
+            {
+                currentTarget.OnTargetGained();
+            }
+
+            // Update UI Reticle feedback (e.g. highlight reticle when locked on)
+            if (PlayerUIManager.Instance != null)
+            {
+                PlayerUIManager.Instance.SetAimTargetLocked(currentTarget != null);
+            }
+        }
     }
+
+    /// <summary>
+    /// Resets aiming component state when exiting aim mode.
+    /// </summary>
+    public void Reset()
+    {
+        ClearCurrentTarget();
+    }
+
+    private void ClearCurrentTarget()
+    {
+        if (currentTarget != null)
+        {
+            currentTarget.OnTargetLost();
+            currentTarget = null;
+        }
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.SetAimTargetLocked(false);
+        }
+    }
+
+    #endregion
+
+    #region Debug Gizmos
+
+    private void OnDrawGizmosSelected()
+    {
+        if (mainCamera == null) return;
+
+        Gizmos.color = currentTarget != null ? Color.green : Color.red;
+        Gizmos.DrawRay(mainCamera.position, mainCamera.forward * maxTargetDistance);
+        Gizmos.DrawWireSphere(mainCamera.position + mainCamera.forward * maxTargetDistance, sphereCastRadius);
+    }
+
+    #endregion
 }

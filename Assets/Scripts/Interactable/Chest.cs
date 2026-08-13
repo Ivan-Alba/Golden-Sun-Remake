@@ -48,9 +48,9 @@ public class Chest : Interactable
         yield return new WaitForSeconds(2f);
 
         // Play item discovery sound and show UI notification
-        if (GameManager.Instance != null)
+        if (AudioManager.Instance != null)
         {
-            GameManager.Instance.GetComponent<Sounds>()?.PlaySound(GameManager.ITEM_FOUNDED_SOUND);
+            AudioManager.Instance?.PlaySFX(SFXType.UI_ItemFound);
         }
 
         if (itemFound != null && NotificationController.Instance != null)

@@ -27,14 +27,13 @@ public class DialogueManager : MonoBehaviour
     #region Private Fields
 
     private int dialogueIndex;
-    private bool keyPressed;
     private string currentNpcName;
     private GameObject currentInteractableElement;
     private List<string> dialogueLines = new List<string>();
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Unity Lifecycle & Event Subscriptions
 
     private void Awake()
     {
@@ -61,22 +60,38 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        // Only process dialogue progression if in InDialogue state
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnDialogueAdvancePressed += HandleDialogueAdvance;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnDialogueAdvancePressed -= HandleDialogueAdvance;
+        }
+    }
+
+    #endregion
+
+    #region Event Callbacks
+
+    private void HandleDialogueAdvance()
+    {
+        // Only process if we are currently in dialogue state
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InDialogue) return;
 
-        if (Input.GetKeyDown(GameManager.Instance.KeyConfirm) && !keyPressed)
+        // Play dialogue advance sound effect
+        if (AudioManager.Instance != null)
         {
-            keyPressed = true;
-            GameManager.Instance.GetComponent<Sounds>()?.PlaySound(GameManager.MOVE_SOUND);
-            ContinueDialogue();
+            AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
         }
 
-        if (Input.GetKeyUp(GameManager.Instance.KeyConfirm))
-        {
-            keyPressed = false;
-        }
+        ContinueDialogue();
     }
 
     #endregion
@@ -96,7 +111,6 @@ public class DialogueManager : MonoBehaviour
             GameManager.Instance.SetGameState(GameManager.GameState.InDialogue);
         }
 
-        keyPressed = true;
         dialogueIndex = 0;
         dialogueLines = new List<string>(lines);
         currentNpcName = name;
@@ -149,10 +163,10 @@ public class DialogueManager : MonoBehaviour
     {
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
 
-        // Bajar prioridad de la cámara de diálogo
+        // Lower dialogue camera priority
         if (dialogueCamera != null) dialogueCamera.Priority = inactiveCameraPriority;
 
-        // Notificar al NPC para soltar la mirada
+        // Notify NPC to stop looking at player
         if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<NPC>(out var npc))
         {
             npc.EndDialogueLook();
@@ -176,27 +190,22 @@ public class DialogueManager : MonoBehaviour
 
         if (targetGroup != null && PlayerController.Instance != null)
         {
-            // 1. Reconstruir el grupo
             targetGroup.m_Targets = new CinemachineTargetGroup.Target[0];
             targetGroup.AddMember(PlayerController.Instance.transform, 1f, 1.2f);
             targetGroup.AddMember(npcTarget.transform, 1f, 1.2f);
 
-            // 2. Asignar los objetivos a la camara
             dialogueCamera.Follow = targetGroup.transform;
             dialogueCamera.LookAt = targetGroup.transform;
 
-            // 3. Orientar la camara para que el desplazamiento lateral sea SIEMPRE perpendicular a la linea de mirada
             Vector3 playerToNpc = (npcTarget.transform.position - PlayerController.Instance.transform.position).normalized;
             Vector3 sideVector = Vector3.Cross(Vector3.up, playerToNpc).normalized;
 
-            // Posicionamos el offset de la camara a un lado de la linea de mirada
             Vector3 midPoint = (PlayerController.Instance.transform.position + npcTarget.transform.position) * 0.5f;
             Vector3 desiredCameraPos = midPoint + (sideVector * 2.5f) + (Vector3.up * 1.8f) - (playerToNpc * 2.0f);
 
             dialogueCamera.transform.position = desiredCameraPos;
         }
 
-        // 4. Activar la camara de dialogo
         dialogueCamera.Priority = activeCameraPriority;
     }
 

@@ -75,7 +75,7 @@ public class EquipmentUI : MonoBehaviour
     }
 
     private void Update()
-    {
+    {/*
         if (animating)
         {
             return;
@@ -254,7 +254,7 @@ public class EquipmentUI : MonoBehaviour
                 currentHero = GameManager.Instance.GetParty()[optionsIndex];
                 RefreshEquipInfo();
             }
-        }
+        }*/
     }
 
     private void ShowGearForSlot()

@@ -109,7 +109,7 @@ public class PsynergyWorldController : MonoBehaviour
         ResfreshShortcutsUI(hero);
     }
 
-    public void UsePsynergy(int position, GameObject target)
+    public void UsePsynergy(int position, IPsynergyTargetable target)
     {
         if (GameManager.Instance == null || GameManager.Instance.ActiveHero == null) return;
 
@@ -122,20 +122,25 @@ public class PsynergyWorldController : MonoBehaviour
         {
             if (target != null)
             {
-                Debug.Log($"Used psynergy: {usedPsynergy.SlugName} on {target.name}");
+                Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.SlugName} on target.");
 
-                if (target.CompareTag($"{usedPsynergy.SlugName}Reactive"))
+                // Execute Psynergy using the IPsynergyTargetable interface
+                bool success = target.ExecutePsynergy(usedPsynergy, activeHero);
+
+                if (success)
                 {
-                    PsynergyReactive reactiveScript = target.GetComponent<PsynergyReactive>();
-                    if (reactiveScript != null)
-                    {
-                        reactiveScript.React();
-                    }
+                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.Name} executed successfully!");
+                    // TODO: Deduct PP cost from activeHero stats if needed
+                }
+                else
+                {
+                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.Name} failed or target is not compatible.");
                 }
             }
             else
             {
-                // Auto-target logic can be handled here if needed
+                Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.Name} but no target was selected.");
+                // Lógica para Psinergías que no necesitan target en pantalla (ej. Curar en mapa, Revelar)
             }
         }
     }

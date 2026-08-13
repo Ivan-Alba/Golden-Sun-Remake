@@ -1,52 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-
-// Enum for all rebindable actions in the game
-public enum InputAction
-{
-    Run,
-    Interact,
-    Hero1,
-    Hero2,
-    Hero3,
-    Psynergy1,
-    Psynergy2,
-    Psynergy3,
-    Psynergy4,
-    PsynergyUp,
-    PsynergyDown,
-    Aim,
-    Menu
-}
-
-// Serializable class used for JSON export/import
-[System.Serializable]
-public class ControlBindingsData
-{
-    public string runKey = KeyCode.LeftShift.ToString();
-    public string interactKey = KeyCode.E.ToString();
-    public string hero1Key = KeyCode.F1.ToString();
-    public string hero2Key = KeyCode.F2.ToString();
-    public string hero3Key = KeyCode.F3.ToString();
-    public string psynergy1Key = KeyCode.Alpha1.ToString();
-    public string psynergy2Key = KeyCode.Alpha2.ToString();
-    public string psynergy3Key = KeyCode.Alpha3.ToString();
-    public string psynergy4Key = KeyCode.Alpha4.ToString();
-    public string psynergyUpKey = KeyCode.UpArrow.ToString();
-    public string psynergyDownKey = KeyCode.DownArrow.ToString();
-    public string aimKey = KeyCode.Q.ToString();
-    public string menuKey = KeyCode.Escape.ToString();
-}
+using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
 
+    private PlayerInputActions inputActions;
+
     public Vector2 MoveInput { get; private set; }
     public bool IsRunning { get; private set; }
+    public bool IsAiming { get; private set; }
 
     // --- EVENTS FOR DISCRETE ACTIONS ---
     public event Action<int> OnChangeHeroPressed;
@@ -55,14 +19,15 @@ public class InputManager : MonoBehaviour
     public event Action OnStartAimPressed;
     public event Action OnStopAimPressed;
     public event Action<int> OnUsePsynergyPressed;
-    public event Action<int, bool> OnHoldPsynergyBarChanged; // int: slotIndex, bool: isHolding
-    public event Action OnPsynergyNavigateUpPressed;
-    public event Action OnPsynergyNavigateDownPressed;
+    public event Action OnDialogueAdvancePressed;
 
-    // Internal Dictionary for fast lookup
-    private Dictionary<InputAction, KeyCode> keyBindings = new Dictionary<InputAction, KeyCode>();
-    private bool[] psynergyKeyHeld = new bool[4];
-    private string jsonFilePath;
+    // --- BATTLE EVENTS ---
+    public event Action OnBattleConfirmPressed;
+    public event Action OnBattleCancelPressed;
+    public event Action OnBattleUpPressed;
+    public event Action OnBattleDownPressed;
+    public event Action OnBattleLeftPressed;
+    public event Action OnBattleRightPressed;
 
     private void Awake()
     {
@@ -73,192 +38,269 @@ public class InputManager : MonoBehaviour
         }
 
         Instance = this;
-
-        jsonFilePath = Path.Combine(Application.persistentDataPath, "controls.json");
+        inputActions = new PlayerInputActions();
         LoadControlBindings();
+    }
+
+    private void OnEnable()
+    {
+        inputActions.Enable();
+        SubscribeToInputEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromInputEvents();
+        inputActions.Disable();
     }
 
     private void Update()
     {
-        //Debug.Log(GameManager.Instance.CurrentState.ToString());
-        if (GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
-            return;
+        if (GameManager.Instance == null) return;
 
-        if (GameManager.Instance != null && GameManager.Instance.LoadingData)
+        if (GameManager.Instance.LoadingData)
         {
             MoveInput = Vector2.zero;
             IsRunning = false;
             return;
         }
 
-        HandleMovementInput();
-        HandleHeroSelectionInput();
-        HandleInteractionInput();
-        HandleAimInput();
-        HandleMenuInput();
-        HandlePsynergyInput();
-    }
-
-    #region Input Processing
-
-    private void HandleMovementInput()
-    {
-        float x = Input.GetAxisRaw("Horizontal");
-        float z = Input.GetAxisRaw("Vertical");
-        MoveInput = new Vector2(x, z).normalized;
-
-        IsRunning = Input.GetKey(keyBindings[InputAction.Run]);
-    }
-
-    private void HandleHeroSelectionInput()
-    {
-        if (Input.GetKeyDown(keyBindings[InputAction.Hero1])) OnChangeHeroPressed?.Invoke(1);
-        if (Input.GetKeyDown(keyBindings[InputAction.Hero2])) OnChangeHeroPressed?.Invoke(2);
-        if (Input.GetKeyDown(keyBindings[InputAction.Hero3])) OnChangeHeroPressed?.Invoke(3);
-    }
-
-    private void HandleInteractionInput()
-    {
-        if (Input.GetKeyDown(keyBindings[InputAction.Interact]))
+        switch (GameManager.Instance.CurrentState)
         {
-            OnInteractPressed?.Invoke();
+            case GameManager.GameState.WorldExploration:
+                EnsureWorldExplorationActive();
+                break;
+
+            case GameManager.GameState.InDialogue:
+                ProcessDialogueState();
+                break;
+
+            case GameManager.GameState.InMenu:
+                ProcessMenuState();
+                break;
+
+            case GameManager.GameState.InBattle:
+                ProcessCombatState();
+                break;
         }
     }
 
-    private void HandleAimInput()
+    #region Input Event Subscriptions
+
+    private void SubscribeToInputEvents()
     {
-        if (Input.GetKeyDown(keyBindings[InputAction.Aim])) OnStartAimPressed?.Invoke();
-        if (Input.GetKeyUp(keyBindings[InputAction.Aim])) OnStopAimPressed?.Invoke();
+        UnsubscribeFromInputEvents();
+
+        // --- WORLD EXPLORATION MAP ---
+        inputActions.WorldExploration.Move.performed += OnMovePerformed;
+        inputActions.WorldExploration.Move.canceled += OnMoveCanceled;
+
+        inputActions.WorldExploration.Run.started += OnRunStarted;
+        inputActions.WorldExploration.Run.canceled += OnRunCanceled;
+
+        inputActions.WorldExploration.Interact.performed += OnInteractPerformed;
+        inputActions.WorldExploration.ToggleMenu.performed += OnToggleMenuPerformed;
+
+        inputActions.WorldExploration.Hero1.performed += OnHero1Performed;
+        inputActions.WorldExploration.Hero2.performed += OnHero2Performed;
+        inputActions.WorldExploration.Hero3.performed += OnHero3Performed;
+        inputActions.WorldExploration.Hero4.performed += OnHero4Performed;
+
+        // Hold Right-Click to Aim
+        inputActions.WorldExploration.Aim.started += OnAimStarted;
+        inputActions.WorldExploration.Aim.canceled += OnAimCanceled;
+
+        // --- PSYNERGY AIMING MAP ---
+        inputActions.PsynergyAiming.Psynergy1.performed += OnPsynergy1Performed;
+        inputActions.PsynergyAiming.Psynergy2.performed += OnPsynergy2Performed;
+        inputActions.PsynergyAiming.Psynergy3.performed += OnPsynergy3Performed;
+        inputActions.PsynergyAiming.Psynergy4.performed += OnPsynergy4Performed;
+
+        // --- DIALOGUE MAP ---
+        inputActions.Dialogue.Confirm.performed += OnDialogueAdvancePerformed;
+
+        // --- BATTLE MAP ---
+        inputActions.Battle.Confirm.performed += OnBattleConfirmPerformed;
+        inputActions.Battle.Cancel.performed += OnBattleCancelPerformed;
+        inputActions.Battle.Up.performed += OnBattleUpPerformed;
+        inputActions.Battle.Down.performed += OnBattleDownPerformed;
+        inputActions.Battle.Left.performed += OnBattleLeftPerformed;
+        inputActions.Battle.Right.performed += OnBattleRightPerformed;
     }
 
-    private void HandleMenuInput()
+    private void UnsubscribeFromInputEvents()
     {
-        if (Input.GetKeyDown(keyBindings[InputAction.Menu]))
-        {
-            OnToggleMenuPressed?.Invoke();
-        }
-    }
+        if (inputActions == null) return;
 
-    private void HandlePsynergyInput()
-    {
-        InputAction[] psynergyActions = { InputAction.Psynergy1, InputAction.Psynergy2, InputAction.Psynergy3, InputAction.Psynergy4 };
+        inputActions.WorldExploration.Move.performed -= OnMovePerformed;
+        inputActions.WorldExploration.Move.canceled -= OnMoveCanceled;
 
-        for (int i = 0; i < psynergyActions.Length; i++)
-        {
-            KeyCode code = keyBindings[psynergyActions[i]];
+        inputActions.WorldExploration.Run.started -= OnRunStarted;
+        inputActions.WorldExploration.Run.canceled -= OnRunCanceled;
 
-            if (Input.GetKeyDown(code))
-            {
-                OnUsePsynergyPressed?.Invoke(i);
-            }
-            else if (Input.GetKey(code) && !psynergyKeyHeld[i])
-            {
-                psynergyKeyHeld[i] = true;
-                OnHoldPsynergyBarChanged?.Invoke(i, true);
-            }
-            else if (Input.GetKeyUp(code) && psynergyKeyHeld[i])
-            {
-                psynergyKeyHeld[i] = false;
-                OnHoldPsynergyBarChanged?.Invoke(i, false);
-            }
-        }
+        inputActions.WorldExploration.Interact.performed -= OnInteractPerformed;
+        inputActions.WorldExploration.ToggleMenu.performed -= OnToggleMenuPerformed;
 
-        if (Input.GetKeyDown(keyBindings[InputAction.PsynergyUp])) OnPsynergyNavigateUpPressed?.Invoke();
-        if (Input.GetKeyDown(keyBindings[InputAction.PsynergyDown])) OnPsynergyNavigateDownPressed?.Invoke();
+        inputActions.WorldExploration.Hero1.performed -= OnHero1Performed;
+        inputActions.WorldExploration.Hero2.performed -= OnHero2Performed;
+        inputActions.WorldExploration.Hero3.performed -= OnHero3Performed;
+        inputActions.WorldExploration.Hero4.performed -= OnHero4Performed;
+
+        inputActions.WorldExploration.Aim.started -= OnAimStarted;
+        inputActions.WorldExploration.Aim.canceled -= OnAimCanceled;
+
+        inputActions.PsynergyAiming.Psynergy1.performed -= OnPsynergy1Performed;
+        inputActions.PsynergyAiming.Psynergy2.performed -= OnPsynergy2Performed;
+        inputActions.PsynergyAiming.Psynergy3.performed -= OnPsynergy3Performed;
+        inputActions.PsynergyAiming.Psynergy4.performed -= OnPsynergy4Performed;
+
+        inputActions.Dialogue.Confirm.performed -= OnDialogueAdvancePerformed;
+
+        inputActions.Battle.Confirm.performed -= OnBattleConfirmPerformed;
+        inputActions.Battle.Cancel.performed -= OnBattleCancelPerformed;
+        inputActions.Battle.Up.performed -= OnBattleUpPerformed;
+        inputActions.Battle.Down.performed -= OnBattleDownPerformed;
+        inputActions.Battle.Left.performed -= OnBattleLeftPerformed;
+        inputActions.Battle.Right.performed -= OnBattleRightPerformed;
     }
 
     #endregion
 
-    #region JSON & Binding Management
+    #region Event Callbacks
 
-    // Loads bindings from controls.json or creates default file if missing
-    public void LoadControlBindings()
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => MoveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext ctx) => MoveInput = Vector2.zero;
+
+    private void OnRunStarted(InputAction.CallbackContext ctx) => IsRunning = true;
+    private void OnRunCanceled(InputAction.CallbackContext ctx) => IsRunning = false;
+
+    private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
-        ControlBindingsData data;
+        if (!IsAiming) OnInteractPressed?.Invoke();
+    }
 
-        if (File.Exists(jsonFilePath))
+    private void OnToggleMenuPerformed(InputAction.CallbackContext ctx) => OnToggleMenuPressed?.Invoke();
+
+    private void OnHero1Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(0);
+    private void OnHero2Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(1);
+    private void OnHero3Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(2);
+    private void OnHero4Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(3);
+
+    private void OnAimStarted(InputAction.CallbackContext ctx) => StartAiming();
+    private void OnAimCanceled(InputAction.CallbackContext ctx) => StopAiming();
+
+    private void OnPsynergy1Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(0);
+    private void OnPsynergy2Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(1);
+    private void OnPsynergy3Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(2);
+    private void OnPsynergy4Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(3);
+
+    private void OnDialogueAdvancePerformed(InputAction.CallbackContext ctx) => OnDialogueAdvancePressed?.Invoke();
+
+    // --- BATTLE CALLBACKS ---
+    private void OnBattleConfirmPerformed(InputAction.CallbackContext ctx) => OnBattleConfirmPressed?.Invoke();
+    private void OnBattleCancelPerformed(InputAction.CallbackContext ctx) => OnBattleCancelPressed?.Invoke();
+    private void OnBattleUpPerformed(InputAction.CallbackContext ctx) => OnBattleUpPressed?.Invoke();
+    private void OnBattleDownPerformed(InputAction.CallbackContext ctx) => OnBattleDownPressed?.Invoke();
+    private void OnBattleLeftPerformed(InputAction.CallbackContext ctx) => OnBattleLeftPressed?.Invoke();
+    private void OnBattleRightPerformed(InputAction.CallbackContext ctx) => OnBattleRightPressed?.Invoke();
+
+    #endregion
+
+    #region State & Map Management
+
+    private void EnsureWorldExplorationActive()
+    {
+        if (!inputActions.WorldExploration.enabled) inputActions.WorldExploration.Enable();
+        if (inputActions.Dialogue.enabled) inputActions.Dialogue.Disable();
+        if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+
+        if (IsAiming)
         {
-            string json = File.ReadAllText(jsonFilePath);
-            data = JsonUtility.FromJson<ControlBindingsData>(json);
+            if (!inputActions.PsynergyAiming.enabled) inputActions.PsynergyAiming.Enable();
         }
         else
         {
-            data = new ControlBindingsData(); // Generates default keys
-            SaveControlBindingsData(data);
+            if (inputActions.PsynergyAiming.enabled) inputActions.PsynergyAiming.Disable();
         }
-
-        PopulateDictionaryFromData(data);
     }
 
-    // Saves current dictionary back into the JSON file
-    public void SaveCurrentBindings()
+    private void ProcessDialogueState()
     {
-        ControlBindingsData data = ConvertDictionaryToData();
-        SaveControlBindingsData(data);
+        MoveInput = Vector2.zero;
+        IsRunning = false;
+
+        if (IsAiming) StopAiming();
+
+        inputActions.WorldExploration.Disable();
+        inputActions.PsynergyAiming.Disable();
+        if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+
+        if (!inputActions.Dialogue.enabled) inputActions.Dialogue.Enable();
     }
 
-    private void SaveControlBindingsData(ControlBindingsData data)
+    private void ProcessMenuState()
     {
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(jsonFilePath, json);
+        MoveInput = Vector2.zero;
+        IsRunning = false;
+
+        if (IsAiming) StopAiming();
+
+        inputActions.WorldExploration.Disable();
+        inputActions.PsynergyAiming.Disable();
+        inputActions.Dialogue.Disable();
+        if (inputActions.Battle.enabled) inputActions.Battle.Disable();
     }
 
-    private void PopulateDictionaryFromData(ControlBindingsData data)
+    private void ProcessCombatState()
     {
-        keyBindings[InputAction.Run] = ParseKey(data.runKey, KeyCode.LeftShift);
-        keyBindings[InputAction.Interact] = ParseKey(data.interactKey, KeyCode.E);
-        keyBindings[InputAction.Hero1] = ParseKey(data.hero1Key, KeyCode.F1);
-        keyBindings[InputAction.Hero2] = ParseKey(data.hero2Key, KeyCode.F2);
-        keyBindings[InputAction.Hero3] = ParseKey(data.hero3Key, KeyCode.F3);
-        keyBindings[InputAction.Psynergy1] = ParseKey(data.psynergy1Key, KeyCode.Alpha1);
-        keyBindings[InputAction.Psynergy2] = ParseKey(data.psynergy2Key, KeyCode.Alpha2);
-        keyBindings[InputAction.Psynergy3] = ParseKey(data.psynergy3Key, KeyCode.Alpha3);
-        keyBindings[InputAction.Psynergy4] = ParseKey(data.psynergy4Key, KeyCode.Alpha4);
-        keyBindings[InputAction.PsynergyUp] = ParseKey(data.psynergyUpKey, KeyCode.UpArrow);
-        keyBindings[InputAction.PsynergyDown] = ParseKey(data.psynergyDownKey, KeyCode.DownArrow);
-        keyBindings[InputAction.Aim] = ParseKey(data.aimKey, KeyCode.Q);
-        keyBindings[InputAction.Menu] = ParseKey(data.menuKey, KeyCode.Escape);
+        MoveInput = Vector2.zero;
+        IsRunning = false;
+
+        if (IsAiming) StopAiming();
+
+        inputActions.WorldExploration.Disable();
+        inputActions.PsynergyAiming.Disable();
+        inputActions.Dialogue.Disable();
+
+        if (!inputActions.Battle.enabled) inputActions.Battle.Enable();
     }
 
-    private ControlBindingsData ConvertDictionaryToData()
+    private void StartAiming()
     {
-        ControlBindingsData data = new ControlBindingsData();
-        data.runKey = keyBindings[InputAction.Run].ToString();
-        data.interactKey = keyBindings[InputAction.Interact].ToString();
-        data.hero1Key = keyBindings[InputAction.Hero1].ToString();
-        data.hero2Key = keyBindings[InputAction.Hero2].ToString();
-        data.hero3Key = keyBindings[InputAction.Hero3].ToString();
-        data.psynergy1Key = keyBindings[InputAction.Psynergy1].ToString();
-        data.psynergy2Key = keyBindings[InputAction.Psynergy2].ToString();
-        data.psynergy3Key = keyBindings[InputAction.Psynergy3].ToString();
-        data.psynergy4Key = keyBindings[InputAction.Psynergy4].ToString();
-        data.psynergyUpKey = keyBindings[InputAction.PsynergyUp].ToString();
-        data.psynergyDownKey = keyBindings[InputAction.PsynergyDown].ToString();
-        data.aimKey = keyBindings[InputAction.Aim].ToString();
-        data.menuKey = keyBindings[InputAction.Menu].ToString();
-        return data;
+        if (IsAiming) return;
+
+        IsAiming = true;
+        inputActions.PsynergyAiming.Enable();
+        OnStartAimPressed?.Invoke();
     }
 
-    private KeyCode ParseKey(string keyString, KeyCode fallback)
+    private void StopAiming()
     {
-        if (Enum.TryParse(keyString, out KeyCode parsedKey))
+        if (!IsAiming) return;
+
+        IsAiming = false;
+        inputActions.PsynergyAiming.Disable();
+        OnStopAimPressed?.Invoke();
+    }
+
+    #endregion
+
+    #region Binding Persistence
+
+    public void SaveControlBindings()
+    {
+        string overridesJson = inputActions.SaveBindingOverridesAsJson();
+        PlayerPrefs.SetString("InputBindingOverrides", overridesJson);
+        PlayerPrefs.Save();
+    }
+
+    public void LoadControlBindings()
+    {
+        if (PlayerPrefs.HasKey("InputBindingOverrides"))
         {
-            return parsedKey;
+            string overridesJson = PlayerPrefs.GetString("InputBindingOverrides");
+            inputActions.LoadBindingOverridesFromJson(overridesJson);
         }
-        return fallback;
-    }
-
-    // Public method to rebind a key at runtime (for future UI Options Menu)
-    public void RebindKey(InputAction action, KeyCode newKey)
-    {
-        keyBindings[action] = newKey;
-        SaveCurrentBindings();
-    }
-
-    // Public method to fetch current KeyCode for display in UI
-    public KeyCode GetMappedKey(InputAction action)
-    {
-        return keyBindings.ContainsKey(action) ? keyBindings[action] : KeyCode.None;
     }
 
     #endregion

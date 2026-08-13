@@ -56,9 +56,9 @@ public class FieldItem : Interactable
             InventoryController.Instance.AddItem(itemName);
         }
 
-        if (GameManager.Instance != null)
+        if (AudioManager.Instance != null)
         {
-            GameManager.Instance.GetComponent<Sounds>()?.PlaySound(GameManager.ITEM_FOUNDED_SOUND);
+            AudioManager.Instance?.PlaySFX(SFXType.UI_ItemFound);
         }
 
         // 5. Hide world object visually while processing cleanup

@@ -1,61 +1,63 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Xml;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ResultsScreenController : MonoBehaviour
 {
-    TextMeshProUGUI xpText, phText, goldText, heroName, heroLevel, heroNextLevel, confirmText, abilityLearnedName;
-    GameObject itemsPanel;
-    Slider xpBar;
-    Sounds resultSounds;
-    List<GameObject> heroList = new List<GameObject>();
-    bool waitingConfirmation;
-    bool resultsFinished;
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI xpText;
+    [SerializeField] private TextMeshProUGUI phText;
+    [SerializeField] private TextMeshProUGUI goldText;
+    [SerializeField] private GameObject itemsPanel;
+    [SerializeField] private TextMeshProUGUI confirmText;
+
+    private TextMeshProUGUI heroName, heroLevel, heroNextLevel, abilityLearnedName;
+    private Slider xpBar;
+    private List<GameObject> heroList = new List<GameObject>();
+    private bool waitingConfirmation;
+    private bool resultsFinished;
 
     public bool ResultsFinished { get => resultsFinished; set => resultsFinished = value; }
 
     private void Awake()
     {
-        xpText = transform.Find("InfoPanel").Find("XpPanel").Find("XpText").GetComponent<TextMeshProUGUI>();
-        phText = transform.Find("InfoPanel").Find("PhPanel").Find("PhText").GetComponent<TextMeshProUGUI>();
-        goldText = transform.Find("InfoPanel").Find("GoldPanel").Find("GoldText").GetComponent<TextMeshProUGUI>();
-        itemsPanel = transform.Find("InfoPanel").Find("ItemPanel").gameObject;
-        confirmText = transform.Find("PressConfirm").gameObject.GetComponent<TextMeshProUGUI>();
-        confirmText.SetText($"Pulsa {GameManager.Instance.KeyConfirm} para continuar");
-
-        resultSounds = gameObject.GetComponent<Sounds>();
+        if (confirmText != null)
+        {
+            confirmText.SetText("Pulsa ESPACIO para continuar");
+        }
     }
 
-
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    /// Called directly by BattleManager when Confirm key is pressed during ResultsScreen state.
+    /// </summary>
+    public void HandleConfirmInput()
     {
         if (waitingConfirmation)
         {
-            if (Input.GetKeyDown(GameManager.Instance.KeyConfirm))
+            if (AudioManager.Instance != null)
             {
-                GameManager.Instance.GetComponent<Sounds>().PlaySound(GameManager.CONFIRM_SOUND);
-                waitingConfirmation = false;
-                ResultsFinished = true;
+                AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
             }
+
+            waitingConfirmation = false;
+            ResultsFinished = true;
         }
     }
 
     private void SetInitConfig()
     {
-        //SET INIT CONFIGURATIONS
+        // SET INIT CONFIGURATIONS
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         gameObject.SetActive(true);
-        confirmText.gameObject.SetActive(false);
-        xpText.SetText("0");
-        phText.SetText("0");
-        goldText.SetText("0");
+        if (confirmText != null) confirmText.gameObject.SetActive(false);
 
-        //SET INIT HERO INFO
+        if (xpText != null) xpText.SetText("0");
+        if (phText != null) phText.SetText("0");
+        if (goldText != null) goldText.SetText("0");
+
+        // SET INIT HERO INFO
         for (int i = 0; i < heroList.Count; i++)
         {
             transform.Find("HeroPanel").Find($"Hero{i}").gameObject.SetActive(true);
@@ -73,15 +75,14 @@ public class ResultsScreenController : MonoBehaviour
             xpBar.value = heroList[i].GetComponent<FighterStats>().Xp;
             xpBar.maxValue = heroList[i].GetComponent<FighterStats>().NextLevelXp;
         }
-
     }
+
     public IEnumerator ShowResults(List<GameObject> heroList, int xpEarned, int phEarned, int goldEarned, Dictionary<Item, int> totalItemsObtained)
     {
-
         this.heroList = heroList;
         SetInitConfig();
 
-        //CROSSFADE
+        // CROSSFADE
         while (gameObject.GetComponent<CanvasGroup>().alpha < 1)
         {
             gameObject.GetComponent<CanvasGroup>().alpha += 0.2f;
@@ -89,16 +90,14 @@ public class ResultsScreenController : MonoBehaviour
         }
         yield return new WaitForSeconds(1f);
 
+        // ---------------------- RECOMPENSAS DE XP, ITEMS, ETC --------------------------------
 
-        //----------------------RECOMPENSAS DE XP, ITEMS, ETC--------------------------------
-
-        //------------------ITEMS------------------
+        // ------------------ ITEMS ------------------
         int initY = 130;
         int offsetY = 60;
         int iterat = 0;
         foreach (KeyValuePair<Item, int> entry in totalItemsObtained)
         {
-            // do something with entry.Value or entry.Key
             Debug.Log($"Enemigo deja caer: {entry.Key.ItemName}");
             GameObject newItem = Instantiate(Resources.Load("Prefabs/UIComponents/ResultScreenItem"), itemsPanel.transform) as GameObject;
             newItem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 290);
@@ -114,20 +113,22 @@ public class ResultsScreenController : MonoBehaviour
             iterat++;
         }
 
-
-
-        //--ANIMATE NUMBERS AND BAR CONFIGURATION--
+        // -- ANIMATE NUMBERS AND BAR CONFIGURATION --
         int previousValue = 0;
         int stepAmount;
         int countFPS = 30;
         float duration = 0.4f;
         WaitForSeconds Wait = new WaitForSeconds(duration / countFPS);
 
-        //-------------------XP--------------------
-        resultSounds.PlaySound(0);
+        // ------------------- XP --------------------
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.UI_Count);
+        }
+
         stepAmount = Mathf.CeilToInt((xpEarned - previousValue) / (countFPS * duration));
 
-        //XP OBTAINED VALUE ANIMATION
+        // XP OBTAINED VALUE ANIMATION
         while (previousValue < xpEarned)
         {
             previousValue += stepAmount;
@@ -138,13 +139,12 @@ public class ResultsScreenController : MonoBehaviour
                 previousValue = xpEarned;
             }
 
-            //HERO NEXT LEVEL VALUE AND XP BAR
+            // HERO NEXT LEVEL VALUE AND XP BAR
             for (int i = 0; i < heroList.Count; i++)
             {
-                if (heroList[i].GetComponent<FighterStats>().CurrHp == 0) //IF HERO IS DEAD DOESNT WIN XP
+                if (heroList[i].GetComponent<FighterStats>().CurrHp == 0) // IF HERO IS DEAD DOESNT WIN XP
                 {
                     transform.Find("HeroPanel").Find($"Hero{i}").GetComponent<CanvasGroup>().alpha = 0.5f;
-
                 }
                 else
                 {
@@ -152,45 +152,42 @@ public class ResultsScreenController : MonoBehaviour
                     xpBar = transform.Find("HeroPanel").Find($"Hero{i}").Find("XpBar").GetComponent<Slider>();
                     heroNextLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("NextLevelText").GetComponent<TextMeshProUGUI>();
 
-                    //INCREMENT BAR AND HERO XP
+                    // INCREMENT BAR AND HERO XP
                     xpBar.value += stepAmount;
                     heroStats.Xp += stepAmount;
 
-
-                    if (heroStats.Xp >= heroStats.NextLevelXp) //LEVEL UP?
+                    if (heroStats.Xp >= heroStats.NextLevelXp) // LEVEL UP?
                     {
-                        int surplus = heroStats.Xp - heroStats.NextLevelXp; //EXCEDENT XP
+                        int surplus = heroStats.Xp - heroStats.NextLevelXp; // EXCEDENT XP
 
                         string newPsynergyLearned = heroStats.LevelUp();
                         if (newPsynergyLearned != null)
                         {
                             StartCoroutine(AbilityLearned(i, newPsynergyLearned));
                         }
-                        
+
                         heroStats.Xp += surplus;
-                        //REFRESH BAR VALUES
+                        // REFRESH BAR VALUES
                         xpBar.value = heroStats.Xp;
                         xpBar.maxValue = heroStats.NextLevelXp;
-                        //REFRESH HERO LEVEL TEXT
+                        // REFRESH HERO LEVEL TEXT
                         heroLevel = transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>();
                         heroLevel.SetText($"NV: {heroStats.Level}");
                         heroLevel.color = new Color(1, 0.72f, 0.08f);
                     }
 
-                    //NEXT LEVEL DROP XP
+                    // NEXT LEVEL DROP XP
                     heroNextLevel.SetText((heroList[i].GetComponent<FighterStats>().NextLevelXp
                                    - heroList[i].GetComponent<FighterStats>().Xp).ToString());
                 }
-
             }
-            xpText.SetText(previousValue.ToString());
+            if (xpText != null) xpText.SetText(previousValue.ToString());
             yield return Wait;
         }
-        resultSounds.StopSound();
+        //if (resultSounds != null) resultSounds.StopSound();
 
-
-        //-----------------PH----------------------
-        resultSounds.PlaySound(0);
+        // ----------------- PH ----------------------
+        //if (resultSounds != null) resultSounds.PlaySound(0);
 
         previousValue = 0;
         stepAmount = Mathf.CeilToInt((phEarned - previousValue) / (countFPS * duration));
@@ -202,15 +199,14 @@ public class ResultsScreenController : MonoBehaviour
             {
                 previousValue = phEarned;
             }
-            phText.SetText(previousValue.ToString());
+            if (phText != null) phText.SetText(previousValue.ToString());
 
             yield return Wait;
         }
-        resultSounds.StopSound();
+        //if (resultSounds != null) resultSounds.StopSound();
 
-
-        //-----------------GOLD----------------------
-        resultSounds.PlaySound(0);
+        // ----------------- GOLD ----------------------
+        //if (resultSounds != null) resultSounds.PlaySound(0);
 
         previousValue = 0;
         stepAmount = Mathf.CeilToInt((goldEarned - previousValue) / (countFPS * duration));
@@ -222,21 +218,20 @@ public class ResultsScreenController : MonoBehaviour
             {
                 previousValue = goldEarned;
             }
-            goldText.SetText(previousValue.ToString());
+            if (goldText != null) goldText.SetText(previousValue.ToString());
 
             yield return Wait;
         }
 
-        resultSounds.StopSound();
+        //if (resultSounds != null) resultSounds.StopSound();
 
-        //PUT GOLD ON GAME TOTAL AMOUNT
+        // PUT GOLD ON GAME TOTAL AMOUNT
         GameManager.Instance.TotalGold += goldEarned;
 
-        //SHOW EXIT MESSAGE
+        // SHOW EXIT MESSAGE
         waitingConfirmation = true;
-        confirmText.gameObject.SetActive(true);
+        if (confirmText != null) confirmText.gameObject.SetActive(true);
     }
-
 
     private IEnumerator AbilityLearned(int index, string psynergySlugName)
     {
@@ -260,11 +255,14 @@ public class ResultsScreenController : MonoBehaviour
             transform.Find("HeroPanel").Find($"Hero{i}").Find("LevelText").GetComponent<TextMeshProUGUI>().color = Color.white;
             transform.Find("HeroPanel").Find($"Hero{i}").Find("LearnAbility").gameObject.SetActive(false);
         }
-        for (int i = 0; i < itemsPanel.transform.childCount; i++)
+        if (itemsPanel != null)
         {
-            if (itemsPanel.transform.GetChild(i).gameObject.name != "Items")
+            for (int i = 0; i < itemsPanel.transform.childCount; i++)
             {
-                Destroy(itemsPanel.transform.GetChild(i).gameObject);
+                if (itemsPanel.transform.GetChild(i).gameObject.name != "Items")
+                {
+                    Destroy(itemsPanel.transform.GetChild(i).gameObject);
+                }
             }
         }
     }

@@ -26,6 +26,9 @@ public class PlayerUIManager : MonoBehaviour
     [Header("Interaction & Aiming Components")]
     [SerializeField] private GameObject interactionIcon;
     [SerializeField] private GameObject aimUI;
+    [SerializeField] private Image reticleImage;
+    [SerializeField] private Color unlockedReticleColor = Color.white;
+    [SerializeField] private Color lockedReticleColor = Color.red;
 
     [Header("Dialogue Component")]
     [SerializeField] private GameObject dialoguePanel;
@@ -69,13 +72,11 @@ public class PlayerUIManager : MonoBehaviour
 
     private void Start()
     {
-        // Re-subscribe in case GameManager initialized after OnEnable
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
 
-            // Sync initial state
             HandleGameStateChanged(GameManager.Instance.CurrentState);
         }
     }
@@ -89,9 +90,6 @@ public class PlayerUIManager : MonoBehaviour
 
     #region State Event Handler
 
-    /// <summary>
-    /// Reacts to global state changes and configures UI elements accordingly.
-    /// </summary>
     private void HandleGameStateChanged(GameManager.GameState newState)
     {
         Debug.Log($"{nameof(HandleGameStateChanged)}: Game state changed to: {newState}");
@@ -123,23 +121,17 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Exploration HUD Visibility Controls
 
-    /// <summary>
-    /// Controls the visibility of all exploration HUD components (minimap, party, shortcuts, stamina).
-    /// </summary>
     public void SetExplorationUIVisible(bool visible)
     {
         if (partyInfoPanel != null) partyInfoPanel.SetActive(visible);
         if (minimapPanel != null) minimapPanel.SetActive(visible);
         if (shortcutsPanel != null) shortcutsPanel.SetActive(visible);
-        //if (notificationPanel != null) notificationPanel.SetActive(visible);
 
-        // Hide interaction icon when exploration UI is hidden
         if (!visible && interactionIcon != null)
         {
             interactionIcon.SetActive(false);
         }
 
-        // Hide stamina bar when exploration UI is hidden
         if (!visible && staminaBarObject != null)
         {
             staminaBarObject.SetActive(false);
@@ -176,7 +168,6 @@ public class PlayerUIManager : MonoBehaviour
 
     public void SetStaminaBarVisible(bool visible)
     {
-        // Only show stamina bar if exploration UI is currently active
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
         if (staminaBarObject != null)
@@ -191,7 +182,6 @@ public class PlayerUIManager : MonoBehaviour
 
     public void SetInteractionIconVisible(bool visible)
     {
-        // Only show interaction icon if exploration UI is currently active
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
         if (interactionIcon != null)
@@ -241,6 +231,23 @@ public class PlayerUIManager : MonoBehaviour
         if (aimUI != null)
         {
             aimUI.SetActive(visible);
+        }
+
+        // Reset target lock state when hiding aim UI
+        if (!visible)
+        {
+            SetAimTargetLocked(false);
+        }
+    }
+
+    /// <summary>
+    /// Changes the reticle appearance when locking onto a valid targetable object.
+    /// </summary>
+    public void SetAimTargetLocked(bool locked)
+    {
+        if (reticleImage != null)
+        {
+            reticleImage.color = locked ? lockedReticleColor : unlockedReticleColor;
         }
     }
 
