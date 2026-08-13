@@ -22,16 +22,22 @@ MonoBehaviour:
   - sceneName: Tale
     bgmClip: {fileID: 8300000, guid: 2775780ddbd97bc4487ec7c7e10a547e, type: 3}
     defaultVolume: 1
-  - sceneName: battleBGM
-    bgmClip: {fileID: 8300000, guid: f7e428b32d07cdf48a1710c04ea59777, type: 3}
+  - sceneName: BattleIntroBGM
+    bgmClip: {fileID: 8300000, guid: 9e2404ae3fbf1c14896edc24765bf91b, type: 3}
     defaultVolume: 1
-  - sceneName: bossBattleBGM
-    bgmClip: {fileID: 8300000, guid: f7e428b32d07cdf48a1710c04ea59777, type: 3}
+  - sceneName: BattleBGM
+    bgmClip: {fileID: 8300000, guid: 7f77c82eee83ce54899a8e4e1c9c4b49, type: 3}
     defaultVolume: 1
-  - sceneName: victoryBGM
-    bgmClip: {fileID: 8300000, guid: 3cd6779c95014dd4fa7a97cabaa1c4dd, type: 3}
+  - sceneName: BossBattleBGM
+    bgmClip: {fileID: 8300000, guid: 7f77c82eee83ce54899a8e4e1c9c4b49, type: 3}
     defaultVolume: 1
-  - sceneName: gameOverBGM
+  - sceneName: VictoryBGM
+    bgmClip: {fileID: 8300000, guid: 97c9dc62911ac704fabe2992fd2579dc, type: 3}
+    defaultVolume: 1
+  - sceneName: VictoryLoopBGM
+    bgmClip: {fileID: 8300000, guid: b58add1e3e3149b4185c532f8cd80aee, type: 3}
+    defaultVolume: 1
+  - sceneName: GameOverBGM
     bgmClip: {fileID: 8300000, guid: 9dd54cd9aca2d834ab530d8b8f77b391, type: 3}
     defaultVolume: 1
   sfxList:

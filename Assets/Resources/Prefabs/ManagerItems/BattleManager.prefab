@@ -714,7 +714,6 @@ GameObject:
   - component: {fileID: 1485349087417611515}
   - component: {fileID: 9027334411105457445}
   - component: {fileID: 1644211145601436318}
-  - component: {fileID: 1445587201958809279}
   - component: {fileID: 7802389440709632538}
   m_Layer: 0
   m_Name: ResultsScreen
@@ -841,20 +840,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &1445587201958809279
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485432103137037298}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a441cbe72fa52234d8184ec139ed6ac6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sounds:
-  - {fileID: 8300000, guid: 4636f125eabce8140926e20641c89463, type: 3}
 --- !u!114 &7802389440709632538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -872,7 +857,6 @@ MonoBehaviour:
   goldText: {fileID: 1311019926185531799}
   itemsPanel: {fileID: 6382785982743398586}
   confirmText: {fileID: 6792542576435863985}
-  resultSounds: {fileID: 0}
 --- !u!1 &554403965732218237
 GameObject:
   m_ObjectHideFlags: 0
@@ -6798,7 +6782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -29693,9 +29677,6 @@ MonoBehaviour:
   - {fileID: 7636371869820271871}
   - {fileID: 8070344460240997699}
   - {fileID: 3868856728227933586}
-  battleMusic: {fileID: 8300000, guid: f7e428b32d07cdf48a1710c04ea59777, type: 3}
-  victoryMusic: {fileID: 8300000, guid: 3cd6779c95014dd4fa7a97cabaa1c4dd, type: 3}
-  gameOverMusic: {fileID: 8300000, guid: 9dd54cd9aca2d834ab530d8b8f77b391, type: 3}
 --- !u!1 &8507636291612183915
 GameObject:
   m_ObjectHideFlags: 0

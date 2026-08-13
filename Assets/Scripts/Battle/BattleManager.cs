@@ -26,21 +26,12 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private GameObject battleField;
     [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
-    [Header("Audio Resources")]
-    [SerializeField] private AudioClip battleMusic;
-    [SerializeField] private AudioClip victoryMusic;
-    [SerializeField] private AudioClip gameOverMusic;
-
     private GameObject player; // player reference
 
     private List<GameObject> party;
 
     // TODO REVISAR
     private int maxEnemiesInBattle = 3;
-
-    // AUDIO CONTROLLER
-    private AudioSource musicController;
-    private AudioClip fieldMusic;
 
     private GameObject mainCamera;
     private float[] pointerOriginalY;
@@ -374,6 +365,9 @@ public class BattleManager : MonoBehaviour
     {
         ResetBattleVariables();
 
+        // BATTLE MUSIC VIA AUDIO MANAGER
+        AudioManager.Instance?.PlayBattleBGM();
+
         // --- EXTERNAL SCENE / CORE REFERENCES ---
         if (mainCamera == null)
             mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
@@ -384,18 +378,8 @@ public class BattleManager : MonoBehaviour
         if (playerCanvas == null)
             playerCanvas = GameObject.Find("PlayerCanvas");
 
-        if (musicController == null)
-        {
-            GameObject musicObj = GameObject.Find("MusicController");
-            if (musicObj != null)
-            {
-                musicController = musicObj.GetComponent<AudioSource>();
-            }
-        }
-
-        // Refresh dynamic party members and world audio
+        // Refresh dynamic party members
         party = GameManager.Instance.GetParty();
-        if (musicController != null) fieldMusic = musicController.clip;
 
         // Set up UI hero panels according to current party count
         for (int i = 0; i < 4; i++)
@@ -414,13 +398,6 @@ public class BattleManager : MonoBehaviour
             respawnController = respawnZone.GetComponent<RespawnController>();
 
         if (player != null) player.GetComponent<Animator>().enabled = false;
-
-        // BATTLE MUSIC
-        if (musicController != null)
-        {
-            musicController.clip = battleMusic;
-            musicController.Play();
-        }
 
         // START BATTLE TRANSITION
         StartCoroutine(StartBattle(enemyInitiator));
@@ -719,11 +696,8 @@ public class BattleManager : MonoBehaviour
         currentBattleState = BattleState.ResultsScreen;
         battleUIController.ShowBattleCanvas(false);
 
-        if (musicController != null)
-        {
-            musicController.clip = victoryMusic;
-            musicController.Play();
-        }
+        AudioManager.Instance?.PlayVictoryBGM();
+
         yield return new WaitForSeconds(0.5f);
 
         foreach (GameObject hero in heroList)
@@ -779,11 +753,8 @@ public class BattleManager : MonoBehaviour
 
         if (player != null) player.GetComponent<Animator>().enabled = true;
 
-        if (musicController != null)
-        {
-            musicController.clip = fieldMusic;
-            musicController.Play();
-        }
+        // RESTORE WORLD MUSIC VIA AUDIO MANAGER
+        AudioManager.Instance?.ResumeBGM();
 
         for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
@@ -814,11 +785,9 @@ public class BattleManager : MonoBehaviour
         crossfade.SetActive(true);
         crossfade.transform.Find("GameOver").gameObject.SetActive(true);
         crossfade.GetComponent<Animator>().SetTrigger("start");
-        if (musicController != null)
-        {
-            musicController.clip = gameOverMusic;
-            musicController.Play();
-        }
+
+        AudioManager.Instance?.PlayGameOverBGM();
+
         Debug.Log("GAMEOVER");
     }
 
@@ -828,10 +797,7 @@ public class BattleManager : MonoBehaviour
 
     private void PlaySFX(SFXType sfx)
     {
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(sfx);
-        }
+        AudioManager.Instance?.PlaySFX(sfx);
     }
 
     private void HideAllPointers()

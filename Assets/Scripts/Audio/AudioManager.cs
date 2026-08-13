@@ -1,6 +1,5 @@
 // File: AudioManager.cs
-// Singleton Audio Manager handling background music crossfading and sound effect execution.
-
+// Singleton Audio Manager handling background music crossfading, battle BGM state stack, and sound effect execution.
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,6 +31,11 @@ public class AudioManager : MonoBehaviour
     private AudioSource inactiveBGMSource;
     private Coroutine activeCrossfadeCoroutine;
     private string currentPlayingScene = string.Empty;
+
+    // Saved State for Resuming Music after Battles
+    private AudioClip savedExplorerClip;
+    private float savedExplorerTime;
+    private float savedExplorerTargetVolume = 1.0f;
 
     #endregion
 
@@ -97,7 +101,7 @@ public class AudioManager : MonoBehaviour
     /// <summary>
     /// Plays specified AudioClip as BGM. Performs smooth crossfade if another track is currently playing.
     /// </summary>
-    public void PlayBGM(AudioClip newClip, float targetVolume = 1.0f, float fadeDuration = 1.0f)
+    public void PlayBGM(AudioClip newClip, float targetVolume = 1.0f, float fadeDuration = 1.0f, float startTime = 0f)
     {
         if (newClip == null)
         {
@@ -116,7 +120,7 @@ public class AudioManager : MonoBehaviour
             StopCoroutine(activeCrossfadeCoroutine);
         }
 
-        activeCrossfadeCoroutine = StartCoroutine(CrossfadeBGMRoutine(newClip, targetVolume, fadeDuration));
+        activeCrossfadeCoroutine = StartCoroutine(CrossfadeBGMRoutine(newClip, targetVolume, fadeDuration, startTime));
     }
 
     public void StopBGM(float fadeDuration = 1.0f)
@@ -129,7 +133,7 @@ public class AudioManager : MonoBehaviour
         activeCrossfadeCoroutine = StartCoroutine(FadeOutActiveBGMRoutine(fadeDuration));
     }
 
-    private IEnumerator CrossfadeBGMRoutine(AudioClip newClip, float targetVolume, float duration)
+    private IEnumerator CrossfadeBGMRoutine(AudioClip newClip, float targetVolume, float duration, float startTime = 0f)
     {
         // Swap sources
         AudioSource oldSource = activeBGMSource;
@@ -141,6 +145,7 @@ public class AudioManager : MonoBehaviour
         // Configure new active source
         newSource.clip = newClip;
         newSource.loop = true;
+        newSource.time = startTime < newClip.length ? startTime : 0f;
         newSource.volume = 0f;
         newSource.Play();
 
@@ -189,7 +194,201 @@ public class AudioManager : MonoBehaviour
 
         activeBGMSource.Stop();
         activeBGMSource.clip = null;
+        if (inactiveBGMSource != null)
+        {
+            inactiveBGMSource.Stop();
+            inactiveBGMSource.clip = null;
+        }
         activeCrossfadeCoroutine = null;
+    }
+
+    #endregion
+
+    #region Battle & Victory BGM Control
+
+    /// <summary>
+    /// Saves current BGM track and timestamp, then plays intro (if available) seamlessly transitioning to main loop.
+    /// </summary>
+    public void PlayBattleBGM(bool isBossBattle = false, float fadeDuration = 0.5f)
+    {
+        if (audioDatabase == null) return;
+
+        // Save current track state before switching to battle
+        SaveCurrentBGMState();
+
+        string introKey = isBossBattle ? "BossBattleIntroBGM" : "BattleIntroBGM";
+        string battleKey = isBossBattle ? "BossBattleBGM" : "BattleBGM";
+
+        bool hasIntro = audioDatabase.TryGetBGM(introKey, out AudioClip introClip, out float introVolume);
+        bool hasMain = audioDatabase.TryGetBGM(battleKey, out AudioClip mainClip, out float mainVolume);
+
+        if (hasIntro && hasMain)
+        {
+            // If intro exists, use seamless scheduled transition
+            PlayIntroAndLoopBGM(introClip, mainClip, mainVolume, fadeDuration);
+        }
+        else if (hasMain)
+        {
+            // Fallback: Just play main track directly if intro isn't defined
+            PlayBGM(mainClip, mainVolume, fadeDuration);
+        }
+        else
+        {
+            Debug.LogWarning($"[AudioManager] BGM key '{battleKey}' not found in AudioDatabase!");
+        }
+    }
+
+    /// <summary>
+    /// Plays Victory BGM track. Uses scheduled intro transition if both 'VictoryBGM' and 'VictoryLoopBGM' exist.
+    /// </summary>
+    public void PlayVictoryBGM(float fadeDuration = 0.5f)
+    {
+        if (audioDatabase == null) return;
+
+        bool hasIntro = audioDatabase.TryGetBGM("VictoryBGM", out AudioClip introClip, out float introVolume);
+        bool hasLoop = audioDatabase.TryGetBGM("VictoryLoopBGM", out AudioClip loopClip, out float loopVolume);
+
+        if (hasIntro && hasLoop)
+        {
+            // If both intro and loop exist, use seamless scheduled transition
+            PlayIntroAndLoopBGM(introClip, loopClip, loopVolume, fadeDuration);
+        }
+        else if (hasIntro)
+        {
+            // Fallback: Play single track if loop isn't defined
+            PlayBGM(introClip, introVolume, fadeDuration);
+        }
+        else if (hasLoop)
+        {
+            // Fallback: Play loop directly if intro isn't defined
+            PlayBGM(loopClip, loopVolume, fadeDuration);
+        }
+        else
+        {
+            Debug.LogWarning("[AudioManager] Neither 'VictoryBGM' nor 'VictoryLoopBGM' were found in AudioDatabase!");
+        }
+    }
+
+    /// <summary>
+    /// Plays GameOver BGM track.
+    /// </summary>
+    public void PlayGameOverBGM(float fadeDuration = 1.0f)
+    {
+        if (audioDatabase == null) return;
+
+        if (audioDatabase.TryGetBGM("GameOverBGM", out AudioClip gameOverClip, out float targetVolume))
+        {
+            PlayBGM(gameOverClip, targetVolume, fadeDuration);
+        }
+    }
+
+    /// <summary>
+    /// Restores the exploration BGM from the exact timestamp where it was paused before entering battle.
+    /// </summary>
+    public void ResumeBGM(float fadeDuration = 1.0f)
+    {
+        if (savedExplorerClip != null)
+        {
+            PlayBGM(savedExplorerClip, savedExplorerTargetVolume, fadeDuration, savedExplorerTime);
+            savedExplorerClip = null;
+            savedExplorerTime = 0f;
+        }
+        else
+        {
+            // Fallback if no saved clip exists
+            PlayBGMForScene(currentPlayingScene);
+        }
+    }
+
+    /// <summary>
+    /// Seamlessly plays an intro clip followed immediately by a looping main track using DSP scheduling.
+    /// </summary>
+    public void PlayIntroAndLoopBGM(AudioClip introClip, AudioClip mainLoopClip, float targetVolume = 1.0f, float fadeDuration = 0.5f)
+    {
+        if (activeCrossfadeCoroutine != null)
+        {
+            StopCoroutine(activeCrossfadeCoroutine);
+        }
+
+        activeCrossfadeCoroutine = StartCoroutine(PlayIntroAndLoopRoutine(introClip, mainLoopClip, targetVolume, fadeDuration));
+    }
+
+    private IEnumerator PlayIntroAndLoopRoutine(AudioClip introClip, AudioClip mainLoopClip, float targetVolume, float fadeDuration)
+    {
+        AudioSource oldSource = activeBGMSource;
+        AudioSource introSource = bgmSourceA;
+        AudioSource loopSource = bgmSourceB;
+
+        // 1. Stop completely and reset the state of both AudioSources
+        introSource.Stop();
+        loopSource.Stop();
+
+        // 2. Assign the clips
+        introSource.clip = introClip;
+        loopSource.clip = mainLoopClip;
+
+        // 3. Force both clips to start strictly at time zero
+        introSource.time = 0f;
+        loopSource.time = 0f;
+
+        // 4. Configure looping settings
+        introSource.loop = false;
+        loopSource.loop = true;
+
+        // 5. Adjust initial volumes
+        introSource.volume = 0f;
+        loopSource.volume = 0f;
+
+        // 6. Schedule precise playback using dspTime
+        double scheduledStartTime = AudioSettings.dspTime + 0.05; // 50ms buffer for hardware synchronization
+        double scheduledLoopTime = scheduledStartTime + ((double)introClip.samples / introClip.frequency);
+
+        introSource.PlayScheduled(scheduledStartTime);
+        loopSource.PlayScheduled(scheduledLoopTime);
+
+        // 7. Update active/inactive source references
+        activeBGMSource = loopSource;
+        inactiveBGMSource = introSource;
+
+        float finalTargetVolume = targetVolume * masterBGMVolume;
+        float startOldVolume = oldSource != null ? oldSource.volume : 0f;
+        float timer = 0f;
+
+        // 8. Perform smooth crossfade (Fade in new BGM / Fade out previous music)
+        while (timer < fadeDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+            float progress = timer / fadeDuration;
+
+            if (oldSource != null && oldSource != introSource && oldSource != loopSource && oldSource.isPlaying)
+            {
+                oldSource.volume = Mathf.Lerp(startOldVolume, 0f, progress);
+            }
+
+            introSource.volume = Mathf.Lerp(0f, finalTargetVolume, progress);
+            loopSource.volume = Mathf.Lerp(0f, finalTargetVolume, progress);
+            yield return null;
+        }
+
+        introSource.volume = finalTargetVolume;
+        loopSource.volume = finalTargetVolume;
+
+        if (oldSource != null && oldSource != introSource && oldSource != loopSource)
+        {
+            oldSource.Stop();
+            oldSource.clip = null;
+        }
+
+        activeCrossfadeCoroutine = null;
+    }
+
+    private void SaveCurrentBGMState()
+    {
+        if (activeBGMSource != null && activeBGMSource.isPlaying)
+        {
+            savedExplorerClip = activeBGMSource.clip;
+            savedExplorerTime = activeBGMSource.time;
+        }
     }
 
     #endregion
