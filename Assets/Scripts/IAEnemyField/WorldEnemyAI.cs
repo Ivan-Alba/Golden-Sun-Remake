@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Ai : MonoBehaviour
+public class WorldEnemyAI : MonoBehaviour
 {
     private NavMeshAgent agent;
     private Animator animator;

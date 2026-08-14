@@ -14,7 +14,7 @@ public class PartyMemberUI : MonoBehaviour
     [SerializeField] private Slider ppSlider;
 
     // Updates the visual elements of a single party member card
-    public void UpdateData(FighterStats stats, string heroName)
+    public void UpdateData(HeroStats stats, string heroName)
     {
         if (stats == null) return;
 

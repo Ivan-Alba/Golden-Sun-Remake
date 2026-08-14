@@ -284,7 +284,7 @@ public class MenuController : MonoBehaviour
         for (int i = 0; i < party.Count; i++)
         {
             GameObject heroUI = heroPanel.transform.GetChild(i).gameObject;
-            FighterStats stats = party[i].GetComponent<FighterStats>();
+            HeroStats stats = party[i].GetComponent<HeroStats>();
 
             if (stats != null)
             {
@@ -306,7 +306,7 @@ public class MenuController : MonoBehaviour
 
                 Slider xpBar = heroUI.transform.Find("XPBar").GetComponent<Slider>();
                 xpBar.maxValue = stats.NextLevelXp;
-                xpBar.value = stats.Xp;
+                xpBar.value = stats.CurrentXp;
 
                 heroUI.SetActive(true);
             }

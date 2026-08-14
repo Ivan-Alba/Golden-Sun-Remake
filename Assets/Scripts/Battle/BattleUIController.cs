@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 public class BattleUIController : MonoBehaviour
 {
-
     [Header("UI Canvas & Panels")]
     [SerializeField] private GameObject battleCanvas;
     [SerializeField] private GameObject turnsPanel;
@@ -21,25 +20,35 @@ public class BattleUIController : MonoBehaviour
     [SerializeField] private List<GameObject> ordersButtons = new List<GameObject>();
     [SerializeField] private GameObject[] heroInfoPanels = new GameObject[4];
 
-    List<GameObject> contentItems;
-    int contentCursorIndex;
-    string lastContent;
+    private List<GameObject> contentItems = new List<GameObject>();
+    private int contentCursorIndex;
+    private string lastContent;
 
-    //Turns settings
-    TurnController turnController;
-    List<Transform> turnsUIElements = new List<Transform>();
-    List<KeyValuePair<GameObject, int>> turnsOrdered;
-    int maxTurnBoxes;
+    // Turn UI References & State
+    private TurnController turnController;
+    private List<Transform> turnsUIElements = new List<Transform>();
+    private List<KeyValuePair<GameObject, int>> turnsOrdered = new List<KeyValuePair<GameObject, int>>();
+    private int maxTurnBoxes;
 
-    GameObject commandInfo;
     private int commandSelected;
+    private readonly string[] commandsText = new string[8]
+    {
+        "Atacar", "Psinergía", "Djinn", "Invocar", "Defensa", "Objeto", "Estado", "Huir"
+    };
 
-    string[] commandsText = new string[8] { "Atacar", "Psinergía", "Djinn", "Invocar", "Defensa", "Objeto", "Estado", "Huir" };
+    #region Properties
 
     public int CommandSelected { get => commandSelected; set => commandSelected = value; }
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
+        // Cache local components
+        turnController = GetComponent<TurnController>();
+
         // --- POPULATE TURN BOXES FROM PANELS ---
         turnsUIElements.Clear();
         if (turnsPanel != null)
@@ -55,7 +64,7 @@ public class BattleUIController : MonoBehaviour
 
         maxTurnBoxes = turnsUIElements.Count;
 
-        // --- CACHE HERO PANELS IN PREFAB ---
+        // --- CACHE HERO PANELS ---
         for (int i = 0; i < 4; i++)
         {
             if (heroInfoPanels[i] == null && battleCanvas != null)
@@ -78,6 +87,10 @@ public class BattleUIController : MonoBehaviour
     {
         UnsubscribeFromPartyEvents();
     }
+
+    #endregion
+
+    #region Event Subscriptions & Hero Panel Updates
 
     private void SubscribeToPartyEvents()
     {
@@ -118,79 +131,191 @@ public class BattleUIController : MonoBehaviour
         RefreshHeroInfoPanel();
     }
 
-    public void SetHeroInfoPanel(int i)
+    public void SetHeroInfoPanel(int index)
     {
-        heroInfoPanels[i] = battleCanvas.transform.Find($"Hero{i}Panel").gameObject;
-        heroInfoPanels[i].SetActive(true);
+        if (index >= 0 && index < heroInfoPanels.Length && battleCanvas != null)
+        {
+            Transform panelTrans = battleCanvas.transform.Find($"Hero{index}Panel");
+            if (panelTrans != null)
+            {
+                heroInfoPanels[index] = panelTrans.gameObject;
+                heroInfoPanels[index].SetActive(true);
+            }
+        }
     }
 
-    public void SetTurnsPanel(List<KeyValuePair<GameObject, int>> turnsOrdered)
+    public void ShowBattleCanvas(bool choice)
     {
-        this.turnsOrdered = turnsOrdered;
-        //SET IMAGES TURNS PANEL
-        int i = 0;
-        foreach (Transform turnUIElement in turnsUIElements)
+        if (battleCanvas != null) battleCanvas.SetActive(choice);
+    }
+
+    public void RefreshHeroInfoPanel()
+    {
+        if (GameManager.Instance == null) return;
+
+        List<GameObject> heroParty = GameManager.Instance.GetParty();
+        if (heroParty == null) return;
+
+        for (int i = 0; i < heroParty.Count; i++)
         {
-            turnUIElement.gameObject.GetComponent<Image>().sprite = turnsOrdered.ElementAt(i++).Key.GetComponent<FighterStats>().TurnBarImage;
+            if (i >= heroInfoPanels.Length || heroInfoPanels[i] == null) continue;
+
+            Transform hpTrans = heroInfoPanels[i].transform.Find("Hp");
+            Transform ppTrans = heroInfoPanels[i].transform.Find("Pp");
+            Transform nameTrans = heroInfoPanels[i].transform.Find("Name");
+
+            if (!heroParty[i].TryGetComponent<FighterStats>(out var heroStats)) continue;
+
+            // HP Text & Coloring
+            if (hpTrans != null && hpTrans.TryGetComponent<TextMeshProUGUI>(out var hpText))
+            {
+                if (heroStats.CurrHp <= 0)
+                {
+                    hpText.color = Color.red;
+                    hpText.SetText($"HP 0 / {heroStats.MaxHp}");
+                }
+                else if (heroStats.CurrHp <= heroStats.MaxHp * 0.3f)
+                {
+                    hpText.color = Color.yellow;
+                    hpText.SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
+                }
+                else
+                {
+                    hpText.color = Color.white;
+                    hpText.SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
+                }
+            }
+
+            // PP Text & Coloring
+            if (ppTrans != null && ppTrans.TryGetComponent<TextMeshProUGUI>(out var ppText))
+            {
+                if (heroStats.CurrPp <= 0)
+                {
+                    ppText.color = Color.red;
+                    ppText.SetText($"PP 0 / {heroStats.MaxPp}");
+                }
+                else if (heroStats.CurrPp <= heroStats.MaxPp * 0.3f)
+                {
+                    ppText.color = Color.yellow;
+                    ppText.SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
+                }
+                else
+                {
+                    ppText.color = Color.white;
+                    ppText.SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
+                }
+            }
+
+            // Name
+            if (nameTrans != null && nameTrans.TryGetComponent<TextMeshProUGUI>(out var nameText))
+            {
+                nameText.SetText($"{heroStats.Name}");
+            }
+        }
+    }
+
+    #endregion
+
+    #region Turn Timeline Bar Control
+
+    /// <summary>
+    /// Updates the turn bar images based on the projected turn sequence from TurnController.
+    /// </summary>
+    public void SetTurnsPanel(List<KeyValuePair<GameObject, int>> newTurnsOrdered)
+    {
+        turnsOrdered = newTurnsOrdered ?? new List<KeyValuePair<GameObject, int>>();
+
+        for (int i = 0; i < turnsUIElements.Count; i++)
+        {
+            if (i < turnsOrdered.Count && turnsOrdered[i].Key != null)
+            {
+                turnsUIElements[i].gameObject.SetActive(true);
+
+                if (turnsOrdered[i].Key.TryGetComponent<FighterStats>(out var stats) && stats.TurnBarImage != null)
+                {
+                    Image iconImg = turnsUIElements[i].GetComponent<Image>();
+                    if (iconImg != null)
+                    {
+                        iconImg.sprite = stats.TurnBarImage;
+                        iconImg.enabled = true;
+                    }
+                }
+            }
+            else
+            {
+                // Disable unused UI turn slots
+                turnsUIElements[i].gameObject.SetActive(false);
+            }
         }
     }
 
     public void ShowTurnsPanel(bool choice)
     {
-        turnsPanel.SetActive(choice);
+        if (turnsPanel != null) turnsPanel.SetActive(choice);
     }
-    public void ShowSelectedTarget(List<GameObject> enemiesPointed)
+
+    /// <summary>
+    /// Highlights turn bar slots corresponding to targeted entities.
+    /// </summary>
+    public void ShowSelectedTarget(List<GameObject> targetedEntities)
     {
-        //SHOW ON TURN BAR THE ENEMY TARGET
+        if (turnsPanel == null || targetedEntities == null) return;
+
         for (int i = 0; i < maxTurnBoxes; i++)
         {
-            turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
+            if (i >= turnsPanel.transform.childCount) break;
 
-            foreach (GameObject enemy in enemiesPointed)
+            Transform highlightTrans = turnsPanel.transform.GetChild(i).Find("Highlight");
+            if (highlightTrans == null) continue;
+
+            bool isTargeted = false;
+            if (i < turnsOrdered.Count && turnsOrdered[i].Key != null)
             {
-                if (turnsOrdered.ElementAt(i).Key.Equals(enemy))
-                {
-                    turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(true);
-                }
+                isTargeted = targetedEntities.Contains(turnsOrdered[i].Key);
             }
 
+            highlightTrans.gameObject.SetActive(isTargeted);
         }
     }
+
     public void HideSelectedTarget()
     {
+        if (turnsPanel == null) return;
+
         for (int i = 0; i < maxTurnBoxes; i++)
         {
-            turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(false);
+            if (i >= turnsPanel.transform.childCount) break;
+
+            Transform highlightTrans = turnsPanel.transform.GetChild(i).Find("Highlight");
+            if (highlightTrans != null)
+            {
+                highlightTrans.gameObject.SetActive(false);
+            }
         }
     }
+
+    #endregion
+
+    #region Orders & Submenu Navigation
 
     public void ordersPanelMove(string direction)
     {
+        if (ordersPanel == null || ordersPanel.transform.childCount < 2) return;
+
+        int totalCommands = ordersPanel.transform.childCount - 1;
+
         if (direction == "RIGHT")
         {
-            if (commandSelected != ordersPanel.transform.childCount - 2)
-            {
-                commandSelected += 1; //Move a command on right direction
-            }
-            else
-            {
-                commandSelected = 0; //last command at right returns to 0
-            }
+            commandSelected = (commandSelected + 1) % totalCommands;
         }
         else if (direction == "LEFT")
         {
-            if (commandSelected == 0)
-            {
-                commandSelected = ordersPanel.transform.childCount - 2;
-            }
-            else
-            {
-                commandSelected -= 1;
-            }
+            commandSelected = (commandSelected - 1 + totalCommands) % totalCommands;
         }
 
         SetInfoText();
         RefreshButtonAnimation();
+
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(SFXType.UI_Move);
@@ -199,76 +324,22 @@ public class BattleUIController : MonoBehaviour
 
     public void ShowOrdersPanel(bool choice)
     {
-        ordersPanel.SetActive(choice);
-
-        if (choice)
+        if (ordersPanel != null)
         {
-            commandSelected = 0;
-            SetInfoText();
-            RefreshButtonAnimation();
-        }
+            ordersPanel.SetActive(choice);
 
-    }
-
-    public void ShowBattleCanvas(bool choice)
-    {
-        battleCanvas.SetActive(choice);
-    }
-
-    public void RefreshHeroInfoPanel()
-    {
-        List<GameObject> heroParty = GameManager.Instance.GetParty();
-        for (int i = 0; i < heroParty.Count; i++)
-        {
-            GameObject hp = heroInfoPanels[i].transform.Find("Hp").gameObject;
-            GameObject pp = heroInfoPanels[i].transform.Find("Pp").gameObject;
-            GameObject name = heroInfoPanels[i].transform.Find("Name").gameObject;
-
-            FighterStats heroStats = heroParty[i].GetComponent<FighterStats>();
-
-            //HP
-            if (heroStats.CurrHp <= 0)
+            if (choice)
             {
-                hp.GetComponent<TextMeshProUGUI>().color = Color.red;
-                hp.GetComponent<TextMeshProUGUI>().SetText($"HP 0 / {heroStats.MaxHp}");
+                commandSelected = 0;
+                SetInfoText();
+                RefreshButtonAnimation();
             }
-            else if (heroStats.CurrHp <= heroStats.MaxHp * 0.3f)
-            {
-                hp.GetComponent<TextMeshProUGUI>().color = Color.yellow;
-                hp.GetComponent<TextMeshProUGUI>().SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
-            }
-            else
-            {
-                hp.GetComponent<TextMeshProUGUI>().color = Color.white;
-                hp.GetComponent<TextMeshProUGUI>().SetText($"HP {heroStats.CurrHp} / {heroStats.MaxHp}");
-            }
-
-            //PP
-            if (heroStats.CurrPp <= 0)
-            {
-                pp.GetComponent<TextMeshProUGUI>().color = Color.red;
-                pp.GetComponent<TextMeshProUGUI>().SetText($"PP 0 / {heroStats.MaxPp}");
-            }
-            else if (heroStats.CurrPp <= heroStats.MaxPp * 0.3f)
-            {
-                pp.GetComponent<TextMeshProUGUI>().color = Color.yellow;
-                pp.GetComponent<TextMeshProUGUI>().SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
-            }
-            else
-            {
-                pp.GetComponent<TextMeshProUGUI>().color = Color.white;
-                pp.GetComponent<TextMeshProUGUI>().SetText($"PP {heroStats.CurrPp} / {heroStats.MaxPp}");
-            }
-
-
-            name.GetComponent<TextMeshProUGUI>().SetText($"{heroStats.Name}");
-
         }
     }
 
     private void SetInfoText()
     {
-        if (commandInfoText != null)
+        if (commandInfoText != null && commandSelected >= 0 && commandSelected < commandsText.Length)
         {
             commandInfoText.SetText(commandsText[commandSelected]);
         }
@@ -278,167 +349,197 @@ public class BattleUIController : MonoBehaviour
     {
         for (int i = 0; i < ordersButtons.Count; i++)
         {
-            if (i == commandSelected)
+            if (ordersButtons[i] != null && ordersButtons[i].TryGetComponent<Animator>(out var anim))
             {
-                ordersButtons[i].GetComponent<Animator>().SetBool("Selected", true);
-
-
-            }
-            else
-            {
-                ordersButtons[i].GetComponent<Animator>().SetBool("Selected", false);
+                anim.SetBool("Selected", i == commandSelected);
             }
         }
     }
 
     public void SetContentPanel(string order)
     {
-        turnController = gameObject.GetComponent<TurnController>();
-        contentItems = new List<GameObject>();
+        if (turnController == null) turnController = GetComponent<TurnController>();
+
+        // Clear existing content items
+        ClearContentItems();
+
         switch (order)
         {
             case "Psynergy":
                 lastContent = "Psynergy";
 
-                if (turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies.Count != 0)
+                FighterController activeFighter = turnController != null ? turnController.CurrentFighter : null;
+                FighterStats activeStats = activeFighter != null ? activeFighter.GetComponent<FighterStats>() : null;
+
+                if (activeStats != null && activeStats.Psynergies != null && activeStats.Psynergies.Count > 0)
                 {
-                    foreach (Psynergy psynergy in turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies)
+                    foreach (Psynergy psynergy in activeStats.Psynergies)
                     {
-                        if (psynergy.IsBattlePsynergy)
+                        if (psynergy == null || !psynergy.IsBattlePsynergy) continue;
+
+                        GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
+                        newItem.name = psynergy.SlugName;
+
+                        newItem.transform.Find("Name")?.GetComponent<TextMeshProUGUI>()?.SetText(psynergy.Name);
+                        newItem.transform.Find("Number")?.GetComponent<TextMeshProUGUI>()?.SetText($"{psynergy.PpCost} PP");
+
+                        Transform iconTrans = newItem.transform.Find("Icon");
+                        if (iconTrans != null && iconTrans.TryGetComponent<Image>(out var iconImg))
                         {
-                            GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
-                            newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(psynergy.Name);
-                            newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText($"{psynergy.PpCost} PP");
-                            newItem.transform.Find("Icon").GetComponent<Image>().sprite = psynergy.Icon;
-                            newItem.transform.Find("ElementIcon").GetComponent<Image>().sprite = psynergy.ElementIcon;
-                            newItem.name = psynergy.SlugName;
-                            if (turnController.CurrentFighter.GetComponent<FighterStats>().CurrPp < psynergy.PpCost) //Not enough PP to use a psynergy
-                            {
-                                foreach (TextMeshProUGUI text in newItem.GetComponentsInChildren<TextMeshProUGUI>())
-                                {
-                                    text.color = Color.grey;
-                                }
-                            }
-                            contentItems.Add(newItem);
+                            iconImg.sprite = psynergy.Icon;
                         }
+
+                        Transform elemTrans = newItem.transform.Find("ElementIcon");
+                        if (elemTrans != null && elemTrans.TryGetComponent<Image>(out var elemImg))
+                        {
+                            elemImg.sprite = psynergy.ElementIcon;
+                        }
+
+                        // Grey out text if not enough PP
+                        if (activeStats.CurrPp < psynergy.PpCost)
+                        {
+                            foreach (TextMeshProUGUI text in newItem.GetComponentsInChildren<TextMeshProUGUI>())
+                            {
+                                text.color = Color.grey;
+                            }
+                        }
+
+                        contentItems.Add(newItem);
                     }
-                    helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[0].Description);
 
-
+                    if (helpPanel != null && activeStats.Psynergies.Count > 0)
+                    {
+                        helpPanel.GetComponentInChildren<TextMeshProUGUI>()?.SetText(activeStats.Psynergies[0].Description);
+                    }
                 }
                 else
                 {
-                    //NONE PSYNERGY
+                    // Empty entry when no Psynergy available
                     GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
-                    newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText("");
-                    newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().SetText("");
-                    newItem.transform.Find("Icon").GetComponent<Image>().enabled = false;
-                    newItem.transform.Find("ElementIcon").GetComponent<Image>().enabled = false;
                     newItem.name = "";
+
+                    newItem.transform.Find("Name")?.GetComponent<TextMeshProUGUI>()?.SetText("");
+                    newItem.transform.Find("Number")?.GetComponent<TextMeshProUGUI>()?.SetText("");
+
+                    Transform iconTrans = newItem.transform.Find("Icon");
+                    if (iconTrans != null && iconTrans.TryGetComponent<Image>(out var iconImg))
+                    {
+                        iconImg.enabled = false;
+                    }
+
+                    Transform elemTrans = newItem.transform.Find("ElementIcon");
+                    if (elemTrans != null && elemTrans.TryGetComponent<Image>(out var elemImg))
+                    {
+                        elemImg.enabled = false;
+                    }
+
                     contentItems.Add(newItem);
-                    helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText("No tienes psinergía.");
+
+                    if (helpPanel != null)
+                    {
+                        helpPanel.GetComponentInChildren<TextMeshProUGUI>()?.SetText("No tienes psinergía.");
+                    }
                 }
 
-
                 contentCursorIndex = 0;
-                contentItems[0].transform.Find("Highlight").GetComponent<Image>().enabled = true;
+                if (contentItems.Count > 0 && contentItems[0] != null)
+                {
+                    Transform highlightTrans = contentItems[0].transform.Find("Highlight");
+                    if (highlightTrans != null && highlightTrans.TryGetComponent<Image>(out var hlImg))
+                    {
+                        hlImg.enabled = true;
+                    }
+                }
                 break;
         }
     }
+
     public void ShowContentPanel(bool choice)
     {
-        if (choice)
+        if (contentScrollView != null)
         {
-            contentScrollView.transform.parent.parent.parent.gameObject.SetActive(true);
-            helpPanel.SetActive(true);
+            Transform rootContainer = contentScrollView.transform.parent?.parent?.parent;
+            if (rootContainer != null) rootContainer.gameObject.SetActive(choice);
         }
-        else
-        {
-            contentScrollView.transform.parent.parent.parent.gameObject.SetActive(false);
-            helpPanel.SetActive(false);
 
-            for (int i = 0; i < contentScrollView.transform.childCount; i++)
+        if (helpPanel != null) helpPanel.SetActive(choice);
+
+        if (!choice)
+        {
+            ClearContentItems();
+        }
+    }
+
+    private void ClearContentItems()
+    {
+        if (contentScrollView != null)
+        {
+            for (int i = contentScrollView.transform.childCount - 1; i >= 0; i--)
             {
                 Destroy(contentScrollView.transform.GetChild(i).gameObject);
-                contentItems = new List<GameObject>();
             }
         }
+        contentItems.Clear();
     }
 
     public void MoveContentPanel(string direction)
     {
+        if (contentItems.Count == 0) return;
+
         if (direction == "UP")
         {
-            if (contentCursorIndex != 0)
-            {
-                contentCursorIndex--;
-            }
-            else
-            {
-                contentCursorIndex = contentItems.Count - 1;
-            }
-
-            foreach (GameObject item in contentItems)
-            {
-                item.transform.Find("Highlight").GetComponent<Image>().enabled = false;
-            }
-
-            contentItems[contentCursorIndex].transform.Find("Highlight").GetComponent<Image>().enabled = true;
+            contentCursorIndex = (contentCursorIndex == 0) ? contentItems.Count - 1 : contentCursorIndex - 1;
         }
         else if (direction == "DOWN")
         {
-
-
-            if (contentCursorIndex != contentItems.Count - 1)
-            {
-                contentCursorIndex++;
-            }
-            else
-            {
-                contentCursorIndex = 0;
-            }
-
-            foreach (GameObject item in contentItems)
-            {
-                item.transform.Find("Highlight").GetComponent<Image>().enabled = false;
-            }
-
-            contentItems[contentCursorIndex].transform.Find("Highlight").GetComponent<Image>().enabled = true;
-
+            contentCursorIndex = (contentCursorIndex == contentItems.Count - 1) ? 0 : contentCursorIndex + 1;
         }
 
-        if (turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies.Count != 0)
+        // Update highlight cursor position
+        for (int i = 0; i < contentItems.Count; i++)
         {
-            helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[contentCursorIndex].Description);
+            if (contentItems[i] == null) continue;
+
+            Transform hlTrans = contentItems[i].transform.Find("Highlight");
+            if (hlTrans != null && hlTrans.TryGetComponent<Image>(out var hlImg))
+            {
+                hlImg.enabled = (i == contentCursorIndex);
+            }
         }
 
-
-
+        // Update description panel
+        if (turnController != null && turnController.CurrentFighter != null)
+        {
+            if (turnController.CurrentFighter.TryGetComponent<FighterStats>(out var stats))
+            {
+                if (stats.Psynergies != null && contentCursorIndex < stats.Psynergies.Count && helpPanel != null)
+                {
+                    helpPanel.GetComponentInChildren<TextMeshProUGUI>()?.SetText(stats.Psynergies[contentCursorIndex].Description);
+                }
+            }
+        }
     }
 
     public string GetContentItem()
     {
-        switch (lastContent)
+        if (lastContent == "Psynergy" && contentItems.Count > contentCursorIndex && contentItems[contentCursorIndex] != null)
         {
-            case "Psynergy":
-                if (contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>().color != Color.grey && contentItems[contentCursorIndex].name != "")
-                {
-                    if (AudioManager.Instance != null)
-                    {
-                        AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
-                    }
-                    return contentItems[contentCursorIndex].name;
-                }
-                else
-                {
-                    if (AudioManager.Instance != null)
-                    {
-                        AudioManager.Instance.PlaySFX(SFXType.UI_Cancel);
-                    }
-                    return null;
-                }
-            default:
+            TextMeshProUGUI itemText = contentItems[contentCursorIndex].GetComponentInChildren<TextMeshProUGUI>();
+
+            if (itemText != null && itemText.color != Color.grey && !string.IsNullOrEmpty(contentItems[contentCursorIndex].name))
+            {
+                AudioManager.Instance?.PlaySFX(SFXType.UI_Confirm);
+                return contentItems[contentCursorIndex].name;
+            }
+            else
+            {
+                AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
                 return null;
+            }
         }
+
+        return null;
     }
+
+    #endregion
 }

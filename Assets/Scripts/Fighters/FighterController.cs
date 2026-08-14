@@ -1,393 +1,284 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 
 public class FighterController : MonoBehaviour
 {
-    bool goingToTarget;
-    bool comingBack;
-    bool returnToStartRotation;
-    bool isDefending;
-    bool actionFinished;
-    //FLOATING TEXT
-    GameObject floatingTextPrefab;
-    Sounds sounds;
-    Animator fighterAnim;
-    Quaternion startRotation;
-    Vector3 startPosition;
-    Transform target;
-    FighterStats stats;
-    FighterController fighterController;
+    #region Private Fields & References
 
-    int nextTurnCD;
+    private Animator fighterAnim;
+    private Sounds sounds;
+    private FighterStats stats;
+
+    private Vector3 startPosition;
+    private Quaternion startRotation;
+
+    private bool isDefending;
+    private bool actionFinished;
+    private bool isReturning;
+
+    #endregion
+
+    #region Properties
 
     public bool ActionFinished { get => actionFinished; set => actionFinished = value; }
-    public int NextTurnCD { get => nextTurnCD; set => nextTurnCD = value; }
+    public bool IsDefending => isDefending;
+
+    // Cooldown accumulated value managed by TurnController
+    public int NextTurnCD { get; set; }
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
         fighterAnim = GetComponentInChildren<Animator>();
         sounds = GetComponent<Sounds>();
-        stats = gameObject.GetComponent<FighterStats>();
-        fighterController = gameObject.GetComponent<FighterController>();
-        floatingTextPrefab = Resources.Load("Prefabs/UIComponents/FloatingText") as GameObject;
+        stats = GetComponent<FighterStats>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (goingToTarget)
-        {
+    #endregion
 
-            //WHILE FAR
-            if (Vector3.Distance(transform.position, target.position) > 3)
-            {
-                float speed = 6f;
-
-                //TODO LERP OR SMOOTH DAMP?
-                Vector3 velocity = new Vector3();
-                transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
-                transform.position = Vector3.SmoothDamp(transform.position, new Vector3(target.position.x, transform.position.y, target.position.z), ref velocity, speed * Time.deltaTime);
-                fighterAnim.SetFloat("Move", speed);
-            }
-            else //WHEN CLOSE
-            {
-                goingToTarget = false;
-                fighterAnim.SetFloat("Move", 0);
-            }
-        }
-
-        //Return to start position before attack
-        if (comingBack)
-        {
-            if (Vector3.Distance(transform.position, startPosition) < 0.1)
-            {
-                comingBack = false;
-                fighterAnim.SetFloat("Move", 0);
-                transform.position = startPosition;
-                returnToStartRotation = true;
-            }
-            else
-            {
-                float speed = 8.5f;
-                fighterAnim.SetFloat("Move", -speed);
-                transform.position = Vector3.MoveTowards(transform.position, startPosition, speed * Time.deltaTime);
-            }
-        }
-
-        if (returnToStartRotation)
-        {
-            // Smoothly rotate towards the target point.
-            transform.rotation = Quaternion.Slerp(transform.rotation, startRotation, 4 * Time.deltaTime);
-            if (transform.rotation == startRotation)
-            {
-                returnToStartRotation = false;
-            }
-        }
-
-
-    }
+    #region Turn State Methods
 
     public void StartsTurn()
     {
-        if (this.isDefending)
+        if (isDefending)
         {
             SetOffDefense();
         }
+
+        // Decrement active turn modifiers on stats
+        stats?.TickTurnModifiers();
     }
 
-    public void GoToTarget(Transform target)
-    {
-        this.target = target;
-        startPosition = transform.position;
-        startRotation = transform.rotation;
-        goingToTarget = true;
-    }
+    #endregion
+
+    #region Combat Actions (Coroutines)
 
     public IEnumerator BasicAttack(GameObject target)
     {
-        int attackCD = 50;
+        actionFinished = false;
 
-        FighterController targetController = target.GetComponent<FighterController>();
-        FighterController performerController = gameObject.GetComponent<FighterController>();
-
-        FighterStats targetStats = target.GetComponent<FighterStats>();
-        FighterStats performerStats = gameObject.GetComponent<FighterStats>();
-
-        performerController.NextTurnCD += attackCD - performerStats.Agility / 2;
-
-        //WAIT FOR ANIMATION PREPARE ATTACK AND TURN CAMERA HIDE
-        //yield return new WaitForSeconds(0.5f);
-
-        //GOING TO TARGET
-        GoToTarget(target.transform);
-        while (goingToTarget)
+        if (target == null || !target.TryGetComponent<FighterStats>(out var targetStats))
         {
-            yield return null;
+            actionFinished = true;
+            yield break;
         }
 
-        //CALCULATE DAMAGE
-        int damage;
-        if (gameObject.tag == "Hero" && gameObject.GetComponent<HeroEquipment>().EquippedItems[0] != null)
+        startPosition = transform.position;
+        startRotation = transform.rotation;
+
+        // 1. Move to Target
+        yield return StartCoroutine(Routine_MoveToTarget(target.transform.position, 2.5f));
+
+        // 2. Determine Attack Parameters
+        int basePower = 20;
+        Psynergy.Elements weaponElement = Psynergy.Elements.NoElemental;
+        int critRate = 1;
+
+        if (TryGetComponent<HeroEquipment>(out var heroEq) && heroEq.EquippedItems[0] != null)
         {
-            Equipable weapon = gameObject.GetComponent<HeroEquipment>().EquippedItems[0];
-            damage = CalculateDamage("Physical", weapon.BasePower, targetStats, weapon.Element);
-
-        }
-        else
-        {
-            damage = CalculateDamage("Physical", 20, targetStats, Psynergy.Elements.NoElemental);
-        }
-
-        //ATTACK ANIMATION
-        fighterAnim.SetTrigger("attack");
-        sounds.PlaySound(1);
-
-        yield return new WaitForSeconds(0.5f);//simulamos tiempo de animacion
-
-        //DO PHYSICAL DAMAGE
-        if (targetController.isDefending) damage = damage / 2;
-        targetController.ReceiveDamage(damage);
-
-        //yield return new WaitForSeconds(0.5f);
-
-        //WAIT ANIMATION CALLS AttackDone()
-        while (comingBack || transform.position != startPosition)
-        {
-            yield return null;
+            Equipable weapon = heroEq.EquippedItems[0];
+            basePower = weapon.BasePower;
+            weaponElement = weapon.Element;
+            critRate = weapon.CriticalRate;
         }
 
-        ActionFinished = true;
+        bool isCritical = BattleDamageCalculator.CheckCriticalHit(critRate, stats.Luck);
 
+        // 3. Play Attack Animation
+        if (fighterAnim != null) fighterAnim.SetTrigger("attack");
+        sounds?.PlaySound(1);
 
+        yield return new WaitForSeconds(0.4f);
+
+        // 4. Calculate and Apply Damage
+        int damage = BattleDamageCalculator.CalculatePhysicalDamage(stats, targetStats, basePower, weaponElement, isCritical);
+        if (target.TryGetComponent<FighterController>(out var targetController))
+        {
+            targetController.ReceiveDamage(damage, isCritical);
+        }
+
+        // 5. Wait for Animation and Return to Origin
+        yield return new WaitForSeconds(0.4f);
+        yield return StartCoroutine(Routine_ReturnToOrigin());
+
+        actionFinished = true;
     }
 
-    public IEnumerator UsePsynergy(Psynergy psynergyToUse, GameObject actualTarget, List<GameObject> targets)
+    public IEnumerator UsePsynergy(Psynergy psynergyToUse, GameObject primaryTarget, List<GameObject> areaTargets)
     {
-        int psynergyCD = 60;
+        actionFinished = false;
 
-        FighterController performerController = gameObject.GetComponent<FighterController>();
-        FighterStats performerStats = gameObject.GetComponent<FighterStats>();
+        if (psynergyToUse == null)
+        {
+            actionFinished = true;
+            yield break;
+        }
 
-        //PP Cost
-        performerStats.CurrPp -= psynergyToUse.PpCost;
+        // Consume PP
+        stats.CurrPp -= psynergyToUse.PpCost;
 
-        performerController.NextTurnCD += psynergyCD - performerStats.Agility / 2;
+        // Cast Animation
+        if (fighterAnim != null) fighterAnim.SetTrigger("usePsynergy");
 
-        //USE PSYNERGY ANIMATION
-        fighterAnim.SetTrigger("usePsynergy");
-        GameObject elementAnimation = Instantiate(PsynergyDatabase.Instance.getElementAnimation(psynergyToUse), performerController.transform);
+        // Instantiate Cast VFX
+        GameObject castVfxPrefab = PsynergyDatabase.Instance?.getElementAnimation(psynergyToUse);
+        GameObject castVfxInstance = null;
+        if (castVfxPrefab != null)
+        {
+            castVfxInstance = Instantiate(castVfxPrefab, transform);
+        }
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1.5f);
 
+        // Instantiate Impact VFX on target
+        GameObject impactVfxPrefab = PsynergyDatabase.Instance?.PsynergyBattleAnim[psynergyToUse.SlugName];
+        GameObject impactVfxInstance = null;
+        if (impactVfxPrefab != null && primaryTarget != null)
+        {
+            impactVfxInstance = Instantiate(impactVfxPrefab, primaryTarget.transform);
+        }
 
-        GameObject animation = Instantiate(PsynergyDatabase.Instance.PsynergyBattleAnim[psynergyToUse.SlugName], actualTarget.transform);
+        yield return new WaitForSeconds(1.5f);
 
-        yield return new WaitForSeconds(2f);
-
+        // Process Effect according to Psynergy Type
         if (psynergyToUse.Type == Psynergy.Types.ATTACK)
         {
-            //DAMAGE CALC
-
-            foreach (GameObject target in targets)
+            foreach (GameObject targetObj in areaTargets)
             {
-                int magicalDamage = CalculateDamage("Psynergy", psynergyToUse.Power, target.GetComponent<FighterStats>(), psynergyToUse.Element);
-                target.GetComponent<FighterController>().ReceiveDamage(magicalDamage);
+                if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
+                {
+                    int damage = BattleDamageCalculator.CalculatePsynergyDamage(stats, targetStats, psynergyToUse.Power, psynergyToUse.Element);
+                    if (targetObj.TryGetComponent<FighterController>(out var targetController))
+                    {
+                        targetController.ReceiveDamage(damage);
+                    }
+                }
             }
         }
         else if (psynergyToUse.Type == Psynergy.Types.HEALING)
         {
-            Healing(psynergyToUse.Power, targets);
+            ExecuteHealing(psynergyToUse.Power, areaTargets);
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
-        Destroy(animation);
-        Destroy(elementAnimation);
+        // Clean Up VFX Instances
+        if (impactVfxInstance != null) Destroy(impactVfxInstance);
+        if (castVfxInstance != null) Destroy(castVfxInstance);
 
-        ActionFinished = true;
+        actionFinished = true;
     }
 
+    #endregion
 
-    public int CalculateDamage(string attackType, int basePower, FighterStats targetStats, Psynergy.Elements attackElement = Psynergy.Elements.NoElemental)
+    #region Health & Status Effects
+
+    public void ReceiveDamage(int damageAmount, bool isCritical = false)
     {
-        switch (attackType)
+        if (fighterAnim != null) fighterAnim.SetTrigger("receiveHit");
+        sounds?.PlaySound(2);
+
+        stats.CurrHp -= damageAmount;
+
+        // Display Floating Text via FX Manager
+        string textDisplay = isCritical ? $"CRITICAL!\n{damageAmount}" : damageAmount.ToString();
+        Color textColour = isCritical ? Color.yellow : Color.white;
+
+        if (BattleFXManager.Instance != null)
         {
-            case "Physical":
-
-                int criticalRate = 1;
-
-
-                // Si el ataque es de un elemento compatible con el arma, aumentar su poder
-                Equipable weapon = null;
-                Psynergy.Elements weaponElement;
-
-                if (gameObject.tag == "Hero" && gameObject.GetComponent<HeroEquipment>().EquippedItems[0] != null)
-                {
-                    weapon = gameObject.GetComponent<HeroEquipment>().EquippedItems[0];
-                    weaponElement = weapon.Element;
-                    criticalRate = weapon.CriticalRate;
-
-                    if (attackElement == weaponElement)
-                    {
-                        basePower += weapon.ElementalPower;
-                    }
-                }
-
-                // Si el ataque es un golpe crítico, duplicar el poder base
-                if (IsCriticalHit(criticalRate, stats.Luck))
-                {
-                    basePower *= 2;
-                }
-
-                // Calcular el modificador de daño en función del elemento del ataque
-                float modificadorElemento = 1.0f;
-                /*
-                if (defensor.ResistenciaElemento.ContainsKey(elemento))
-                {
-                    modificadorElemento = defensor.ResistenciaElemento[elemento];
-                }*/
-
-
-                // Calcular el modificador de daño en función de la defensa del defensor
-                float modificadorDefensa = targetStats.Defense / (targetStats.Defense + 5.0f);
-
-                // Calcular el daño final
-                int attackerLevel = stats.Level;
-                int attackerStrenght = stats.Strenght;
-                int targetDefense = stats.Defense;
-
-                float damageNotRounded = (((2 * attackerLevel + 10) / 30.0f) * (attackerStrenght / targetDefense) * basePower + 2) * modificadorElemento;
-                int finalDamage = Mathf.RoundToInt(damageNotRounded);
-
-                Debug.Log("Damage not rounded: " +damageNotRounded + " Final damage: " + finalDamage);
-                return finalDamage;
-
-
-            case "Psynergy":
-                float multiplier = 1;
-                int damage = Mathf.RoundToInt(stats.Wisdom * multiplier * basePower / targetStats.Spirit);
-
-                return damage;
-
-            default:
-                return 0;
+            BattleFXManager.Instance.SpawnFloatingText(transform, textDisplay, textColour);
         }
-
-    }
-
-    public bool IsCriticalHit(int criticalRate, int charLuck, int otherFactors = 0)
-    {
-        // Calculate probability of critical hit
-        int critProb = criticalRate + charLuck / 2 + otherFactors;
-
-        // Generate a random number between 0 and 99
-        int rand = Random.Range(0, 100);
-
-        // Check if the attack is a critical hit
-        return rand <= critProb;
-    }
-
-
-    private void Healing(int power, List<GameObject> targets)
-    {
-        foreach (GameObject target in targets)
-        {
-            int beforeHealingHp = target.GetComponent<FighterStats>().CurrHp;
-            target.GetComponent<FighterStats>().AddBonusEffect("HP", power);
-            int hpRestored = target.GetComponent<FighterStats>().CurrHp - beforeHealingHp;
-            target.GetComponent<FighterController>().InstantiateFloatingText(hpRestored.ToString(), Color.green);
-        }
-    }
-
-    public void ReceiveDamage(int damage)
-    {
-        fighterAnim.SetTrigger("receiveHit");
-        sounds.PlaySound(2);
-        stats.CurrHp -= damage;
-
-        if (stats.CurrHp < 0)
-        {
-            stats.CurrHp = 0;
-        }
-
-        InstantiateFloatingText(damage.ToString(), Color.white);
 
         if (stats.CurrHp <= 0)
         {
-            fighterAnim.SetTrigger("death");
+            if (fighterAnim != null) fighterAnim.SetTrigger("death");
         }
     }
 
-    private void InstantiateFloatingText(string number, Color textColor)
+    private void ExecuteHealing(int healPower, List<GameObject> targets)
     {
-        GameObject text;
-        Vector3 offset;
-        if (gameObject.CompareTag("Hero"))
+        foreach (GameObject targetObj in targets)
         {
-            offset = new Vector3(0, 0, 0.7f);
-            text = Instantiate(floatingTextPrefab, transform.position + offset, Quaternion.identity);
+            if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
+            {
+                int beforeHp = targetStats.CurrHp;
+                targetStats.CurrHp += healPower;
+                int restoredHp = targetStats.CurrHp - beforeHp;
 
+                if (BattleFXManager.Instance != null)
+                {
+                    BattleFXManager.Instance.SpawnFloatingText(targetObj.transform, restoredHp.ToString(), Color.green);
+                }
+            }
         }
-        else
-        { //TODO Offset en base al collider
-            offset = new Vector3(0, gameObject.GetComponent<BoxCollider>().bounds.size.y / 2, 0.2f);
-            text = Instantiate(floatingTextPrefab, transform.position + offset, Quaternion.identity);
-
-        }
-        text.GetComponent<TextMeshPro>().SetText(number.ToString());
-        text.GetComponent<TextMeshPro>().color = textColor;
-
-
     }
 
     public void SetUpDefense()
     {
-        fighterAnim.SetBool("defense", true);
-        this.isDefending = true;
-        fighterController.NextTurnCD += 50;
+        if (fighterAnim != null) fighterAnim.SetBool("defense", true);
+        isDefending = true;
     }
 
     public void SetOffDefense()
     {
-        this.isDefending = false;
-        fighterAnim.SetBool("defense", false);
+        isDefending = false;
+        if (fighterAnim != null) fighterAnim.SetBool("defense", false);
     }
 
-    public GameObject SelectRandomTarget(List<GameObject> fighters)
+    #endregion
+
+    #region Movement Helpers (Coroutines)
+
+    private IEnumerator Routine_MoveToTarget(Vector3 destinationPoint, float stopDistance)
     {
-        GameObject targetSelected = null;
-        if (gameObject.CompareTag("Hero"))
+        Vector3 targetPosHorizontal = new Vector3(destinationPoint.x, transform.position.y, destinationPoint.z);
+
+        while (Vector3.Distance(transform.position, targetPosHorizontal) > stopDistance)
         {
-            //TODO IMPLEMENTAR ESTADO "LOCURA"?
+            transform.LookAt(targetPosHorizontal);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosHorizontal, 8f * Time.deltaTime);
+
+            if (fighterAnim != null) fighterAnim.SetFloat("Move", 6f);
+            yield return null;
         }
-        else
+
+        if (fighterAnim != null) fighterAnim.SetFloat("Move", 0f);
+    }
+
+    private IEnumerator Routine_ReturnToOrigin()
+    {
+        isReturning = true;
+
+        while (Vector3.Distance(transform.position, startPosition) > 0.05f)
         {
-            while (targetSelected == null || targetSelected.GetComponent<FighterStats>().CurrHp <= 0)
-            {
-                targetSelected = fighters[Random.Range(0, fighters.Count)];
-            }
-
+            transform.position = Vector3.MoveTowards(transform.position, startPosition, 8.5f * Time.deltaTime);
+            if (fighterAnim != null) fighterAnim.SetFloat("Move", -8.5f);
+            yield return null;
         }
-        return targetSelected;
+
+        transform.position = startPosition;
+
+        // Smoothly return to start rotation
+        while (Quaternion.Angle(transform.rotation, startRotation) > 1f)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, startRotation, 10f * Time.deltaTime);
+            yield return null;
+        }
+
+        transform.rotation = startRotation;
+        if (fighterAnim != null) fighterAnim.SetFloat("Move", 0f);
+
+        isReturning = false;
     }
 
-    public void AttackDone() //CALLED BY ANIMATIONS
+    public void AttackDone() // Animation Event Trigger
     {
-
-        //COME BACK TO START POSITION WHEN ANIMATION DONE
-        StartCoroutine(WaitAfterAttack());
+        // Event hook reserved for animation sync if needed
     }
 
-    private IEnumerator WaitAfterAttack()
-    {
-        //TIME AFTER ATTACK TIL COMING BACK
-        yield return new WaitForSeconds(0.5f);
-        comingBack = true;
-    }
-
-
+    #endregion
 }

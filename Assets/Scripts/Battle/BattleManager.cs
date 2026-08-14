@@ -460,7 +460,9 @@ public class BattleManager : MonoBehaviour
         }
 
         battleCameraController.SetInitialIdle();
-        SetTurns();
+
+        // Initializing Turn System and starting first turn
+        InitializeBattleTurns();
 
         GameManager.Instance.SetGameState(GameManager.GameState.InBattle);
     }
@@ -498,28 +500,26 @@ public class BattleManager : MonoBehaviour
                 topPointer.transform.position.y + enemiesList[i].GetComponent<BoxCollider>().bounds.size.y,
                 topPointer.transform.position.z);
         }
-
-        // INITIALIZE FIGHTERS FIRST TURN CD BY AGILITY
-        foreach (GameObject fighter in fighters)
-        {
-            fighter.GetComponent<FighterController>().NextTurnCD -= fighter.GetComponent<FighterStats>().Agility;
-        }
     }
 
-    private void SetTurns()
+    private void InitializeBattleTurns()
     {
         battleUIController.ShowBattleCanvas(true);
-        turnsOrdered = turnController.SetTurns(fighters);
-        turnController.CurrentFighter.GetComponent<FighterController>().StartsTurn();
+        turnsOrdered = turnController.InitializeTurnSystem(fighters);
 
-        if (turnController.CurrentFighter != null && turnController.CurrentFighter.CompareTag("Enemy"))
+        if (turnController.CurrentFighter != null)
         {
-            currentBattleState = BattleState.WaitingTurnExecution;
-            StartCoroutine(PerformAction());
-        }
-        else
-        {
-            currentBattleState = BattleState.CommandSelection;
+            turnController.CurrentFighter.StartsTurn();
+
+            if (turnController.CurrentFighter.CompareTag("Enemy"))
+            {
+                currentBattleState = BattleState.WaitingTurnExecution;
+                StartCoroutine(PerformAction());
+            }
+            else
+            {
+                currentBattleState = BattleState.CommandSelection;
+            }
         }
     }
 
@@ -530,36 +530,62 @@ public class BattleManager : MonoBehaviour
     private IEnumerator PerformAction()
     {
         FighterStats targetStats = null;
+        GameObject activeFighter = turnController.CurrentFighter.gameObject;
 
-        if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
+        if (activeFighter.CompareTag("Enemy"))
         {
             battleUIController.CommandSelected = Random.Range(0, 1);
         }
 
+        int baseActionCost = 50; // Default action cost (Attack)
+
         switch (battleUIController.CommandSelected)
         {
             case 0: // ATTACK
-                if (turnController.CurrentFighter.gameObject.CompareTag("Enemy"))
+                baseActionCost = 50;
+                if (activeFighter.CompareTag("Enemy"))
                 {
-                    targetStats = turnController.CurrentFighter.SelectRandomTarget(heroList).GetComponent<FighterStats>();
-                    targetList.Add(targetStats.gameObject);
+                    // Use EnemyAIController to pick an alive hero
+                    if (activeFighter.TryGetComponent<EnemyAIController>(out var ai))
+                    {
+                        GameObject chosenTarget = ai.SelectTarget(heroList);
+                        if (chosenTarget != null)
+                        {
+                            targetStats = chosenTarget.GetComponent<FighterStats>();
+                        }
+                    }
+
+                    // Fallback in case EnemyAIController is missing or returns null
+                    if (targetStats == null && heroList != null && heroList.Count > 0)
+                    {
+                        targetStats = heroList[Random.Range(0, heroList.Count)].GetComponent<FighterStats>();
+                    }
+
+                    if (targetStats != null)
+                    {
+                        targetList.Add(targetStats.gameObject);
+                    }
                 }
                 else
                 {
                     targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
                 }
 
-                StartCoroutine(turnController.CurrentFighter.BasicAttack(targetStats.gameObject));
-
-                while (!turnController.CurrentFighter.ActionFinished)
+                if (targetStats != null)
                 {
-                    yield return null;
-                }
+                    StartCoroutine(turnController.CurrentFighter.BasicAttack(targetStats.gameObject));
 
-                turnController.CurrentFighter.ActionFinished = false;
+                    while (!turnController.CurrentFighter.ActionFinished)
+                    {
+                        yield return null;
+                    }
+
+                    turnController.CurrentFighter.ActionFinished = false;
+                }
                 break;
 
             case 1: // PSYNERGY
+                baseActionCost = 60; // Base Psynergy delay cost
                 battleUIController.ShowContentPanel(false);
 
                 if (nextPsynergy.Type == Psynergy.Types.HEALING)
@@ -581,15 +607,16 @@ public class BattleManager : MonoBehaviour
                 break;
 
             case 4: // DEFENSE
+                baseActionCost = 30; // Guard is a faster action
                 turnController.CurrentFighter.SetUpDefense();
                 yield return new WaitForSeconds(1.5f);
                 break;
         }
 
-        CheckDefeated();
+        CheckDefeated(activeFighter, baseActionCost);
     }
 
-    private void CheckDefeated()
+    private void CheckDefeated(GameObject activeFighter, int baseActionCost)
     {
         foreach (GameObject target in targetList)
         {
@@ -598,11 +625,15 @@ public class BattleManager : MonoBehaviour
             {
                 if (targetData.gameObject.CompareTag("Enemy"))
                 {
-                    totalXpEarned += targetData.transform.GetComponent<EnemyDrop>().Xp;
-                    totalGoldEarned += targetData.transform.GetComponent<EnemyDrop>().Gold;
-                    totalPhEarned += targetData.transform.GetComponent<EnemyDrop>().Ph;
+                    // Retrieve EnemyStats to get rewards
+                    if (targetData.TryGetComponent<EnemyStats>(out var enemyStats))
+                    {
+                        totalXpEarned += enemyStats.XpReward;
+                        totalGoldEarned += enemyStats.CoinsReward;
+                        totalPhEarned += enemyStats.CoinsReward;
 
-                    GetItemLoot(targetData);
+                        GetItemLoot(enemyStats);
+                    }
 
                     fighters.Remove(targetData.gameObject);
                     Destroy(targetData.gameObject);
@@ -635,52 +666,54 @@ public class BattleManager : MonoBehaviour
         }
         else
         {
-            TurnFinished();
+            TurnFinished(activeFighter, baseActionCost);
         }
     }
 
-    private void GetItemLoot(FighterStats targetStats)
+    private void GetItemLoot(EnemyStats enemyStats)
     {
-        Item itemToAdd = null;
-        float randomDrop = Random.Range(0f, 100f);
-        if (targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareRatio)
-        {
-            itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemVeryRareDrop);
-        }
-        else
-        {
-            randomDrop = Random.Range(0f, 100f);
-            if (targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemRareRatio)
-            {
-                itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemRareDrop);
-            }
-            else
-            {
-                randomDrop = Random.Range(0f, 100f);
-                if (targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop != null && randomDrop < targetStats.transform.GetComponent<EnemyDrop>().ItemEasyRatio)
-                {
-                    itemToAdd = ItemDatabase.Instance.GetItem(targetStats.transform.GetComponent<EnemyDrop>().ItemEasyDrop);
-                }
-            }
-        }
+        if (enemyStats == null) return;
 
-        if (itemToAdd != null)
+        // Evaluate enemy drops from EnemyStats configuration
+        List<ItemDropRate> droppedItems = enemyStats.PossibleDrops;
+
+        foreach (ItemDropRate droppedItem in droppedItems)
         {
-            if (totalItemsObtained.ContainsKey(itemToAdd))
+            if (droppedItem.itemSlug == null) continue;
+
+            if (totalItemsObtained.ContainsKey(ItemDatabase.Instance.GetItem(droppedItem.itemSlug)))
             {
-                totalItemsObtained[itemToAdd] += 1;
+                totalItemsObtained[ItemDatabase.Instance.GetItem(droppedItem.itemSlug)] += 1;
             }
             else
             {
-                totalItemsObtained.Add(itemToAdd, 1);
+                totalItemsObtained.Add(ItemDatabase.Instance.GetItem(droppedItem.itemSlug), 1);
             }
         }
     }
 
-    private void TurnFinished()
+    private void TurnFinished(GameObject executedFighter, int baseActionCost)
     {
         targetList = new List<GameObject>();
-        SetTurns();
+
+        // Advance turn using TurnController with CTB action cost
+        turnController.AdvanceTurn(executedFighter, baseActionCost);
+        turnsOrdered = turnController.BuildTurnProjection();
+
+        if (turnController.CurrentFighter != null)
+        {
+            turnController.CurrentFighter.StartsTurn();
+
+            if (turnController.CurrentFighter.CompareTag("Enemy"))
+            {
+                currentBattleState = BattleState.WaitingTurnExecution;
+                StartCoroutine(PerformAction());
+            }
+            else
+            {
+                currentBattleState = BattleState.CommandSelection;
+            }
+        }
     }
 
     private IEnumerator BattleWinned()
@@ -698,7 +731,11 @@ public class BattleManager : MonoBehaviour
                 hero.GetComponentInChildren<Animator>().SetBool("victoryPose", true);
         }
 
-        battleCameraController.Victory(turnsOrdered.ElementAt(0).Key);
+        if (turnsOrdered != null && turnsOrdered.Count > 0 && turnsOrdered.ElementAt(0).Key != null)
+        {
+            battleCameraController.Victory(turnsOrdered.ElementAt(0).Key);
+        }
+
         yield return new WaitForSeconds(3);
 
         StartCoroutine(resultsController.ShowResults(heroList, totalXpEarned, totalPhEarned, totalGoldEarned, totalItemsObtained));

@@ -2412,6 +2412,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7685876721148387952}
+  - component: {fileID: 7589816204041822424}
+  - component: {fileID: 7902641766905574895}
+  - component: {fileID: 8123735994906478773}
   - component: {fileID: 7685236118008480394}
   - component: {fileID: 7180290360672529954}
   - component: {fileID: 5038165136887044697}
@@ -2419,9 +2422,6 @@ GameObject:
   - component: {fileID: 1797120645443447042}
   - component: {fileID: 2752306357272317084}
   - component: {fileID: 1376690333971318641}
-  - component: {fileID: 3531235205436352149}
-  - component: {fileID: 7902641766905574895}
-  - component: {fileID: 3842729443258724908}
   m_Layer: 0
   m_Name: Spider
   m_TagString: Enemy
@@ -2455,6 +2455,63 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180.00002, z: 0}
+--- !u!114 &7589816204041822424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3742de0bb7c33e74699178d91f88af89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fighterName: Spider
+  turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
+  baseMaxHp: 70
+  baseMaxPp: 10
+  baseAttack: 10
+  baseDefense: 8
+  baseAgility: 7
+  baseLuck: 3
+  basePowerVenus: 105
+  basePowerMars: 100
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 105
+  baseResistMars: 100
+  baseResistJupiter: 100
+  baseResistMercury: 100
+  xpReward: 50
+  coinsReward: 20
+  possibleDrops:
+  - itemSlug: Nut
+    dropChancePercentage: 10
+--- !u!114 &7902641766905574895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8123735994906478773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3ce7d1acedbdea498396185775289b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!65 &7685236118008480394
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2657,62 +2714,3 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &3531235205436352149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _name: "Ara\xF1a"
-  level: 4
-  maxHp: 220
-  currHp: 220
-  maxPp: 14
-  currPp: 14
-  strenght: 10
-  defense: 6
-  wisdom: 8
-  spirit: 10
-  agility: 9
-  luck: 7
-  turnBarImage: {fileID: 0}
-  xp: 0
---- !u!114 &7902641766905574895
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3842729443258724908
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  xp: 150
-  gold: 20
-  ph: 1
-  itemEasyDrop: Spiderweb
-  itemEasyRatio: 30
-  itemRareDrop: Antidote
-  itemRareRatio: 10
-  itemVeryRareDrop: Metal_Bracelet
-  itemVeryRareRatio: 2

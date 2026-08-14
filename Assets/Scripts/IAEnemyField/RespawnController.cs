@@ -58,7 +58,7 @@ public class RespawnController : MonoBehaviour
         GameObject newEnemy = Instantiate(enemyList[randomEnemy], transform.position, Quaternion.identity);
         newEnemy.transform.SetParent(transform);
 
-        Ai enemyAi = newEnemy.GetComponent<Ai>();
+        WorldEnemyAI enemyAi = newEnemy.GetComponent<WorldEnemyAI>();
         if (enemyAi != null)
         {
             enemyAi.enabled = true;

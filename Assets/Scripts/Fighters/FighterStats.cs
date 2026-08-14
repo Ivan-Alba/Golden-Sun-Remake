@@ -1,52 +1,48 @@
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using TMPro;
-using UnityEditor;
 using UnityEngine;
 
-[Serializable]
 public class FighterStats : MonoBehaviour
 {
     // Events for UI and system updates (passes current value and max value)
     public event Action<int, int> OnHpChanged;
     public event Action<int, int> OnPpChanged;
 
-    List<BaseStat> characterStats = new List<BaseStat>();
-    List<Psynergy> psynergies = new List<Psynergy>();
+    [Header("Fighter Identity & Basic Info")]
+    [SerializeField] protected string fighterName;
+    [SerializeField] protected Sprite turnBarImage;
 
-    private enum Stats
-    {
-        HP,
-        MAXHP,
-        PP,
-        MAXPP,
-        STRENGHT,
-        DEFENSE,
-        WISDOM,
-        SPIRIT,
-        AGILITY,
-        LUCK
-    }
+    [Header("Base Stats Configuration")]
+    [SerializeField] protected int baseMaxHp = 100;
+    [SerializeField] protected int baseMaxPp = 50;
+    [SerializeField] protected int baseAttack = 20;
+    [SerializeField] protected int baseDefense = 15;
+    [SerializeField] protected int baseAgility = 10;
+    [SerializeField] protected int baseLuck = 5;
 
-    public const int HP = 0;
+    [Header("Elemental Power Base Stats")]
+    [SerializeField] protected int basePowerVenus = 100;
+    [SerializeField] protected int basePowerMars = 100;
+    [SerializeField] protected int basePowerJupiter = 100;
+    [SerializeField] protected int basePowerMercury = 100;
 
-    [Header("Fighter Base Stats")]
-    [SerializeField] string _name;
-    [SerializeField] int level;
-    [SerializeField] int maxHp, currHp, maxPp, currPp, strenght, defense, wisdom, spirit, agility, luck;
-    [SerializeField] Sprite turnBarImage;
-    [SerializeField] int xp;
+    [Header("Elemental Resistance Base Stats")]
+    [SerializeField] protected int baseResistVenus = 100;
+    [SerializeField] protected int baseResistMars = 100;
+    [SerializeField] protected int baseResistJupiter = 100;
+    [SerializeField] protected int baseResistMercury = 100;
 
-    // Drop items list
+    protected Dictionary<StatType, Stat> statsMap = new Dictionary<StatType, Stat>();
+    protected List<Psynergy> psynergies = new List<Psynergy>();
 
-    // Heroes
-    int nextLevelXp;
+    private int currHp;
+    private int currPp;
 
-    public string Name { get => _name; set => _name = value; }
-    public int Level { get => level; set => level = value; }
-    public int MaxHp { get => characterStats[0].GetFinalValue(); set => maxHp = value; }
+    #region Properties - Identity & Resources
+
+    public string Name { get => fighterName; set => fighterName = value; }
+    public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
+    public List<Psynergy> Psynergies { get => psynergies; set => psynergies = value; }
 
     public int CurrHp
     {
@@ -62,8 +58,6 @@ public class FighterStats : MonoBehaviour
         }
     }
 
-    public int MaxPp { get => characterStats[1].GetFinalValue(); set => maxPp = value; }
-
     public int CurrPp
     {
         get => currPp;
@@ -78,139 +72,125 @@ public class FighterStats : MonoBehaviour
         }
     }
 
-    public int Strenght { get => characterStats[2].GetFinalValue(); set => strenght = value; }
-    public int Defense { get => characterStats[3].GetFinalValue(); set => defense = value; }
-    public int Wisdom { get => characterStats[4].GetFinalValue(); set => wisdom = value; }
-    public int Spirit { get => characterStats[5].GetFinalValue(); set => spirit = value; }
-    public int Agility { get => characterStats[6].GetFinalValue(); set => agility = value; }
-    public int Luck { get => characterStats[7].GetFinalValue(); set => luck = value; }
-    public int Xp { get => xp; set => xp = value; }
-    public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
-    public int NextLevelXp { get => nextLevelXp; set => nextLevelXp = value; }
-    public List<Psynergy> Psynergies { get => psynergies; set => psynergies = value; }
-    public List<BaseStat> CharacterStats { get => characterStats; set => characterStats = value; }
+    #endregion
 
-    private void Awake()
+    #region Properties - Core Stats Accessors
+
+    public int MaxHp => GetStatValue(StatType.MaxHP);
+    public int MaxPp => GetStatValue(StatType.MaxPP);
+    public int Attack => GetStatValue(StatType.Attack);
+    public int Defense => GetStatValue(StatType.Defense);
+    public int Agility => GetStatValue(StatType.Agility);
+    public int Luck => GetStatValue(StatType.Luck);
+
+    // Elemental Power Accessors
+    public int PowerVenus => GetStatValue(StatType.PowerVenus);
+    public int PowerMars => GetStatValue(StatType.PowerMars);
+    public int PowerJupiter => GetStatValue(StatType.PowerJupiter);
+    public int PowerMercury => GetStatValue(StatType.PowerMercury);
+
+    // Elemental Resistance Accessors
+    public int ResistVenus => GetStatValue(StatType.ResistVenus);
+    public int ResistMars => GetStatValue(StatType.ResistMars);
+    public int ResistJupiter => GetStatValue(StatType.ResistJupiter);
+    public int ResistMercury => GetStatValue(StatType.ResistMercury);
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    protected virtual void Awake()
     {
-        NextLevelXp = level * 125 + (125 * level / 2);
-        CharacterStats.Add(new BaseStat(maxHp, ((Stats)1).ToString(), "Puntos de vida máximos"));
-        CharacterStats.Add(new BaseStat(maxPp, ((Stats)3).ToString(), "Puntos psinergicos máximos"));
-        CharacterStats.Add(new BaseStat(strenght, ((Stats)4).ToString(), "Aumenta el daño físico inflingido"));
-        CharacterStats.Add(new BaseStat(defense, ((Stats)5).ToString(), "Disminuye el daño físico recibido"));
-        CharacterStats.Add(new BaseStat(wisdom, ((Stats)6).ToString(), "Aumenta el daño mágico inflingido"));
-        CharacterStats.Add(new BaseStat(spirit, ((Stats)7).ToString(), "Disminuye el daño mágico recibido"));
-        CharacterStats.Add(new BaseStat(agility, ((Stats)8).ToString(), "Influye en la velocidad en batalla"));
-        CharacterStats.Add(new BaseStat(luck, ((Stats)9).ToString(), "Influye en la capacidad de crítico"));
+        InitializeStats();
     }
 
-    private void Start()
+    protected virtual void Start()
     {
-        /* psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-        */
+        // Set current resources to max on start
+        currHp = MaxHp;
+        currPp = MaxPp;
     }
 
-    public void addStatBonus(string statName, int bonusValue)
+    #endregion
+
+    #region Stats Initialization & Helper Methods
+
+    protected virtual void InitializeStats()
     {
-        characterStats.Find(x => x.StatName == statName).AddStatBonus(new StatBonus(bonusValue));
+        statsMap.Clear();
+
+        // Core Stats
+        statsMap.Add(StatType.MaxHP, new Stat(StatType.MaxHP, baseMaxHp));
+        statsMap.Add(StatType.MaxPP, new Stat(StatType.MaxPP, baseMaxPp));
+        statsMap.Add(StatType.Attack, new Stat(StatType.Attack, baseAttack));
+        statsMap.Add(StatType.Defense, new Stat(StatType.Defense, baseDefense));
+        statsMap.Add(StatType.Agility, new Stat(StatType.Agility, baseAgility));
+        statsMap.Add(StatType.Luck, new Stat(StatType.Luck, baseLuck));
+
+        // Elemental Powers
+        statsMap.Add(StatType.PowerVenus, new Stat(StatType.PowerVenus, basePowerVenus));
+        statsMap.Add(StatType.PowerMars, new Stat(StatType.PowerMars, basePowerMars));
+        statsMap.Add(StatType.PowerJupiter, new Stat(StatType.PowerJupiter, basePowerJupiter));
+        statsMap.Add(StatType.PowerMercury, new Stat(StatType.PowerMercury, basePowerMercury));
+
+        // Elemental Resistances
+        statsMap.Add(StatType.ResistVenus, new Stat(StatType.ResistVenus, baseResistVenus));
+        statsMap.Add(StatType.ResistMars, new Stat(StatType.ResistMars, baseResistMars));
+        statsMap.Add(StatType.ResistJupiter, new Stat(StatType.ResistJupiter, baseResistJupiter));
+        statsMap.Add(StatType.ResistMercury, new Stat(StatType.ResistMercury, baseResistMercury));
     }
 
-    public void RemoveStatBonus(string statName, int bonusValue)
+    public Stat GetStat(StatType type)
     {
-        characterStats.Find(x => x.StatName == statName).RemoveStatBonus(new StatBonus(bonusValue));
-    }
-
-    public void AddBonusEffect(string stat, int value)
-    {
-        switch (stat)
+        if (statsMap.TryGetValue(type, out var stat))
         {
-            case "HP":
-                CurrHp += value; // Property setter automatically clamps and triggers OnHpChanged
-                break;
-            case "MAXHP":
-
-                break;
-            case "PP":
-                CurrPp += value; // Property setter automatically clamps and triggers OnPpChanged
-                break;
-            case "MAXPP":
-
-                break;
-            case "STRENGHT":
-
-                break;
-            case "DEFENSE":
-
-                break;
-            case "WISDOM":
-
-                break;
-            case "SPIRIT":
-
-                break;
-            case "AGILITY":
-
-                break;
-            case "LUCK":
-
-                break;
-        }
-    }
-
-    public string LevelUp()
-    {
-        // Experience
-        level += 1;
-        xp = 0;
-        NextLevelXp = level * 125 + (125 * level / 2);
-        // Increase base stats
-
-        // Learn new ability?
-        string abilityLearned = LearnAbility();
-        if (abilityLearned != null)
-        {
-            return abilityLearned;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private string LearnAbility()
-    {
-        // Load Json
-        HeroAbilitiesData abilitiesData = JsonUtility.FromJson<HeroAbilitiesData>(Resources.Load("JSON/HeroLearningData").ToString());
-
-        // Find hero by name
-        HeroAbility heroAbility = abilitiesData.GetHeroAbility(_name);
-
-        if (heroAbility != null)
-        {
-            // Find ability corresponding to hero level
-            string abilityName = heroAbility.GetAbilityName(level);
-
-            if (abilityName != null)
-            {
-                Debug.Log(_name + " aprenderá la habilidad " + abilityName + " en el nivel " + level + ".");
-                psynergies.Add(PsynergyDatabase.Instance.GetPsynergy(abilityName));
-                return abilityName;
-            }
-            else
-            {
-                //Debug.Log(_name + " no aprenderá ninguna habilidad en el nivel " + level + ".");
-            }
-        }
-        else
-        {
-            //Debug.Log("El héroe " + _name + " no se encontró en los datos de habilidades.");
+            return stat;
         }
 
+        Debug.LogError($"[FighterStats] StatType '{type}' not found on {gameObject.name}.");
         return null;
     }
+
+    public int GetStatValue(StatType type)
+    {
+
+        var stat = GetStat(type);
+        return stat != null ? stat.Value : 0;
+    }
+
+    #endregion
+
+    #region Modifier Operations
+
+    public void AddStatModifier(StatType type, StatModifier modifier)
+    {
+        var stat = GetStat(type);
+        stat?.AddModifier(modifier);
+    }
+
+    public void RemoveModifiersFromSource(object source)
+    {
+        foreach (var stat in statsMap.Values)
+        {
+            stat.RemoveAllModifiersFromSource(source);
+        }
+    }
+
+    public void TickTurnModifiers()
+    {
+        foreach (var stat in statsMap.Values)
+        {
+            stat.TickTurnModifiers();
+        }
+    }
+
+    public void RemoveAllTemporaryModifiers()
+    {
+        foreach (var stat in statsMap.Values)
+        {
+            stat.RemoveAllTemporaryModifiers();
+        }
+    }
+
+    #endregion
 }

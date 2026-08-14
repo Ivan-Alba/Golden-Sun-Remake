@@ -308,6 +308,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7685876721148387952}
+  - component: {fileID: 4032200928497268064}
+  - component: {fileID: 7902641766905574895}
+  - component: {fileID: 2579791047372981654}
   - component: {fileID: 7685236118008480394}
   - component: {fileID: 7180290360672529954}
   - component: {fileID: 5038165136887044697}
@@ -315,9 +318,6 @@ GameObject:
   - component: {fileID: 1797120645443447042}
   - component: {fileID: 2752306357272317084}
   - component: {fileID: 1376690333971318641}
-  - component: {fileID: 3531235205436352149}
-  - component: {fileID: 7902641766905574895}
-  - component: {fileID: 3842729443258724908}
   m_Layer: 0
   m_Name: Mushroom Green
   m_TagString: Enemy
@@ -343,6 +343,63 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180.00002, z: 0}
+--- !u!114 &4032200928497268064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3742de0bb7c33e74699178d91f88af89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fighterName: Green Mushroom
+  turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
+  baseMaxHp: 55
+  baseMaxPp: 8
+  baseAttack: 8
+  baseDefense: 9
+  baseAgility: 5
+  baseLuck: 4
+  basePowerVenus: 100
+  basePowerMars: 100
+  basePowerJupiter: 105
+  basePowerMercury: 100
+  baseResistVenus: 100
+  baseResistMars: 100
+  baseResistJupiter: 105
+  baseResistMercury: 100
+  xpReward: 50
+  coinsReward: 20
+  possibleDrops:
+  - itemSlug: Herb
+    dropChancePercentage: 5
+--- !u!114 &7902641766905574895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2579791047372981654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3ce7d1acedbdea498396185775289b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!65 &7685236118008480394
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -545,62 +602,3 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &3531235205436352149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _name: Seta verdosa
-  level: 2
-  maxHp: 45
-  currHp: 45
-  maxPp: 12
-  currPp: 12
-  strenght: 7
-  defense: 4
-  wisdom: 9
-  spirit: 8
-  agility: 7
-  luck: 5
-  turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
-  xp: 50
---- !u!114 &7902641766905574895
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3842729443258724908
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7684153269823024792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  xp: 45
-  gold: 9
-  ph: 1
-  itemEasyDrop: Herb
-  itemEasyRatio: 25
-  itemRareDrop: 
-  itemRareRatio: 0
-  itemVeryRareDrop: Life_Water
-  itemVeryRareRatio: 0.5

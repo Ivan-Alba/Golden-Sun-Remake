@@ -86459,7 +86459,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5670264714769895008}
-  - component: {fileID: 5670264714769895037}
+  - component: {fileID: 5242776947619147269}
   - component: {fileID: 5670264714769895036}
   - component: {fileID: 5670264714769895039}
   - component: {fileID: 5670264714769895038}
@@ -86491,7 +86491,7 @@ Transform:
   m_Father: {fileID: 5670264714143637856}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 189.024, z: 0}
---- !u!114 &5670264714769895037
+--- !u!114 &5242776947619147269
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86500,23 +86500,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 5670264714769895011}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
+  m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Hans
-  level: 1
-  maxHp: 55
-  currHp: 55
-  maxPp: 24
-  currPp: 24
-  strenght: 55
-  defense: 8
-  wisdom: 7
-  spirit: 7
-  agility: 8
-  luck: 6
+  fighterName: Hans
   turnBarImage: {fileID: 21300000, guid: 6ae044384bd8fd44e986f93f593155f5, type: 3}
-  xp: 0
+  baseMaxHp: 60
+  baseMaxPp: 24
+  baseAttack: 17
+  baseDefense: 14
+  baseAgility: 10
+  baseLuck: 6
+  basePowerVenus: 105
+  basePowerMars: 100
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 105
+  baseResistMars: 100
+  baseResistJupiter: 100
+  baseResistMercury: 100
+  level: 1
+  currentXp: 0
 --- !u!82 &5670264714769895036
 AudioSource:
   m_ObjectHideFlags: 0
@@ -92806,20 +92810,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Mia
-  level: 1
-  maxHp: 42
-  currHp: 42
-  maxPp: 38
-  currPp: 38
-  strenght: 14
-  defense: 8
-  wisdom: 7
-  spirit: 7
-  agility: 8
-  luck: 6
+  fighterName: 
   turnBarImage: {fileID: 0}
-  xp: 0
+  baseMaxHp: 100
+  baseMaxPp: 50
+  baseAttack: 20
+  baseDefense: 15
+  baseAgility: 10
+  baseLuck: 5
+  basePowerVenus: 100
+  basePowerMars: 100
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 100
+  baseResistMars: 100
+  baseResistJupiter: 100
+  baseResistMercury: 100
 --- !u!82 &5670264714838908481
 AudioSource:
   m_ObjectHideFlags: 0
@@ -187361,12 +187367,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5670264715823774420}
-  - component: {fileID: 5670264715823774446}
+  - component: {fileID: 5068398063669969886}
+  - component: {fileID: 5670264715823774421}
+  - component: {fileID: 5670264715823774418}
+  - component: {fileID: 5670264715823774419}
   - component: {fileID: 5670264715823774417}
   - component: {fileID: 5670264715823774416}
-  - component: {fileID: 5670264715823774419}
-  - component: {fileID: 5670264715823774418}
-  - component: {fileID: 5670264715823774421}
   m_Layer: 0
   m_Name: Garet
   m_TagString: Hero
@@ -187392,7 +187398,7 @@ Transform:
   m_Father: {fileID: 5670264714143637856}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 190.303, z: 0}
---- !u!114 &5670264715823774446
+--- !u!114 &5068398063669969886
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -187401,23 +187407,67 @@ MonoBehaviour:
   m_GameObject: {fileID: 5670264715823774423}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
+  m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Garet
-  level: 1
-  maxHp: 62
-  currHp: 50
-  maxPp: 18
-  currPp: 18
-  strenght: 44
-  defense: 10
-  wisdom: 5
-  spirit: 5
-  agility: 4
-  luck: 6
+  fighterName: Garet
   turnBarImage: {fileID: 21300000, guid: 871e824b80aa56740b49ddd478e360ac, type: 3}
-  xp: 0
+  baseMaxHp: 70
+  baseMaxPp: 20
+  baseAttack: 18
+  baseDefense: 15
+  baseAgility: 8
+  baseLuck: 5
+  basePowerVenus: 100
+  basePowerMars: 105
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 100
+  baseResistMars: 105
+  baseResistJupiter: 100
+  baseResistMercury: 100
+  level: 1
+  currentXp: 0
+--- !u!114 &5670264715823774421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5670264715823774423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc69722ed0f925a45b106e04b4ae3023, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5670264715823774418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5670264715823774423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5670264715823774419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5670264715823774423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a441cbe72fa52234d8184ec139ed6ac6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - {fileID: 8300000, guid: 34070d65b8396a44aaa2b268cc4e7858, type: 3}
+  - {fileID: 8300000, guid: 3b339bfd0e5761f4392809c75b3f31a5, type: 3}
+  - {fileID: 8300000, guid: 2d1fca9f906f6c347a912638feef7be6, type: 3}
 --- !u!82 &5670264715823774417
 AudioSource:
   m_ObjectHideFlags: 0
@@ -187535,46 +187585,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &5670264715823774419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5670264715823774423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a441cbe72fa52234d8184ec139ed6ac6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sounds:
-  - {fileID: 8300000, guid: 34070d65b8396a44aaa2b268cc4e7858, type: 3}
-  - {fileID: 8300000, guid: 3b339bfd0e5761f4392809c75b3f31a5, type: 3}
-  - {fileID: 8300000, guid: 2d1fca9f906f6c347a912638feef7be6, type: 3}
---- !u!114 &5670264715823774418
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5670264715823774423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5670264715823774421
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5670264715823774423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc69722ed0f925a45b106e04b4ae3023, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5670264715824054493
 GameObject:
   m_ObjectHideFlags: 0
@@ -193339,8 +193349,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5670264715892654730}
-  m_LocalRotation: {x: -0.40200904, y: -0.27665147, z: -0.12882975, w: 0.8632819}
-  m_LocalPosition: {x: 33.367046, y: 0.5666367, z: -34.937866}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 30.95, y: -1.9000002, z: -30.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -193372,7 +193382,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 3
+  field of view: 55
   orthographic: 0
   orthographic size: 10
   m_Depth: 99
@@ -197364,20 +197374,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Ivan
-  level: 1
-  maxHp: 40
-  currHp: 40
-  maxPp: 30
-  currPp: 30
-  strenght: 14
-  defense: 6
-  wisdom: 10
-  spirit: 9
-  agility: 9
-  luck: 6
+  fighterName: 
   turnBarImage: {fileID: 0}
-  xp: 0
+  baseMaxHp: 100
+  baseMaxPp: 50
+  baseAttack: 20
+  baseDefense: 15
+  baseAgility: 10
+  baseLuck: 5
+  basePowerVenus: 100
+  basePowerMars: 100
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 100
+  baseResistMars: 100
+  baseResistJupiter: 100
+  baseResistMercury: 100
 --- !u!82 &5670264715931242977
 AudioSource:
   m_ObjectHideFlags: 0

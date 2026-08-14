@@ -1,7 +1,4 @@
-using JetBrains.Annotations;
-using Palmmedia.ReportGenerator.Core.Reporting.Builders.Rendering;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,26 +7,26 @@ using UnityEngine.SceneManagement;
 [System.Serializable]
 public class GameData
 {
-    //Scene
+    // Scene
     public string currentSceneName;
     public float[] playerPosition = new float[3];
     public float[] playerRotation = new float[3];
 
-    //Inventory
+    // Inventory
     public List<KeyValuePair<Item, int>> playerItems = new List<KeyValuePair<Item, int>>();
 
-    //Party
+    // Party
     public int totalGold;
     public float totalTime;
     public List<string> party = new List<string>();
-    public List<List<BaseStat>> heroStats = new List<List<BaseStat>>();
+    public List<List<Stat>> heroStats = new List<List<Stat>>();
     public List<int[]> heroLevelAndXp = new List<int[]>();
     public List<int[]> heroCurrHpPp = new List<int[]>();
     public List<Equipable[]> heroEquippedGear = new List<Equipable[]>();
     public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
     public List<KeyValuePair<string, Psynergy[]>> heroShortcuts = new List<KeyValuePair<string, Psynergy[]>>();
 
-    //JSON CONSTRUCTOR
+    // JSON CONSTRUCTOR
     public GameData()
     {
 
@@ -37,62 +34,83 @@ public class GameData
 
     public GameData(Transform player)
     {
-
-        //----SCENE DATA----
+        // ---- SCENE DATA ----
         currentSceneName = SceneManager.GetActiveScene().name;
-        //position
+
+        // Position
         playerPosition[0] = player.position.x;
         playerPosition[1] = player.position.y;
         playerPosition[2] = player.position.z;
-        //rotation
+
+        // Rotation
         playerRotation[0] = player.rotation.eulerAngles.x;
         playerRotation[1] = player.rotation.eulerAngles.y;
         playerRotation[2] = player.rotation.eulerAngles.z;
 
-        //---INVENTORY DATA---
-
-       playerItems = InventoryController.Instance.PlayerItems.ToList();
-
-        //---GAME DATA----
-
-        //total gold
-        totalGold = GameManager.Instance.TotalGold;
-        //total time played
-        totalTime = GameManager.Instance.TotalPlayed;
-
-        //---PARTY DATA----
-        foreach(GameObject hero in GameManager.Instance.GetParty())
+        // ---- INVENTORY DATA ----
+        if (InventoryController.Instance != null && InventoryController.Instance.PlayerItems != null)
         {
-            party.Add(hero.name);
-            heroStats.Add(hero.GetComponent<FighterStats>().CharacterStats);
-            //Level and XP
-            int[] xpLevel = new int[3] { hero.GetComponent<FighterStats>().Level, hero.GetComponent<FighterStats>().Xp, hero.GetComponent<FighterStats>().NextLevelXp };
-            heroLevelAndXp.Add(xpLevel);
-            //Current HP and PP
-            int[] currentPpHp = new int[2] { hero.GetComponent<FighterStats>().CurrHp, hero.GetComponent<FighterStats>().CurrPp };
-            heroCurrHpPp.Add(currentPpHp);
+            playerItems = InventoryController.Instance.PlayerItems.ToList();
+        }
 
-            //Psynergy
-            heroPsynergy.Add(hero.GetComponent<FighterStats>().Psynergies);
-            /*foreach(Psynergy psy in heroPsynergy[i])
+        // ---- GAME DATA ----
+        if (GameManager.Instance != null)
+        {
+            totalGold = GameManager.Instance.TotalGold;
+            totalTime = GameManager.Instance.TotalPlayed;
+
+            // ---- PARTY DATA ----
+            foreach (GameObject hero in GameManager.Instance.GetParty())
             {
-                psy.Icon = null;
-                psy.ElementIcon = null;
-            }*/
+                if (hero == null) continue;
 
-            //Equipment
-            heroEquippedGear.Add(hero.GetComponent<HeroEquipment>().EquippedItems);
+                party.Add(hero.name);
+
+                if (hero.TryGetComponent<HeroStats>(out var heroStatsComponent))
+                {
+                    // Collect all Stat objects for this hero
+                    List<Stat> currentHeroStats = new List<Stat>();
+                    foreach (StatType statType in Enum.GetValues(typeof(StatType)))
+                    {
+                        Stat stat = heroStatsComponent.GetStat(statType);
+                        if (stat != null)
+                        {
+                            currentHeroStats.Add(stat);
+                        }
+                    }
+                    heroStats.Add(currentHeroStats);
+
+                    // Level and XP from HeroStats
+                    int[] xpLevel = new int[3] { heroStatsComponent.Level, heroStatsComponent.CurrentXp, heroStatsComponent.NextLevelXp };
+                    heroLevelAndXp.Add(xpLevel);
+
+                    // Current HP and PP from FighterStats/HeroStats
+                    int[] currentPpHp = new int[2] { heroStatsComponent.CurrHp, heroStatsComponent.CurrPp };
+                    heroCurrHpPp.Add(currentPpHp);
+
+                    // Psynergy
+                    heroPsynergy.Add(heroStatsComponent.Psynergies);
+                }
+
+                // Equipment
+                if (hero.TryGetComponent<HeroEquipment>(out var equipmentComponent))
+                {
+                    heroEquippedGear.Add(equipmentComponent.EquippedItems);
+                }
+            }
         }
 
-        //PsynergyShortcuts
-        foreach(KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)
+        // PsynergyShortcuts
+        if (PsynergyWorldController.Instance != null && PsynergyWorldController.Instance.HeroShortcuts != null)
         {
-            KeyValuePair<string, Psynergy[]> item = new KeyValuePair<string, Psynergy[]>(heroShortcut.Key.name, heroShortcut.Value);
-            heroShortcuts.Add(item);
+            foreach (KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)
+            {
+                if (heroShortcut.Key != null)
+                {
+                    KeyValuePair<string, Psynergy[]> item = new KeyValuePair<string, Psynergy[]>(heroShortcut.Key.name, heroShortcut.Value);
+                    heroShortcuts.Add(item);
+                }
+            }
         }
-
-
     }
-
-
 }

@@ -209,7 +209,7 @@ public class PlayerUIManager : MonoBehaviour
         {
             if (i < party.Count && party[i] != null)
             {
-                FighterStats stats = party[i].GetComponent<FighterStats>();
+                HeroStats stats = party[i].GetComponent<HeroStats>();
                 partySlots[i].UpdateData(stats, party[i].name);
             }
             else

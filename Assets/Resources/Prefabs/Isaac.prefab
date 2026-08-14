@@ -632,10 +632,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 312790880722549132}
-  - component: {fileID: 312790880722549130}
+  - component: {fileID: 8844221165142241660}
+  - component: {fileID: 7694037339662408159}
+  - component: {fileID: 312790880722549123}
   - component: {fileID: 312790880722549122}
   - component: {fileID: 312790880722549125}
-  - component: {fileID: 312790880722549123}
   m_Layer: 0
   m_Name: Isaac
   m_TagString: Hero
@@ -660,7 +661,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 189.024, z: 0}
---- !u!114 &312790880722549130
+--- !u!114 &8844221165142241660
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -669,23 +670,51 @@ MonoBehaviour:
   m_GameObject: {fileID: 312790880722549135}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
+  m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Hans
+  fighterName: Hans
+  turnBarImage: {fileID: 21300000, guid: 6ae044384bd8fd44e986f93f593155f5, type: 3}
+  baseMaxHp: 60
+  baseMaxPp: 24
+  baseAttack: 17
+  baseDefense: 14
+  baseAgility: 10
+  baseLuck: 6
+  basePowerVenus: 105
+  basePowerMars: 100
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 105
+  baseResistMars: 100
+  baseResistJupiter: 100
+  baseResistMercury: 100
   level: 1
-  maxHp: 55
-  currHp: 55
-  maxPp: 24
-  currPp: 24
-  strenght: 55
-  defense: 8
-  wisdom: 7
-  spirit: 7
-  agility: 8
-  luck: 6
-  avatar: {fileID: 21300000, guid: 6ae044384bd8fd44e986f93f593155f5, type: 3}
-  xp: 0
+  currentXp: 0
+--- !u!114 &7694037339662408159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312790880722549135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc69722ed0f925a45b106e04b4ae3023, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &312790880722549123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312790880722549135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!82 &312790880722549122
 AudioSource:
   m_ObjectHideFlags: 0
@@ -798,18 +827,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 34070d65b8396a44aaa2b268cc4e7858, type: 3}
   - {fileID: 8300000, guid: 3b339bfd0e5761f4392809c75b3f31a5, type: 3}
   - {fileID: 8300000, guid: 2d1fca9f906f6c347a912638feef7be6, type: 3}
---- !u!114 &312790880722549123
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 312790880722549135}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &312790880809336700
 GameObject:
   m_ObjectHideFlags: 0

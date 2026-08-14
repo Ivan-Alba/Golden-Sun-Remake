@@ -1,5 +1,6 @@
 using Cinemachine;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -218,7 +219,7 @@ public class GameManager : MonoBehaviour
         {
             activeHero = party[0];
 
-            for (int i = 0; i < party.Count; i++)
+            /*for (int i = 0; i < party.Count; i++)
             {
                 FighterStats stats = party[i].GetComponent<FighterStats>();
                 if (stats != null)
@@ -227,7 +228,7 @@ public class GameManager : MonoBehaviour
                     stats.LevelUp();
                     stats.LevelUp();
                 }
-            }
+            }*/
 
             changeModelHero();
         }
@@ -378,8 +379,11 @@ public class GameManager : MonoBehaviour
 
     private void LoadData()
     {
+        if (SaveManager.loadedData == null) return;
+
         GameData dataToLoad = SaveManager.loadedData[0];
 
+        // ---- PLAYER POSITION & ROTATION ----
         if (PlayerController.Instance != null)
         {
             Transform playerTransform = PlayerController.Instance.transform;
@@ -405,6 +409,7 @@ public class GameManager : MonoBehaviour
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
 
+        // ---- RECONSTRUCT PARTY ----
         party.Clear();
         foreach (string heroName in dataToLoad.party)
         {
@@ -415,38 +420,68 @@ public class GameManager : MonoBehaviour
         if (party.Count > 0) activeHero = party[0];
         changeModelHero();
 
+        // ---- RESTORE HERO STATS & EQUIPMENT ----
         for (int i = 0; i < party.Count; i++)
         {
-            FighterStats stats = party[i].GetComponent<FighterStats>();
-            if (stats != null)
+            if (party[i].TryGetComponent<HeroStats>(out var heroStats))
             {
-                stats.CharacterStats = dataToLoad.heroStats[i];
-                stats.Level = dataToLoad.heroLevelAndXp[i][0];
-                stats.Xp = dataToLoad.heroLevelAndXp[i][1];
-                stats.NextLevelXp = dataToLoad.heroLevelAndXp[i][2];
-                stats.CurrHp = dataToLoad.heroCurrHpPp[i][0];
-                stats.CurrPp = dataToLoad.heroCurrHpPp[i][1];
+                // Restore Base Values for each Stat
+                if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
+                {
+                    foreach (Stat savedStat in dataToLoad.heroStats[i])
+                    {
+                        Stat currentStat = heroStats.GetStat(savedStat.StatType);
+                        if (currentStat != null)
+                        {
+                            currentStat.BaseValue = savedStat.BaseValue;
+                        }
+                    }
+                }
 
-                stats.Psynergies = dataToLoad.heroPsynergy[i];
+                // Restore Level and XP
+                if (dataToLoad.heroLevelAndXp != null && i < dataToLoad.heroLevelAndXp.Count)
+                {
+                    int savedLevel = dataToLoad.heroLevelAndXp[i][0];
+                    int savedXp = dataToLoad.heroLevelAndXp[i][1];
+                    heroStats.LoadProgression(savedLevel, savedXp);
+                }
+
+                // Restore Current HP and PP
+                if (dataToLoad.heroCurrHpPp != null && i < dataToLoad.heroCurrHpPp.Count)
+                {
+                    heroStats.CurrHp = dataToLoad.heroCurrHpPp[i][0];
+                    heroStats.CurrPp = dataToLoad.heroCurrHpPp[i][1];
+                }
+
+                // Restore Psynergies
+                if (dataToLoad.heroPsynergy != null && i < dataToLoad.heroPsynergy.Count)
+                {
+                    heroStats.Psynergies = dataToLoad.heroPsynergy[i];
+                }
             }
 
-            HeroEquipment equipment = party[i].GetComponent<HeroEquipment>();
-            if (equipment != null)
+            // Restore Equipment
+            if (party[i].TryGetComponent<HeroEquipment>(out var equipment))
             {
-                equipment.EquippedItems = dataToLoad.heroEquippedGear[i];
-
-                foreach (Equipable equipPiece in equipment.EquippedItems)
+                if (dataToLoad.heroEquippedGear != null && i < dataToLoad.heroEquippedGear.Count)
                 {
-                    if (equipPiece != null && ItemDatabase.Instance != null)
+                    equipment.EquippedItems = dataToLoad.heroEquippedGear[i];
+
+                    foreach (Equipable equipPiece in equipment.EquippedItems)
                     {
-                        equipPiece.Icon = ItemDatabase.Instance.GetItem(equipPiece.ItemSlug).Icon;
+                        if (equipPiece != null && ItemDatabase.Instance != null)
+                        {
+                            equipPiece.Icon = ItemDatabase.Instance.GetItem(equipPiece.ItemSlug)?.Icon;
+                        }
                     }
                 }
             }
         }
 
-        party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies.ForEach(p => p.SetElementIcon()));
+        // Refresh Psynergy Icons
+        party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies?.ForEach(p => p.SetElementIcon()));
 
+        // ---- SHORTCUTS ----
         if (PsynergyWorldController.Instance != null)
         {
             PsynergyWorldController.Instance.Initialize();
@@ -467,6 +502,7 @@ public class GameManager : MonoBehaviour
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
         }
 
+        // ---- INVENTORY ----
         List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
         if (InventoryController.Instance != null)
         {
@@ -481,6 +517,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Re-enable Player Animator
         if (PlayerController.Instance != null)
         {
             Animator anim = PlayerController.Instance.GetComponent<Animator>();

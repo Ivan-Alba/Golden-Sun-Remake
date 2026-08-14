@@ -9,7 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 760799251909207384}
-  - component: {fileID: 760799251909207367}
+  - component: {fileID: 4923873544304608581}
+  - component: {fileID: 2248695451568002814}
   - component: {fileID: 760799251909207365}
   - component: {fileID: 760799251909207364}
   - component: {fileID: 760799251909207363}
@@ -37,7 +38,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 190.303, z: 0}
---- !u!114 &760799251909207367
+--- !u!114 &4923873544304608581
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,23 +47,39 @@ MonoBehaviour:
   m_GameObject: {fileID: 760799251909207362}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
+  m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _name: Garet
+  fighterName: Garet
+  turnBarImage: {fileID: 21300000, guid: 871e824b80aa56740b49ddd478e360ac, type: 3}
+  baseMaxHp: 70
+  baseMaxPp: 20
+  baseAttack: 18
+  baseDefense: 15
+  baseAgility: 8
+  baseLuck: 5
+  basePowerVenus: 100
+  basePowerMars: 105
+  basePowerJupiter: 100
+  basePowerMercury: 100
+  baseResistVenus: 100
+  baseResistMars: 105
+  baseResistJupiter: 100
+  baseResistMercury: 100
   level: 1
-  maxHp: 62
-  currHp: 50
-  maxPp: 18
-  currPp: 18
-  strenght: 44
-  defense: 10
-  wisdom: 5
-  spirit: 5
-  agility: 4
-  luck: 6
-  avatar: {fileID: 21300000, guid: 871e824b80aa56740b49ddd478e360ac, type: 3}
-  xp: 0
+  currentXp: 0
+--- !u!114 &2248695451568002814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760799251909207362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc69722ed0f925a45b106e04b4ae3023, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!82 &760799251909207365
 AudioSource:
   m_ObjectHideFlags: 0
@@ -161,7 +178,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!95 &760799251909207364
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -178,7 +195,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &760799251909207363
 MonoBehaviour:
   m_ObjectHideFlags: 0
