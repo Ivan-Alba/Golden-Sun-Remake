@@ -1,3 +1,5 @@
+// File: SceneTransitionManager.cs
+// Manages scene loading transitions, logo overlays, and ambient screen fades.
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -6,15 +8,29 @@ public class SceneTransitionManager : MonoBehaviour
 {
     public static SceneTransitionManager Instance { get; private set; }
 
+    #region Serialized Fields
+
     [Header("Components")]
     [SerializeField] private Animator logoTransitionAnimator;
 
-    [Header("Settings")]
-    [SerializeField] private float transitionDuration = 0.5f;
+    [Header("Ambient Fade Settings")]
+    [SerializeField] private CanvasGroup fadeOverlayCanvasGroup;
 
-    // Triggers defined in the Animator Controller
+    [Header("Settings")]
+    [SerializeField] private float transitionDuration = 1.0f;
+
+    #endregion
+
+    #region Private Fields
+
     private const string START_TRIGGER = "start"; // Closes screen (covers view with logo)
     private const string END_TRIGGER = "end";     // Opens screen (reveals new scene)
+
+    private Coroutine activeFadeCoroutine;
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -32,25 +48,84 @@ public class SceneTransitionManager : MonoBehaviour
         {
             logoTransitionAnimator = GetComponentInChildren<Animator>();
         }
+
+        if (fadeOverlayCanvasGroup != null)
+        {
+            fadeOverlayCanvasGroup.alpha = 0f;
+            fadeOverlayCanvasGroup.blocksRaycasts = false;
+        }
     }
 
     private void OnEnable()
     {
-        // Subscribe to Unity's scene load event
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
-        // Unsubscribe to avoid memory leaks
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // Called automatically by Unity right after a new scene finishes loading
+    #endregion
+
+    #region Scene Load Handlers
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Automatically play the opening transition when arriving at any scene
+        // Reset overlay alpha on new scene load
+        ResetFadeOverlay();
         FadeInNewScene();
+    }
+
+    /// <summary>
+    /// Smoothly fades an overlay black panel to a target alpha (e.g., 0.8f or 1f) over a specified duration.
+    /// </summary>
+    public void FadeToBlack(float targetAlpha = 1f, float duration = 1.0f)
+    {
+        if (fadeOverlayCanvasGroup == null) return;
+
+        if (activeFadeCoroutine != null)
+        {
+            StopCoroutine(activeFadeCoroutine);
+        }
+
+        activeFadeCoroutine = StartCoroutine(Routine_FadeOverlay(targetAlpha, duration));
+    }
+
+    /// <summary>
+    /// Resets the ambient fade overlay back to fully transparent.
+    /// </summary>
+    public void ResetFadeOverlay()
+    {
+        if (activeFadeCoroutine != null)
+        {
+            StopCoroutine(activeFadeCoroutine);
+            activeFadeCoroutine = null;
+        }
+
+        if (fadeOverlayCanvasGroup != null)
+        {
+            fadeOverlayCanvasGroup.alpha = 0f;
+            fadeOverlayCanvasGroup.blocksRaycasts = false;
+        }
+    }
+
+    private IEnumerator Routine_FadeOverlay(float targetAlpha, float duration)
+    {
+        float startAlpha = fadeOverlayCanvasGroup.alpha;
+        float timer = 0f;
+
+        fadeOverlayCanvasGroup.blocksRaycasts = targetAlpha > 0f;
+
+        while (timer < duration)
+        {
+            timer += Time.unscaledDeltaTime;
+            fadeOverlayCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, timer / duration);
+            yield return null;
+        }
+
+        fadeOverlayCanvasGroup.alpha = targetAlpha;
+        activeFadeCoroutine = null;
     }
 
     /// <summary>
@@ -63,7 +138,6 @@ public class SceneTransitionManager : MonoBehaviour
 
     private IEnumerator Routine_LoadScene(string sceneName)
     {
-        // 1. Play closing animation (e.g., logo covers the screen)
         if (logoTransitionAnimator != null)
         {
             logoTransitionAnimator.ResetTrigger(END_TRIGGER);
@@ -72,15 +146,11 @@ public class SceneTransitionManager : MonoBehaviour
 
         yield return new WaitForSeconds(transitionDuration);
 
-        // 2. Load the target scene asynchronously
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
         while (!asyncLoad.isDone)
         {
             yield return null;
         }
-
-        // OnSceneLoaded will automatically be triggered by Unity once asyncLoad finishes,
-        // which calls FadeInNewScene() below.
     }
 
     /// <summary>
@@ -96,30 +166,28 @@ public class SceneTransitionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Plays a full closing/opening transition and executes an intermediate action while the screen is completely covered.
+    /// Plays a full closing/opening transition and executes an intermediate action while covered.
     /// </summary>
     public IEnumerator PlayFullTransitionRoutine(System.Action onScreenCovered = null)
     {
         GameManager.Instance.SetGameState(GameManager.GameState.Loading);
-        // 1. Play closing animation (e.g., logo covers the screen)
+
         if (logoTransitionAnimator != null)
         {
             logoTransitionAnimator.SetTrigger(START_TRIGGER);
         }
 
-        // Wait until screen is fully covered by the logo
         yield return new WaitForSeconds(transitionDuration);
 
-        // 2. Execute background setup code (e.g., SetOffBattle, camera swaps) while view is hidden
         onScreenCovered?.Invoke();
 
-        // Wait 1 frame to allow Unity to process camera switches and layout refreshes
         yield return null;
 
-        // 3. Play opening animation to reveal the newly configured screen
         if (logoTransitionAnimator != null)
         {
             logoTransitionAnimator.SetTrigger(END_TRIGGER);
         }
     }
+
+    #endregion
 }

@@ -82,6 +82,9 @@ public class InputManager : MonoBehaviour
             case GameManager.GameState.InBattle:
                 ProcessCombatState();
                 break;
+            case GameManager.GameState.Cutscene:
+                ProcessCutsceneState();
+                break;
         }
     }
 
@@ -239,6 +242,19 @@ public class InputManager : MonoBehaviour
     }
 
     private void ProcessMenuState()
+    {
+        MoveInput = Vector2.zero;
+        IsRunning = false;
+
+        if (IsAiming) StopAiming();
+
+        inputActions.WorldExploration.Disable();
+        inputActions.PsynergyAiming.Disable();
+        inputActions.Dialogue.Disable();
+        if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+    }
+
+    private void ProcessCutsceneState()
     {
         MoveInput = Vector2.zero;
         IsRunning = false;

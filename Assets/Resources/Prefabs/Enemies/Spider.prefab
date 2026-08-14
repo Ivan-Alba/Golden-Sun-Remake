@@ -2707,7 +2707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xp: 90
+  xp: 150
   gold: 20
   ph: 1
   itemEasyDrop: Spiderweb
@@ -2715,4 +2715,4 @@ MonoBehaviour:
   itemRareDrop: Antidote
   itemRareRatio: 10
   itemVeryRareDrop: Metal_Bracelet
-  itemVeryRareRatio: 3
+  itemVeryRareRatio: 2

@@ -9,9 +9,12 @@ using UnityEngine;
 [Serializable]
 public class FighterStats : MonoBehaviour
 {
+    // Events for UI and system updates (passes current value and max value)
+    public event Action<int, int> OnHpChanged;
+    public event Action<int, int> OnPpChanged;
+
     List<BaseStat> characterStats = new List<BaseStat>();
     List<Psynergy> psynergies = new List<Psynergy>();
-
 
     private enum Stats
     {
@@ -29,7 +32,6 @@ public class FighterStats : MonoBehaviour
 
     public const int HP = 0;
 
-
     [Header("Fighter Base Stats")]
     [SerializeField] string _name;
     [SerializeField] int level;
@@ -37,17 +39,45 @@ public class FighterStats : MonoBehaviour
     [SerializeField] Sprite turnBarImage;
     [SerializeField] int xp;
 
-    //LISTA ITEMS DROP
+    // Drop items list
 
-    //Heros
+    // Heroes
     int nextLevelXp;
 
     public string Name { get => _name; set => _name = value; }
     public int Level { get => level; set => level = value; }
     public int MaxHp { get => characterStats[0].GetFinalValue(); set => maxHp = value; }
-    public int CurrHp { get => currHp; set => currHp = value; }
+
+    public int CurrHp
+    {
+        get => currHp;
+        set
+        {
+            int clampedHp = Mathf.Clamp(value, 0, MaxHp);
+            if (currHp != clampedHp)
+            {
+                currHp = clampedHp;
+                OnHpChanged?.Invoke(currHp, MaxHp);
+            }
+        }
+    }
+
     public int MaxPp { get => characterStats[1].GetFinalValue(); set => maxPp = value; }
-    public int CurrPp { get => currPp; set => currPp = value; }
+
+    public int CurrPp
+    {
+        get => currPp;
+        set
+        {
+            int clampedPp = Mathf.Clamp(value, 0, MaxPp);
+            if (currPp != clampedPp)
+            {
+                currPp = clampedPp;
+                OnPpChanged?.Invoke(currPp, MaxPp);
+            }
+        }
+    }
+
     public int Strenght { get => characterStats[2].GetFinalValue(); set => strenght = value; }
     public int Defense { get => characterStats[3].GetFinalValue(); set => defense = value; }
     public int Wisdom { get => characterStats[4].GetFinalValue(); set => wisdom = value; }
@@ -71,23 +101,21 @@ public class FighterStats : MonoBehaviour
         CharacterStats.Add(new BaseStat(spirit, ((Stats)7).ToString(), "Disminuye el daño mágico recibido"));
         CharacterStats.Add(new BaseStat(agility, ((Stats)8).ToString(), "Influye en la velocidad en batalla"));
         CharacterStats.Add(new BaseStat(luck, ((Stats)9).ToString(), "Influye en la capacidad de crítico"));
-
-      
     }
 
     private void Start()
     {
-       /* psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
-        psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
-       */
+        /* psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Catch"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Cure"));
+         psynergies.Add(PsynergyDatabase.Instance.GetPsynergy("Flare"));
+        */
     }
 
-    public void addStatBonus(string statName, int bonusValue) 
+    public void addStatBonus(string statName, int bonusValue)
     {
         characterStats.Find(x => x.StatName == statName).AddStatBonus(new StatBonus(bonusValue));
     }
@@ -102,14 +130,13 @@ public class FighterStats : MonoBehaviour
         switch (stat)
         {
             case "HP":
-                CurrHp += value;
-                if (CurrHp > MaxHp) currHp = MaxHp;
+                CurrHp += value; // Property setter automatically clamps and triggers OnHpChanged
                 break;
             case "MAXHP":
 
                 break;
             case "PP":
-
+                CurrPp += value; // Property setter automatically clamps and triggers OnPpChanged
                 break;
             case "MAXPP":
 
@@ -137,20 +164,19 @@ public class FighterStats : MonoBehaviour
 
     public string LevelUp()
     {
-        //EXPERIENCIA
+        // Experience
         level += 1;
         xp = 0;
         NextLevelXp = level * 125 + (125 * level / 2);
-        //SUBIR STATS BASE
+        // Increase base stats
 
-
-        //APRENDE ALGUNA HABILIDAD?
-
+        // Learn new ability?
         string abilityLearned = LearnAbility();
-        if (abilityLearned != null )
+        if (abilityLearned != null)
         {
             return abilityLearned;
-        } else
+        }
+        else
         {
             return null;
         }
@@ -158,15 +184,15 @@ public class FighterStats : MonoBehaviour
 
     private string LearnAbility()
     {
-        //Cargar Json
+        // Load Json
         HeroAbilitiesData abilitiesData = JsonUtility.FromJson<HeroAbilitiesData>(Resources.Load("JSON/HeroLearningData").ToString());
 
-        // Buscar el héroe por nombre.
+        // Find hero by name
         HeroAbility heroAbility = abilitiesData.GetHeroAbility(_name);
 
         if (heroAbility != null)
         {
-            // Buscar la habilidad correspondiente al nivel del héroe.
+            // Find ability corresponding to hero level
             string abilityName = heroAbility.GetAbilityName(level);
 
             if (abilityName != null)
@@ -186,7 +212,5 @@ public class FighterStats : MonoBehaviour
         }
 
         return null;
-
     }
-
 }

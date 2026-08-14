@@ -358,7 +358,7 @@ BoxCollider:
   m_Center: {x: -0.008695523, y: 1.9284037, z: 0.07245461}
 --- !u!95 &7180290360672529954
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -375,7 +375,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!195 &5038165136887044697
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -594,7 +595,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d8f7d9d6074e2d4ea87090c3929bb63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xp: 12
+  xp: 45
   gold: 9
   ph: 1
   itemEasyDrop: Herb
@@ -602,4 +603,4 @@ MonoBehaviour:
   itemRareDrop: 
   itemRareRatio: 0
   itemVeryRareDrop: Life_Water
-  itemVeryRareRatio: 1
+  itemVeryRareRatio: 0.5

@@ -56,7 +56,11 @@ public class PlayerUIManager : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
+            // 1. Subscribe to future state changes
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
+
+            // 2. Immediately sync UI with the current state upon enablement
+            HandleGameStateChanged(GameManager.Instance.CurrentState);
         }
     }
 
@@ -109,6 +113,7 @@ public class PlayerUIManager : MonoBehaviour
 
             case GameManager.GameState.InMenu:
             case GameManager.GameState.InBattle:
+            case GameManager.GameState.Cutscene:
             case GameManager.GameState.Interacting:
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);

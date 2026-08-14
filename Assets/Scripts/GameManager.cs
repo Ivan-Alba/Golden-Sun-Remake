@@ -108,7 +108,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game State changed from " + currentState + " to " + newState);
         currentState = newState;
 
-        OnGameStateChanged?.Invoke(currentState);
 
         if (currentState != GameState.InMenu && MenuController.Instance != null)
         {
@@ -138,6 +137,9 @@ public class GameManager : MonoBehaviour
                 ToggleCameraInput(false);
                 break;
         }
+
+        OnGameStateChanged?.Invoke(currentState);
+
     }
 
     private void ToggleGameplaySystems(bool active)

@@ -69,6 +69,55 @@ public class BattleUIController : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        SubscribeToPartyEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromPartyEvents();
+    }
+
+    private void SubscribeToPartyEvents()
+    {
+        if (GameManager.Instance == null) return;
+
+        List<GameObject> heroParty = GameManager.Instance.GetParty();
+        if (heroParty == null) return;
+
+        foreach (GameObject hero in heroParty)
+        {
+            if (hero != null && hero.TryGetComponent<FighterStats>(out var stats))
+            {
+                stats.OnHpChanged += HandleStatChanged;
+                stats.OnPpChanged += HandleStatChanged;
+            }
+        }
+    }
+
+    private void UnsubscribeFromPartyEvents()
+    {
+        if (GameManager.Instance == null) return;
+
+        List<GameObject> heroParty = GameManager.Instance.GetParty();
+        if (heroParty == null) return;
+
+        foreach (GameObject hero in heroParty)
+        {
+            if (hero != null && hero.TryGetComponent<FighterStats>(out var stats))
+            {
+                stats.OnHpChanged -= HandleStatChanged;
+                stats.OnPpChanged -= HandleStatChanged;
+            }
+        }
+    }
+
+    private void HandleStatChanged(int currentValue, int maxValue)
+    {
+        RefreshHeroInfoPanel();
+    }
+
     public void SetHeroInfoPanel(int i)
     {
         heroInfoPanels[i] = battleCanvas.transform.Find($"Hero{i}Panel").gameObject;
@@ -104,7 +153,7 @@ public class BattleUIController : MonoBehaviour
                     turnsPanel.transform.GetChild(i).Find("Highlight").gameObject.SetActive(true);
                 }
             }
-            
+
         }
     }
     public void HideSelectedTarget()
@@ -276,7 +325,8 @@ public class BattleUIController : MonoBehaviour
                     helpPanel.GetComponentInChildren<TextMeshProUGUI>().SetText(turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies[0].Description);
 
 
-                } else
+                }
+                else
                 {
                     //NONE PSYNERGY
                     GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
@@ -322,7 +372,8 @@ public class BattleUIController : MonoBehaviour
             if (contentCursorIndex != 0)
             {
                 contentCursorIndex--;
-            } else
+            }
+            else
             {
                 contentCursorIndex = contentItems.Count - 1;
             }
@@ -333,26 +384,27 @@ public class BattleUIController : MonoBehaviour
             }
 
             contentItems[contentCursorIndex].transform.Find("Highlight").GetComponent<Image>().enabled = true;
-        } else if (direction == "DOWN") 
+        }
+        else if (direction == "DOWN")
         {
-           
-            
-                if (contentCursorIndex != contentItems.Count -1)
-                {
-                    contentCursorIndex++;
-                }
-                else
-                {
+
+
+            if (contentCursorIndex != contentItems.Count - 1)
+            {
+                contentCursorIndex++;
+            }
+            else
+            {
                 contentCursorIndex = 0;
-                }
+            }
 
-                foreach (GameObject item in contentItems)
-                {
-                    item.transform.Find("Highlight").GetComponent<Image>().enabled = false;
-                }
+            foreach (GameObject item in contentItems)
+            {
+                item.transform.Find("Highlight").GetComponent<Image>().enabled = false;
+            }
 
-                contentItems[contentCursorIndex].transform.Find("Highlight").GetComponent<Image>().enabled = true;
-            
+            contentItems[contentCursorIndex].transform.Find("Highlight").GetComponent<Image>().enabled = true;
+
         }
 
         if (turnController.CurrentFighter.GetComponent<FighterStats>().Psynergies.Count != 0)
@@ -364,7 +416,7 @@ public class BattleUIController : MonoBehaviour
 
     }
 
-    public string GetContentItem ()
+    public string GetContentItem()
     {
         switch (lastContent)
         {
@@ -376,7 +428,8 @@ public class BattleUIController : MonoBehaviour
                         AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
                     }
                     return contentItems[contentCursorIndex].name;
-                } else
+                }
+                else
                 {
                     if (AudioManager.Instance != null)
                     {

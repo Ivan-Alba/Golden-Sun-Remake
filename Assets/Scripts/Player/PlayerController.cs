@@ -55,6 +55,8 @@ public class PlayerController : MonoBehaviour
     private float timeCount;
     private readonly float secondsInIdle = 15f;
 
+    private Coroutine autoWalkCoroutine;
+
     #endregion
 
     #region Properties
@@ -112,18 +114,36 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         SubscribeToInputEvents();
+
+        // Subscribe to GameManager state changes to handle transitions cleanly
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
+        }
     }
 
     private void OnDisable()
     {
         UnsubscribeFromInputEvents();
+
+        // Unsubscribe from GameManager state changes
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
+        }
+
+        StopAutoWalk();
     }
 
     private void Update()
     {
         if (!IsWorldExploration())
         {
-            ResetMovementAnimations();
+            // Reset standard movement animations if not auto-walking
+            if (autoWalkCoroutine == null)
+            {
+                ResetMovementAnimations();
+            }
             return;
         }
 
@@ -159,6 +179,19 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Interactable"))
         {
             objectHit = other.gameObject;
+        }
+    }
+
+    #endregion
+
+    #region GameState Events
+
+    private void HandleGameStateChanged(GameManager.GameState newState)
+    {
+        // Whenever player regains control in world exploration, cancel any residual auto-walk operations
+        if (newState == GameManager.GameState.WorldExploration)
+        {
+            StopAutoWalk();
         }
     }
 
@@ -244,7 +277,6 @@ public class PlayerController : MonoBehaviour
 
         if (PsynergyWorldController.Instance != null)
         {
-            // Get target currently highlighted by player aiming system
             IPsynergyTargetable currentTarget = null;
 
             if (TryGetComponent<PlayerAiming>(out var aimingScript))
@@ -252,7 +284,6 @@ public class PlayerController : MonoBehaviour
                 currentTarget = aimingScript.CurrentTarget;
             }
 
-            // Pass target (if any) to PsynergyWorldController
             PsynergyWorldController.Instance.UsePsynergy(slotIndex, currentTarget);
         }
     }
@@ -384,13 +415,85 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
+    #region Auto-Walk Destination System
+
+    /// <summary>
+    /// Forces player to automatically walk towards a target destination (useful for triggers/cutscenes).
+    /// </summary>
+    public void MoveToDestination(Vector3 destination)
+    {
+        StopAutoWalk();
+        autoWalkCoroutine = StartCoroutine(Routine_MoveToDestination(destination));
+    }
+
+    /// <summary>
+    /// Cancels any active auto-walk operation and resets movement animations.
+    /// </summary>
+    public void StopAutoWalk()
+    {
+        if (autoWalkCoroutine != null)
+        {
+            StopCoroutine(autoWalkCoroutine);
+            autoWalkCoroutine = null;
+        }
+
+        ResetMovementAnimations();
+    }
+
+    private IEnumerator Routine_MoveToDestination(Vector3 targetPosition)
+    {
+        if (playerAnim != null)
+        {
+            playerAnim.SetBool("isMoving", true);
+            playerAnim.SetBool("isRunning", false);
+        }
+
+        float stopThreshold = 0.15f;
+
+        while (true)
+        {
+            Vector3 currentPosHorizontal = new Vector3(transform.position.x, 0f, transform.position.z);
+            Vector3 targetPosHorizontal = new Vector3(targetPosition.x, 0f, targetPosition.z);
+
+            Vector3 direction = (targetPosHorizontal - currentPosHorizontal);
+            float distance = direction.magnitude;
+
+            if (distance <= stopThreshold)
+            {
+                break;
+            }
+
+            Vector3 moveDirection = direction.normalized;
+
+            // Rotate smoothly towards destination
+            if (moveDirection.sqrMagnitude > 0.001f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            }
+
+            // Apply gravity
+            HandleGravity();
+
+            // Move Character
+            Vector3 movement = (moveDirection * speed) + new Vector3(0f, verticalVelocity, 0f);
+            controller.Move(movement * Time.deltaTime);
+
+            yield return null;
+        }
+
+        ResetMovementAnimations();
+        autoWalkCoroutine = null;
+    }
+
+    #endregion
+
     #region Aiming Logic
 
     private void StartAiming()
     {
         if (!IsWorldExploration()) return;
 
-        // 1. Instantly rotate player towards camera forward direction
         if (mainCamera != null)
         {
             Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
@@ -400,7 +503,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 2. Synchronize Aim POV with exact physical camera pitch angle (X-rotation)
         if (freeLookCamera != null && aimPOV != null && mainCamera != null)
         {
             aimPOV.m_HorizontalAxis.Value = freeLookCamera.m_XAxis.Value;
@@ -411,7 +513,6 @@ public class PlayerController : MonoBehaviour
             aimPOV.m_VerticalAxis.Value = pitchAngle;
         }
 
-        // 3. Switch priority to trigger Cinemachine Blend
         if (aimVirtualCamera != null)
         {
             aimVirtualCamera.Priority = activeAimPriority;
@@ -430,7 +531,6 @@ public class PlayerController : MonoBehaviour
 
     private void StopAiming()
     {
-        // Synchronize FreeLook Camera back with Aim POV orientation
         if (freeLookCamera != null && aimPOV != null)
         {
             freeLookCamera.m_XAxis.Value = aimPOV.m_HorizontalAxis.Value;

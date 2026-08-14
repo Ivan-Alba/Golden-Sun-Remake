@@ -113,14 +113,6 @@ public class BattleManager : MonoBehaviour
         UnsubscribeFromInputEvents();
     }
 
-    private void Update()
-    {
-        // Guard Clause: Exit immediately if GameManager is not ready or game is not in battle
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
-
-        battleUIController.RefreshHeroInfoPanel();
-    }
-
     #region Input Event Subscriptions
 
     private void SubscribeToInputEvents()
