@@ -206,7 +206,7 @@ public class GameManager : MonoBehaviour
 
         if (InventoryController.Instance != null)
         {
-            InventoryController.Instance.clearInventory();
+            InventoryController.Instance.ClearAllInventories();
         }
 
         GameObject isaac = GameObject.Find("Isaac");
@@ -219,18 +219,24 @@ public class GameManager : MonoBehaviour
         {
             activeHero = party[0];
 
-            /*for (int i = 0; i < party.Count; i++)
-            {
-                FighterStats stats = party[i].GetComponent<FighterStats>();
-                if (stats != null)
-                {
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp();
-                }
+            /*for (int i = 0; i < party.Count; i++) 
+            { 
+                FighterStats stats = party[i].GetComponent<FighterStats>(); 
+                if (stats != null) 
+                { 
+                    stats.LevelUp(); 
+                    stats.LevelUp(); 
+                    stats.LevelUp(); 
+                } 
             }*/
 
             changeModelHero();
+        }
+
+        // Synchronize InventoryController with the newly formed active party
+        if (InventoryController.Instance != null)
+        {
+            InventoryController.Instance.SyncWithParty();
         }
 
         if (PsynergyWorldController.Instance != null)
@@ -411,21 +417,59 @@ public class GameManager : MonoBehaviour
 
         // ---- RECONSTRUCT PARTY ----
         party.Clear();
+
+        if (InventoryController.Instance != null)
+        {
+            InventoryController.Instance.ClearAllInventories();
+        }
+
         foreach (string heroName in dataToLoad.party)
         {
             GameObject heroObj = GameObject.Find(heroName);
-            if (heroObj != null) party.Add(heroObj);
+            if (heroObj != null)
+            {
+                party.Add(heroObj);
+            }
         }
 
         if (party.Count > 0) activeHero = party[0];
         changeModelHero();
 
-        // ---- RESTORE HERO STATS & EQUIPMENT ----
+        // Synchronize InventoryController with the reconstructed active party
+        if (InventoryController.Instance != null)
+        {
+            InventoryController.Instance.SyncWithParty();
+        }
+
+        // ---- RESTORE GLOBAL BAG ----
+        if (GlobalBag.Instance != null && dataToLoad.globalBagItems != null)
+        {
+            for (int i = GlobalBag.Instance.KeyItemSlots.Count - 1; i >= 0; i--)
+            {
+                var slot = GlobalBag.Instance.KeyItemSlots[i];
+                if (!slot.IsEmpty) GlobalBag.Instance.RemoveKeyItem(slot.Item.ItemSlug, slot.Quantity);
+            }
+
+            foreach (var savedItem in dataToLoad.globalBagItems)
+            {
+                if (string.IsNullOrEmpty(savedItem.itemSlug)) continue;
+                ItemSO item = ItemDatabase.Instance.GetItem(savedItem.itemSlug);
+                if (item is KeyItemSO keyItem)
+                {
+                    GlobalBag.Instance.AddKeyItem(keyItem, savedItem.quantity);
+                }
+            }
+        }
+
+        // ---- RESTORE HERO STATS, INVENTORY & EQUIPMENT ----
         for (int i = 0; i < party.Count; i++)
         {
-            if (party[i].TryGetComponent<HeroStats>(out var heroStats))
+            GameObject heroObj = party[i];
+            string currentHeroName = heroObj.name;
+
+            // 1. Restore Base Stats, Level, XP & Psynergies
+            if (heroObj.TryGetComponent<HeroStats>(out var heroStats))
             {
-                // Restore Base Values for each Stat
                 if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
                 {
                     foreach (Stat savedStat in dataToLoad.heroStats[i])
@@ -438,7 +482,6 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Restore Level and XP
                 if (dataToLoad.heroLevelAndXp != null && i < dataToLoad.heroLevelAndXp.Count)
                 {
                     int savedLevel = dataToLoad.heroLevelAndXp[i][0];
@@ -446,34 +489,74 @@ public class GameManager : MonoBehaviour
                     heroStats.LoadProgression(savedLevel, savedXp);
                 }
 
-                // Restore Current HP and PP
-                if (dataToLoad.heroCurrHpPp != null && i < dataToLoad.heroCurrHpPp.Count)
-                {
-                    heroStats.CurrHp = dataToLoad.heroCurrHpPp[i][0];
-                    heroStats.CurrPp = dataToLoad.heroCurrHpPp[i][1];
-                }
-
-                // Restore Psynergies
                 if (dataToLoad.heroPsynergy != null && i < dataToLoad.heroPsynergy.Count)
                 {
                     heroStats.Psynergies = dataToLoad.heroPsynergy[i];
                 }
             }
 
-            // Restore Equipment
-            if (party[i].TryGetComponent<HeroEquipment>(out var equipment))
+            // 2. Restore Individual Backpack (HeroInventory) by Hero Name
+            if (heroObj.TryGetComponent<HeroInventory>(out var heroInventory))
             {
-                if (dataToLoad.heroEquippedGear != null && i < dataToLoad.heroEquippedGear.Count)
+                var savedInvData = dataToLoad.heroesInventories?.Find(x => x.heroName == currentHeroName);
+                if (savedInvData != null)
                 {
-                    equipment.EquippedItems = dataToLoad.heroEquippedGear[i];
-
-                    foreach (Equipable equipPiece in equipment.EquippedItems)
+                    for (int slotIdx = 0; slotIdx < savedInvData.slots.Count && slotIdx < heroInventory.Slots.Count; slotIdx++)
                     {
-                        if (equipPiece != null && ItemDatabase.Instance != null)
+                        var savedSlotData = savedInvData.slots[slotIdx];
+                        if (!string.IsNullOrEmpty(savedSlotData.itemSlug))
                         {
-                            equipPiece.Icon = ItemDatabase.Instance.GetItem(equipPiece.ItemSlug)?.Icon;
+                            ItemSO item = ItemDatabase.Instance.GetItem(savedSlotData.itemSlug);
+                            heroInventory.GetSlot(slotIdx).SetSlot(item, savedSlotData.quantity);
+                        }
+                        else
+                        {
+                            heroInventory.GetSlot(slotIdx).ClearSlot();
                         }
                     }
+                }
+            }
+
+            // 3. Restore Equipment (HeroEquipment) by Hero Name
+            if (heroObj.TryGetComponent<HeroEquipment>(out var heroEquipment))
+            {
+                var eqData = dataToLoad.heroesEquipment?.Find(x => x.heroName == currentHeroName);
+                if (eqData != null)
+                {
+                    // Restore Standard Equipment
+                    foreach (var eqSlotData in eqData.standardEquipment)
+                    {
+                        if (string.IsNullOrEmpty(eqSlotData.itemSlug)) continue;
+
+                        ItemSO item = ItemDatabase.Instance.GetItem(eqSlotData.itemSlug);
+                        if (item is EquipableSO equipable)
+                        {
+                            heroEquipment.LoadEquippedItem(equipable);
+                        }
+                    }
+
+                    // Restore Relics
+                    for (int relicIdx = 0; relicIdx < eqData.relicSlugs.Count; relicIdx++)
+                    {
+                        string relicSlug = eqData.relicSlugs[relicIdx];
+                        if (string.IsNullOrEmpty(relicSlug)) continue;
+
+                        ItemSO item = ItemDatabase.Instance.GetItem(relicSlug);
+                        if (item is PsynergyRelicSO relic)
+                        {
+                            heroEquipment.LoadEquippedRelic(relic, relicIdx);
+                        }
+                    }
+                }
+            }
+
+            // 4. Restore Current HP and PP (Done LAST so MaxHP/MaxPP modifiers are active)
+            if (heroObj.TryGetComponent<HeroStats>(out var heroStatsFinal))
+            {
+                if (dataToLoad.heroCurrHpPp != null && i < dataToLoad.heroCurrHpPp.Count)
+                {
+                    heroStatsFinal.CurrHp = dataToLoad.heroCurrHpPp[i][0];
+                    heroStatsFinal.CurrPp = dataToLoad.heroCurrHpPp[i][1];
                 }
             }
         }
@@ -502,21 +585,6 @@ public class GameManager : MonoBehaviour
             PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
         }
 
-        // ---- INVENTORY ----
-        List<KeyValuePair<Item, int>> itemsList = dataToLoad.playerItems;
-        if (InventoryController.Instance != null)
-        {
-            InventoryController.Instance.clearInventory();
-
-            if (itemsList != null)
-            {
-                foreach (KeyValuePair<Item, int> pair in itemsList)
-                {
-                    InventoryController.Instance.AddItem(pair.Key.ItemSlug, pair.Value);
-                }
-            }
-        }
-
         // Re-enable Player Animator
         if (PlayerController.Instance != null)
         {
@@ -527,7 +595,6 @@ public class GameManager : MonoBehaviour
         loadingData = false;
         SaveManager.loadedData = null;
     }
-
     private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
     {
         if (freeLookCamera == null && playerMainCamera != null)

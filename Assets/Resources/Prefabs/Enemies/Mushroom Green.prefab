@@ -357,12 +357,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fighterName: Green Mushroom
   turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
-  baseMaxHp: 55
-  baseMaxPp: 8
-  baseAttack: 8
-  baseDefense: 9
+  baseMaxHp: 22
+  baseMaxPp: 0
+  baseAttack: 10
+  baseDefense: 7
   baseAgility: 5
-  baseLuck: 4
+  baseLuck: 2
   basePowerVenus: 100
   basePowerMars: 100
   basePowerJupiter: 105

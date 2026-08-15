@@ -4,6 +4,47 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+#region Inventory & Equipment DTOs
+
+[System.Serializable]
+public class InventorySlotData
+{
+    public string itemSlug;
+    public int quantity;
+
+    public InventorySlotData() { }
+
+    public InventorySlotData(string slug, int qty)
+    {
+        itemSlug = slug;
+        quantity = qty;
+    }
+}
+
+[System.Serializable]
+public class HeroInventoryData
+{
+    public string heroName;
+    public List<InventorySlotData> slots = new List<InventorySlotData>();
+}
+
+[System.Serializable]
+public class EquipmentSlotData
+{
+    public EquipmentSlot slotType;
+    public string itemSlug;
+}
+
+[System.Serializable]
+public class HeroEquipmentData
+{
+    public string heroName;
+    public List<EquipmentSlotData> standardEquipment = new List<EquipmentSlotData>();
+    public List<string> relicSlugs = new List<string>();
+}
+
+#endregion
+
 [System.Serializable]
 public class GameData
 {
@@ -12,17 +53,18 @@ public class GameData
     public float[] playerPosition = new float[3];
     public float[] playerRotation = new float[3];
 
-    // Inventory
-    public List<KeyValuePair<Item, int>> playerItems = new List<KeyValuePair<Item, int>>();
+    // Refactored Inventories & Equipment
+    public List<InventorySlotData> globalBagItems = new List<InventorySlotData>();
+    public List<HeroInventoryData> heroesInventories = new List<HeroInventoryData>();
+    public List<HeroEquipmentData> heroesEquipment = new List<HeroEquipmentData>();
 
-    // Party
+    // Party & Game Stats
     public int totalGold;
     public float totalTime;
     public List<string> party = new List<string>();
     public List<List<Stat>> heroStats = new List<List<Stat>>();
     public List<int[]> heroLevelAndXp = new List<int[]>();
     public List<int[]> heroCurrHpPp = new List<int[]>();
-    public List<Equipable[]> heroEquippedGear = new List<Equipable[]>();
     public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
     public List<KeyValuePair<string, Psynergy[]>> heroShortcuts = new List<KeyValuePair<string, Psynergy[]>>();
 
@@ -47,13 +89,19 @@ public class GameData
         playerRotation[1] = player.rotation.eulerAngles.y;
         playerRotation[2] = player.rotation.eulerAngles.z;
 
-        // ---- INVENTORY DATA ----
-        if (InventoryController.Instance != null && InventoryController.Instance.PlayerItems != null)
+        // ---- GLOBAL BAG DATA ----
+        if (GlobalBag.Instance != null)
         {
-            playerItems = InventoryController.Instance.PlayerItems.ToList();
+            foreach (var slot in GlobalBag.Instance.KeyItemSlots)
+            {
+                if (!slot.IsEmpty)
+                {
+                    globalBagItems.Add(new InventorySlotData(slot.Item.ItemSlug, slot.Quantity));
+                }
+            }
         }
 
-        // ---- GAME DATA ----
+        // ---- GAME & PARTY DATA ----
         if (GameManager.Instance != null)
         {
             totalGold = GameManager.Instance.TotalGold;
@@ -92,15 +140,54 @@ public class GameData
                     heroPsynergy.Add(heroStatsComponent.Psynergies);
                 }
 
-                // Equipment
-                if (hero.TryGetComponent<HeroEquipment>(out var equipmentComponent))
+                // Individual Backpack (HeroInventory)
+                if (hero.TryGetComponent<HeroInventory>(out var heroInventory))
                 {
-                    heroEquippedGear.Add(equipmentComponent.EquippedItems);
+                    HeroInventoryData invData = new HeroInventoryData { heroName = hero.name };
+
+                    for (int i = 0; i < heroInventory.Slots.Count; i++)
+                    {
+                        var slot = heroInventory.Slots[i];
+                        if (!slot.IsEmpty)
+                        {
+                            invData.slots.Add(new InventorySlotData(slot.Item.ItemSlug, slot.Quantity));
+                        }
+                        else
+                        {
+                            invData.slots.Add(new InventorySlotData(null, 0));
+                        }
+                    }
+                    heroesInventories.Add(invData);
+                }
+
+                // Equipment (HeroEquipment)
+                if (hero.TryGetComponent<HeroEquipment>(out var heroEquipment))
+                {
+                    HeroEquipmentData eqData = new HeroEquipmentData { heroName = hero.name };
+
+                    foreach (var kvp in heroEquipment.EquippedItems)
+                    {
+                        if (kvp.Value != null)
+                        {
+                            eqData.standardEquipment.Add(new EquipmentSlotData
+                            {
+                                slotType = kvp.Key,
+                                itemSlug = kvp.Value.ItemSlug
+                            });
+                        }
+                    }
+
+                    foreach (var relic in heroEquipment.EquippedRelics)
+                    {
+                        eqData.relicSlugs.Add(relic != null ? relic.ItemSlug : null);
+                    }
+
+                    heroesEquipment.Add(eqData);
                 }
             }
         }
 
-        // PsynergyShortcuts
+        // ---- PSYNERGY SHORTCUTS ----
         if (PsynergyWorldController.Instance != null && PsynergyWorldController.Instance.HeroShortcuts != null)
         {
             foreach (KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)

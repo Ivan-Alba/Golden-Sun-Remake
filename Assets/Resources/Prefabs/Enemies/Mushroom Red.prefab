@@ -58,12 +58,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fighterName: Red Mushroom
   turnBarImage: {fileID: 21300000, guid: 34f77b31da41a614684ee85124a15cdd, type: 3}
-  baseMaxHp: 50
-  baseMaxPp: 6
-  baseAttack: 9
-  baseDefense: 4
-  baseAgility: 9
-  baseLuck: 5
+  baseMaxHp: 16
+  baseMaxPp: 0
+  baseAttack: 13
+  baseDefense: 5
+  baseAgility: 6
+  baseLuck: 2
   basePowerVenus: 100
   basePowerMars: 105
   basePowerJupiter: 100

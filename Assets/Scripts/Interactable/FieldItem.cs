@@ -4,7 +4,8 @@ using UnityEngine;
 public class FieldItem : Interactable
 {
     [Header("Item Configuration")]
-    [SerializeField] private string itemName;
+    [SerializeField] private string itemSlug;
+    [SerializeField] private int itemQuantity = 1;
 
     private bool itemPicked;
 
@@ -19,6 +20,7 @@ public class FieldItem : Interactable
     private IEnumerator PickItemRoutine()
     {
         itemPicked = true;
+        string originalTag = gameObject.tag;
 
         // 1. Lock gameplay and camera via GameState
         if (GameManager.Instance != null)
@@ -26,7 +28,7 @@ public class FieldItem : Interactable
             GameManager.Instance.SetGameState(GameManager.GameState.Interacting);
         }
 
-        // Prevent further interaction triggers
+        // Temporarily prevent further interaction triggers during animation
         gameObject.tag = "Untagged";
 
         // 2. Play picking animation on Player
@@ -37,36 +39,63 @@ public class FieldItem : Interactable
 
         yield return new WaitForSeconds(2.2f);
 
-        // 3. Retrieve item data and show UI Notification
-        if (ItemDatabase.Instance != null)
-        {
-            var itemData = ItemDatabase.Instance.GetItem(itemName);
-            if (itemData != null && NotificationController.Instance != null)
-            {
-                StartCoroutine(NotificationController.Instance.AddNotification(
-                    $"Has encontrado: {itemData.ItemName}",
-                    itemData.Icon
-                ));
-            }
-        }
+        // Retrieve item data from ItemDatabase
+        ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
 
-        // 4. Add item to Inventory and play SFX
+        // 3. Attempt to add item to Inventory and evaluate remaining space
+        int remaining = itemQuantity;
         if (InventoryController.Instance != null)
         {
-            InventoryController.Instance.AddItem(itemName);
+            remaining = InventoryController.Instance.AddItem(itemSlug, itemQuantity);
         }
 
+        // 4. Handle Full Inventory Scenario (Cannot fit item)
+        if (remaining > 0)
+        {
+            if (NotificationController.Instance != null)
+            {
+                StartCoroutine(NotificationController.Instance.AddNotification(
+                    "Tus mochilas están llenas",
+                    itemData != null ? itemData.Icon : null
+                ));
+            }
+
+            // Restore interactable state and game control without destroying object
+            gameObject.tag = originalTag;
+            itemPicked = false;
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
+            }
+
+            yield break; // Cancel remaining item destruction routine
+        }
+
+        // 5. Successful Pickup Scenario
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_ItemFound);
+            AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
         }
 
-        // 5. Hide world object visually while processing cleanup
+        if (itemData != null && NotificationController.Instance != null)
+        {
+            string notificationText = itemQuantity > 1
+                ? $"Has encontrado: {itemData.ItemName} x{itemQuantity}"
+                : $"Has encontrado: {itemData.ItemName}";
+
+            StartCoroutine(NotificationController.Instance.AddNotification(
+                notificationText,
+                itemData.Icon
+            ));
+        }
+
+        // Hide world object visually while processing cleanup
         transform.position = new Vector3(0f, -1000f, 0f);
 
         yield return new WaitForSeconds(0.7f);
 
-        // 6. Restore game state back to free exploration
+        // Restore game state back to free exploration
         if (GameManager.Instance != null)
         {
             GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);

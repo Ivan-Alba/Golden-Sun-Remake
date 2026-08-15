@@ -242,12 +242,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fighterName: Blue Mushroom
   turnBarImage: {fileID: 21300000, guid: 57bd914e7f663824b9610f65000c6626, type: 3}
-  baseMaxHp: 45
-  baseMaxPp: 8
-  baseAttack: 10
-  baseDefense: 7
+  baseMaxHp: 18
+  baseMaxPp: 0
+  baseAttack: 11
+  baseDefense: 6
   baseAgility: 7
-  baseLuck: 5
+  baseLuck: 2
   basePowerVenus: 100
   basePowerMars: 100
   basePowerJupiter: 100

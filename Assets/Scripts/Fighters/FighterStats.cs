@@ -44,6 +44,8 @@ public class FighterStats : MonoBehaviour
     public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
     public List<Psynergy> Psynergies { get => psynergies; set => psynergies = value; }
 
+    public bool IsDead => currHp <= 0;
+
     public int CurrHp
     {
         get => currHp;
@@ -109,6 +111,10 @@ public class FighterStats : MonoBehaviour
         // Set current resources to max on start
         currHp = MaxHp;
         currPp = MaxPp;
+
+        // Force UI initial notification
+        OnHpChanged?.Invoke(currHp, MaxHp);
+        OnPpChanged?.Invoke(currPp, MaxPp);
     }
 
     #endregion
@@ -153,9 +159,71 @@ public class FighterStats : MonoBehaviour
 
     public int GetStatValue(StatType type)
     {
-
         var stat = GetStat(type);
         return stat != null ? stat.Value : 0;
+    }
+
+    /// <summary>
+    /// Changes the base value of a stat and automatically updates resources/UI if necessary.
+    /// </summary>
+    public void SetStatBaseValue(StatType type, int newBaseValue)
+    {
+        var stat = GetStat(type);
+        if (stat != null)
+        {
+            stat.BaseValue = newBaseValue;
+
+            if (type == StatType.MaxHP)
+            {
+                CurrHp = Mathf.Clamp(CurrHp, 0, MaxHp);
+                OnHpChanged?.Invoke(CurrHp, MaxHp);
+            }
+            else if (type == StatType.MaxPP)
+            {
+                CurrPp = Mathf.Clamp(CurrPp, 0, MaxPp);
+                OnPpChanged?.Invoke(CurrPp, MaxPp);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Health & Resource Operations
+
+    public void RestoreHP(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+        CurrHp += amount;
+    }
+
+    public void RestorePP(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+        CurrPp += amount;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+        CurrHp -= amount;
+    }
+
+    public void Revive(int healthAmount)
+    {
+        if (!IsDead) return;
+        CurrHp = Mathf.Clamp(healthAmount, 1, MaxHp);
+    }
+
+    public void AddPermanentStatBoost(StatType type, int amount)
+    {
+        var stat = GetStat(type);
+        if (stat != null)
+        {
+            stat.BaseValue += amount;
+
+            if (type == StatType.MaxHP) CurrHp += amount;
+            if (type == StatType.MaxPP) CurrPp += amount;
+        }
     }
 
     #endregion
@@ -166,6 +234,10 @@ public class FighterStats : MonoBehaviour
     {
         var stat = GetStat(type);
         stat?.AddModifier(modifier);
+
+        // Notify UI in case MaxHP/MaxPP changed via equipment/buffs
+        if (type == StatType.MaxHP) OnHpChanged?.Invoke(CurrHp, MaxHp);
+        if (type == StatType.MaxPP) OnPpChanged?.Invoke(CurrPp, MaxPp);
     }
 
     public void RemoveModifiersFromSource(object source)
@@ -174,6 +246,9 @@ public class FighterStats : MonoBehaviour
         {
             stat.RemoveAllModifiersFromSource(source);
         }
+
+        OnHpChanged?.Invoke(CurrHp, MaxHp);
+        OnPpChanged?.Invoke(CurrPp, MaxPp);
     }
 
     public void TickTurnModifiers()

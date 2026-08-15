@@ -22354,7 +22354,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: GAMEOVER
+  m_text: GAME OVER
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
@@ -29702,6 +29702,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   turnCameraPrefab: {fileID: 5384329672527861774, guid: 339cb15f7955e9b449e579aff2d8b524, type: 3}
   battleCameraController: {fileID: 5408302400829323935}
+  maxTurnBoxes: 6
+  agilityScaleFactor: 100
 --- !u!114 &2811154916721807697
 MonoBehaviour:
   m_ObjectHideFlags: 0

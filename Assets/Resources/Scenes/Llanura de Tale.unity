@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 2003931976}
-  m_IndirectSpecularColor: {r: 0.07197197, g: 0.17034854, b: 0.29399106, a: 1}
+  m_IndirectSpecularColor: {r: 0.06980598, g: 0.16646075, b: 0.2879616, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -572,6 +572,10 @@ PrefabInstance:
       propertyPath: itemName
       value: Antidote
       objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemSlug
+      value: herb
+      objectReference: {fileID: 0}
     - target: {fileID: 1572714192713929014, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -632,6 +636,10 @@ PrefabInstance:
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Herb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemSlug
+      value: antidote
       objectReference: {fileID: 0}
     - target: {fileID: 1572714192713929014, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: m_RootOrder
@@ -2257,6 +2265,10 @@ PrefabInstance:
       propertyPath: itemName
       value: Antidote
       objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemSlug
+      value: life_water
+      objectReference: {fileID: 0}
     - target: {fileID: 1572714192713929014, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: m_RootOrder
       value: 5
@@ -3050,6 +3062,10 @@ PrefabInstance:
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Herb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemSlug
+      value: spiderweb
       objectReference: {fileID: 0}
     - target: {fileID: 1572714192713929014, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: m_RootOrder
@@ -8417,7 +8433,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23155665b2df322439e0cafb08e11644, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemName: Herb
+  itemSlug: antidote
+  itemQuantity: 1
 --- !u!135 &449773572228179262
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -8547,6 +8564,10 @@ PrefabInstance:
       propertyPath: itemName
       value: Herb
       objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemSlug
+      value: herb
+      objectReference: {fileID: 0}
     - target: {fileID: 1572714192713929014, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -8643,7 +8664,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 733164d6c77f07e49ac091888b50c5a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemSlug: Metal_Bracelet
+  itemSlug: metal_bracelet
+  itemQuantity: 1
 --- !u!1001 &4026299314029354013
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9695,6 +9717,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Chest
       objectReference: {fileID: 0}
+    - target: {fileID: 4156739481176843908, guid: 6fdc462274658794db125f64872d5626, type: 3}
+      propertyPath: itemSlug
+      value: life_water
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fdc462274658794db125f64872d5626, type: 3}
 --- !u!114 &7128964440837448188
@@ -9709,7 +9735,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 733164d6c77f07e49ac091888b50c5a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemSlug: Spirit_Ring
+  itemSlug: spirit_ring
+  itemQuantity: 1
 --- !u!114 &7128964440977121451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9722,7 +9749,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 733164d6c77f07e49ac091888b50c5a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemSlug: Great_Axe
+  itemSlug: great_axe
+  itemQuantity: 1
 --- !u!1 &7204436303026603346
 GameObject:
   m_ObjectHideFlags: 0

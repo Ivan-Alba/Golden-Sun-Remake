@@ -55,7 +55,7 @@ public class BattleManager : MonoBehaviour
 
     // RESULTS SCREEN
     private int totalXpEarned, totalPhEarned, totalGoldEarned;
-    private Dictionary<Item, int> totalItemsObtained;
+    private Dictionary<ItemSO, int> totalItemsObtained = new Dictionary<ItemSO, int>();
 
     // BATTLE FIELD POSITIONS
     private GameObject[] enemyPositions;
@@ -672,22 +672,25 @@ public class BattleManager : MonoBehaviour
 
     private void GetItemLoot(EnemyStats enemyStats)
     {
-        if (enemyStats == null) return;
+        if (enemyStats == null || enemyStats.PossibleDrops == null) return;
 
         // Evaluate enemy drops from EnemyStats configuration
         List<ItemDropRate> droppedItems = enemyStats.PossibleDrops;
 
         foreach (ItemDropRate droppedItem in droppedItems)
         {
-            if (droppedItem.itemSlug == null) continue;
+            if (string.IsNullOrEmpty(droppedItem.itemSlug)) continue;
 
-            if (totalItemsObtained.ContainsKey(ItemDatabase.Instance.GetItem(droppedItem.itemSlug)))
+            ItemSO item = ItemDatabase.Instance.GetItem(droppedItem.itemSlug);
+            if (item == null) continue;
+
+            if (totalItemsObtained.ContainsKey(item))
             {
-                totalItemsObtained[ItemDatabase.Instance.GetItem(droppedItem.itemSlug)] += 1;
+                totalItemsObtained[item] += 1;
             }
             else
             {
-                totalItemsObtained.Add(ItemDatabase.Instance.GetItem(droppedItem.itemSlug), 1);
+                totalItemsObtained.Add(item, 1);
             }
         }
     }
@@ -865,7 +868,7 @@ public class BattleManager : MonoBehaviour
         if (turnsOrdered != null) turnsOrdered.Clear();
 
         if (totalItemsObtained == null)
-            totalItemsObtained = new Dictionary<Item, int>();
+            totalItemsObtained = new Dictionary<ItemSO, int>();
         else
             totalItemsObtained.Clear();
 

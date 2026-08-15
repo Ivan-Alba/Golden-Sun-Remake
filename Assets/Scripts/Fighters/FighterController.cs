@@ -74,16 +74,18 @@ public class FighterController : MonoBehaviour
         yield return StartCoroutine(Routine_MoveToTarget(target.transform.position, 2.5f));
 
         // 2. Determine Attack Parameters
-        int basePower = 20;
-        Psynergy.Elements weaponElement = Psynergy.Elements.NoElemental;
+        ElementalType weaponElement = ElementalType.None;
         int critRate = 1;
 
-        if (TryGetComponent<HeroEquipment>(out var heroEq) && heroEq.EquippedItems[0] != null)
+        // Get equipped weapon using the new HeroEquipment slot accessor
+        if (TryGetComponent<HeroEquipment>(out var heroEq))
         {
-            Equipable weapon = heroEq.EquippedItems[0];
-            basePower = weapon.BasePower;
-            weaponElement = weapon.Element;
-            critRate = weapon.CriticalRate;
+            EquipableSO weapon = heroEq.GetEquippedItem(EquipmentSlot.Weapon);
+            if (weapon != null)
+            {
+                weaponElement = weapon.Element;
+                critRate = weapon.CriticalRateBonus;
+            }
         }
 
         bool isCritical = BattleDamageCalculator.CheckCriticalHit(critRate, stats.Luck);
@@ -95,7 +97,8 @@ public class FighterController : MonoBehaviour
         yield return new WaitForSeconds(0.4f);
 
         // 4. Calculate and Apply Damage
-        int damage = BattleDamageCalculator.CalculatePhysicalDamage(stats, targetStats, basePower, weaponElement, isCritical);
+        // Note: stats.Attack already includes base hero attack + equipped weapon attack bonus
+        int damage = BattleDamageCalculator.CalculatePhysicalDamage(stats, targetStats, weaponElement, isCritical);
         if (target.TryGetComponent<FighterController>(out var targetController))
         {
             targetController.ReceiveDamage(damage, isCritical);

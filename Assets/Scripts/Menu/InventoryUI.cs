@@ -1,12 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class InventoryUI : MonoBehaviour
 {
@@ -267,6 +263,7 @@ public class InventoryUI : MonoBehaviour
 
     private void ShowItemsByType(int objectType)
     {
+        /*
 
         switch (objectType)
         {
@@ -338,12 +335,12 @@ public class InventoryUI : MonoBehaviour
             newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText("");
             newItem.transform.Find("Icon").GetComponent<Image>().enabled = false;
             elementsList.Add(newItem);
-        }
+        }*/
 
     }
 
     private void SetElement(Item item)
-    {
+    {/*
         GameObject newItem = Instantiate(itemPrefab, content.transform);
         newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(item.ItemName);
         newItem.transform.Find("Icon").GetComponent<Image>().sprite = item.Icon;
@@ -355,7 +352,7 @@ public class InventoryUI : MonoBehaviour
             newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().color = Color.gray;
 
         itemsList.Add(item);
-        elementsList.Add(newItem);
+        elementsList.Add(newItem);*/
     }
 
 

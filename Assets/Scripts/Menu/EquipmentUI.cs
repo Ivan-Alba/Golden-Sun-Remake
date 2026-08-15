@@ -37,16 +37,16 @@ public class EquipmentUI : MonoBehaviour
     private void Awake()
     {
         emptyIcon = Resources.Load<Sprite>("Images/Icons/Mark");
-        equipmentSlots = HeroEquipment.EquipmentSlots;
+        //equipmentSlots = HeroEquipment.EquipmentSlots;
         itemList = new List<GameObject>();
         equippedItems = new Equipable[equipmentSlots];
         equipInfo = transform.Find("EquipInfo");
         slots = new List<Transform>();
 
-        for (int i = 0; i < HeroEquipment.EquipmentSlots; i++)
+        /*for (int i = 0; i < HeroEquipment.EquipmentSlots; i++)
         {
             slots.Add(equipInfo.Find("EquippedList").GetChild(i).transform);
-        }
+        }*/
 
         equipmentListPanel = transform.Find("ItemsPanel");
         equipScrollContent = equipmentListPanel.Find("ItemPanel").Find("Viewport").Find("Content");
@@ -82,7 +82,7 @@ public class EquipmentUI : MonoBehaviour
     }
 
     private void ShowGearForSlot()
-    {
+    {/*
         // GET ALL EQUIPABLE ON INVENTORY ITEMS AND FILTER BY SLOT
         Dictionary<Equipable, int> filteredGear = new Dictionary<Equipable, int>();
 
@@ -115,7 +115,7 @@ public class EquipmentUI : MonoBehaviour
             newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText("");
             newItem.transform.Find("Icon").GetComponent<Image>().enabled = false;
             itemList.Add(newItem);
-        }
+        }*/
     }
 
     private void ResetContent()
@@ -127,7 +127,7 @@ public class EquipmentUI : MonoBehaviour
     }
 
     private void RefreshEquipInfo()
-    {
+    {/*
         if (currentHero == null) return;
 
         equippedItems = currentHero.GetComponent<HeroEquipment>()?.EquippedItems;
@@ -184,11 +184,11 @@ public class EquipmentUI : MonoBehaviour
 
                 valText.color = Color.white;
             }
-        }
+        }*/
     }
 
     private void ShowStatsDifference()
-    {
+    {/*
         if (currentHero == null) return;
 
         Equipable newPiece = null;
@@ -276,7 +276,7 @@ public class EquipmentUI : MonoBehaviour
             {
                 valText.color = Color.white;
             }
-        }
+        }*/
     }
 
     private IEnumerator BackToMainMenu()

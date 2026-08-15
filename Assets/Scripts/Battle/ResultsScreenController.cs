@@ -82,7 +82,7 @@ public class ResultsScreenController : MonoBehaviour
         }
     }
 
-    public IEnumerator ShowResults(List<GameObject> heroList, int xpEarned, int phEarned, int goldEarned, Dictionary<Item, int> totalItemsObtained)
+    public IEnumerator ShowResults(List<GameObject> heroList, int xpEarned, int phEarned, int goldEarned, Dictionary<ItemSO, int> totalItemsObtained)
     {
         this.heroList = heroList;
         SetInitConfig();
@@ -100,7 +100,7 @@ public class ResultsScreenController : MonoBehaviour
         int initY = 130;
         int offsetY = 60;
         int iterat = 0;
-        foreach (KeyValuePair<Item, int> entry in totalItemsObtained)
+        foreach (KeyValuePair<ItemSO, int> entry in totalItemsObtained)
         {
             Debug.Log($"Enemigo deja caer: {entry.Key.ItemName}");
             GameObject newItem = Instantiate(Resources.Load("Prefabs/UIComponents/ResultScreenItem"), itemsPanel.transform) as GameObject;
@@ -111,12 +111,10 @@ public class ResultsScreenController : MonoBehaviour
             newItem.transform.Find("Icon").GetComponent<Image>().sprite = entry.Key.Icon;
             newItem.transform.Find("Number").GetComponent<TextMeshProUGUI>().text = entry.Value.ToString();
 
-            for (int i = 0; i < entry.Value; i++)
-            {
-                InventoryController.Instance.AddItem(entry.Key.ItemSlug);
-            }
             iterat++;
         }
+
+        GrantLootToParty(totalItemsObtained);
 
         // -- ANIMATE NUMBERS AND BAR CONFIGURATION --
         int previousValue = 0;
@@ -226,6 +224,20 @@ public class ResultsScreenController : MonoBehaviour
         // SHOW EXIT MESSAGE
         waitingConfirmation = true;
         if (confirmText != null) confirmText.gameObject.SetActive(true);
+    }
+
+    private void GrantLootToParty(Dictionary<ItemSO, int> totalItemsObtained)
+    {
+        foreach (var kvp in totalItemsObtained)
+        {
+            ItemSO item = kvp.Key;
+            int quantity = kvp.Value;
+
+            // Automatically routes KeyItems to GlobalBag or regular items to Hero Backpacks
+            InventoryController.Instance.AddItem(item, quantity);
+        }
+
+        totalItemsObtained.Clear();
     }
 
     private IEnumerator AbilityLearned(int index, string psynergySlugName)

@@ -2469,12 +2469,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fighterName: Spider
   turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
-  baseMaxHp: 70
-  baseMaxPp: 10
-  baseAttack: 10
+  baseMaxHp: 28
+  baseMaxPp: 0
+  baseAttack: 15
   baseDefense: 8
-  baseAgility: 7
-  baseLuck: 3
+  baseAgility: 10
+  baseLuck: 4
   basePowerVenus: 105
   basePowerMars: 100
   basePowerJupiter: 100

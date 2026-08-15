@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9928646a845431a4e9229587b5ecfe1a, type: 3}
+  m_Name: Spirit Ring
+  m_EditorClassIdentifier: 
+  itemSlug: spirit_ring
+  itemName: Anillo espiritual
+  itemDescription: "Se cuenta que este anillo contiene el esp\xEDritu de un antiguo
+    Adepto."
+  icon: {fileID: 21300000, guid: 7f76bdc486b45744292260c3be17e02a, type: 3}
+  itemType: 1
+  buyPrice: 2300
+  sellPrice: 1150
+  canSell: 1
+  maxStack: 1
+  equipmentSlot: 7
+  statModifiers:
+  - statType: 1
+    value: 5
+    modifierType: 0
+  - statType: 6
+    value: 5
+    modifierType: 0
+  - statType: 7
+    value: 5
+    modifierType: 0
+  - statType: 8
+    value: 5
+    modifierType: 0
+  - statType: 9
+    value: 5
+    modifierType: 0
+  criticalRateBonus: 0
+  element: 0
+  elementalPowerBonus: 0
+  useInBattle: 0

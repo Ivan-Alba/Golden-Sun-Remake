@@ -1901,12 +1901,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fighterName: Crab Monster
   turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
-  baseMaxHp: 120
-  baseMaxPp: 12
-  baseAttack: 12
+  baseMaxHp: 45
+  baseMaxPp: 0
+  baseAttack: 19
   baseDefense: 12
-  baseAgility: 7
-  baseLuck: 5
+  baseAgility: 4
+  baseLuck: 1
   basePowerVenus: 100
   basePowerMars: 100
   basePowerJupiter: 105
