@@ -96,10 +96,10 @@
 }
 
 /* ------------------------------------------
-   HEADER COLUMN 1: LEFT BOX (DJINN TRACKER - PERFECT ALIGNMENT)
+   HEADER COLUMN 1: LEFT BOX (28% EQUALIZED)
    ------------------------------------------ */
 .header-left-box {
-    width: 32%;
+    width: 28%;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
@@ -158,17 +158,17 @@
 .icon-djinn-mercury { background-color: rgba(52, 152, 219, 0.3); border-radius: 3px; }
 
 /* ------------------------------------------
-   HEADER COLUMN 2: CENTER BOX (STORY & QUEST)
+   HEADER COLUMN 2: CENTER BOX (44% PERFECT CENTER)
    ------------------------------------------ */
 .header-center-box {
-    width: 42%;
+    width: 44%;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
 .label-chapter {
-    font-size: 15px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: #FFD700;
     letter-spacing: 0.5px;
@@ -177,7 +177,7 @@
 }
 
 .label-quest {
-    font-size: 12px;
+    font-size: 15px;
     -unity-font-style: bold;
     color: #60A5FA;
     margin: 0;
@@ -185,10 +185,10 @@
 }
 
 /* ------------------------------------------
-   HEADER COLUMN 3: RIGHT BOX (LOCATION, GOLD, TIME)
+   HEADER COLUMN 3: RIGHT BOX (28% EQUALIZED)
    ------------------------------------------ */
 .header-right-box {
-    width: 26%;
+    width: 28%;
     flex-direction: column;
     justify-content: center;
     align-items: flex-end;

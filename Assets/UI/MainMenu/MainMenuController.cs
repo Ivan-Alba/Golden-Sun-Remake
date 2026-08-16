@@ -49,6 +49,7 @@ public class MainMenuController : MonoBehaviour
 
     // Hero Selection Header Cards
     private Button[] btnHeroes = new Button[4];
+    private VisualElement[] imgHeroPortraits = new VisualElement[4];
     private Label[] labelHeroNames = new Label[4];
     private Label[] labelHeroLevels = new Label[4];
     private Label[] labelHeroHpVals = new Label[4];
@@ -157,6 +158,11 @@ public class MainMenuController : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             btnHeroes[i] = rootElement.Q<Button>($"btn_hero{i}");
+
+            // Flexible query for hero portrait (by element name or USS class fallback)
+            imgHeroPortraits[i] = rootElement.Q<VisualElement>($"header_hero_portrait_{i}")
+                                ?? btnHeroes[i]?.Q<VisualElement>(className: "header-hero-portrait");
+
             labelHeroNames[i] = rootElement.Q<Label>($"label_hero_name_{i}");
             labelHeroLevels[i] = rootElement.Q<Label>($"label_hero_level_{i}");
             labelHeroHpVals[i] = rootElement.Q<Label>($"label_hero_hp_val_{i}");
@@ -208,9 +214,6 @@ public class MainMenuController : MonoBehaviour
 
         InputManager.Instance.OnMenuNextTabPressed += HandleNextTab;
         InputManager.Instance.OnMenuPreviousTabPressed += HandlePreviousTab;
-        InputManager.Instance.OnMenuNextHeroPressed += HandleNextHero;
-        InputManager.Instance.OnMenuPreviousHeroPressed += HandlePreviousHero;
-        InputManager.Instance.OnMenuConfirmPressed += HandleConfirmInput;
         InputManager.Instance.OnMenuCancelPressed += HandleCancelInput;
     }
 
@@ -220,9 +223,6 @@ public class MainMenuController : MonoBehaviour
 
         InputManager.Instance.OnMenuNextTabPressed -= HandleNextTab;
         InputManager.Instance.OnMenuPreviousTabPressed -= HandlePreviousTab;
-        InputManager.Instance.OnMenuNextHeroPressed -= HandleNextHero;
-        InputManager.Instance.OnMenuPreviousHeroPressed -= HandlePreviousHero;
-        InputManager.Instance.OnMenuConfirmPressed -= HandleConfirmInput;
         InputManager.Instance.OnMenuCancelPressed -= HandleCancelInput;
     }
 
@@ -245,20 +245,6 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    private void HandleConfirmInput()
-    {
-        if (!isMenuOpen) return;
-
-        if (currentTab == MenuTab.Status && statusPageController != null)
-        {
-            statusPageController.HandleConfirm();
-        }
-        else if (currentTab == MenuTab.Items && itemsPageController != null)
-        {
-            itemsPageController.HandleConfirm();
-        }
-    }
-
     private void HandleCancelInput()
     {
         if (isMenuOpen)
@@ -269,40 +255,6 @@ public class MainMenuController : MonoBehaviour
 
     private void HandleNextTab() => CycleTab(1);
     private void HandlePreviousTab() => CycleTab(-1);
-
-    private void HandleNextHero()
-    {
-        if (currentTab == MenuTab.Status && statusPageController != null)
-        {
-            statusPageController.NavigateHero(1);
-            return;
-        }
-
-        if (!IsHeroSelectorVisible()) return;
-
-        List<HeroStats> party = GetPartyHeroStatsList();
-        if (party == null || party.Count == 0) return;
-
-        int nextHero = (selectedHeroIndex + 1) % party.Count;
-        SelectHero(nextHero);
-    }
-
-    private void HandlePreviousHero()
-    {
-        if (currentTab == MenuTab.Status && statusPageController != null)
-        {
-            statusPageController.NavigateHero(-1);
-            return;
-        }
-
-        if (!IsHeroSelectorVisible()) return;
-
-        List<HeroStats> party = GetPartyHeroStatsList();
-        if (party == null || party.Count == 0) return;
-
-        int prevHero = (selectedHeroIndex - 1 + party.Count) % party.Count;
-        SelectHero(prevHero);
-    }
 
     #endregion
 
@@ -455,6 +407,8 @@ public class MainMenuController : MonoBehaviour
 
         itemsPageController = new PageItemsController(itemsInstance);
 
+        itemsPageController.SetParty(GetPartyHeroStatsList());
+
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
         HeroInventory selectedHeroInventory = GetPartyMemberComponent<HeroInventory>(selectedHeroIndex);
         HeroEquipment selectedHeroEquipment = GetPartyMemberComponent<HeroEquipment>(selectedHeroIndex);
@@ -571,6 +525,12 @@ public class MainMenuController : MonoBehaviour
                 HeroStats hero = partyStats[i];
                 if (hero != null)
                 {
+                    // Assign protagonist avatar sprite to header portrait
+                    if (imgHeroPortraits[i] != null && hero.TurnBarImage != null)
+                    {
+                        imgHeroPortraits[i].style.backgroundImage = new StyleBackground(hero.TurnBarImage);
+                    }
+
                     if (labelHeroNames[i] != null) labelHeroNames[i].text = hero.Name;
                     if (labelHeroLevels[i] != null) labelHeroLevels[i].text = $"Nv. {hero.Level}";
                     if (labelHeroHpVals[i] != null) labelHeroHpVals[i].text = $"{hero.CurrHp}/{hero.MaxHp}";

@@ -207,6 +207,65 @@ public class HeroInventory : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Splits or moves a specific amount from one slot to another within the same inventory.
+    /// </summary>
+    public void SplitOrMoveSlotAmount(int sourceIndex, int targetIndex, int amount)
+    {
+        if (!IsValidIndex(sourceIndex) || !IsValidIndex(targetIndex) || sourceIndex == targetIndex || amount <= 0) return;
+
+        InventorySlot sourceSlot = slots[sourceIndex];
+        InventorySlot targetSlot = slots[targetIndex];
+
+        if (sourceSlot.IsEmpty) return;
+
+        int actualAmountToMove = Mathf.Min(amount, sourceSlot.Quantity);
+        ItemSO itemToMove = sourceSlot.Item;
+
+        // Target is empty: assign amount to target, subtract from source
+        if (targetSlot.IsEmpty)
+        {
+            targetSlot.SetSlot(itemToMove, actualAmountToMove);
+            sourceSlot.RemoveQuantity(actualAmountToMove);
+        }
+        // Target has identical item: stack into target, subtract from source
+        else if (targetSlot.Item.ItemSlug == itemToMove.ItemSlug && targetSlot.Item.MaxStack > 1)
+        {
+            int remaining = targetSlot.AddQuantity(actualAmountToMove);
+            int movedCount = actualAmountToMove - remaining;
+            sourceSlot.RemoveQuantity(movedCount);
+        }
+
+        OnInventoryUpdated?.Invoke();
+    }
+
+    /// <summary>
+    /// Transfers a specific amount of an item from a slot in this inventory to another hero's inventory.
+    /// </summary>
+    public bool TransferAmountToHero(int sourceSlotIndex, int amount, HeroInventory targetHero)
+    {
+        if (!IsValidIndex(sourceSlotIndex) || targetHero == null || targetHero == this || amount <= 0) return false;
+
+        InventorySlot sourceSlot = slots[sourceSlotIndex];
+        if (sourceSlot.IsEmpty || sourceSlot.IsEquipped) return false;
+
+        ItemSO itemToTransfer = sourceSlot.Item;
+        int amountToTransfer = Mathf.Min(amount, sourceSlot.Quantity);
+
+        if (targetHero.CanAddItem(itemToTransfer, amountToTransfer))
+        {
+            int remaining = targetHero.AddItem(itemToTransfer, amountToTransfer);
+            int movedCount = amountToTransfer - remaining;
+
+            sourceSlot.RemoveQuantity(movedCount);
+
+            OnInventoryUpdated?.Invoke();
+            return true;
+        }
+
+        return false;
+    }
+
     #endregion
 
     #region Query Helpers for UI & Battle

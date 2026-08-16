@@ -211,9 +211,11 @@ public class GameManager : MonoBehaviour
 
         GameObject isaac = GameObject.Find("Isaac");
         GameObject garet = GameObject.Find("Garet");
+        GameObject ivan = GameObject.Find("Ivan");
 
         if (isaac != null) party.Add(isaac);
         if (garet != null) party.Add(garet);
+        if (ivan != null) party.Add(ivan);
 
         if (party.Count > 0)
         {

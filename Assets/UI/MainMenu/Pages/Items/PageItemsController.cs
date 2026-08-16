@@ -2,6 +2,84 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+#region Drag & Drop Data Structures
+
+/// <summary>
+/// Identifies the UI container source where a drag operation started.
+/// </summary>
+public enum DragSourceType
+{
+    PersonalInventory,
+    Equipment,
+    Relic
+}
+
+/// <summary>
+/// Payload container holding all metadata required during an active item drag operation.
+/// </summary>
+public class DragContext
+{
+    public DragSourceType SourceType { get; private set; }
+    public int SourceIndex { get; private set; }
+    public ItemSO Item { get; private set; }
+    public int Quantity { get; private set; }
+    public VisualElement SourceSlotUI { get; private set; }
+
+    public DragContext(DragSourceType sourceType, int sourceIndex, ItemSO item, int quantity, VisualElement sourceSlotUI)
+    {
+        SourceType = sourceType;
+        SourceIndex = sourceIndex;
+        Item = item;
+        Quantity = quantity;
+        SourceSlotUI = sourceSlotUI;
+    }
+}
+
+/// <summary>
+/// Categorizes the target container where an item is dropped.
+/// </summary>
+public enum DropTargetType
+{
+    None,
+    PersonalInventory,
+    Equipment,
+    Relic,
+    HeroCard
+}
+
+/// <summary>
+/// Holds drop destination metadata detected under the pointer.
+/// </summary>
+public struct DropTargetInfo
+{
+    public DropTargetType TargetType;
+    public int Index;
+    public VisualElement ElementUI;
+
+    public DropTargetInfo(DropTargetType type, int index, VisualElement element)
+    {
+        TargetType = type;
+        Index = index;
+        ElementUI = element;
+    }
+}
+
+/// <summary>
+/// Holds metadata for a pending transaction that requires quantity selection in the split modal.
+/// </summary>
+public struct PendingSplitTransaction
+{
+    public DragSourceType SourceType;
+    public int SourceIndex;
+    public DropTargetType TargetType;
+    public int TargetIndex;
+    public HeroInventory TargetHeroInventory;
+    public ItemSO Item;
+    public int MaxQuantity;
+}
+
+#endregion
+
 public class PageItemsController
 {
     #region Private Fields
@@ -22,6 +100,20 @@ public class PageItemsController
     private Label labelItemDesc;
     private VisualElement statChangesBox;
 
+    // Stack Splitter Overlay Popup Elements
+    private VisualElement splitPopupOverlay;
+    private VisualElement splitItemIcon;
+    private Label labelSplitItemName;
+    private Button btnSplitMinus;
+    private SliderInt sliderSplitAmount;
+    private Button btnSplitPlus;
+    private Label labelSplitAmount;
+    private Button btnSplitConfirm;
+    private Button btnSplitCancel;
+
+    // Pending split transaction data
+    private PendingSplitTransaction pendingSplit;
+
     // Fixed Equipment Slots (7 Slots)
     private VisualElement[] gearSlots = new VisualElement[7];
 
@@ -32,10 +124,35 @@ public class PageItemsController
     private List<VisualElement> spawnedInventorySlots = new List<VisualElement>();
     private List<VisualElement> spawnedGlobalBagSlots = new List<VisualElement>();
 
+    // Party Data Source
+    private List<HeroStats> partyHeroes = new List<HeroStats>();
+
     // Current Focused Data Sources
     private HeroStats currentHero;
     private HeroInventory currentInventory;
     private HeroEquipment currentEquipment;
+
+    // Drag & Drop State Tracking
+    private DragContext currentDragContext;
+    private VisualElement ghostElement;
+    private bool isDragging = false;
+
+    // Pointer Tracking & Drag Threshold
+    private Vector2 pointerStartPosition;
+    private int activePointerId = -1;
+    private const float DRAG_THRESHOLD = 5f;
+
+    // Equipment slot type mapping matching gearSlots[0..6] indices
+    private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
+    {
+        EquipmentSlot.Weapon,    // gearSlots[0] -> slot_weapon
+        EquipmentSlot.Shield,    // gearSlots[1] -> slot_shield
+        EquipmentSlot.Armor,     // gearSlots[2] -> slot_armor
+        EquipmentSlot.Helmet,    // gearSlots[3] -> slot_helm
+        EquipmentSlot.Hands,     // gearSlots[4] -> slot_hands
+        EquipmentSlot.Boots,     // gearSlots[5] -> slot_boots
+        EquipmentSlot.Accessory  // gearSlots[6] -> slot_acc
+    };
 
     // Slot Dimension Constants for Layout Calculations
     private const float SLOT_SIZE = 70f;
@@ -49,6 +166,7 @@ public class PageItemsController
     {
         rootElement = root;
         BindUIElements();
+        BindSplitPopupEvents();
     }
 
     #endregion
@@ -75,6 +193,22 @@ public class PageItemsController
         labelItemDesc = rootElement.Q<Label>("label_item_desc");
         statChangesBox = rootElement.Q<VisualElement>("stat_changes_box");
 
+        // Split Modal Overlay Elements
+        splitPopupOverlay = rootElement.Q<VisualElement>("split_popup_overlay");
+        splitItemIcon = rootElement.Q<VisualElement>("split_item_icon");
+        labelSplitItemName = rootElement.Q<Label>("label_split_item_name");
+        btnSplitMinus = rootElement.Q<Button>("btn_split_minus");
+        sliderSplitAmount = rootElement.Q<SliderInt>("slider_split_amount");
+        btnSplitPlus = rootElement.Q<Button>("btn_split_plus");
+        labelSplitAmount = rootElement.Q<Label>("label_split_amount");
+        btnSplitConfirm = rootElement.Q<Button>("btn_split_confirm");
+        btnSplitCancel = rootElement.Q<Button>("btn_split_cancel");
+
+        if (splitPopupOverlay != null)
+        {
+            splitPopupOverlay.style.display = DisplayStyle.None;
+        }
+
         // Bind Fixed Equipment Slots
         gearSlots[0] = rootElement.Q<VisualElement>("slot_weapon");
         gearSlots[1] = rootElement.Q<VisualElement>("slot_shield");
@@ -84,48 +218,62 @@ public class PageItemsController
         gearSlots[5] = rootElement.Q<VisualElement>("slot_boots");
         gearSlots[6] = rootElement.Q<VisualElement>("slot_acc");
 
-        // Bind Fixed Relic Slots (Updated to 4 Relics)
+        // Bind Fixed Relic Slots
         relicSlots[0] = rootElement.Q<VisualElement>("slot_relic_0");
         relicSlots[1] = rootElement.Q<VisualElement>("slot_relic_1");
         relicSlots[2] = rootElement.Q<VisualElement>("slot_relic_2");
         relicSlots[3] = rootElement.Q<VisualElement>("slot_relic_3");
     }
 
+    private void BindSplitPopupEvents()
+    {
+        if (btnSplitMinus != null) btnSplitMinus.clicked += () => StepSplitAmount(-1);
+        if (btnSplitPlus != null) btnSplitPlus.clicked += () => StepSplitAmount(1);
+
+        if (sliderSplitAmount != null)
+        {
+            sliderSplitAmount.RegisterValueChangedCallback(evt => UpdateSplitAmountLabel(evt.newValue));
+        }
+
+        if (btnSplitConfirm != null) btnSplitConfirm.clicked += OnConfirmSplit;
+        if (btnSplitCancel != null) btnSplitCancel.clicked += CloseSplitModal;
+    }
+
     #endregion
 
     #region Data Population & Initialization
 
-    /// <summary>
-    /// Populates inventory grids and equipment slots with data from the focused hero, inventory, equipment, and global bag.
-    /// </summary>
-    /// <param name="hero">Hero stats data source.</param>
-    /// <param name="inventory">Hero inventory data source.</param>
-    /// <param name="equipment">Hero equipment data source.</param>
-    /// <param name="itemSlotAsset">UXML Template asset for individual inventory slots.</param>
+    public void SetParty(List<HeroStats> party)
+    {
+        partyHeroes = party ?? new List<HeroStats>();
+    }
+
     public void PopulateData(HeroStats hero, HeroInventory inventory, HeroEquipment equipment, VisualTreeAsset itemSlotAsset)
     {
+        if (currentEquipment != null)
+        {
+            currentEquipment.OnEquipmentChanged -= RefreshAllData;
+        }
+
         currentHero = hero;
         currentInventory = inventory;
         currentEquipment = equipment;
 
+        if (currentEquipment != null)
+        {
+            currentEquipment.OnEquipmentChanged += RefreshAllData;
+        }
+
         UpdateHeaderHeroInfo();
 
-        // Fetch inventory capacity from HeroInventory or fallback to 18 slots (3 rows x 6 columns)
         int personalCapacity = (currentInventory != null) ? currentInventory.MaxBackpackSlots : 18;
         int columns = Mathf.CeilToInt(personalCapacity / 3.0f);
-
-        // Global Bag capacity = 2 rows matching the same column width
         int globalCapacity = columns * 2;
 
-        // Instantiate slot elements
         PopulateInventoryGrid(personalCapacity, columns, itemSlotAsset);
         PopulateGlobalBagGrid(globalCapacity, columns, itemSlotAsset);
-        BindEquipmentCallbacks();
 
-        // Load item data into all slots
         RefreshAllData();
-
-        // Default info panel display
         ClearInfoPanel();
     }
 
@@ -152,7 +300,6 @@ public class PageItemsController
         inventoryGrid.Clear();
         spawnedInventorySlots.Clear();
 
-        // Constrain grid width so flexbox automatically wraps into exactly 3 rows
         float calculatedWidth = columns * (SLOT_SIZE + SLOT_MARGIN_TOTAL);
         inventoryGrid.style.maxWidth = calculatedWidth;
 
@@ -163,10 +310,7 @@ public class PageItemsController
 
             if (slotRoot != null)
             {
-                int slotIndex = i;
                 slotRoot.pickingMode = PickingMode.Position;
-                slotRoot.RegisterCallback<ClickEvent>(evt => SelectInventorySlot(slotIndex));
-
                 inventoryGrid.Add(slotRoot);
                 spawnedInventorySlots.Add(slotRoot);
             }
@@ -180,7 +324,6 @@ public class PageItemsController
         globalBagGrid.Clear();
         spawnedGlobalBagSlots.Clear();
 
-        // Match the same maximum width as the main personal inventory grid
         float calculatedWidth = columns * (SLOT_SIZE + SLOT_MARGIN_TOTAL);
         globalBagGrid.style.maxWidth = calculatedWidth;
 
@@ -201,36 +344,10 @@ public class PageItemsController
         }
     }
 
-    private void BindEquipmentCallbacks()
-    {
-        // Register callbacks on fixed gear slots
-        for (int i = 0; i < gearSlots.Length; i++)
-        {
-            int index = i;
-            if (gearSlots[i] != null)
-            {
-                gearSlots[i].RegisterCallback<ClickEvent>(evt => SelectGearSlot(index));
-            }
-        }
-
-        // Register callbacks on fixed relic slots
-        for (int i = 0; i < relicSlots.Length; i++)
-        {
-            int index = i;
-            if (relicSlots[i] != null)
-            {
-                relicSlots[i].RegisterCallback<ClickEvent>(evt => SelectRelicSlot(index));
-            }
-        }
-    }
-
     #endregion
 
-    #region Data Refresh & Sync
+    #region Data Refresh & Event Binding
 
-    /// <summary>
-    /// Refreshes all UI items across personal inventory, equipment, relics, and global bag.
-    /// </summary>
     public void RefreshAllData()
     {
         RefreshInventorySlots();
@@ -244,50 +361,40 @@ public class PageItemsController
 
         for (int i = 0; i < spawnedInventorySlots.Count; i++)
         {
+            int slotIndex = i;
             VisualElement slotUI = spawnedInventorySlots[i];
             if (slotUI == null) continue;
 
-            // Query internal slot elements
             VisualElement iconElem = slotUI.Q<VisualElement>("item_icon");
             Label quantityLabel = slotUI.Q<Label>("label_quantity");
             VisualElement placeholderElem = slotUI.Q<VisualElement>("slot_placeholder");
-            VisualElement equippedBadge = slotUI.Q<VisualElement>("badge_equipped"); // Optional visual badge for equipped status
+            VisualElement equippedBadge = slotUI.Q<VisualElement>("badge_equipped");
 
-            // Safely fetch inventory slot by index
-            InventorySlot slot = currentInventory.GetSlot(i);
+            InventorySlot slot = currentInventory.GetSlot(slotIndex);
+
+            UnregisterPointerCallbacks(slotUI);
 
             if (slot != null && !slot.IsEmpty && slot.Item != null)
             {
-                // Set item icon
                 if (iconElem != null)
                 {
-                    // Adjust property name if ItemSO uses Icon, ItemIcon, or Sprite
                     iconElem.style.backgroundImage = new StyleBackground(slot.Item.Icon);
                     iconElem.style.display = DisplayStyle.Flex;
                 }
 
-                // Set quantity label (only visible for stackable items or quantities > 1)
                 if (quantityLabel != null)
                 {
                     quantityLabel.text = (slot.Item.MaxStack > 1 && slot.Quantity > 1) ? slot.Quantity.ToString() : string.Empty;
                     quantityLabel.style.display = (slot.Quantity > 1) ? DisplayStyle.Flex : DisplayStyle.None;
                 }
 
-                // Hide empty slot placeholder background if present
-                if (placeholderElem != null)
-                {
-                    placeholderElem.style.display = DisplayStyle.None;
-                }
+                if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.None;
+                if (equippedBadge != null) equippedBadge.style.display = slot.IsEquipped ? DisplayStyle.Flex : DisplayStyle.None;
 
-                // Optional: Toggle equipped badge status
-                if (equippedBadge != null)
-                {
-                    equippedBadge.style.display = slot.IsEquipped ? DisplayStyle.Flex : DisplayStyle.None;
-                }
+                RegisterPointerCallbacks(slotUI, DragSourceType.PersonalInventory, slotIndex, slot.Item, slot.Quantity);
             }
             else
             {
-                // Clear slot UI if empty
                 if (iconElem != null)
                 {
                     iconElem.style.backgroundImage = null;
@@ -300,15 +407,8 @@ public class PageItemsController
                     quantityLabel.style.display = DisplayStyle.None;
                 }
 
-                if (placeholderElem != null)
-                {
-                    placeholderElem.style.display = DisplayStyle.Flex;
-                }
-
-                if (equippedBadge != null)
-                {
-                    equippedBadge.style.display = DisplayStyle.None;
-                }
+                if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.Flex;
+                if (equippedBadge != null) equippedBadge.style.display = DisplayStyle.None;
             }
         }
     }
@@ -317,8 +417,50 @@ public class PageItemsController
     {
         if (currentEquipment == null) return;
 
-        // TODO: Populate gearSlots[0..6] with currentEquipment equipped weapons, armor, etc.
-        // TODO: Populate relicSlots[0..3] with currentEquipment equipped psynergy relics.
+        // 1. Refresh Standard Gear Slots (gearSlots[0..6])
+        for (int i = 0; i < gearSlots.Length; i++)
+        {
+            int slotIndex = i;
+            VisualElement slotUI = gearSlots[slotIndex];
+            if (slotUI == null) continue;
+
+            EquipmentSlot slotType = gearSlotTypes[slotIndex];
+            EquipableSO equippedItem = currentEquipment.GetEquippedItem(slotType);
+
+            UnregisterPointerCallbacks(slotUI);
+
+            if (equippedItem != null)
+            {
+                slotUI.style.backgroundImage = new StyleBackground(equippedItem.Icon);
+                RegisterPointerCallbacks(slotUI, DragSourceType.Equipment, slotIndex, equippedItem, 1);
+            }
+            else
+            {
+                slotUI.style.backgroundImage = null;
+            }
+        }
+
+        // 2. Refresh Psynergy Relic Slots (relicSlots[0..3])
+        for (int i = 0; i < relicSlots.Length; i++)
+        {
+            int slotIndex = i;
+            VisualElement slotUI = relicSlots[slotIndex];
+            if (slotUI == null) continue;
+
+            PsynergyRelicSO equippedRelic = currentEquipment.GetEquippedRelic(slotIndex);
+
+            UnregisterPointerCallbacks(slotUI);
+
+            if (equippedRelic != null)
+            {
+                slotUI.style.backgroundImage = new StyleBackground(equippedRelic.Icon);
+                RegisterPointerCallbacks(slotUI, DragSourceType.Relic, slotIndex, equippedRelic, 1);
+            }
+            else
+            {
+                slotUI.style.backgroundImage = null;
+            }
+        }
     }
 
     private void RefreshGlobalBagSlots()
@@ -336,7 +478,6 @@ public class PageItemsController
             Label quantityLabel = slotUI.Q<Label>("label_quantity");
             VisualElement placeholderElem = slotUI.Q<VisualElement>("slot_placeholder");
 
-            // Safely retrieve slot if within current keyItemSlots count
             InventorySlot slot = (i < keySlots.Count) ? keySlots[i] : null;
 
             if (slot != null && !slot.IsEmpty && slot.Item != null)
@@ -353,10 +494,7 @@ public class PageItemsController
                     quantityLabel.style.display = (slot.Quantity > 1) ? DisplayStyle.Flex : DisplayStyle.None;
                 }
 
-                if (placeholderElem != null)
-                {
-                    placeholderElem.style.display = DisplayStyle.None;
-                }
+                if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.None;
             }
             else
             {
@@ -372,40 +510,682 @@ public class PageItemsController
                     quantityLabel.style.display = DisplayStyle.None;
                 }
 
-                if (placeholderElem != null)
-                {
-                    placeholderElem.style.display = DisplayStyle.Flex;
-                }
+                if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.Flex;
             }
         }
     }
 
     #endregion
 
-    #region Selection & Interaction Handlers
+    #region Pointer & Drag Event Callbacks
 
-    private void SelectInventorySlot(int index)
+    private void RegisterPointerCallbacks(VisualElement slotUI, DragSourceType sourceType, int slotIndex, ItemSO item, int quantity)
     {
-        Debug.Log($"[PageItems] Selected Personal Inventory Slot {index}");
-        // TODO: Update Info Panel with Item Details
+        slotUI.RegisterCallback<PointerDownEvent>(evt => OnSlotPointerDown(evt, sourceType, slotIndex, slotUI, item, quantity));
+        slotUI.RegisterCallback<PointerMoveEvent>(OnSlotPointerMove);
+        slotUI.RegisterCallback<PointerUpEvent>(OnSlotPointerUp);
+        slotUI.RegisterCallback<PointerCaptureOutEvent>(OnSlotPointerCancel);
+    }
+
+    private void UnregisterPointerCallbacks(VisualElement slotUI)
+    {
+        slotUI.UnregisterCallback<PointerMoveEvent>(OnSlotPointerMove);
+        slotUI.UnregisterCallback<PointerUpEvent>(OnSlotPointerUp);
+        slotUI.UnregisterCallback<PointerCaptureOutEvent>(OnSlotPointerCancel);
+    }
+
+    private ItemSO GetLiveItemFromSource(DragSourceType sourceType, int index)
+    {
+        switch (sourceType)
+        {
+            case DragSourceType.PersonalInventory:
+                if (currentInventory == null) return null;
+                InventorySlot invSlot = currentInventory.GetSlot(index);
+                return (invSlot != null && !invSlot.IsEmpty) ? invSlot.Item : null;
+
+            case DragSourceType.Equipment:
+                if (currentEquipment == null || index < 0 || index >= gearSlotTypes.Length) return null;
+                return currentEquipment.GetEquippedItem(gearSlotTypes[index]);
+
+            case DragSourceType.Relic:
+                if (currentEquipment == null) return null;
+                return currentEquipment.GetEquippedRelic(index);
+
+            default:
+                return null;
+        }
+    }
+
+    private void OnSlotPointerDown(PointerDownEvent evt, DragSourceType sourceType, int slotIndex, VisualElement slotUI, ItemSO item, int quantity)
+    {
+        if (evt.button != 0) return;
+
+        ItemSO liveItem = GetLiveItemFromSource(sourceType, slotIndex);
+        if (liveItem == null) return;
+
+        pointerStartPosition = evt.position;
+        activePointerId = evt.pointerId;
+
+        currentDragContext = new DragContext(sourceType, slotIndex, liveItem, quantity, slotUI);
+        isDragging = false;
+
+        UpdateInfoPanel(liveItem);
+    }
+
+    private void OnSlotPointerMove(PointerMoveEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        Vector2 currentPosition = evt.position;
+
+        if (!isDragging)
+        {
+            float distance = Vector2.Distance(pointerStartPosition, currentPosition);
+            if (distance >= DRAG_THRESHOLD)
+            {
+                isDragging = true;
+
+                if (currentDragContext.SourceSlotUI != null)
+                {
+                    currentDragContext.SourceSlotUI.style.opacity = 0.3f;
+                }
+
+                HighlightCompatibleSlots(currentDragContext.Item, true);
+                CreateGhostElement(currentDragContext.Item.Icon, currentPosition);
+                currentDragContext.SourceSlotUI.CapturePointer(activePointerId);
+            }
+        }
+        else
+        {
+            UpdateGhostPosition(currentPosition);
+        }
+    }
+
+    private void OnSlotPointerUp(PointerUpEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        if (currentDragContext.SourceSlotUI != null && currentDragContext.SourceSlotUI.HasPointerCapture(activePointerId))
+        {
+            currentDragContext.SourceSlotUI.ReleasePointer(activePointerId);
+        }
+
+        if (isDragging)
+        {
+            ProcessDrop(evt.position);
+            RemoveGhostElement();
+            RefreshAllData();
+        }
+        else
+        {
+            currentDragContext = null;
+            activePointerId = -1;
+        }
+    }
+
+    private void OnSlotPointerCancel(PointerCaptureOutEvent evt)
+    {
+        if (isDragging)
+        {
+            RemoveGhostElement();
+        }
+    }
+
+    #endregion
+
+    #region Slot Highlighting & Drop Target Detection
+
+    private void HighlightCompatibleSlots(ItemSO item, bool enable)
+    {
+        if (item is EquipableSO equipable)
+        {
+            EquipmentSlot slotType = equipable.EquipmentSlot;
+
+            if (slotType == EquipmentSlot.PsynergyRelic)
+            {
+                for (int i = 0; i < relicSlots.Length; i++)
+                {
+                    SetSlotHighlight(relicSlots[i], enable);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < gearSlotTypes.Length; i++)
+                {
+                    if (gearSlotTypes[i] == slotType && gearSlots[i] != null)
+                    {
+                        SetSlotHighlight(gearSlots[i], enable);
+                    }
+                }
+            }
+        }
+    }
+
+    private void SetSlotHighlight(VisualElement slotUI, bool enable)
+    {
+        if (slotUI == null) return;
+
+        if (enable)
+        {
+            slotUI.style.borderTopColor = new StyleColor(new Color(1f, 0.84f, 0f, 0.9f));
+            slotUI.style.borderRightColor = new StyleColor(new Color(1f, 0.84f, 0f, 0.9f));
+            slotUI.style.borderBottomColor = new StyleColor(new Color(1f, 0.84f, 0f, 0.9f));
+            slotUI.style.borderLeftColor = new StyleColor(new Color(1f, 0.84f, 0f, 0.9f));
+        }
+        else
+        {
+            slotUI.style.borderTopColor = StyleKeyword.Null;
+            slotUI.style.borderRightColor = StyleKeyword.Null;
+            slotUI.style.borderBottomColor = StyleKeyword.Null;
+            slotUI.style.borderLeftColor = StyleKeyword.Null;
+        }
+    }
+
+    private bool TryGetDropTarget(Vector2 pointerPosition, out DropTargetInfo targetInfo)
+    {
+        targetInfo = new DropTargetInfo(DropTargetType.None, -1, null);
+        if (rootElement?.panel == null) return false;
+
+        VisualElement picked = rootElement.panel.Pick(pointerPosition);
+        if (picked == null) return false;
+
+        // 1. Check Personal Inventory Slots
+        for (int i = 0; i < spawnedInventorySlots.Count; i++)
+        {
+            if (spawnedInventorySlots[i] != null && IsElementOrChildOf(picked, spawnedInventorySlots[i]))
+            {
+                targetInfo = new DropTargetInfo(DropTargetType.PersonalInventory, i, spawnedInventorySlots[i]);
+                return true;
+            }
+        }
+
+        // 2. Check Equipment Slots
+        for (int i = 0; i < gearSlots.Length; i++)
+        {
+            if (gearSlots[i] != null && IsElementOrChildOf(picked, gearSlots[i]))
+            {
+                targetInfo = new DropTargetInfo(DropTargetType.Equipment, i, gearSlots[i]);
+                return true;
+            }
+        }
+
+        // 3. Check Relic Slots
+        for (int i = 0; i < relicSlots.Length; i++)
+        {
+            if (relicSlots[i] != null && IsElementOrChildOf(picked, relicSlots[i]))
+            {
+                targetInfo = new DropTargetInfo(DropTargetType.Relic, i, relicSlots[i]);
+                return true;
+            }
+        }
+
+        // 4. Check Hero Header Cards in Main Menu
+        VisualElement heroCard = FindParentMatching(picked, elem => elem.name != null && elem.name.StartsWith("btn_hero"));
+        if (heroCard != null)
+        {
+            string nameStr = heroCard.name.Replace("btn_hero", "");
+            if (int.TryParse(nameStr, out int heroIdx))
+            {
+                targetInfo = new DropTargetInfo(DropTargetType.HeroCard, heroIdx, heroCard);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsElementOrChildOf(VisualElement child, VisualElement parent)
+    {
+        VisualElement current = child;
+        while (current != null)
+        {
+            if (current == parent) return true;
+            current = current.parent;
+        }
+        return false;
+    }
+
+    private VisualElement FindParentMatching(VisualElement element, System.Predicate<VisualElement> predicate)
+    {
+        VisualElement current = element;
+        while (current != null)
+        {
+            if (predicate(current)) return current;
+            current = current.parent;
+        }
+        return null;
+    }
+
+    #endregion
+
+    #region Drop Processing & Transactions
+
+    private void ProcessDrop(Vector2 pointerPosition)
+    {
+        if (currentDragContext == null || currentInventory == null || currentEquipment == null) return;
+
+        if (TryGetDropTarget(pointerPosition, out DropTargetInfo targetInfo))
+        {
+            switch (targetInfo.TargetType)
+            {
+                case DropTargetType.PersonalInventory:
+                    ExecutePersonalInventoryDrop(targetInfo.Index);
+                    break;
+
+                case DropTargetType.Equipment:
+                    ExecuteEquipmentDrop(targetInfo.Index);
+                    break;
+
+                case DropTargetType.Relic:
+                    ExecuteRelicDrop(targetInfo.Index);
+                    break;
+
+                case DropTargetType.HeroCard:
+                    ExecuteHeroCardDrop(targetInfo.Index);
+                    break;
+            }
+        }
+    }
+
+    private void ExecutePersonalInventoryDrop(int targetIndex)
+    {
+        if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
+        {
+            int sourceIndex = currentDragContext.SourceIndex;
+            if (sourceIndex == targetIndex || targetIndex < 0 || targetIndex >= currentInventory.MaxBackpackSlots) return;
+
+            InventorySlot targetSlot = currentInventory.GetSlot(targetIndex);
+            bool isTargetEmpty = (targetSlot == null || targetSlot.IsEmpty);
+            bool isSameStackableItem = (!isTargetEmpty && targetSlot.Item.ItemSlug == currentDragContext.Item.ItemSlug && targetSlot.Item.MaxStack > 1);
+
+            // Open Stack Splitter Modal if Quantity > 1 and dropping into empty or same stackable slot
+            if (currentDragContext.Quantity > 1 && (isTargetEmpty || isSameStackableItem))
+            {
+                OpenSplitModal(
+                    sourceType: DragSourceType.PersonalInventory,
+                    sourceIndex: sourceIndex,
+                    targetType: DropTargetType.PersonalInventory,
+                    targetIndex: targetIndex,
+                    targetHeroInv: null,
+                    item: currentDragContext.Item,
+                    maxQty: currentDragContext.Quantity
+                );
+            }
+            else
+            {
+                currentInventory.SwapOrMergeSlots(sourceIndex, targetIndex);
+            }
+        }
+        else if (currentDragContext.SourceType == DragSourceType.Equipment || currentDragContext.SourceType == DragSourceType.Relic)
+        {
+            ExecuteUnequipToInventory(targetIndex);
+        }
+    }
+
+    private void ExecuteEquipmentDrop(int targetIndex)
+    {
+        if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
+        {
+            if (targetIndex < 0 || targetIndex >= gearSlotTypes.Length) return;
+
+            EquipmentSlot targetSlotType = gearSlotTypes[targetIndex];
+
+            if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == targetSlotType)
+            {
+                currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex);
+            }
+        }
+    }
+
+    private void ExecuteRelicDrop(int targetIndex)
+    {
+        if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
+        {
+            if (currentDragContext.Item is PsynergyRelicSO || (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic))
+            {
+                currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex, targetIndex);
+            }
+        }
+    }
+
+    private void ExecuteUnequipToInventory(int targetInventoryIndex)
+    {
+        if (currentInventory == null || currentEquipment == null) return;
+
+        InventorySlot targetSlot = currentInventory.GetSlot(targetInventoryIndex);
+        EquipmentSlot sourceGearSlot = (currentDragContext.SourceType == DragSourceType.Equipment) ? gearSlotTypes[currentDragContext.SourceIndex] : EquipmentSlot.None;
+
+        bool canDirectSwap = false;
+        if (targetSlot != null && !targetSlot.IsEmpty && targetSlot.Item is EquipableSO equipableTarget)
+        {
+            if (currentDragContext.SourceType == DragSourceType.Equipment && equipableTarget.EquipmentSlot == sourceGearSlot)
+            {
+                canDirectSwap = true;
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic && equipableTarget.EquipmentSlot == EquipmentSlot.PsynergyRelic)
+            {
+                canDirectSwap = true;
+            }
+        }
+
+        if (canDirectSwap)
+        {
+            if (currentDragContext.SourceType == DragSourceType.Equipment)
+            {
+                currentEquipment.EquipFromBackpack(targetInventoryIndex);
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic)
+            {
+                currentEquipment.EquipFromBackpack(targetInventoryIndex, currentDragContext.SourceIndex);
+            }
+        }
+        else if (targetSlot != null && targetSlot.IsEmpty)
+        {
+            int firstEmpty = GetFirstEmptyInventoryIndex();
+
+            if (currentDragContext.SourceType == DragSourceType.Equipment)
+            {
+                if (currentEquipment.UnequipStandardSlot(sourceGearSlot))
+                {
+                    if (firstEmpty != -1 && firstEmpty != targetInventoryIndex)
+                    {
+                        currentInventory.SwapOrMergeSlots(firstEmpty, targetInventoryIndex);
+                    }
+                }
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic)
+            {
+                if (currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex))
+                {
+                    if (firstEmpty != -1 && firstEmpty != targetInventoryIndex)
+                    {
+                        currentInventory.SwapOrMergeSlots(firstEmpty, targetInventoryIndex);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (currentDragContext.SourceType == DragSourceType.Equipment)
+            {
+                currentEquipment.UnequipStandardSlot(sourceGearSlot);
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic)
+            {
+                currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex);
+            }
+        }
+    }
+
+    private void ExecuteHeroCardDrop(int targetHeroIdx)
+    {
+        HeroInventory targetHeroInv = GetHeroInventoryByIdx(targetHeroIdx);
+        if (targetHeroInv == null || targetHeroInv == currentInventory) return;
+
+        // Transfer from Personal Inventory
+        if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
+        {
+            if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
+            {
+                Debug.LogWarning($"[PageItems] Cannot transfer item to {targetHeroInv.gameObject.name}. Backpack is full!");
+                return;
+            }
+
+            if (currentDragContext.Quantity > 1)
+            {
+                OpenSplitModal(
+                    sourceType: DragSourceType.PersonalInventory,
+                    sourceIndex: currentDragContext.SourceIndex,
+                    targetType: DropTargetType.HeroCard,
+                    targetIndex: targetHeroIdx,
+                    targetHeroInv: targetHeroInv,
+                    item: currentDragContext.Item,
+                    maxQty: currentDragContext.Quantity
+                );
+            }
+            else
+            {
+                currentInventory.TransferAmountToHero(currentDragContext.SourceIndex, 1, targetHeroInv);
+            }
+        }
+        // Transfer equipped gear or relic directly to target hero's backpack
+        else if (currentDragContext.SourceType == DragSourceType.Equipment || currentDragContext.SourceType == DragSourceType.Relic)
+        {
+            if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
+            {
+                Debug.LogWarning($"[PageItems] Cannot transfer equipped item to {targetHeroInv.gameObject.name}. Target backpack full!");
+                return;
+            }
+
+            EquipmentSlot sourceGearSlot = (currentDragContext.SourceType == DragSourceType.Equipment) ? gearSlotTypes[currentDragContext.SourceIndex] : EquipmentSlot.None;
+
+            if (currentDragContext.SourceType == DragSourceType.Equipment)
+            {
+                if (currentEquipment.UnequipStandardSlot(sourceGearSlot))
+                {
+                    currentInventory.TransferItemToHero(GetFirstEmptyInventoryIndex(), targetHeroInv);
+                }
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic)
+            {
+                if (currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex))
+                {
+                    currentInventory.TransferItemToHero(GetFirstEmptyInventoryIndex(), targetHeroInv);
+                }
+            }
+        }
+    }
+
+    private HeroInventory GetHeroInventoryByIdx(int index)
+    {
+        if (partyHeroes != null && index >= 0 && index < partyHeroes.Count)
+        {
+            return partyHeroes[index]?.GetComponent<HeroInventory>();
+        }
+        return null;
+    }
+
+    private int GetFirstEmptyInventoryIndex()
+    {
+        if (currentInventory == null) return -1;
+
+        for (int i = 0; i < currentInventory.MaxBackpackSlots; i++)
+        {
+            InventorySlot slot = currentInventory.GetSlot(i);
+            if (slot == null || slot.IsEmpty)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    #endregion
+
+    #region Stack Splitter Popup Controls
+
+    private void OpenSplitModal(DragSourceType sourceType, int sourceIndex, DropTargetType targetType, int targetIndex, HeroInventory targetHeroInv, ItemSO item, int maxQty)
+    {
+        if (splitPopupOverlay == null) return;
+
+        pendingSplit = new PendingSplitTransaction
+        {
+            SourceType = sourceType,
+            SourceIndex = sourceIndex,
+            TargetType = targetType,
+            TargetIndex = targetIndex,
+            TargetHeroInventory = targetHeroInv,
+            Item = item,
+            MaxQuantity = maxQty
+        };
+
+        if (splitItemIcon != null && item != null && item.Icon != null)
+        {
+            splitItemIcon.style.backgroundImage = new StyleBackground(item.Icon);
+        }
+
+        if (labelSplitItemName != null && item != null)
+        {
+            labelSplitItemName.text = item.ItemName;
+        }
+
+        if (sliderSplitAmount != null)
+        {
+            sliderSplitAmount.lowValue = 1;
+            sliderSplitAmount.highValue = maxQty;
+            sliderSplitAmount.value = maxQty; // Default to max quantity
+        }
+
+        UpdateSplitAmountLabel(maxQty);
+        splitPopupOverlay.style.display = DisplayStyle.Flex;
+    }
+
+    private void StepSplitAmount(int delta)
+    {
+        if (sliderSplitAmount == null) return;
+        int newValue = Mathf.Clamp(sliderSplitAmount.value + delta, sliderSplitAmount.lowValue, sliderSplitAmount.highValue);
+        sliderSplitAmount.value = newValue;
+    }
+
+    private void UpdateSplitAmountLabel(int value)
+    {
+        if (labelSplitAmount != null)
+        {
+            labelSplitAmount.text = value.ToString();
+        }
+    }
+
+    private void OnConfirmSplit()
+    {
+        int amountToMove = (sliderSplitAmount != null) ? sliderSplitAmount.value : 1;
+
+        if (pendingSplit.TargetType == DropTargetType.PersonalInventory)
+        {
+            if (pendingSplit.SourceType == DragSourceType.PersonalInventory)
+            {
+                currentInventory.SplitOrMoveSlotAmount(pendingSplit.SourceIndex, pendingSplit.TargetIndex, amountToMove);
+            }
+        }
+        else if (pendingSplit.TargetType == DropTargetType.HeroCard && pendingSplit.TargetHeroInventory != null)
+        {
+            if (pendingSplit.SourceType == DragSourceType.PersonalInventory)
+            {
+                currentInventory.TransferAmountToHero(pendingSplit.SourceIndex, amountToMove, pendingSplit.TargetHeroInventory);
+            }
+        }
+
+        CloseSplitModal();
+        RefreshAllData();
+    }
+
+    private void CloseSplitModal()
+    {
+        if (splitPopupOverlay != null)
+        {
+            splitPopupOverlay.style.display = DisplayStyle.None;
+        }
+    }
+
+    #endregion
+
+    #region Ghost Element Management
+
+    private void CreateGhostElement(Sprite icon, Vector2 startPosition)
+    {
+        DestroyGhostVisual();
+
+        ghostElement = new VisualElement
+        {
+            name = "drag_ghost_element",
+            pickingMode = PickingMode.Ignore
+        };
+
+        ghostElement.style.position = Position.Absolute;
+        ghostElement.style.width = SLOT_SIZE;
+        ghostElement.style.height = SLOT_SIZE;
+        if (icon != null)
+        {
+            ghostElement.style.backgroundImage = new StyleBackground(icon);
+        }
+        ghostElement.style.opacity = 0.85f;
+
+        rootElement.Add(ghostElement);
+        UpdateGhostPosition(startPosition);
+    }
+
+    private void UpdateGhostPosition(Vector2 currentPosition)
+    {
+        if (ghostElement == null || rootElement == null) return;
+
+        Vector2 localPos = rootElement.WorldToLocal(currentPosition);
+
+        ghostElement.style.left = localPos.x - (SLOT_SIZE / 2f);
+        ghostElement.style.top = localPos.y - (SLOT_SIZE / 2f);
+    }
+
+    private void DestroyGhostVisual()
+    {
+        if (ghostElement != null)
+        {
+            ghostElement.RemoveFromHierarchy();
+            ghostElement = null;
+        }
+    }
+
+    private void RemoveGhostElement()
+    {
+        if (currentDragContext?.Item != null)
+        {
+            HighlightCompatibleSlots(currentDragContext.Item, false);
+        }
+
+        DestroyGhostVisual();
+
+        if (currentDragContext?.SourceSlotUI != null)
+        {
+            currentDragContext.SourceSlotUI.style.opacity = 1f;
+        }
+
+        isDragging = false;
+        currentDragContext = null;
+        activePointerId = -1;
+    }
+
+    #endregion
+
+    #region Info Panel & Details Display
+
+    private void UpdateInfoPanel(ItemSO item)
+    {
+        if (item == null)
+        {
+            ClearInfoPanel();
+            return;
+        }
+
+        if (labelItemName != null) labelItemName.text = item.ItemName;
+        if (labelItemType != null) labelItemType.text = item.ItemType.ToString();
+        if (labelItemDesc != null) labelItemDesc.text = item.ItemDescription;
+
+        if (itemIconPreview != null && item.Icon != null)
+        {
+            itemIconPreview.style.backgroundImage = new StyleBackground(item.Icon);
+        }
     }
 
     private void SelectGlobalBagSlot(int index)
     {
-        Debug.Log($"[PageItems] Selected Global Bag Key Item Slot {index}");
-        // TODO: Update Info Panel with Key Item Details
-    }
+        if (GlobalBag.Instance == null) return;
 
-    private void SelectGearSlot(int index)
-    {
-        Debug.Log($"[PageItems] Selected Equipment Slot {index}");
-        // TODO: Update Info Panel with Gear Details and Stat Comparisons
-    }
-
-    private void SelectRelicSlot(int index)
-    {
-        Debug.Log($"[PageItems] Selected Psynergy Relic Slot {index}");
-        // TODO: Update Info Panel with Relic Details
+        IReadOnlyList<InventorySlot> keySlots = GlobalBag.Instance.KeyItemSlots;
+        if (index >= 0 && index < keySlots.Count)
+        {
+            InventorySlot slot = keySlots[index];
+            if (slot != null && slot.Item != null)
+            {
+                UpdateInfoPanel(slot.Item);
+            }
+        }
     }
 
     public void ClearInfoPanel()

@@ -3,19 +3,20 @@
    ========================================== */
 .page-status-container {
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
     align-items: stretch;
     flex-grow: 1;
-    padding: 10px;
-    color: #FFFFFF; /* Base default text color (inherited by all Labels) */
+    padding: 8px;
+    color: #FFFFFF;
 }
 
 .hero-card {
-    width: 22%;
-    margin-left: 1%;
-    margin-right: 1%;
+    width: 23.5%;
+    margin: 0 6px;
     border-radius: 8px;
-    background-color: rgba(30, 30, 30, 0.6);
+    background-color: rgba(25, 25, 32, 0.85);
+    border-width: 2px;
+    border-color: rgba(218, 165, 32, 0.3);
     position: relative;
     overflow: hidden;
     color: #FFFFFF;
@@ -27,142 +28,295 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 12px;
+    padding: 10px;
     flex-direction: column;
 }
 
-/* ==========================================
-   CARD FRONT (DEFAULT VISIBLE)
-   ========================================== */
+.page-status-container Label {
+    color: #FFFFFF;
+    margin: 0;
+    padding: 0;
+}
+
 .card-front {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     height: 100%;
 }
 
-.hero-portrait {
-    width: 90%;
-    height: 45%;
+/* ==========================================
+   1. HERO TOP SECTION (PORTRAIT & HEADER)
+   ========================================== */
+.hero-top-section {
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
     border-radius: 6px;
-    background-color: rgba(60, 60, 60, 0.8);
+    overflow: hidden;
     margin-bottom: 8px;
+    background-color: rgba(15, 15, 20, 0.8);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.4);
+    padding: 6px 4px 0 4px;
+}
+
+.hero-portrait {
+    width: 140px;
+    height: 140px;
+    aspect-ratio: 1;
+    background-color: rgba(40, 40, 50, 0.9);
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.hero-header-info {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    background-color: rgba(10, 10, 15, 0.7);
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.12);
 }
 
 .hero-name-label {
-    font-size: 18px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #FFFFFF;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.hero-level-label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* Compact EXP Progress Bar inside Header (High Contrast Cyan/Turquoise) */
+.exp-bar-header {
+    width: 65px;
+    height: 14px;
+    min-width: 65px;
+    max-width: 65px;
+    border-radius: 3px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.exp-bar-header .unity-progress-bar__container {
+    height: 100%;
+    min-height: 14px;
+    max-height: 14px;
+    background-color: rgba(12, 40, 55, 0.95);
+    border-radius: 3px;
+}
+
+.exp-bar-header .unity-progress-bar__background {
+    background-color: rgba(15, 50, 68, 0.95); /* Visible track at 0% XP */
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgba(0, 229, 255, 0.5); /* Bright Cyan outline */
+    height: 100%;
+}
+
+.exp-bar-header .unity-progress-bar__progress {
+    background-color: #00E5FF; /* Bright Cyan filled XP */
+    border-radius: 3px;
+}
+
+.class-djinn-bar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(20, 20, 28, 0.85);
+    padding: 5px 6px;
+    border-top-width: 1px;
+    border-top-color: rgba(218, 165, 32, 0.25);
 }
 
 .hero-class-label {
     font-size: 13px;
-    color: #DAA520; /* Golden class name */
-    margin-bottom: 4px;
-}
-
-.hero-level-label {
-    font-size: 14px;
-    color: #CCCCCC;
-    margin-bottom: 8px;
-}
-
-.bars-container {
-    width: 100%;
-    padding: 4px;
-}
-
-.stat-bar-box {
-    margin-bottom: 6px;
-}
-
-.custom-bar {
-    height: 12px;
-    border-radius: 3px;
-    margin-top: 2px;
-}
-
-.hp-bar {
-    background-color: #2ECC71;
-}
-
-.pp-bar {
-    background-color: #3498DB;
-}
-
-/* ==========================================
-   CARD BACK (DETAILED STATS)
-   ========================================== */
-.card-back {
-    display: none;
-    background-color: rgba(20, 20, 20, 0.95);
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    padding: 12px;
-}
-
-.stats-title-label {
-    font-size: 15px;
     -unity-font-style: bold;
-    color: #DAA520; /* Golden section header */
-    text-align: center;
-    margin-bottom: 6px;
+    color: #FFD700;
 }
 
-.stats-list {
-    flex-grow: 1;
-    justify-content: space-around;
-}
-
-/* Base Stat Rows */
-.stat-row {
+.equipped-pips-row {
     flex-direction: row;
-    justify-content: space-between;
-    padding: 2px 0;
-    border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.1);
+    align-items: center;
 }
 
-.stat-name-label {
-    font-size: 12px;
-    color: #CCCCCC;
+.pip-element-group {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 4px;
 }
 
-.stat-value-label {
-    font-size: 12px;
+.pip-icon {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 2px;
+    border-width: 1px;
+}
+
+.pip-count {
+    font-size: 11px;
     -unity-font-style: bold;
     color: #FFFFFF;
 }
 
-/* Experience Box */
-.exp-box {
-    margin-top: 6px;
+/* ==========================================
+   2. STAT BARS CONTAINER (PV & PP FIXED LAYOUT)
+   ========================================== */
+.bars-container {
+    width: 100%;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.stat-bar-box {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.bar-label-text {
+    font-size: 12px;
+    -unity-font-style: bold;
+    text-align: center;
+    -unity-text-align: upper-center;
+    color: #E0E0E0;
+    margin-bottom: 3px;
+    width: 100%;
+    display: flex;
+}
+
+.custom-bar {
+    height: 14px;
+    border-radius: 3px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.custom-bar .unity-progress-bar__container {
+    height: 100%;
+    min-height: 14px;
+    max-height: 14px;
+}
+
+.custom-bar .unity-progress-bar__background {
+    background-color: rgba(10, 10, 15, 0.8);
+    border-radius: 3px;
+    border-width: 0;
+    height: 100%;
+}
+
+.hp-bar .unity-progress-bar__progress {
+    background-color: #2ECC71;
+    border-radius: 3px;
+}
+
+.pp-bar .unity-progress-bar__progress {
+    background-color: #3498DB;
+    border-radius: 3px;
+}
+
+/* ==========================================
+   3. STANDARDIZED SECTION BOX & HEADERS
+   ========================================== */
+.section-box {
+    width: 100%;
+    background-color: rgba(15, 15, 20, 0.6);
+    border-radius: 5px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.page-status-container .section-header-label {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #DAA520;
     margin-bottom: 6px;
 }
 
-.exp-bar {
-    height: 10px;
-    background-color: #9B59B6;
+/* ==========================================
+   4. MAIN STATS GRID (2x2)
+   ========================================== */
+.stats-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.stat-grid-item {
+    width: 48%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(25, 25, 35, 0.6);
     border-radius: 3px;
-    margin-top: 2px;
+    padding: 3px 5px;
+    margin-bottom: 4px;
 }
 
-/* Elemental Stats Section */
-.element-stats-box {
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top-width: 1px;
-    border-top-color: rgba(255, 255, 255, 0.2);
+.stat-icon {
+    width: 11px;
+    height: 11px;
+    margin-right: 4px;
+    border-radius: 2px;
 }
 
-.element-title-label {
+.stat-grid-name {
+    font-size: 11px;
+    color: #CCCCCC;
+    flex-grow: 1;
+}
+
+.stat-grid-val {
     font-size: 11px;
     -unity-font-style: bold;
-    color: #DAA520; /* Golden section header */
-    text-align: center;
+    color: #FFFFFF;
+}
+
+/* Stat Icon Placeholders */
+.icon-attack { background-color: #E74C3C; }
+.icon-defense { background-color: #3498DB; }
+.icon-agility { background-color: #2ECC71; }
+.icon-luck { background-color: #F1C40F; }
+
+/* ==========================================
+   5. ELEMENTAL AFFINITY TABLE
+   ========================================== */
+.element-table-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 4px;
+}
+
+.element-col-titles {
+    flex-direction: row;
+}
+
+.elem-col-title {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: #AAAAAA;
+    width: 28px;
+    text-align: center;
 }
 
 .element-row {
@@ -170,24 +324,108 @@
     align-items: center;
     justify-content: space-between;
     padding: 2px 0;
-}
-
-.element-icon {
-    width: 14px;
-    height: 14px;
-    margin-right: 6px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
 }
 
 .element-name {
     font-size: 11px;
     color: #E0E0E0;
     flex-grow: 1;
+    margin-left: 6px;
 }
 
 .element-val {
-    font-size: 10px;
-    color: #CCCCCC;
-    margin-left: 6px;
+    font-size: 11px;
+    color: #FFFFFF;
+    width: 28px;
+    text-align: center;
+}
+
+/* Elemental Pip Colors */
+.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
+.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
+
+/* ==========================================
+   6. BOTTOM SECTION: COMPACT MAIN DJINN CARD
+   ========================================== */
+.main-djinn-card {
+    flex-direction: column;
+    background-color: rgba(25, 25, 35, 0.95);
+    border-radius: 6px;
+    padding: 8px;
+    border-width: 1px;
+    margin-top: auto;
+}
+
+.page-status-container .djinn-header-label {
+    margin-bottom: 6px;
+}
+
+.main-djinn-body {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Elemental Borders & Backdrops for Main Djinn Card */
+.djinn-venus-border { border-color: rgba(200, 138, 46, 0.7); }
+.djinn-mars-border { border-color: rgba(231, 76, 60, 0.7); }
+.djinn-jupiter-border { border-color: rgba(155, 89, 182, 0.7); }
+.djinn-mercury-border { border-color: rgba(52, 152, 219, 0.7); }
+
+.main-djinn-full-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 5px;
+    margin-right: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+}
+
+.djinn-venus-bg { background-color: rgba(200, 138, 46, 0.25); }
+.djinn-mars-bg { background-color: rgba(231, 76, 60, 0.25); }
+.djinn-jupiter-bg { background-color: rgba(155, 89, 182, 0.25); }
+.djinn-mercury-bg { background-color: rgba(52, 152, 219, 0.25); }
+
+.main-djinn-details {
+    flex-grow: 1;
+    width: 0;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.main-djinn-name-label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFD700;
+    margin-bottom: 2px;
+}
+
+.main-djinn-ability-label {
+    font-size: 9.5px;
+    color: #DDDDDD;
+    white-space: normal;
+}
+
+.passive-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.15);
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.passive-title-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #60A5FA;
+    margin-bottom: 1px;
+}
+
+.passive-desc-label {
+    font-size: 9px;
+    color: #AAAAAA;
+    white-space: normal;
 }

@@ -58,5 +58,29 @@
             <ui:VisualElement name="stat_changes_box" class="stat-changes-box" />
         </ui:VisualElement>
 
+        <!-- OVERLAY MODAL: STACK SPLITTER POPUP -->
+        <ui:VisualElement name="split_popup_overlay" class="split-popup-overlay">
+            <ui:VisualElement name="split_popup_dialog" class="split-popup-dialog">
+                <ui:Label text="SEPARAR CANTIDAD" name="label_split_title" class="info-title-label" />
+                
+                <ui:VisualElement name="split_item_preview_box" class="split-item-preview-box">
+                    <ui:VisualElement name="split_item_icon" class="split-item-icon" />
+                    <ui:Label text="Poción de Cura" name="label_split_item_name" class="item-name-label" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="split_controls_row" class="split-controls-row">
+                    <ui:Button text="-" name="btn_split_minus" class="split-step-btn" />
+                    <ui:SliderInt low-value="1" high-value="10" value="1" name="slider_split_amount" class="split-slider" />
+                    <ui:Button text="+" name="btn_split_plus" class="split-step-btn" />
+                    <ui:Label text="1" name="label_split_amount" class="split-amount-label" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="split_buttons_row" class="split-buttons-row">
+                    <ui:Button text="ACEPTAR" name="btn_split_confirm" class="split-action-btn" />
+                    <ui:Button text="CANCELAR" name="btn_split_cancel" class="split-action-btn" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
     </ui:VisualElement>
 </ui:UXML>

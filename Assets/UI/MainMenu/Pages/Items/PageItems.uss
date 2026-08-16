@@ -283,3 +283,84 @@
     -unity-text-outline-width: 1px;
     -unity-text-outline-color: #000000;
 }
+
+/* ==========================================
+   STACK SPLITTER POPUP MODAL
+   ========================================== */
+
+.split-popup-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    justify-content: center;
+    align-items: center;
+    display: none; /* Controlled via C# script */
+}
+
+.split-popup-dialog {
+    width: 320px;
+    background-color: #1c1c1f;
+    border-width: 2px;
+    border-color: #ffd700;
+    border-radius: 6px;
+    padding: 16px;
+    align-items: center;
+}
+
+.split-item-preview-box {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 12px;
+}
+
+.split-item-icon {
+    width: 42px;
+    height: 42px;
+    margin-right: 10px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.split-controls-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-vertical: 10px;
+}
+
+.split-step-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.split-slider {
+    flex-grow: 1;
+    margin-horizontal: 8px;
+}
+
+.split-amount-label {
+    width: 36px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: #ffffff;
+}
+
+.split-buttons-row {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 14px;
+}
+
+.split-action-btn {
+    flex-grow: 1;
+    height: 32px;
+    margin-horizontal: 4px;
+}
