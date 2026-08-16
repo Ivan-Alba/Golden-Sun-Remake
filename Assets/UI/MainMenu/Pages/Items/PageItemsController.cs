@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -82,6 +83,21 @@ public struct PendingSplitTransaction
 
 public class PageItemsController
 {
+    #region Events & Properties
+
+    /// <summary>
+    /// Event triggered whenever a consumable item is used or equipment stats change.
+    /// Used by MainMenuController to refresh top header hero cards.
+    /// </summary>
+    public event Action OnItemUsedOnHero;
+
+    /// <summary>
+    /// Indicates if an item is currently active in targeting mode for usage on a hero.
+    /// </summary>
+    public bool IsTargetingItem => isTargetingItem;
+
+    #endregion
+
     #region Private Fields
 
     private VisualElement rootElement;
@@ -124,6 +140,9 @@ public class PageItemsController
     private List<VisualElement> spawnedInventorySlots = new List<VisualElement>();
     private List<VisualElement> spawnedGlobalBagSlots = new List<VisualElement>();
 
+    // Callback Memory tracking to prevent duplicate listener accumulation
+    private Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
+
     // Party Data Source
     private List<HeroStats> partyHeroes = new List<HeroStats>();
 
@@ -141,6 +160,18 @@ public class PageItemsController
     private Vector2 pointerStartPosition;
     private int activePointerId = -1;
     private const float DRAG_THRESHOLD = 5f;
+
+    // Manual Double-Click Tracking
+    private float lastClickTime = 0f;
+    private int lastClickSlotIndex = -1;
+    private DragSourceType lastClickSourceType;
+    private const float DOUBLE_CLICK_TIME_THRESHOLD = 0.3f; // 300 ms double-click window
+
+    // Item Targeting State Tracking
+    private bool isTargetingItem = false;
+    private int targetingSourceIndex = -1;
+    private ItemSO targetingItem;
+    private VisualElement targetingGhostElement;
 
     // Equipment slot type mapping matching gearSlots[0..6] indices
     private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
@@ -167,6 +198,19 @@ public class PageItemsController
         rootElement = root;
         BindUIElements();
         BindSplitPopupEvents();
+    }
+
+    #endregion
+
+    #region Helper Methods for Global Panel Access
+
+    /// <summary>
+    /// Retrieves the top-level root visual element of the entire UI Document panel
+    /// to ensure ghosts and global events bypass sub-page boundaries.
+    /// </summary>
+    private VisualElement GetTopRootElement()
+    {
+        return rootElement?.panel?.visualTree ?? rootElement;
     }
 
     #endregion
@@ -353,6 +397,9 @@ public class PageItemsController
         RefreshInventorySlots();
         RefreshEquipmentSlots();
         RefreshGlobalBagSlots();
+
+        // Notify MainMenuController to update top header hero cards (HP/PP/Stats)
+        OnItemUsedOnHero?.Invoke();
     }
 
     private void RefreshInventorySlots()
@@ -369,6 +416,11 @@ public class PageItemsController
             Label quantityLabel = slotUI.Q<Label>("label_quantity");
             VisualElement placeholderElem = slotUI.Q<VisualElement>("slot_placeholder");
             VisualElement equippedBadge = slotUI.Q<VisualElement>("badge_equipped");
+
+            if (iconElem != null) iconElem.pickingMode = PickingMode.Ignore;
+            if (quantityLabel != null) quantityLabel.pickingMode = PickingMode.Ignore;
+            if (placeholderElem != null) placeholderElem.pickingMode = PickingMode.Ignore;
+            if (equippedBadge != null) equippedBadge.pickingMode = PickingMode.Ignore;
 
             InventorySlot slot = currentInventory.GetSlot(slotIndex);
 
@@ -478,6 +530,10 @@ public class PageItemsController
             Label quantityLabel = slotUI.Q<Label>("label_quantity");
             VisualElement placeholderElem = slotUI.Q<VisualElement>("slot_placeholder");
 
+            if (iconElem != null) iconElem.pickingMode = PickingMode.Ignore;
+            if (quantityLabel != null) quantityLabel.pickingMode = PickingMode.Ignore;
+            if (placeholderElem != null) placeholderElem.pickingMode = PickingMode.Ignore;
+
             InventorySlot slot = (i < keySlots.Count) ? keySlots[i] : null;
 
             if (slot != null && !slot.IsEmpty && slot.Item != null)
@@ -521,7 +577,13 @@ public class PageItemsController
 
     private void RegisterPointerCallbacks(VisualElement slotUI, DragSourceType sourceType, int slotIndex, ItemSO item, int quantity)
     {
-        slotUI.RegisterCallback<PointerDownEvent>(evt => OnSlotPointerDown(evt, sourceType, slotIndex, slotUI, item, quantity));
+        // Strictly purge previous event callbacks to prevent listener accumulation
+        UnregisterPointerCallbacks(slotUI);
+
+        EventCallback<PointerDownEvent> pointerDownCallback = evt => OnSlotPointerDown(evt, sourceType, slotIndex, slotUI, item, quantity);
+        registeredPointerDownCallbacks[slotUI] = pointerDownCallback;
+
+        slotUI.RegisterCallback(pointerDownCallback);
         slotUI.RegisterCallback<PointerMoveEvent>(OnSlotPointerMove);
         slotUI.RegisterCallback<PointerUpEvent>(OnSlotPointerUp);
         slotUI.RegisterCallback<PointerCaptureOutEvent>(OnSlotPointerCancel);
@@ -529,6 +591,14 @@ public class PageItemsController
 
     private void UnregisterPointerCallbacks(VisualElement slotUI)
     {
+        if (slotUI == null) return;
+
+        if (registeredPointerDownCallbacks.TryGetValue(slotUI, out var existingCallback))
+        {
+            slotUI.UnregisterCallback(existingCallback);
+            registeredPointerDownCallbacks.Remove(slotUI);
+        }
+
         slotUI.UnregisterCallback<PointerMoveEvent>(OnSlotPointerMove);
         slotUI.UnregisterCallback<PointerUpEvent>(OnSlotPointerUp);
         slotUI.UnregisterCallback<PointerCaptureOutEvent>(OnSlotPointerCancel);
@@ -562,6 +632,38 @@ public class PageItemsController
 
         ItemSO liveItem = GetLiveItemFromSource(sourceType, slotIndex);
         if (liveItem == null) return;
+
+        // Robust manual double-click detection based on time window and matching slot
+        float currentTime = Time.unscaledTime;
+        bool isDoubleClick = (currentTime - lastClickTime <= DOUBLE_CLICK_TIME_THRESHOLD)
+                             && (lastClickSlotIndex == slotIndex)
+                             && (lastClickSourceType == sourceType);
+
+        if (isDoubleClick)
+        {
+            // Reset click trackers
+            lastClickTime = 0f;
+            lastClickSlotIndex = -1;
+
+            // Purge transient drag contexts created by the first click
+            RemoveGhostElement();
+            currentDragContext = null;
+            activePointerId = -1;
+            isDragging = false;
+
+            HandleSlotDoubleClick(sourceType, slotIndex, liveItem);
+            return;
+        }
+
+        lastClickTime = currentTime;
+        lastClickSlotIndex = slotIndex;
+        lastClickSourceType = sourceType;
+
+        // Cancel active targeting mode on new slot selection
+        if (isTargetingItem)
+        {
+            CancelItemTargeting();
+        }
 
         pointerStartPosition = evt.position;
         activePointerId = evt.pointerId;
@@ -629,6 +731,326 @@ public class PageItemsController
         {
             RemoveGhostElement();
         }
+    }
+
+    #endregion
+
+    #region Double-Click Quick Actions & Chained Targeting Mode
+
+    private void HandleSlotDoubleClick(DragSourceType sourceType, int slotIndex, ItemSO item)
+    {
+        if (item == null) return;
+
+        // 1. Actions from Personal Inventory
+        if (sourceType == DragSourceType.PersonalInventory)
+        {
+            // Auto-equip logic for equipable items
+            if (item is EquipableSO)
+            {
+                currentEquipment?.EquipFromBackpack(slotIndex);
+                RefreshAllData();
+            }
+            // Enter chained targeting mode for consumables
+            else if (item is ConsumableSO)
+            {
+                StartItemTargeting(slotIndex, item);
+            }
+        }
+        // 2. Actions from Standard Gear Slots
+        else if (sourceType == DragSourceType.Equipment)
+        {
+            if (currentEquipment == null || currentInventory == null) return;
+            if (slotIndex < 0 || slotIndex >= gearSlotTypes.Length) return;
+
+            // Ensure personal inventory has space before unequipping
+            if (GetFirstEmptyInventoryIndex() == -1)
+            {
+                Debug.LogWarning("[PageItems] No se puede desequipar: El inventario personal está lleno.");
+                return;
+            }
+
+            EquipmentSlot slotType = gearSlotTypes[slotIndex];
+            if (currentEquipment.UnequipStandardSlot(slotType))
+            {
+                RefreshAllData();
+            }
+        }
+        // 3. Actions from Relic Slots
+        else if (sourceType == DragSourceType.Relic)
+        {
+            if (currentEquipment == null || currentInventory == null) return;
+
+            // Ensure personal inventory has space before unequipping
+            if (GetFirstEmptyInventoryIndex() == -1)
+            {
+                Debug.LogWarning("[PageItems] No se puede desequipar la reliquia: El inventario personal está lleno.");
+                return;
+            }
+
+            if (currentEquipment.UnequipRelicSlot(slotIndex))
+            {
+                RefreshAllData();
+            }
+        }
+    }
+
+    private void StartItemTargeting(int sourceIndex, ItemSO item)
+    {
+        CancelItemTargeting();
+
+        isTargetingItem = true;
+        targetingSourceIndex = sourceIndex;
+        targetingItem = item;
+
+        CreateTargetingGhost(item.Icon);
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
+            topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
+        }
+    }
+
+    private void OnGlobalPointerDownTargeting(PointerDownEvent evt)
+    {
+        if (!isTargetingItem) return;
+
+        // Cancel on right-click (button 1)
+        if (evt.button == 1)
+        {
+            CancelItemTargeting();
+            evt.StopPropagation();
+            return;
+        }
+
+        // Handle left-click (button 0)
+        if (evt.button == 0)
+        {
+            if (TryGetDropTarget(evt.position, out DropTargetInfo targetInfo) && targetInfo.TargetType == DropTargetType.HeroCard)
+            {
+                ExecuteConsumableUsageOnHero(targetInfo.Index);
+                evt.StopPropagation();
+            }
+            else
+            {
+                CancelItemTargeting();
+            }
+        }
+    }
+
+    private void OnGlobalPointerMoveTargeting(PointerMoveEvent evt)
+    {
+        VisualElement topRoot = GetTopRootElement();
+        if (!isTargetingItem || targetingGhostElement == null || topRoot == null) return;
+
+        Vector2 localPos = topRoot.WorldToLocal(evt.position);
+        targetingGhostElement.style.left = localPos.x - (SLOT_SIZE / 2f);
+        targetingGhostElement.style.top = localPos.y - (SLOT_SIZE / 2f);
+    }
+
+    private void ExecuteConsumableUsageOnHero(int targetHeroIdx)
+    {
+        Debug.Log($"[Consumable] === INTENTO DE USO DE CONSUMIBLE ===");
+
+        if (currentInventory == null || targetingSourceIndex < 0)
+        {
+            Debug.LogWarning($"[Consumable] Cancelado: Inventario nulo o índice de origen inválido ({targetingSourceIndex}).");
+            CancelItemTargeting();
+            return;
+        }
+
+        InventorySlot sourceSlot = currentInventory.GetSlot(targetingSourceIndex);
+        if (sourceSlot == null || sourceSlot.IsEmpty || sourceSlot.Item == null)
+        {
+            Debug.LogWarning($"[Consumable] Cancelado: El hueco {targetingSourceIndex} está vacío o es nulo.");
+            CancelItemTargeting();
+            return;
+        }
+
+        HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
+        if (targetHero == null)
+        {
+            Debug.LogWarning($"[Consumable] Cancelado: No se encontró HeroStats en el índice de grupo {targetHeroIdx}.");
+            return;
+        }
+
+        Debug.Log($"[Consumable] Usando '{sourceSlot.Item.ItemName}' (Slot {targetingSourceIndex}, Cantidad: {sourceSlot.Quantity}) sobre héroe: {targetHero.Name} (Índice {targetHeroIdx})");
+
+        bool effectApplied = ApplyConsumableEffect(targetHero, sourceSlot.Item);
+
+        if (effectApplied)
+        {
+            Debug.Log($"[Consumable] ÉXITO: Efecto aplicado a {targetHero.Name}. Consumiendo 1 unidad.");
+            currentInventory.RemoveFromSlot(targetingSourceIndex, 1);
+            RefreshAllData();
+
+            InventorySlot updatedSlot = currentInventory.GetSlot(targetingSourceIndex);
+            if (updatedSlot == null || updatedSlot.IsEmpty || updatedSlot.Quantity <= 0)
+            {
+                Debug.Log($"[Consumable] El stack de objetos se ha agotado en el hueco {targetingSourceIndex}. Finalizando modo targeting.");
+                CancelItemTargeting();
+            }
+            else
+            {
+                Debug.Log($"[Consumable] Quedan {updatedSlot.Quantity} unidades. El modo targeting SIGUE ACTIVO para uso en cadena.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[Consumable] FALLO: El efecto NO se pudo aplicar en {targetHero.Name} (posiblemente vida/maná lleno o personaje muerto). El objeto NO fue consumido.");
+        }
+    }
+
+    private bool ApplyConsumableEffect(HeroStats hero, ItemSO item)
+    {
+        if (hero == null || item == null)
+        {
+            Debug.LogError("[Consumable] Error crítico: héroe o ítem nulo en ApplyConsumableEffect.");
+            return false;
+        }
+
+        if (item is ConsumableSO consumable)
+        {
+            Debug.Log($"[Consumable] Datos del ScriptableObject -> Nombre: {consumable.ItemName} | EffectType: {consumable.EffectType} | BonusValue: {consumable.BonusValue} | StatToBonus: {consumable.StatToBonus} | UseInMenu: {consumable.UseInMenu}");
+
+            if (!consumable.UseInMenu)
+            {
+                Debug.LogWarning($"[Consumable] '{item.ItemName}' no está configurado para usarse fuera de combate (UseInMenu = false).");
+                return false;
+            }
+
+            bool used = false;
+
+            switch (consumable.EffectType)
+            {
+                case ConsumableEffectType.RestoreHp:
+                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PV Actual: {hero.CurrHp}/{hero.MaxHp} | ¿Muerto?: {hero.IsDead}");
+                    if (!hero.IsDead && hero.CurrHp < hero.MaxHp)
+                    {
+                        hero.RestoreHP(consumable.BonusValue);
+                        used = true;
+                        Debug.Log($"[Consumable] Restaurados {consumable.BonusValue} PV a {hero.Name}. Nuevo PV: {hero.CurrHp}/{hero.MaxHp}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[Consumable] No se puede restaurar PV: {hero.Name} ya tiene la vida al máximo o está muerto.");
+                    }
+                    break;
+
+                case ConsumableEffectType.RestorePp:
+                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PP Actual: {hero.CurrPp}/{hero.MaxPp} | ¿Muerto?: {hero.IsDead}");
+                    if (!hero.IsDead && hero.CurrPp < hero.MaxPp)
+                    {
+                        hero.RestorePP(consumable.BonusValue);
+                        used = true;
+                        Debug.Log($"[Consumable] Restaurados {consumable.BonusValue} PP a {hero.Name}. Nuevo PP: {hero.CurrPp}/{hero.MaxPp}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[Consumable] No se puede restaurar PP: {hero.Name} ya tiene los PP al máximo o está muerto.");
+                    }
+                    break;
+
+                case ConsumableEffectType.RestoreHpAndPp:
+                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PV: {hero.CurrHp}/{hero.MaxHp} | PP: {hero.CurrPp}/{hero.MaxPp}");
+                    if (!hero.IsDead && (hero.CurrHp < hero.MaxHp || hero.CurrPp < hero.MaxPp))
+                    {
+                        hero.RestoreHP(consumable.BonusValue);
+                        hero.RestorePP(consumable.BonusValue);
+                        used = true;
+                        Debug.Log($"[Consumable] Restaurados PV y PP a {hero.Name}.");
+                    }
+                    break;
+
+                case ConsumableEffectType.Revive:
+                    if (hero.IsDead)
+                    {
+                        hero.Revive(consumable.BonusValue);
+                        used = true;
+                        Debug.Log($"[Consumable] Resucitado {hero.Name} con {consumable.BonusValue} PV.");
+                    }
+                    break;
+
+                case ConsumableEffectType.CureStatus:
+                    Debug.LogWarning($"[Consumable] CureStatus no implementado aún.");
+                    break;
+
+                case ConsumableEffectType.PermanentStatBoost:
+                    Debug.Log($"[Consumable] Aplicando boost permanente de {consumable.BonusValue} a {consumable.StatToBonus} en {hero.Name}");
+                    hero.AddPermanentStatBoost(consumable.StatToBonus, consumable.BonusValue);
+                    used = true;
+                    break;
+
+                default:
+                    Debug.LogWarning($"[Consumable] EffectType no reconocido o no manejado: {consumable.EffectType}");
+                    break;
+            }
+
+            return used;
+        }
+
+        Debug.LogError($"[Consumable] El objeto '{item.ItemName}' NO es de tipo ConsumableSO.");
+        return false;
+    }
+
+    private HeroStats GetHeroStatsByIdx(int index)
+    {
+        if (partyHeroes != null && index >= 0 && index < partyHeroes.Count)
+        {
+            return partyHeroes[index];
+        }
+        return null;
+    }
+
+    private void CreateTargetingGhost(Sprite icon)
+    {
+        DestroyTargetingGhost();
+
+        targetingGhostElement = new VisualElement
+        {
+            name = "targeting_ghost_element",
+            pickingMode = PickingMode.Ignore
+        };
+
+        targetingGhostElement.style.position = Position.Absolute;
+        targetingGhostElement.style.width = SLOT_SIZE;
+        targetingGhostElement.style.height = SLOT_SIZE;
+        if (icon != null)
+        {
+            targetingGhostElement.style.backgroundImage = new StyleBackground(icon);
+        }
+        targetingGhostElement.style.opacity = 0.85f;
+        targetingGhostElement.style.left = -9999f;
+        targetingGhostElement.style.top = -9999f;
+
+        VisualElement topRoot = GetTopRootElement();
+        topRoot?.Add(targetingGhostElement);
+    }
+
+    private void DestroyTargetingGhost()
+    {
+        if (targetingGhostElement != null)
+        {
+            targetingGhostElement.RemoveFromHierarchy();
+            targetingGhostElement = null;
+        }
+    }
+
+    public void CancelItemTargeting()
+    {
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            topRoot.UnregisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
+            topRoot.UnregisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
+        }
+
+        DestroyTargetingGhost();
+
+        isTargetingItem = false;
+        targetingSourceIndex = -1;
+        targetingItem = null;
     }
 
     #endregion
@@ -798,7 +1220,6 @@ public class PageItemsController
             bool isTargetEmpty = (targetSlot == null || targetSlot.IsEmpty);
             bool isSameStackableItem = (!isTargetEmpty && targetSlot.Item.ItemSlug == currentDragContext.Item.ItemSlug && targetSlot.Item.MaxStack > 1);
 
-            // Open Stack Splitter Modal if Quantity > 1 and dropping into empty or same stackable slot
             if (currentDragContext.Quantity > 1 && (isTargetEmpty || isSameStackableItem))
             {
                 OpenSplitModal(
@@ -922,7 +1343,6 @@ public class PageItemsController
         HeroInventory targetHeroInv = GetHeroInventoryByIdx(targetHeroIdx);
         if (targetHeroInv == null || targetHeroInv == currentInventory) return;
 
-        // Transfer from Personal Inventory
         if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
@@ -948,7 +1368,6 @@ public class PageItemsController
                 currentInventory.TransferAmountToHero(currentDragContext.SourceIndex, 1, targetHeroInv);
             }
         }
-        // Transfer equipped gear or relic directly to target hero's backpack
         else if (currentDragContext.SourceType == DragSourceType.Equipment || currentDragContext.SourceType == DragSourceType.Relic)
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
@@ -1033,7 +1452,7 @@ public class PageItemsController
         {
             sliderSplitAmount.lowValue = 1;
             sliderSplitAmount.highValue = maxQty;
-            sliderSplitAmount.value = maxQty; // Default to max quantity
+            sliderSplitAmount.value = maxQty;
         }
 
         UpdateSplitAmountLabel(maxQty);
@@ -1109,15 +1528,23 @@ public class PageItemsController
         }
         ghostElement.style.opacity = 0.85f;
 
-        rootElement.Add(ghostElement);
-        UpdateGhostPosition(startPosition);
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            Vector2 localPos = topRoot.WorldToLocal(startPosition);
+            ghostElement.style.left = localPos.x - (SLOT_SIZE / 2f);
+            ghostElement.style.top = localPos.y - (SLOT_SIZE / 2f);
+
+            topRoot.Add(ghostElement);
+        }
     }
 
     private void UpdateGhostPosition(Vector2 currentPosition)
     {
-        if (ghostElement == null || rootElement == null) return;
+        VisualElement topRoot = GetTopRootElement();
+        if (ghostElement == null || topRoot == null) return;
 
-        Vector2 localPos = rootElement.WorldToLocal(currentPosition);
+        Vector2 localPos = topRoot.WorldToLocal(currentPosition);
 
         ghostElement.style.left = localPos.x - (SLOT_SIZE / 2f);
         ghostElement.style.top = localPos.y - (SLOT_SIZE / 2f);

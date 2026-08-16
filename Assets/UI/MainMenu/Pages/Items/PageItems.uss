@@ -287,7 +287,6 @@
 /* ==========================================
    STACK SPLITTER POPUP MODAL
    ========================================== */
-
 .split-popup-overlay {
     position: absolute;
     left: 0;
@@ -302,12 +301,14 @@
 
 .split-popup-dialog {
     width: 320px;
+    max-width: 90%;
     background-color: #1c1c1f;
     border-width: 2px;
     border-color: #ffd700;
     border-radius: 6px;
     padding: 16px;
     align-items: center;
+    overflow: hidden;
 }
 
 .split-item-preview-box {
@@ -329,27 +330,54 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-vertical: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
 }
 
 .split-step-btn {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    margin: 0;
     font-size: 18px;
     -unity-font-style: bold;
+    flex-shrink: 0;
 }
 
 .split-slider {
     flex-grow: 1;
-    margin-horizontal: 8px;
+    flex-shrink: 1;
+    width: 0; /* Permite que el flex-grow controle exactamente el ancho sin desbordar */
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+/* Anular restricciones internas nativas del Slider en UI Toolkit */
+.split-slider .unity-base-slider__input {
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.split-slider .unity-base-slider__drag-container {
+    padding: 0;
+    margin: 0;
 }
 
 .split-amount-label {
     width: 36px;
+    min-width: 36px;
     font-size: 16px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     color: #ffffff;
+    flex-shrink: 0;
 }
 
 .split-buttons-row {
@@ -362,5 +390,6 @@
 .split-action-btn {
     flex-grow: 1;
     height: 32px;
-    margin-horizontal: 4px;
+    margin-left: 4px;
+    margin-right: 4px;
 }

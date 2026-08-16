@@ -28,14 +28,24 @@ public class Stat
         }
     }
 
+    // Añadir este evento a la clase Stat
+    public event Action OnValueChanged;
+
+    // Modificar la propiedad Value para notificar el cambio cuando recalcule
     public int Value
     {
         get
         {
             if (isDirty)
             {
+                int previousValue = cachedValue;
                 cachedValue = CalculateFinalValue();
                 isDirty = false;
+
+                if (previousValue != cachedValue)
+                {
+                    OnValueChanged?.Invoke();
+                }
             }
             return cachedValue;
         }

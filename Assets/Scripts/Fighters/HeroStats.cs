@@ -17,7 +17,77 @@ public class HeroStats : FighterStats
     {
         base.Awake();
         CalculateNextLevelXp();
+        SubscribeToStatEvents();
     }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromStatEvents();
+    }
+
+    #region Stat Event Subscriptions & Clamping
+
+    /// <summary>
+    /// Subscribes to MaxHP and MaxPP value change events to ensure current HP/PP never exceeds maximums.
+    /// </summary>
+    private void SubscribeToStatEvents()
+    {
+        Stat maxHpStat = GetStat(StatType.MaxHP);
+        if (maxHpStat != null)
+        {
+            maxHpStat.OnValueChanged += ClampCurrentHp;
+        }
+
+        Stat maxPpStat = GetStat(StatType.MaxPP);
+        if (maxPpStat != null)
+        {
+            maxPpStat.OnValueChanged += ClampCurrentPp;
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribes from stat events upon destruction to prevent memory leaks.
+    /// </summary>
+    private void UnsubscribeFromStatEvents()
+    {
+        Stat maxHpStat = GetStat(StatType.MaxHP);
+        if (maxHpStat != null)
+        {
+            maxHpStat.OnValueChanged -= ClampCurrentHp;
+        }
+
+        Stat maxPpStat = GetStat(StatType.MaxPP);
+        if (maxPpStat != null)
+        {
+            maxPpStat.OnValueChanged -= ClampCurrentPp;
+        }
+    }
+
+    /// <summary>
+    /// Clamps current HP to MaxHP whenever MaxHP changes.
+    /// </summary>
+    private void ClampCurrentHp()
+    {
+        if (CurrHp > MaxHp)
+        {
+            CurrHp = MaxHp;
+        }
+    }
+
+    /// <summary>
+    /// Clamps current PP to MaxPP whenever MaxPP changes.
+    /// </summary>
+    private void ClampCurrentPp()
+    {
+        if (CurrPp > MaxPp)
+        {
+            CurrPp = MaxPp;
+        }
+    }
+
+    #endregion
+
+    #region Progression Logic
 
     private void CalculateNextLevelXp()
     {
@@ -83,4 +153,5 @@ public class HeroStats : FighterStats
         CalculateNextLevelXp();
     }
 
+    #endregion
 }

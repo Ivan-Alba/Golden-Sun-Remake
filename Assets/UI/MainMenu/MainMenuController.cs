@@ -247,10 +247,17 @@ public class MainMenuController : MonoBehaviour
 
     private void HandleCancelInput()
     {
-        if (isMenuOpen)
+        if (!isMenuOpen) return;
+
+        // Priority 1: If an item is active in targeting mode, cancel targeting first
+        if (itemsPageController != null && itemsPageController.IsTargetingItem)
         {
-            SetMenuVisibility(false);
+            itemsPageController.CancelItemTargeting();
+            return;
         }
+
+        // Priority 2: Otherwise close the entire menu
+        SetMenuVisibility(false);
     }
 
     private void HandleNextTab() => CycleTab(1);
@@ -272,7 +279,6 @@ public class MainMenuController : MonoBehaviour
 
         if (visible)
         {
-            // Reset timer and force immediate playtime label refresh upon opening
             timeUpdateTimer = 0f;
             UpdatePlayTimeText();
 
@@ -282,12 +288,17 @@ public class MainMenuController : MonoBehaviour
         }
         else
         {
+            // Cancel active targeting when menu is closed
+            itemsPageController?.CancelItemTargeting();
             UnsubscribeFromMenuInputs();
         }
     }
 
     public void SelectTab(MenuTab tab)
     {
+        // Cancel active targeting mode if changing tabs
+        itemsPageController?.CancelItemTargeting();
+
         currentTab = tab;
 
         bool needsHeroSelector = IsHeroSelectorVisible();
@@ -303,6 +314,12 @@ public class MainMenuController : MonoBehaviour
 
     public void SelectHero(int heroIndex)
     {
+        // If the items page is currently targeting a hero to apply a consumable, block page navigation
+        if (itemsPageController != null && itemsPageController.IsTargetingItem)
+        {
+            return;
+        }
+
         List<HeroStats> party = GetPartyHeroStatsList();
         if (party != null && party.Count > 0)
         {
@@ -406,8 +423,10 @@ public class MainMenuController : MonoBehaviour
         pageContent.Add(itemsInstance);
 
         itemsPageController = new PageItemsController(itemsInstance);
-
         itemsPageController.SetParty(GetPartyHeroStatsList());
+
+        // Refresh header cards when an item is consumed on a hero
+        itemsPageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
 
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
         HeroInventory selectedHeroInventory = GetPartyMemberComponent<HeroInventory>(selectedHeroIndex);
@@ -502,10 +521,7 @@ public class MainMenuController : MonoBehaviour
             labelLocation.text = SceneManager.GetActiveScene().name;
         }
 
-        // Single source of truth for play time label formatting
         UpdatePlayTimeText();
-
-        // Refresh header hero cards with party size and current stats
         RefreshHeaderHeroCards();
     }
 
@@ -525,7 +541,6 @@ public class MainMenuController : MonoBehaviour
                 HeroStats hero = partyStats[i];
                 if (hero != null)
                 {
-                    // Assign protagonist avatar sprite to header portrait
                     if (imgHeroPortraits[i] != null && hero.TurnBarImage != null)
                     {
                         imgHeroPortraits[i].style.backgroundImage = new StyleBackground(hero.TurnBarImage);
