@@ -103,9 +103,11 @@ public class PlayerUIManager : MonoBehaviour
                 SetExplorationUIVisible(true);
                 SetDialogueUIVisible(false);
                 SetAimUIVisible(false);
+                SetNotificationsUIVisible(true);
                 break;
 
             case GameManager.GameState.InDialogue:
+                SetNotificationsUIVisible(true);
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(true);
                 SetAimUIVisible(false);
@@ -114,6 +116,12 @@ public class PlayerUIManager : MonoBehaviour
             case GameManager.GameState.InMenu:
             case GameManager.GameState.InBattle:
             case GameManager.GameState.Cutscene:
+            case GameManager.GameState.Loading:
+                SetNotificationsUIVisible(false);
+                SetExplorationUIVisible(false);
+                SetDialogueUIVisible(false);
+                SetAimUIVisible(false);
+                break;
             case GameManager.GameState.Interacting:
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);
@@ -148,6 +156,14 @@ public class PlayerUIManager : MonoBehaviour
         if (dialoguePanel != null)
         {
             dialoguePanel.SetActive(visible);
+        }
+    }
+
+    public void SetNotificationsUIVisible(bool visible)
+    {
+        if (notificationPanel != null)
+        {
+            notificationPanel.SetActive(visible);
         }
     }
 

@@ -29,6 +29,14 @@ public class InputManager : MonoBehaviour
     public event Action OnBattleLeftPressed;
     public event Action OnBattleRightPressed;
 
+    // --- MENU NAVIGATION EVENTS ---
+    public event Action OnMenuNextTabPressed;
+    public event Action OnMenuPreviousTabPressed;
+    public event Action OnMenuNextHeroPressed;
+    public event Action OnMenuPreviousHeroPressed;
+    public event Action OnMenuConfirmPressed;
+    public event Action OnMenuCancelPressed;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -82,6 +90,7 @@ public class InputManager : MonoBehaviour
             case GameManager.GameState.InBattle:
                 ProcessCombatState();
                 break;
+
             case GameManager.GameState.Cutscene:
                 ProcessCutsceneState();
                 break;
@@ -129,6 +138,15 @@ public class InputManager : MonoBehaviour
         inputActions.Battle.Down.performed += OnBattleDownPerformed;
         inputActions.Battle.Left.performed += OnBattleLeftPerformed;
         inputActions.Battle.Right.performed += OnBattleRightPerformed;
+
+        // --- MENU MAP ---
+        inputActions.Menu.ToggleMenu.performed += OnToggleMenuPerformed;
+        inputActions.Menu.NextTab.performed += OnMenuNextTabPerformed;
+        inputActions.Menu.PreviousTab.performed += OnMenuPreviousTabPerformed;
+        inputActions.Menu.NextHero.performed += OnMenuNextHeroPerformed;
+        inputActions.Menu.PreviousHero.performed += OnMenuPreviousHeroPerformed;
+        inputActions.Menu.Confirm.performed += OnMenuConfirmPerformed;
+        inputActions.Menu.Cancel.performed += OnMenuCancelPerformed;
     }
 
     private void UnsubscribeFromInputEvents()
@@ -165,6 +183,14 @@ public class InputManager : MonoBehaviour
         inputActions.Battle.Down.performed -= OnBattleDownPerformed;
         inputActions.Battle.Left.performed -= OnBattleLeftPerformed;
         inputActions.Battle.Right.performed -= OnBattleRightPerformed;
+
+        inputActions.Menu.ToggleMenu.performed -= OnToggleMenuPerformed;
+        inputActions.Menu.NextTab.performed -= OnMenuNextTabPerformed;
+        inputActions.Menu.PreviousTab.performed -= OnMenuPreviousTabPerformed;
+        inputActions.Menu.NextHero.performed -= OnMenuNextHeroPerformed;
+        inputActions.Menu.PreviousHero.performed -= OnMenuPreviousHeroPerformed;
+        inputActions.Menu.Confirm.performed -= OnMenuConfirmPerformed;
+        inputActions.Menu.Cancel.performed -= OnMenuCancelPerformed;
     }
 
     #endregion
@@ -207,6 +233,14 @@ public class InputManager : MonoBehaviour
     private void OnBattleLeftPerformed(InputAction.CallbackContext ctx) => OnBattleLeftPressed?.Invoke();
     private void OnBattleRightPerformed(InputAction.CallbackContext ctx) => OnBattleRightPressed?.Invoke();
 
+    // --- MENU CALLBACKS ---
+    private void OnMenuNextTabPerformed(InputAction.CallbackContext ctx) => OnMenuNextTabPressed?.Invoke();
+    private void OnMenuPreviousTabPerformed(InputAction.CallbackContext ctx) => OnMenuPreviousTabPressed?.Invoke();
+    private void OnMenuNextHeroPerformed(InputAction.CallbackContext ctx) => OnMenuNextHeroPressed?.Invoke();
+    private void OnMenuPreviousHeroPerformed(InputAction.CallbackContext ctx) => OnMenuPreviousHeroPressed?.Invoke();
+    private void OnMenuConfirmPerformed(InputAction.CallbackContext ctx) => OnMenuConfirmPressed?.Invoke();
+    private void OnMenuCancelPerformed(InputAction.CallbackContext ctx) => OnMenuCancelPressed?.Invoke();
+
     #endregion
 
     #region State & Map Management
@@ -216,6 +250,7 @@ public class InputManager : MonoBehaviour
         if (!inputActions.WorldExploration.enabled) inputActions.WorldExploration.Enable();
         if (inputActions.Dialogue.enabled) inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+        if (inputActions.Menu.enabled) inputActions.Menu.Disable();
 
         if (IsAiming)
         {
@@ -237,6 +272,7 @@ public class InputManager : MonoBehaviour
         inputActions.WorldExploration.Disable();
         inputActions.PsynergyAiming.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+        if (inputActions.Menu.enabled) inputActions.Menu.Disable();
 
         if (!inputActions.Dialogue.enabled) inputActions.Dialogue.Enable();
     }
@@ -252,6 +288,8 @@ public class InputManager : MonoBehaviour
         inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+
+        if (!inputActions.Menu.enabled) inputActions.Menu.Enable();
     }
 
     private void ProcessCutsceneState()
@@ -265,6 +303,7 @@ public class InputManager : MonoBehaviour
         inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
+        if (inputActions.Menu.enabled) inputActions.Menu.Disable();
     }
 
     private void ProcessCombatState()
@@ -277,6 +316,7 @@ public class InputManager : MonoBehaviour
         inputActions.WorldExploration.Disable();
         inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
+        if (inputActions.Menu.enabled) inputActions.Menu.Disable();
 
         if (!inputActions.Battle.enabled) inputActions.Battle.Enable();
     }

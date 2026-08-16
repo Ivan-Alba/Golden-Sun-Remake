@@ -5,7 +5,7 @@ using UnityEngine;
 public class HeroEquipment : MonoBehaviour
 {
     [Header("Relic Slot Configuration")]
-    [SerializeField] private int maxRelicSlots = 3;
+    [SerializeField] private int maxRelicSlots = 4;
 
     [Header("Component References")]
     [SerializeField] private FighterStats fighterStats;

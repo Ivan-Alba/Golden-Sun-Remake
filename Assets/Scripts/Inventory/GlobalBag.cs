@@ -142,5 +142,17 @@ public class GlobalBag : MonoBehaviour
         return total;
     }
 
+    /// <summary>
+    /// Retrieves a KeyItem slot by index safely. Returns null if index is out of bounds.
+    /// </summary>
+    public InventorySlot GetKeyItemSlot(int index)
+    {
+        if (index >= 0 && index < keyItemSlots.Count)
+        {
+            return keyItemSlots[index];
+        }
+        return null;
+    }
+
     #endregion
 }

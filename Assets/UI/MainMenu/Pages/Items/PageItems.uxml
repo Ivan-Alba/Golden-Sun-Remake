@@ -1,0 +1,62 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/MainMenu/Pages/Items/PageItems.uss" />
+    <ui:VisualElement name="page_items_container" class="page-items-container">
+        
+        <!-- LEFT PANEL: EQUIPMENT & PSYNERGY RELICS -->
+        <ui:VisualElement name="equipment_section" class="equipment-section">
+            <ui:Label text="EQUIPAMIENTO" name="label_gear_title" class="info-title-label" />
+            <ui:VisualElement name="paperdoll_container" class="paperdoll-container">
+                <ui:VisualElement name="gear_col_left" class="gear-column">
+                    <ui:VisualElement name="slot_weapon" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_armor" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_boots" class="gear-slot slot-box" />
+                </ui:VisualElement>
+                <ui:VisualElement name="character_preview_space" class="character-preview-space" />
+                <ui:VisualElement name="gear_col_right" class="gear-column">
+                    <ui:VisualElement name="slot_helm" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_shield" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_hands" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_acc" class="gear-slot slot-box" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="relics_container" class="relics-container">
+                <ui:Label text="RELIQUIAS PSINÉRGICAS" name="label_relics_header" class="relic-title-label info-title-label" />
+                <ui:VisualElement name="relic_slots_wrapper" class="slots-row">
+                    <ui:VisualElement name="slot_relic_0" class="relic-slot slot-box" />
+                    <ui:VisualElement name="slot_relic_1" class="relic-slot slot-box" />
+                    <ui:VisualElement name="slot_relic_2" class="relic-slot slot-box" />
+                    <ui:VisualElement name="slot_relic_3" class="relic-slot slot-box" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- CENTER PANEL: HERO INVENTORY & GLOBAL BAG -->
+        <ui:VisualElement name="inventory_section" class="inventory-section">
+            <!-- Header with Hero Icon Badge -->
+            <ui:VisualElement name="inventory_header_box" class="inventory-header-box">
+                <ui:VisualElement name="hero_inventory_icon" class="hero-inventory-icon" />
+                <ui:Label text="INVENTARIO DE HANS" name="label_inventory_title" class="info-title-label inventory-title-with-icon" />
+            </ui:VisualElement>
+            
+            <!-- Personal Hero Grid -->
+            <ui:VisualElement name="inventory_grid" class="inventory-grid" />
+
+            <!-- Global Key Items Section -->
+            <ui:VisualElement name="global_bag_container" class="global-bag-container">
+                <ui:Label text="OBJETOS CLAVE" name="label_global_bag_title" class="info-title-label global-bag-title-label" />
+                <ui:VisualElement name="global_bag_grid" class="inventory-grid global-bag-grid" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- RIGHT PANEL: ITEM INFORMATION & DETAILS -->
+        <ui:VisualElement name="item_info_panel" class="item-info-panel">
+            <ui:Label text="INFORMACIÓN" name="label_info_title" class="info-title-label" />
+            <ui:VisualElement name="item_icon_preview" class="item-preview-icon" />
+            <ui:Label text="Espada Larga" name="label_item_name" class="item-name-label" />
+            <ui:Label text="Equipable - Arma" name="label_item_type" class="item-type-label" />
+            <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="item-desc-label" />
+            <ui:VisualElement name="stat_changes_box" class="stat-changes-box" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

@@ -5,7 +5,7 @@ using UnityEngine;
 public class HeroInventory : MonoBehaviour
 {
     [Header("Inventory Capacity Settings")]
-    [SerializeField] private int maxBackpackSlots = 10;
+    [SerializeField] private int maxBackpackSlots = 18;
 
     [Header("Current Backpack State")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
@@ -15,8 +15,9 @@ public class HeroInventory : MonoBehaviour
 
     #region Properties
 
-    public int MaxBackpackSlots => maxBackpackSlots;
     public IReadOnlyList<InventorySlot> Slots => slots;
+
+    public int MaxBackpackSlots { get => maxBackpackSlots; }
 
     #endregion
 
@@ -35,7 +36,7 @@ public class HeroInventory : MonoBehaviour
             slots = new List<InventorySlot>();
         }
 
-        while (slots.Count < maxBackpackSlots)
+        while (slots.Count < MaxBackpackSlots)
         {
             slots.Add(new InventorySlot());
         }

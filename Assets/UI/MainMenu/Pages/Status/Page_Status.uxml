@@ -1,0 +1,285 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
+    <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 451px;">
+        <ui:VisualElement name="hero_card_0" class="hero-card" style="display: flex;">
+            <ui:VisualElement name="card_front" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
+                <ui:VisualElement name="hero_portrait" picking-mode="Ignore" class="hero-portrait" />
+                <ui:Label text="Hans" display-tooltip-when-elided="true" name="label_hero_name" picking-mode="Ignore" class="hero-name-label" />
+                <ui:Label text="Escudero" display-tooltip-when-elided="true" name="label_hero_class" picking-mode="Ignore" class="hero-name-label hero-class-label" />
+                <ui:Label text="Lv: 15" display-tooltip-when-elided="true" name="label_hero_level" picking-mode="Ignore" class="hero-name-label hero-class-label hero-level-label" />
+                <ui:VisualElement name="bars_container" picking-mode="Ignore" class="bars-container">
+                    <ui:VisualElement name="hp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PV 240/240" display-tooltip-when-elided="true" name="label_hp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="90" name="bar_hp" picking-mode="Ignore" class="custom-bar hp-bar" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="pp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PP 80/80" display-tooltip-when-elided="true" name="label_pp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="100" name="bar_pp" picking-mode="Ignore" class="custom-bar pp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card_back" picking-mode="Ignore" style="display: none;">
+                <ui:Label text="ATRIBUTOS" display-tooltip-when-elided="true" name="label_stats_title" picking-mode="Ignore" class="stats-title-label" />
+                <ui:VisualElement name="stats_list" picking-mode="Ignore" class="stats-list">
+                    <ui:VisualElement name="stat_row_0" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_1" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_2" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_3" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="exp_box" picking-mode="Ignore" class="exp-box">
+                        <ui:Label text="EXP 48.500 / 50.000" display-tooltip-when-elided="true" name="label_exp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="22" name="bar_exp" picking-mode="Ignore" class="custom-bar exp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_stats" picking-mode="Ignore" class="element-stats-box">
+                    <ui:Label text="AFINIDAD ELEMENTAL" display-tooltip-when-elided="true" name="label_elem_title" picking-mode="Ignore" class="element-title-label" />
+                    <ui:VisualElement name="element_row_0" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Venus" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_1" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Marte" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_2" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Júpiter" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_3" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Mercurio" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="hero_card_1" class="hero-card" style="display: flex;">
+            <ui:VisualElement name="card_front" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
+                <ui:VisualElement name="hero_portrait" picking-mode="Ignore" class="hero-portrait" />
+                <ui:Label text="Hans" display-tooltip-when-elided="true" name="label_hero_name" picking-mode="Ignore" class="hero-name-label" />
+                <ui:Label text="Escudero" display-tooltip-when-elided="true" name="label_hero_class" picking-mode="Ignore" class="hero-name-label hero-class-label" />
+                <ui:Label text="Lv: 15" display-tooltip-when-elided="true" name="label_hero_level" picking-mode="Ignore" class="hero-name-label hero-class-label hero-level-label" />
+                <ui:VisualElement name="bars_container" picking-mode="Ignore" class="bars-container">
+                    <ui:VisualElement name="hp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PV 240/240" display-tooltip-when-elided="true" name="label_hp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="90" name="bar_hp" picking-mode="Ignore" class="custom-bar hp-bar" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="pp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PP 80/80" display-tooltip-when-elided="true" name="label_pp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="100" name="bar_pp" picking-mode="Ignore" class="custom-bar pp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card_back" picking-mode="Ignore" style="display: none;">
+                <ui:Label text="ATRIBUTOS" display-tooltip-when-elided="true" name="label_stats_title" picking-mode="Ignore" class="stats-title-label" />
+                <ui:VisualElement name="stats_list" picking-mode="Ignore" class="stats-list">
+                    <ui:VisualElement name="stat_row_0" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_1" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_2" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_3" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="exp_box" picking-mode="Ignore" class="exp-box">
+                        <ui:Label text="EXP 48.500 / 50.000" display-tooltip-when-elided="true" name="label_exp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="22" name="bar_exp" picking-mode="Ignore" class="custom-bar exp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_stats" picking-mode="Ignore" class="element-stats-box">
+                    <ui:Label text="AFINIDAD ELEMENTAL" display-tooltip-when-elided="true" name="label_elem_title" picking-mode="Ignore" class="element-title-label" />
+                    <ui:VisualElement name="element_row_0" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Venus" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_1" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Marte" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_2" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Júpiter" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_3" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Mercurio" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="hero_card_2" class="hero-card" style="display: flex;">
+            <ui:VisualElement name="card_front" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
+                <ui:VisualElement name="hero_portrait" picking-mode="Ignore" class="hero-portrait" />
+                <ui:Label text="Hans" display-tooltip-when-elided="true" name="label_hero_name" picking-mode="Ignore" class="hero-name-label" />
+                <ui:Label text="Escudero" display-tooltip-when-elided="true" name="label_hero_class" picking-mode="Ignore" class="hero-name-label hero-class-label" />
+                <ui:Label text="Lv: 15" display-tooltip-when-elided="true" name="label_hero_level" picking-mode="Ignore" class="hero-name-label hero-class-label hero-level-label" />
+                <ui:VisualElement name="bars_container" picking-mode="Ignore" class="bars-container">
+                    <ui:VisualElement name="hp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PV 240/240" display-tooltip-when-elided="true" name="label_hp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="90" name="bar_hp" picking-mode="Ignore" class="custom-bar hp-bar" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="pp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PP 80/80" display-tooltip-when-elided="true" name="label_pp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="100" name="bar_pp" picking-mode="Ignore" class="custom-bar pp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card_back" picking-mode="Ignore" style="display: none;">
+                <ui:Label text="ATRIBUTOS" display-tooltip-when-elided="true" name="label_stats_title" picking-mode="Ignore" class="stats-title-label" />
+                <ui:VisualElement name="stats_list" picking-mode="Ignore" class="stats-list">
+                    <ui:VisualElement name="stat_row_0" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_1" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_2" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_3" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="exp_box" picking-mode="Ignore" class="exp-box">
+                        <ui:Label text="EXP 48.500 / 50.000" display-tooltip-when-elided="true" name="label_exp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="22" name="bar_exp" picking-mode="Ignore" class="custom-bar exp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_stats" picking-mode="Ignore" class="element-stats-box">
+                    <ui:Label text="AFINIDAD ELEMENTAL" display-tooltip-when-elided="true" name="label_elem_title" picking-mode="Ignore" class="element-title-label" />
+                    <ui:VisualElement name="element_row_0" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Venus" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_1" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Marte" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_2" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Júpiter" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_3" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Mercurio" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="hero_card_3" class="hero-card" style="display: flex;">
+            <ui:VisualElement name="card_front" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
+                <ui:VisualElement name="hero_portrait" picking-mode="Ignore" class="hero-portrait" />
+                <ui:Label text="Hans" display-tooltip-when-elided="true" name="label_hero_name" picking-mode="Ignore" class="hero-name-label" />
+                <ui:Label text="Escudero" display-tooltip-when-elided="true" name="label_hero_class" picking-mode="Ignore" class="hero-name-label hero-class-label" />
+                <ui:Label text="Lv: 15" display-tooltip-when-elided="true" name="label_hero_level" picking-mode="Ignore" class="hero-name-label hero-class-label hero-level-label" />
+                <ui:VisualElement name="bars_container" picking-mode="Ignore" class="bars-container">
+                    <ui:VisualElement name="hp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PV 240/240" display-tooltip-when-elided="true" name="label_hp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="90" name="bar_hp" picking-mode="Ignore" class="custom-bar hp-bar" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="pp_bar_box" picking-mode="Ignore" class="stat-bar-box">
+                        <ui:Label text="PP 80/80" display-tooltip-when-elided="true" name="label_pp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="100" name="bar_pp" picking-mode="Ignore" class="custom-bar pp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card_back" picking-mode="Ignore" style="display: none;">
+                <ui:Label text="ATRIBUTOS" display-tooltip-when-elided="true" name="label_stats_title" picking-mode="Ignore" class="stats-title-label" />
+                <ui:VisualElement name="stats_list" picking-mode="Ignore" class="stats-list">
+                    <ui:VisualElement name="stat_row_0" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_1" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_2" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="stat_row_3" picking-mode="Ignore" class="stat-row">
+                        <ui:Label text="Ataque" display-tooltip-when-elided="true" name="label_stat_name" picking-mode="Ignore" class="stat-name-label" />
+                        <ui:Label text="25" display-tooltip-when-elided="true" name="label_stat_value" picking-mode="Ignore" class="stat-value-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="exp_box" picking-mode="Ignore" class="exp-box">
+                        <ui:Label text="EXP 48.500 / 50.000" display-tooltip-when-elided="true" name="label_exp_text" picking-mode="Ignore" />
+                        <ui:ProgressBar value="22" name="bar_exp" picking-mode="Ignore" class="custom-bar exp-bar" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_stats" picking-mode="Ignore" class="element-stats-box">
+                    <ui:Label text="AFINIDAD ELEMENTAL" display-tooltip-when-elided="true" name="label_elem_title" picking-mode="Ignore" class="element-title-label" />
+                    <ui:VisualElement name="element_row_0" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Venus" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_1" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Marte" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_2" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Júpiter" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="element_row_3" tabindex="2" picking-mode="Ignore" class="element-row">
+                        <ui:VisualElement name="elem_icon" picking-mode="Ignore" class="element-icon" />
+                        <ui:Label text="Mercurio" display-tooltip-when-elided="true" name="elem_name" picking-mode="Ignore" class="element-name" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_power" picking-mode="Ignore" class="element-val" />
+                        <ui:Label text="110" display-tooltip-when-elided="true" name="elem_resistance" picking-mode="Ignore" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

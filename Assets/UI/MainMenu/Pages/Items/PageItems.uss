@@ -1,0 +1,285 @@
+/* ==========================================
+   PAGE ITEMS CONTAINER & ROOT LAYOUT (3 VERTICAL PANELS)
+   ========================================== */
+.page-items-container {
+    flex-grow: 1;
+    flex-direction: row; /* Horizontal 3-column distribution */
+    padding: 10px;
+    color: #FFFFFF;
+}
+
+/* Base default white text for all internal labels */
+.page-items-container Label {
+    color: #FFFFFF;
+}
+
+/* Common Section Titles (Unified RPG Style Across All 3 Panels) */
+.info-title-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #DAA520; /* Golden section title */
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   LEFT PANEL: EQUIPMENT & PSYNERGY RELICS (30% Width)
+   ========================================== */
+.equipment-section {
+    width: 30%;
+    margin-right: 10px;
+    background-color: rgba(20, 20, 20, 0.75);
+    border-radius: 6px;
+    padding: 12px;
+    flex-direction: column;
+    justify-content: flex-start; /* Controls top-down spacing cleanly */
+    align-items: center;
+}
+
+/* Paperdoll Grid: Left Column | Character Space | Right Column */
+.paperdoll-container {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2px;
+    margin-bottom: 12px;
+}
+
+.gear-column {
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* Central Space Reserved for 3D Character Model / Sprite */
+.character-preview-space {
+    flex-grow: 1;
+    height: 100%;
+    min-height: 210px;
+    margin-left: 6px;
+    margin-right: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}
+
+/* Bottom Relics Container inside Equipment Panel */
+.relics-container {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.15);
+    padding-top: 10px;
+    margin-top: auto; /* Pushes relics box gracefully to the bottom without squeezing */
+}
+
+.strip-title-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.relic-title-label {
+    color: #C084FC; /* Light Purple for Psynergy Relics */
+}
+
+/* Relics Row: Centered with Controlled Margins (Prevents Edge Stretching) */
+.slots-row {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ==========================================
+   CENTER PANEL: MAIN INVENTORY & GLOBAL BAG (45% Width)
+   ========================================== */
+.inventory-section {
+    width: 45%;
+    margin-right: 10px;
+    background-color: rgba(20, 20, 20, 0.65);
+    border-radius: 6px;
+    padding: 12px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* Inventory Header Box with Hero Icon Badge */
+.inventory-header-box {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.hero-inventory-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: #DAA520;
+    background-color: rgba(10, 10, 10, 0.8);
+    margin-right: 8px;
+    background-size: cover;
+    background-position: center;
+}
+
+.inventory-title-with-icon {
+    margin-bottom: 0;
+}
+
+.inventory-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+/* Global Key Items Section */
+.global-bag-container {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.15);
+    padding-top: 10px;
+    margin-top: 14px;
+}
+
+.global-bag-title-label {
+    color: #3498DB; /* Cool Blue for Key / Global Items */
+    margin-bottom: 6px;
+}
+
+.global-bag-grid {
+    margin-top: 4px;
+}
+
+/* ==========================================
+   RIGHT PANEL: ITEM INFORMATION & DETAILS (25% Width)
+   ========================================== */
+.item-info-panel {
+    width: 25%;
+    background-color: rgba(20, 20, 20, 0.85);
+    border-radius: 6px;
+    padding: 12px;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Scaled up Item Preview Icon (100px x 100px) */
+.item-preview-icon {
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.4);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.item-name-label {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.item-type-label {
+    font-size: 13px;
+    color: #DAA520;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.item-desc-label {
+    font-size: 12px;
+    color: #CCCCCC;
+    white-space: normal;
+    margin-bottom: 12px;
+}
+
+.stat-changes-box {
+    width: 100%;
+    flex-grow: 1;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.15);
+    padding-top: 8px;
+}
+
+/* ==========================================
+   UNIFIED SQUARE SLOT STYLES (70px x 70px)
+   ========================================== */
+.slot-box {
+    width: 70px;
+    height: 70px;
+    margin: 3px;
+    background-color: rgba(40, 40, 40, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Equipment Slot Specialization */
+.gear-slot {
+    border-color: rgba(218, 165, 32, 0.4);
+}
+
+/* Psynergy Relic Slot Specialization (Controlled Spacing) */
+.relic-slot {
+    border-color: rgba(155, 89, 182, 0.6);
+    background-color: rgba(50, 30, 60, 0.8);
+    margin: 0 4px;
+}
+
+/* Item Slot Template Override */
+.item-slot-box {
+    /* Inherits dimensions, background, and border from .slot-box */
+}
+
+/* Background image or icon watermark for empty slots */
+.slot-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: contain;
+    background-position: center;
+    opacity: 0.25;
+}
+
+/* Actual Item Icon */
+.item-icon {
+    width: 80%;
+    height: 80%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Stackable Quantity Label (bottom-right corner) */
+.item-quantity-label {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: #000000;
+}

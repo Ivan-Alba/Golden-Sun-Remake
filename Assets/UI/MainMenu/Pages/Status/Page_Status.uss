@@ -1,0 +1,193 @@
+/* ==========================================
+   PAGE STATUS CONTAINER & CARDS
+   ========================================== */
+.page-status-container {
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    flex-grow: 1;
+    padding: 10px;
+    color: #FFFFFF; /* Base default text color (inherited by all Labels) */
+}
+
+.hero-card {
+    width: 22%;
+    margin-left: 1%;
+    margin-right: 1%;
+    border-radius: 8px;
+    background-color: rgba(30, 30, 30, 0.6);
+    position: relative;
+    overflow: hidden;
+    color: #FFFFFF;
+}
+
+.card-face {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    flex-direction: column;
+}
+
+/* ==========================================
+   CARD FRONT (DEFAULT VISIBLE)
+   ========================================== */
+.card-front {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.hero-portrait {
+    width: 90%;
+    height: 45%;
+    border-radius: 6px;
+    background-color: rgba(60, 60, 60, 0.8);
+    margin-bottom: 8px;
+}
+
+.hero-name-label {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+.hero-class-label {
+    font-size: 13px;
+    color: #DAA520; /* Golden class name */
+    margin-bottom: 4px;
+}
+
+.hero-level-label {
+    font-size: 14px;
+    color: #CCCCCC;
+    margin-bottom: 8px;
+}
+
+.bars-container {
+    width: 100%;
+    padding: 4px;
+}
+
+.stat-bar-box {
+    margin-bottom: 6px;
+}
+
+.custom-bar {
+    height: 12px;
+    border-radius: 3px;
+    margin-top: 2px;
+}
+
+.hp-bar {
+    background-color: #2ECC71;
+}
+
+.pp-bar {
+    background-color: #3498DB;
+}
+
+/* ==========================================
+   CARD BACK (DETAILED STATS)
+   ========================================== */
+.card-back {
+    display: none;
+    background-color: rgba(20, 20, 20, 0.95);
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 12px;
+}
+
+.stats-title-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #DAA520; /* Golden section header */
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.stats-list {
+    flex-grow: 1;
+    justify-content: space-around;
+}
+
+/* Base Stat Rows */
+.stat-row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.stat-name-label {
+    font-size: 12px;
+    color: #CCCCCC;
+}
+
+.stat-value-label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+/* Experience Box */
+.exp-box {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.exp-bar {
+    height: 10px;
+    background-color: #9B59B6;
+    border-radius: 3px;
+    margin-top: 2px;
+}
+
+/* Elemental Stats Section */
+.element-stats-box {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+.element-title-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #DAA520; /* Golden section header */
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.element-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.element-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+.element-name {
+    font-size: 11px;
+    color: #E0E0E0;
+    flex-grow: 1;
+}
+
+.element-val {
+    font-size: 10px;
+    color: #CCCCCC;
+    margin-left: 6px;
+}

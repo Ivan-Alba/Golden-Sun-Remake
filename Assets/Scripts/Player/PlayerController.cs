@@ -207,7 +207,6 @@ public class PlayerController : MonoBehaviour
 
         InputManager.Instance.OnChangeHeroPressed += HandleChangeHero;
         InputManager.Instance.OnInteractPressed += HandleInteraction;
-        InputManager.Instance.OnToggleMenuPressed += HandleMenuToggle;
         InputManager.Instance.OnStartAimPressed += StartAiming;
         InputManager.Instance.OnStopAimPressed += StopAiming;
         InputManager.Instance.OnUsePsynergyPressed += HandleUsePsynergy;
@@ -219,7 +218,6 @@ public class PlayerController : MonoBehaviour
 
         InputManager.Instance.OnChangeHeroPressed -= HandleChangeHero;
         InputManager.Instance.OnInteractPressed -= HandleInteraction;
-        InputManager.Instance.OnToggleMenuPressed -= HandleMenuToggle;
         InputManager.Instance.OnStartAimPressed -= StartAiming;
         InputManager.Instance.OnStopAimPressed -= StopAiming;
         InputManager.Instance.OnUsePsynergyPressed -= HandleUsePsynergy;
@@ -254,21 +252,6 @@ public class PlayerController : MonoBehaviour
             }
             objectHit.GetComponent<Interactable>()?.Interact();
         }
-    }
-
-    private void HandleMenuToggle()
-    {
-        /*if (!IsWorldExploration()) return;
-
-        if (InputManager.Instance != null && InputManager.Instance.IsAiming)
-        {
-            StopAiming();
-        }
-
-        if (MenuController.Instance != null)
-        {
-            MenuController.Instance.ShowMenu();
-        }*/
     }
 
     private void HandleUsePsynergy(int slotIndex)
