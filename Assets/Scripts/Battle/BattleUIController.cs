@@ -373,14 +373,14 @@ public class BattleUIController : MonoBehaviour
 
                 if (activeStats != null && activeStats.Psynergies != null && activeStats.Psynergies.Count > 0)
                 {
-                    foreach (Psynergy psynergy in activeStats.Psynergies)
+                    foreach (PsynergySO psynergy in activeStats.Psynergies)
                     {
                         if (psynergy == null || !psynergy.IsBattlePsynergy) continue;
 
                         GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
                         newItem.name = psynergy.SlugName;
 
-                        newItem.transform.Find("Name")?.GetComponent<TextMeshProUGUI>()?.SetText(psynergy.Name);
+                        newItem.transform.Find("Name")?.GetComponent<TextMeshProUGUI>()?.SetText(psynergy.PsynergyName);
                         newItem.transform.Find("Number")?.GetComponent<TextMeshProUGUI>()?.SetText($"{psynergy.PpCost} PP");
 
                         Transform iconTrans = newItem.transform.Find("Icon");
@@ -392,7 +392,7 @@ public class BattleUIController : MonoBehaviour
                         Transform elemTrans = newItem.transform.Find("ElementIcon");
                         if (elemTrans != null && elemTrans.TryGetComponent<Image>(out var elemImg))
                         {
-                            elemImg.sprite = psynergy.ElementIcon;
+                            elemImg.sprite = PsynergyDatabase.Instance.GetElementIcon(psynergy);
                         }
 
                         // Grey out text if not enough PP

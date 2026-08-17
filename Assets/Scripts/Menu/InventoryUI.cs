@@ -11,7 +11,7 @@ public class InventoryUI : MonoBehaviour
 
     GameObject content;
     GameObject itemPrefab;
-    List<Item> itemsList = new List<Item>(); //List with items on category
+    //List<Item> itemsList = new List<Item>(); //List with items on category
 
 
     //UI ELEMENTS
@@ -339,7 +339,7 @@ public class InventoryUI : MonoBehaviour
 
     }
 
-    private void SetElement(Item item)
+    /*private void SetElement(Item item)
     {/*
         GameObject newItem = Instantiate(itemPrefab, content.transform);
         newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(item.ItemName);
@@ -352,13 +352,13 @@ public class InventoryUI : MonoBehaviour
             newItem.transform.Find("Name").GetComponent<TextMeshProUGUI>().color = Color.gray;
 
         itemsList.Add(item);
-        elementsList.Add(newItem);*/
-    }
+        elementsList.Add(newItem);
+    }*/
 
 
     private void RefreshInventory()
     {
-        Item currentItemSelected = itemsList[itemIndex];
+        /*Item currentItemSelected = itemsList[itemIndex];
         Reset();
         ShowItemsByType(menuIndex);
         Item afterItemSelected = itemsList[itemIndex];
@@ -373,7 +373,7 @@ public class InventoryUI : MonoBehaviour
         {
             SetElementHighlight();
             elementsList[itemIndex].GetComponentInChildren<Animator>().enabled = false;
-        }
+        }*/
     }
 
     private void RefreshHeroPanel()
@@ -414,12 +414,12 @@ public class InventoryUI : MonoBehaviour
 
     private void SetItemInfoWindow(int itemCursorIndex)
     {
-        if (itemsList.Count != 0)
+        /*if (itemsList.Count != 0)
         {
             itemInfo.transform.Find("Name").GetComponent<TextMeshProUGUI>().SetText(itemsList[itemCursorIndex].ItemName);
             itemInfo.transform.Find("Description").GetComponent<TextMeshProUGUI>().SetText(itemsList[itemCursorIndex].ItemDescription);
             itemInfo.transform.Find("Image").GetComponent<Image>().sprite = itemsList[itemCursorIndex].Icon;
-        }
+        }*/
 
     }
 
@@ -440,7 +440,7 @@ public class InventoryUI : MonoBehaviour
 
     private void ItemListGoDown()
     {
-        if (itemsList.Count != 0)
+        /*if (itemsList.Count != 0)
         {
             if (itemIndex != itemsList.Count - 1) //if cursor NOT last position
             {
@@ -455,11 +455,11 @@ public class InventoryUI : MonoBehaviour
                 SetElementHighlight();
                 SetItemInfoWindow(itemIndex);
             }
-        }
+        }*/
     }
 
     private void ItemListGoUp()
-    {
+    {/*
         if (itemsList.Count != 0)
         {
             if (itemIndex != 0) //if cursor NOT first position
@@ -475,11 +475,11 @@ public class InventoryUI : MonoBehaviour
                 SetElementHighlight();
                 SetItemInfoWindow(itemIndex);
             }
-        }
+        }*/
     }
 
     private void ItemListGoRight()
-    {
+    {/*
         if (itemsList.Count != 0)
         {
             if (itemIndex != itemsList.Count - 1)
@@ -489,13 +489,13 @@ public class InventoryUI : MonoBehaviour
                 SetItemInfoWindow(itemIndex);
             }
 
-        }
+        }*/
 
     }
 
     private void ItemListGoLeft()
     {
-        if (itemsList.Count != 0)
+        /*if (itemsList.Count != 0)
         {
             if (itemIndex != 0)
             {
@@ -504,7 +504,7 @@ public class InventoryUI : MonoBehaviour
                 SetItemInfoWindow(itemIndex);
             }
 
-        }
+        }*/
     }
 
     private void SetElementHighlight()
@@ -543,7 +543,7 @@ public class InventoryUI : MonoBehaviour
         {
             Destroy(element);
         }
-        itemsList = new List<Item>();
+        //itemsList = new List<Item>();
         elementsList = new List<GameObject>();
     }
 

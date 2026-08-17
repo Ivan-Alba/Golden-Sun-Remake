@@ -48,7 +48,7 @@ public class HeroEquipmentData
 [System.Serializable]
 public class GameData
 {
-    // Scene
+    // Scene Data
     public string currentSceneName;
     public float[] playerPosition = new float[3];
     public float[] playerRotation = new float[3];
@@ -65,8 +65,10 @@ public class GameData
     public List<List<Stat>> heroStats = new List<List<Stat>>();
     public List<int[]> heroLevelAndXp = new List<int[]>();
     public List<int[]> heroCurrHpPp = new List<int[]>();
-    public List<List<Psynergy>> heroPsynergy = new List<List<Psynergy>>();
-    public List<KeyValuePair<string, Psynergy[]>> heroShortcuts = new List<KeyValuePair<string, Psynergy[]>>();
+
+    // Psynergy Data (Stored as Slugs for Clean JSON Serialization)
+    public List<List<string>> heroPsynergySlugs = new List<List<string>>();
+    public List<KeyValuePair<string, string[]>> heroShortcuts = new List<KeyValuePair<string, string[]>>();
 
     // JSON CONSTRUCTOR
     public GameData()
@@ -136,8 +138,13 @@ public class GameData
                     int[] currentPpHp = new int[2] { heroStatsComponent.CurrHp, heroStatsComponent.CurrPp };
                     heroCurrHpPp.Add(currentPpHp);
 
-                    // Psynergy
-                    heroPsynergy.Add(heroStatsComponent.Psynergies);
+                    // Convert PsynergySO list to Slugs
+                    List<string> psySlugs = heroStatsComponent.Psynergies?
+                        .Where(p => p != null)
+                        .Select(p => p.SlugName)
+                        .ToList() ?? new List<string>();
+
+                    heroPsynergySlugs.Add(psySlugs);
                 }
 
                 // Individual Backpack (HeroInventory)
@@ -190,11 +197,15 @@ public class GameData
         // ---- PSYNERGY SHORTCUTS ----
         if (PsynergyWorldController.Instance != null && PsynergyWorldController.Instance.HeroShortcuts != null)
         {
-            foreach (KeyValuePair<GameObject, Psynergy[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)
+            foreach (KeyValuePair<GameObject, PsynergySO[]> heroShortcut in PsynergyWorldController.Instance.HeroShortcuts)
             {
                 if (heroShortcut.Key != null)
                 {
-                    KeyValuePair<string, Psynergy[]> item = new KeyValuePair<string, Psynergy[]>(heroShortcut.Key.name, heroShortcut.Value);
+                    string[] shortcutSlugs = heroShortcut.Value?
+                        .Select(p => p != null ? p.SlugName : null)
+                        .ToArray();
+
+                    KeyValuePair<string, string[]> item = new KeyValuePair<string, string[]>(heroShortcut.Key.name, shortcutSlugs);
                     heroShortcuts.Add(item);
                 }
             }

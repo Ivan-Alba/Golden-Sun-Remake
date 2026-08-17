@@ -23,7 +23,7 @@ public class EquipableSO : ItemSO
 
     [Header("Battle Usage (Artifact Skill)")]
     [SerializeField] private bool useInBattle = false;
-    [SerializeField] private Psynergy battleUsePsynergy; // Reference to Psynergy invoked when used as item in battle
+    [SerializeField] private PsynergySO battleUsePsynergy; // Reference to Psynergy invoked when used as item in battle
 
     #region Properties
 
@@ -33,7 +33,7 @@ public class EquipableSO : ItemSO
     public ElementalType Element => element;
     public int ElementalPowerBonus => elementalPowerBonus;
     public bool UseInBattle => useInBattle;
-    public Psynergy BattleUsePsynergy => battleUsePsynergy;
+    public PsynergySO BattleUsePsynergy => battleUsePsynergy;
 
     #endregion
 }

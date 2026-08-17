@@ -27,7 +27,6 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
     private GameObject player; // player reference
-
     private List<GameObject> party;
 
     // TODO REVISAR
@@ -36,14 +35,13 @@ public class BattleManager : MonoBehaviour
     private GameObject mainCamera;
     private float[] pointerOriginalY;
 
-    // NEXT ACTION
-    private Psynergy nextPsynergy;
-    private Item nextItem;
+    // NEXT ACTION & TARGETING
+    private PsynergySO nextPsynergy;
+    private ItemSO nextItem;
 
     private List<GameObject> targetList = new List<GameObject>();
-
-    private string nextAction_targetType;
-    private int nextAction_targetSize;
+    private PsynergyTargetType currentTargetType = PsynergyTargetType.SingleEnemy;
+    private int currentAreaRange = 0;
 
     // RESPAWN CONTROLLER
     private RespawnController respawnController;
@@ -155,8 +153,9 @@ public class BattleManager : MonoBehaviour
                 switch (battleUIController.CommandSelected)
                 {
                     case 0: // ATTACK
-                        SelectDefaultTarget("ONE_TARGET");
-                        nextAction_targetType = "ONE_TARGET";
+                        currentTargetType = PsynergyTargetType.SingleEnemy;
+                        currentAreaRange = 0;
+                        SelectDefaultTarget(currentTargetType, currentAreaRange);
                         currentBattleState = BattleState.TargetSelection;
                         break;
 
@@ -204,19 +203,12 @@ public class BattleManager : MonoBehaviour
 
                     if (battleUIController.CommandSelected == 1) // PSYNERGY
                     {
-                        if (nextPsynergy.TargetType.ToString() == "MULTI_TARGET")
-                        {
-                            SelectDefaultTarget(nextPsynergy.TargetType.ToString(), nextPsynergy.TargetSize);
-                            nextAction_targetType = nextPsynergy.TargetType.ToString();
-                            nextAction_targetSize = nextPsynergy.TargetSize;
-                        }
-                        else
-                        {
-                            SelectDefaultTarget(nextPsynergy.TargetType.ToString());
-                            nextAction_targetType = nextPsynergy.TargetType.ToString();
-                        }
+                        currentTargetType = nextPsynergy.TargetType;
+                        currentAreaRange = nextPsynergy.AreaRange;
 
-                        Debug.Log($"Psinergía {nextPsynergy.Name} target tipo: {nextPsynergy.TargetType}");
+                        SelectDefaultTarget(currentTargetType, currentAreaRange);
+
+                        Debug.Log($"Psinergía {nextPsynergy.SlugName} target tipo: {nextPsynergy.TargetType}");
                     }
                     else if (battleUIController.CommandSelected == 5) // ITEMS
                     {
@@ -588,7 +580,7 @@ public class BattleManager : MonoBehaviour
                 baseActionCost = 60; // Base Psynergy delay cost
                 battleUIController.ShowContentPanel(false);
 
-                if (nextPsynergy.Type == Psynergy.Types.HEALING)
+                if (nextPsynergy != null && IsAllyTarget(nextPsynergy.TargetType))
                 {
                     StartCoroutine(turnController.CurrentFighter.UsePsynergy(nextPsynergy, party[actualTarget], targetList));
                 }
@@ -827,6 +819,13 @@ public class BattleManager : MonoBehaviour
 
     #region State & Target Helpers
 
+    private bool IsAllyTarget(PsynergyTargetType targetType)
+    {
+        return targetType == PsynergyTargetType.SingleAlly ||
+               targetType == PsynergyTargetType.AllAllies ||
+               targetType == PsynergyTargetType.Self;
+    }
+
     private void PlaySFX(SFXType sfx)
     {
         AudioManager.Instance?.PlaySFX(sfx);
@@ -882,6 +881,8 @@ public class BattleManager : MonoBehaviour
 
         nextPsynergy = null;
         nextItem = null;
+        currentTargetType = PsynergyTargetType.SingleEnemy;
+        currentAreaRange = 0;
         currentBattleState = BattleState.None;
     }
 
@@ -897,11 +898,12 @@ public class BattleManager : MonoBehaviour
 
     #region Target Selection Logic
 
-    private void SelectDefaultTarget(string targetType, int targetSize = 0, int i = 0)
+    private void SelectDefaultTarget(PsynergyTargetType targetType, int areaRange = 0, int initialIndex = 0)
     {
-        if (nextPsynergy != null && nextPsynergy.Type == Psynergy.Types.HEALING)
+        bool targetIsAlly = IsAllyTarget(targetType);
+
+        if (targetIsAlly)
         {
-            Debug.Log("Healing Psynergy");
             GameObject pointer;
             List<GameObject> currentParty = GameManager.Instance.GetParty();
             targetList = new List<GameObject>();
@@ -913,15 +915,27 @@ public class BattleManager : MonoBehaviour
 
             switch (targetType)
             {
-                case "ONE_TARGET":
-                    pointer = currentParty[i].transform.Find("Pointer").gameObject;
+                case PsynergyTargetType.SingleAlly:
+                case PsynergyTargetType.Self:
+                    pointer = currentParty[initialIndex].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
-                    targetList.Add(currentParty[i]);
-                    actualTarget = i;
+                    targetList.Add(currentParty[initialIndex]);
+                    actualTarget = initialIndex;
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
 
-                case "MULTI_TARGET":
+                case PsynergyTargetType.AllAllies:
+                    foreach (GameObject hero in currentParty)
+                    {
+                        if (hero != null)
+                        {
+                            pointer = hero.transform.Find("Pointer").gameObject;
+                            pointer.SetActive(true);
+                            targetList.Add(hero);
+                        }
+                    }
+                    actualTarget = 0;
+                    battleUIController.ShowSelectedTarget(targetList);
                     break;
             }
         }
@@ -938,90 +952,71 @@ public class BattleManager : MonoBehaviour
 
             switch (targetType)
             {
-                case "ONE_TARGET":
-                    while (enemiesList[i] == null)
+                case PsynergyTargetType.SingleEnemy:
+                    while (enemiesList[initialIndex] == null)
                     {
-                        i++;
+                        initialIndex++;
                     }
 
-                    pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
+                    pointer = enemyPositions[initialIndex].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
-                    targetList.Add(enemiesList[i]);
-                    actualTarget = i;
+                    targetList.Add(enemiesList[initialIndex]);
+                    actualTarget = initialIndex;
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
 
-                case "MULTI_TARGET":
-                    while (enemiesList[i] == null)
+                case PsynergyTargetType.MultiEnemyArea:
+                    while (enemiesList[initialIndex] == null)
                     {
-                        i++;
+                        initialIndex++;
                     }
 
-                    actualTarget = i;
+                    actualTarget = initialIndex;
 
-                    targetList.Add(enemiesList[i]);
-                    pointer = enemyPositions[i].transform.Find("Pointer").gameObject;
+                    // Add primary target
+                    targetList.Add(enemiesList[initialIndex]);
+                    pointer = enemyPositions[initialIndex].transform.Find("Pointer").gameObject;
                     pointer.SetActive(true);
 
-                    switch (targetSize)
+                    // Add adjacent targets based on areaRange (Golden Sun spread)
+                    if (areaRange >= 1)
                     {
-                        case 3:
-                            switch (i)
+                        // Target to the left/right depending on enemy position index
+                        for (int offset = 1; offset <= areaRange; offset++)
+                        {
+                            int rightIdx = initialIndex + offset;
+                            int leftIdx = initialIndex - offset;
+
+                            if (rightIdx < enemiesList.Count && enemiesList[rightIdx] != null)
                             {
-                                case 0:
-                                    if (enemiesList.Count > 1 && enemiesList[1] != null)
-                                    {
-                                        targetList.Add(enemiesList[1]);
-                                        pointer = enemyPositions[1].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-
-                                    if (enemiesList.Count > 2 && enemiesList[2] != null)
-                                    {
-                                        targetList.Add(enemiesList[2]);
-                                        pointer = enemyPositions[2].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-                                    break;
-
-                                case 1:
-                                    if (enemiesList.Count > 3 && enemiesList[3] != null)
-                                    {
-                                        targetList.Add(enemiesList[3]);
-                                        pointer = enemyPositions[3].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-
-                                    if (enemiesList[0] != null)
-                                    {
-                                        targetList.Add(enemiesList[0]);
-                                        pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-                                    break;
-
-                                case 2:
-                                    if (enemiesList.Count > 4 && enemiesList[4] != null)
-                                    {
-                                        targetList.Add(enemiesList[4]);
-                                        pointer = enemyPositions[4].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-
-                                    if (enemiesList[0] != null)
-                                    {
-                                        targetList.Add(enemiesList[0]);
-                                        pointer = enemyPositions[0].transform.Find("Pointer").gameObject;
-                                        pointer.SetActive(true);
-                                    }
-                                    break;
+                                targetList.Add(enemiesList[rightIdx]);
+                                pointer = enemyPositions[rightIdx].transform.Find("Pointer").gameObject;
+                                pointer.SetActive(true);
                             }
-                            break;
 
-                        case 5:
-                            break;
+                            if (leftIdx >= 0 && enemiesList[leftIdx] != null)
+                            {
+                                targetList.Add(enemiesList[leftIdx]);
+                                pointer = enemyPositions[leftIdx].transform.Find("Pointer").gameObject;
+                                pointer.SetActive(true);
+                            }
+                        }
                     }
 
+                    battleUIController.ShowSelectedTarget(targetList);
+                    break;
+
+                case PsynergyTargetType.AllEnemies:
+                    for (int e = 0; e < enemiesList.Count; e++)
+                    {
+                        if (enemiesList[e] != null)
+                        {
+                            targetList.Add(enemiesList[e]);
+                            pointer = enemyPositions[e].transform.Find("Pointer").gameObject;
+                            pointer.SetActive(true);
+                        }
+                    }
+                    actualTarget = 0;
                     battleUIController.ShowSelectedTarget(targetList);
                     break;
             }
@@ -1030,192 +1025,82 @@ public class BattleManager : MonoBehaviour
 
     private void SelectRightTarget()
     {
-        int nextTarget = 0;
+        int nextTarget = actualTarget;
+        bool targetIsAlly = IsAllyTarget(currentTargetType);
 
-        if (nextPsynergy != null && nextPsynergy.Type == Psynergy.Types.HEALING)
+        if (targetIsAlly)
         {
-            switch (GameManager.Instance.GetParty().Count)
+            List<GameObject> currentParty = GameManager.Instance.GetParty();
+            if (currentParty.Count > 1)
             {
-                case 1:
-                    nextTarget = actualTarget;
-                    break;
-                case 2:
-                    switch (actualTarget)
-                    {
-                        case 0: nextTarget = 1; break;
-                        case 1: nextTarget = 0; break;
-                    }
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
+                nextTarget = (actualTarget + 1) % currentParty.Count;
             }
 
             if (actualTarget != nextTarget)
             {
-                switch (nextAction_targetType)
-                {
-                    case "ONE_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
-                        break;
-                    case "MULTI_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
-                        break;
-                }
+                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
             }
         }
         else
         {
-            switch (enemiesList.Count)
+            if (enemiesList.Count > 1)
             {
-                case 1:
-                    nextTarget = 0;
-                    break;
-
-                case 2:
-                    switch (actualTarget)
+                int count = enemiesList.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    int candidate = (actualTarget + i) % count;
+                    if (enemiesList[candidate] != null)
                     {
-                        case 0:
-                            nextTarget = 0;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            break;
-                        case 1:
-                            nextTarget = 1;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            break;
+                        nextTarget = candidate;
+                        break;
                     }
-                    break;
-
-                case 3:
-                    switch (actualTarget)
-                    {
-                        case 0:
-                            nextTarget = 0;
-                            if (enemiesList[2] != null) nextTarget = 2;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            break;
-                        case 1:
-                            nextTarget = 1;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            if (enemiesList[2] != null) nextTarget = 2;
-                            break;
-                        case 2:
-                            nextTarget = 2;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            break;
-                    }
-                    break;
+                }
             }
 
             if (actualTarget != nextTarget)
             {
-                switch (nextAction_targetType)
-                {
-                    case "ONE_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
-                        break;
-                    case "MULTI_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
-                        break;
-                }
+                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
             }
         }
     }
 
     private void SelectLeftTarget()
     {
-        int nextTarget = 0;
+        int nextTarget = actualTarget;
+        bool targetIsAlly = IsAllyTarget(currentTargetType);
 
-        if (nextPsynergy != null && nextPsynergy.Type == Psynergy.Types.HEALING)
+        if (targetIsAlly)
         {
-            switch (GameManager.Instance.GetParty().Count)
+            List<GameObject> currentParty = GameManager.Instance.GetParty();
+            if (currentParty.Count > 1)
             {
-                case 1:
-                    nextTarget = actualTarget;
-                    break;
-                case 2:
-                    switch (actualTarget)
-                    {
-                        case 0: nextTarget = 1; break;
-                        case 1: nextTarget = 0; break;
-                    }
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
+                nextTarget = (actualTarget - 1 + currentParty.Count) % currentParty.Count;
             }
 
             if (actualTarget != nextTarget)
             {
-                switch (nextAction_targetType)
-                {
-                    case "ONE_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
-                        break;
-                    case "MULTI_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
-                        break;
-                }
+                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
             }
         }
         else
         {
-            switch (enemiesList.Count)
+            if (enemiesList.Count > 1)
             {
-                case 1:
-                    nextTarget = 0;
-                    break;
-
-                case 2:
-                    switch (actualTarget)
+                int count = enemiesList.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    int candidate = (actualTarget - i + count) % count;
+                    if (enemiesList[candidate] != null)
                     {
-                        case 0:
-                            nextTarget = 0;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            break;
-                        case 1:
-                            nextTarget = 1;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            break;
+                        nextTarget = candidate;
+                        break;
                     }
-                    break;
-
-                case 3:
-                    switch (actualTarget)
-                    {
-                        case 0:
-                            nextTarget = 0;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            if (enemiesList[2] != null) nextTarget = 2;
-                            break;
-                        case 1:
-                            nextTarget = 1;
-                            if (enemiesList[2] != null) nextTarget = 2;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            break;
-                        case 2:
-                            nextTarget = 2;
-                            if (enemiesList[0] != null) nextTarget = 0;
-                            if (enemiesList[1] != null) nextTarget = 1;
-                            break;
-                    }
-                    break;
+                }
             }
 
             if (actualTarget != nextTarget)
             {
-                switch (nextAction_targetType)
-                {
-                    case "ONE_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, 0, nextTarget);
-                        break;
-                    case "MULTI_TARGET":
-                        SelectDefaultTarget(nextAction_targetType, nextAction_targetSize, nextTarget);
-                        break;
-                }
+                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
             }
         }
     }

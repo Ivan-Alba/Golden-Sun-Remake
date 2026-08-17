@@ -245,7 +245,7 @@ public class GameManager : MonoBehaviour
         {
             PsynergyWorldController.Instance.Initialize();
             PsynergyWorldController.Instance.SetShortcut(party[0], PsynergyDatabase.Instance.GetPsynergy("catch"), 0);
-            Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").Name + " set to shortcut 0");
+            Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").PsynergyName + " set to shortcut 0");
         }
 
         ChangeScene(firstSceneName, initialSpawnID);
@@ -469,7 +469,7 @@ public class GameManager : MonoBehaviour
             GameObject heroObj = party[i];
             string currentHeroName = heroObj.name;
 
-            // 1. Restore Base Stats, Level, XP & Psynergies
+            // 1. Restore Base Stats, Level, XP
             if (heroObj.TryGetComponent<HeroStats>(out var heroStats))
             {
                 if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
@@ -491,9 +491,32 @@ public class GameManager : MonoBehaviour
                     heroStats.LoadProgression(savedLevel, savedXp);
                 }
 
-                if (dataToLoad.heroPsynergy != null && i < dataToLoad.heroPsynergy.Count)
+
+                // 1.2 Restore Psynergy 
+                if (dataToLoad.heroPsynergySlugs != null && i < dataToLoad.heroPsynergySlugs.Count)
                 {
-                    heroStats.Psynergies = dataToLoad.heroPsynergy[i];
+                    List<string> savedSlugs = dataToLoad.heroPsynergySlugs[i];
+                    List<PsynergySO> loadedPsynergies = new List<PsynergySO>();
+
+                    if (savedSlugs != null)
+                    {
+                        foreach (string slug in savedSlugs)
+                        {
+                            if (string.IsNullOrEmpty(slug)) continue;
+
+                            PsynergySO psynergy = PsynergyDatabase.Instance.GetPsynergy(slug);
+                            if (psynergy != null)
+                            {
+                                loadedPsynergies.Add(psynergy);
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"[GameManager] Could not find PsynergySO for saved slug: '{slug}'.");
+                            }
+                        }
+                    }
+
+                    heroStats.Psynergies = loadedPsynergies;
                 }
             }
 
@@ -564,22 +587,37 @@ public class GameManager : MonoBehaviour
         }
 
         // Refresh Psynergy Icons
-        party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies?.ForEach(p => p.SetElementIcon()));
+        //party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies?.ForEach(p => p.SetElementIcon()));
 
-        // ---- SHORTCUTS ----
+        /// ---- SHORTCUTS ----
         if (PsynergyWorldController.Instance != null)
         {
             PsynergyWorldController.Instance.Initialize();
 
             if (dataToLoad.heroShortcuts != null)
             {
-                foreach (KeyValuePair<string, Psynergy[]> heroShortcut in dataToLoad.heroShortcuts)
+                foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
                 {
                     GameObject heroObj = GameObject.Find(heroShortcut.Key);
 
                     if (heroObj != null && PsynergyWorldController.Instance.HeroShortcuts.ContainsKey(heroObj))
                     {
-                        PsynergyWorldController.Instance.HeroShortcuts[heroObj] = heroShortcut.Value;
+                        string[] savedSlugs = heroShortcut.Value;
+                        PsynergySO[] loadedShortcuts = new PsynergySO[savedSlugs != null ? savedSlugs.Length : 0];
+
+                        if (savedSlugs != null)
+                        {
+                            for (int s = 0; s < savedSlugs.Length; s++)
+                            {
+                                string slug = savedSlugs[s];
+                                if (!string.IsNullOrEmpty(slug))
+                                {
+                                    loadedShortcuts[s] = PsynergyDatabase.Instance.GetPsynergy(slug);
+                                }
+                            }
+                        }
+
+                        PsynergyWorldController.Instance.HeroShortcuts[heroObj] = loadedShortcuts;
                     }
                 }
             }

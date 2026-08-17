@@ -53,12 +53,12 @@
     align-items: center;
     justify-content: flex-start;
     position: relative;
-    border-radius: 6px;
+    border-radius: 5px;
     overflow: hidden;
     margin-bottom: 8px;
-    background-color: rgba(15, 15, 20, 0.8);
+    background-color: rgba(15, 15, 20, 0.6);
     border-width: 1px;
-    border-color: rgba(218, 165, 32, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
     padding: 6px 4px 0 4px;
 }
 
@@ -68,6 +68,8 @@
     aspect-ratio: 1;
     background-color: rgba(40, 40, 50, 0.9);
     border-radius: 4px;
+    border-width: 2px;
+    border-color: rgba(218, 165, 32, 0.4);
     margin-bottom: 6px;
 }
 
@@ -353,10 +355,10 @@
    ========================================== */
 .main-djinn-card {
     flex-direction: column;
-    background-color: rgba(25, 25, 35, 0.95);
-    border-radius: 6px;
+    background-color: rgba(15, 15, 20, 0.6);
     padding: 8px;
     border-width: 1px;
+    border-radius: 5px;
     margin-top: auto;
 }
 
@@ -367,6 +369,7 @@
 .main-djinn-body {
     flex-direction: row;
     align-items: center;
+
 }
 
 /* Elemental Borders & Backdrops for Main Djinn Card */

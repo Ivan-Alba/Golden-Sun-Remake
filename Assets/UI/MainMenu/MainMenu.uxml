@@ -1,19 +1,13 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/MainMenu.uss?fileID=7433441132597879392&amp;guid=d2954fa9e96c5c64ebeb7394ba486812&amp;type=3#MainMenu" />
-    <ui:VisualElement name="container_book" picking-mode="Ignore" style="flex-grow: 1; margin-left: 10%; margin-right: 10%; margin-top: 5%; margin-bottom: 5%; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;">
+    <ui:VisualElement name="container_book" picking-mode="Ignore" style="flex-grow: 1; margin-left: 10%; margin-right: 10%; margin-top: 5%; margin-bottom: 5%; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; padding-left: 12px; padding-right: 12px; padding-top: 12px; padding-bottom: 12px;">
         <ui:VisualElement name="header_top" picking-mode="Ignore">
             <ui:VisualElement name="header_info_bar" picking-mode="Ignore" class="header-info-bar">
-                
-                <!-- Left Block: Djinn Tracker Grid (Aligned Grid Layout) -->
                 <ui:VisualElement name="header_left_box" picking-mode="Ignore" class="header-left-box">
-                    
-                    <!-- Row 1: Venus & Mars -->
-                    <ui:VisualElement name="djinn_tracker_row_top" class="djinn-tracker-row">
-                        
-                        <!-- Venus Group -->
-                        <ui:VisualElement name="djinn_group_venus" class="djinn-element-group">
-                            <ui:VisualElement name="icon_djinn_venus" class="header-icon icon-djinn-venus" />
-                            <ui:VisualElement name="pips_venus" class="djinn-pips-container">
+                    <ui:VisualElement name="djinn_tracker_row_top" picking-mode="Ignore" class="djinn-tracker-row">
+                        <ui:VisualElement name="djinn_group_venus" picking-mode="Ignore" class="djinn-element-group">
+                            <ui:VisualElement name="icon_djinn_venus" picking-mode="Ignore" class="header-icon icon-djinn-venus" />
+                            <ui:VisualElement name="pips_venus" picking-mode="Ignore" class="djinn-pips-container">
                                 <ui:VisualElement class="djinn-pip active" />
                                 <ui:VisualElement class="djinn-pip active" />
                                 <ui:VisualElement class="djinn-pip" />
@@ -25,9 +19,7 @@
                             </ui:VisualElement>
                             <ui:Label name="label_count_venus" text="(2)" class="djinn-count-text" />
                         </ui:VisualElement>
-
-                        <!-- Mars Group -->
-                        <ui:VisualElement name="djinn_group_mars" class="djinn-element-group">
+                        <ui:VisualElement name="djinn_group_mars" picking-mode="Ignore" class="djinn-element-group">
                             <ui:VisualElement name="icon_djinn_mars" class="header-icon icon-djinn-mars" />
                             <ui:VisualElement name="pips_mars" class="djinn-pips-container">
                                 <ui:VisualElement class="djinn-pip active" />
@@ -41,13 +33,8 @@
                             </ui:VisualElement>
                             <ui:Label name="label_count_mars" text="(1)" class="djinn-count-text" />
                         </ui:VisualElement>
-
                     </ui:VisualElement>
-
-                    <!-- Row 2: Jupiter & Mercury -->
-                    <ui:VisualElement name="djinn_tracker_row_bottom" class="djinn-tracker-row">
-                        
-                        <!-- Jupiter Group -->
+                    <ui:VisualElement name="djinn_tracker_row_bottom" picking-mode="Ignore" class="djinn-tracker-row">
                         <ui:VisualElement name="djinn_group_jupiter" class="djinn-element-group">
                             <ui:VisualElement name="icon_djinn_jupiter" class="header-icon icon-djinn-jupiter" />
                             <ui:VisualElement name="pips_jupiter" class="djinn-pips-container">
@@ -62,8 +49,6 @@
                             </ui:VisualElement>
                             <ui:Label name="label_count_jupiter" text="(1)" class="djinn-count-text" />
                         </ui:VisualElement>
-
-                        <!-- Mercury Group -->
                         <ui:VisualElement name="djinn_group_mercury" class="djinn-element-group">
                             <ui:VisualElement name="icon_djinn_mercury" class="header-icon icon-djinn-mercury" />
                             <ui:VisualElement name="pips_mercury" class="djinn-pips-container">
@@ -78,45 +63,36 @@
                             </ui:VisualElement>
                             <ui:Label name="label_count_mercury" text="(0)" class="djinn-count-text" />
                         </ui:VisualElement>
-
                     </ui:VisualElement>
-
                 </ui:VisualElement>
-
-                <!-- Center Block: Story Chapter & Active Quest -->
                 <ui:VisualElement name="header_center_box" picking-mode="Ignore" class="header-center-box">
-                    <ui:VisualElement name="row_chapter" class="header-info-row">
+                    <ui:VisualElement name="row_chapter" picking-mode="Ignore" class="header-info-row">
                         <ui:VisualElement name="icon_chapter" class="header-icon icon-chapter" />
                         <ui:Label text="Capítulo I: Las Sombras de Tale" name="label_chapter" class="label-chapter" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="row_quest" class="header-info-row">
+                    <ui:VisualElement name="row_quest" picking-mode="Ignore" class="header-info-row">
                         <ui:VisualElement name="icon_quest" class="header-icon icon-quest" />
                         <ui:Label text="Reúnete con Kraden al oeste del pueblo" name="label_active_quest" class="label-quest" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <!-- Right Block: Location, Gold & Play Time -->
                 <ui:VisualElement name="header_right_box" picking-mode="Ignore" class="header-right-box">
-                    <ui:VisualElement name="row_location" class="header-info-row row-right">
+                    <ui:VisualElement name="row_location" picking-mode="Ignore" class="header-info-row row-right">
                         <ui:VisualElement name="icon_location" class="header-icon icon-location" />
                         <ui:Label text="Llanura de Tale" name="label_location" class="header-info-label label-location-text" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="row_gold" class="header-info-row row-right">
+                    <ui:VisualElement name="row_gold" picking-mode="Ignore" class="header-info-row row-right">
                         <ui:VisualElement name="icon_gold" class="header-icon icon-gold" />
                         <ui:Label text="40.722 Monedas" name="label_gold" class="header-info-label label-gold-text" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="row_time" class="header-info-row row-right">
+                    <ui:VisualElement name="row_time" picking-mode="Ignore" class="header-info-row row-right">
                         <ui:VisualElement name="icon_time" class="header-icon icon-time" />
                         <ui:Label text="15:23:52" name="label_time" class="header-info-label label-time-text" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:VisualElement>
-
-            <!-- Hero Selection Header Bar -->
             <ui:VisualElement name="header_heroes_bar" picking-mode="Ignore" class="header-heroes-bar">
                 <ui:Button name="btn_hero0" class="header-hero-card">
-                    <ui:VisualElement name="hero_portrait_0" class="header-hero-portrait" />
+                    <ui:VisualElement name="hero_portrait_0" class="header-hero-portrait" style="width: 66px;" />
                     <ui:VisualElement class="header-hero-info">
                         <ui:VisualElement class="header-hero-top-row">
                             <ui:Label name="label_hero_name_0" text="Hans" class="header-hero-name" />
@@ -137,7 +113,7 @@
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn_hero1" class="header-hero-card">
-                    <ui:VisualElement name="hero_portrait_1" class="header-hero-portrait" />
+                    <ui:VisualElement name="hero_portrait_1" class="header-hero-portrait" style="width: 66px;" />
                     <ui:VisualElement class="header-hero-info">
                         <ui:VisualElement class="header-hero-top-row">
                             <ui:Label name="label_hero_name_1" text="Garet" class="header-hero-name" />
@@ -158,7 +134,7 @@
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn_hero2" class="header-hero-card">
-                    <ui:VisualElement name="hero_portrait_2" class="header-hero-portrait" />
+                    <ui:VisualElement name="hero_portrait_2" class="header-hero-portrait" style="width: 66px;" />
                     <ui:VisualElement class="header-hero-info">
                         <ui:VisualElement class="header-hero-top-row">
                             <ui:Label name="label_hero_name_2" text="Ivan" class="header-hero-name" />
@@ -179,7 +155,7 @@
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn_hero3" class="header-hero-card">
-                    <ui:VisualElement name="hero_portrait_3" class="header-hero-portrait" />
+                    <ui:VisualElement name="hero_portrait_3" class="header-hero-portrait" style="width: 66px;" />
                     <ui:VisualElement class="header-hero-info">
                         <ui:VisualElement class="header-hero-top-row">
                             <ui:Label name="label_hero_name_3" text="Mia" class="header-hero-name" />

@@ -10,8 +10,8 @@ public class EquipmentUI : MonoBehaviour
     [SerializeField] private MenuController menuController;
 
     List<GameObject> itemList;
-    Equipable[] equippedItems;
-    List<Equipable> equipableList;
+    //Equipable[] equippedItems;
+    //List<Equipable> equipableList;
 
     int optionsIndex;
     int slotsIndex;
@@ -39,7 +39,7 @@ public class EquipmentUI : MonoBehaviour
         emptyIcon = Resources.Load<Sprite>("Images/Icons/Mark");
         //equipmentSlots = HeroEquipment.EquipmentSlots;
         itemList = new List<GameObject>();
-        equippedItems = new Equipable[equipmentSlots];
+        //equippedItems = new Equipable[equipmentSlots];
         equipInfo = transform.Find("EquipInfo");
         slots = new List<Transform>();
 

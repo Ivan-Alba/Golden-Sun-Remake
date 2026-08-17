@@ -7,21 +7,17 @@ public interface IPsynergyTargetable
 {
     Transform Transform { get; }
 
-    /// <summary>
-    /// Checks if the object can currently be targeted by the aim system.
-    /// </summary>
     bool CanBeTargeted();
 
     /// <summary>
-    /// Checks if this specific object responds to the given Psynergy.
+    /// Checks if this specific object responds to the given PsynergySO.
     /// </summary>
-    bool IsCompatibleWith(Psynergy psynergy);
+    bool IsCompatibleWith(PsynergySO psynergy);
 
     /// <summary>
     /// Executes the interaction logic if the Psynergy matches.
-    /// Returns true if the Psynergy successfully triggered a reaction.
     /// </summary>
-    bool ExecutePsynergy(Psynergy psynergy, GameObject caster);
+    bool ExecutePsynergy(PsynergySO psynergy, GameObject caster);
 
     void OnTargetGained();
     void OnTargetLost();

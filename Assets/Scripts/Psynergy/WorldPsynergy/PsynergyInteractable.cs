@@ -1,11 +1,10 @@
-using System;
 using UnityEngine;
 
 public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 {
     [Header("Psynergy Configuration")]
-    [Tooltip("The SlugName of the required Psynergy in JSON (e.g., 'catch', 'move', 'frost')")]
-    [SerializeField] private string requiredPsynergySlug = "catch";
+    [Tooltip("The WorldAction required for this object to react.")]
+    [SerializeField] private WorldActionType requiredWorldAction = WorldActionType.Catch;
     [SerializeField] private bool singleUse = true;
 
     [Header("Visual Feedback (Optional)")]
@@ -35,20 +34,20 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
         return !hasBeenUsed;
     }
 
-    public bool IsCompatibleWith(Psynergy psynergy)
+    public bool IsCompatibleWith(PsynergySO psynergy)
     {
         if (hasBeenUsed || psynergy == null) return false;
 
-        // Verify it's a world Psynergy and matches the JSON SlugName
-        return psynergy.IsWorldPsynergy &&
-               string.Equals(psynergy.SlugName, requiredPsynergySlug, StringComparison.OrdinalIgnoreCase);
+        // Fast integer enum comparison
+        return psynergy.WorldData.CanBeUsedInWorld &&
+               psynergy.WorldData.WorldAction == requiredWorldAction;
     }
 
-    public bool ExecutePsynergy(Psynergy psynergy, GameObject caster)
+    public bool ExecutePsynergy(PsynergySO psynergy, GameObject caster)
     {
         if (!IsCompatibleWith(psynergy))
         {
-            Debug.Log($"[PsynergyInteractable] {gameObject.name} is not compatible with {psynergy?.Name}!");
+            Debug.Log($"[PsynergyInteractable] {gameObject.name} is not compatible with {psynergy?.PsynergyName}!");
             return false;
         }
 
@@ -63,15 +62,25 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
         return true;
     }
 
-    protected virtual void OnPsynergyTriggered(Psynergy psynergy, GameObject caster)
+    protected virtual void OnPsynergyTriggered(PsynergySO psynergy, GameObject caster)
     {
-        Debug.Log($"[PsynergyInteractable] Successfully applied {psynergy.Name} on {gameObject.name}!");
+        Debug.Log($"[PsynergyInteractable] Successfully applied {psynergy.PsynergyName} on {gameObject.name}!");
 
-        // Specific reaction logic based on the SlugName
-        if (string.Equals(psynergy.SlugName, "catch", StringComparison.OrdinalIgnoreCase))
+        // Action-based logic using Enum
+        switch (psynergy.WorldData.WorldAction)
         {
-            // TODO: Animate item flying to player, add item to inventory, etc.
-            gameObject.SetActive(false);
+            case WorldActionType.Catch:
+                // TODO: Animate item flying to player, add item to inventory, etc.
+                gameObject.SetActive(false);
+                break;
+
+            case WorldActionType.Move:
+                // TODO: Move block logic
+                break;
+
+            case WorldActionType.Frost:
+                // TODO: Freeze water puddle logic
+                break;
         }
     }
 

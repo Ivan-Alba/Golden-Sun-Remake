@@ -33,7 +33,7 @@ public class FighterStats : MonoBehaviour
     [SerializeField] protected int baseResistMercury = 100;
 
     protected Dictionary<StatType, Stat> statsMap = new Dictionary<StatType, Stat>();
-    protected List<Psynergy> psynergies = new List<Psynergy>();
+    protected List<PsynergySO> psynergies = new List<PsynergySO>();
 
     private int currHp;
     private int currPp;
@@ -42,7 +42,7 @@ public class FighterStats : MonoBehaviour
 
     public string Name { get => fighterName; set => fighterName = value; }
     public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
-    public List<Psynergy> Psynergies { get => psynergies; set => psynergies = value; }
+    public List<PsynergySO> Psynergies { get => psynergies; set => psynergies = value; }
 
     public bool IsDead => currHp <= 0;
 

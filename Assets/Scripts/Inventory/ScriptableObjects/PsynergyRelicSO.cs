@@ -5,7 +5,7 @@ using UnityEngine;
 public class PsynergyRelicSO : ItemSO
 {
     [Header("Relic Granted Abilities")]
-    [SerializeField] private Psynergy grantedPsynergy; // Granted field/battle Psynergy (e.g., Catch, Carry, Cloak)
+    [SerializeField] private PsynergySO grantedPsynergy; // Granted field/battle Psynergy (e.g., Catch, Carry, Cloak)
 
     [Header("Optional Relic Stats")]
     [SerializeField] private List<EquipmentStatBonus> statModifiers = new List<EquipmentStatBonus>();
@@ -19,7 +19,7 @@ public class PsynergyRelicSO : ItemSO
     #region Properties
 
     public EquipmentSlot EquipmentSlot => EquipmentSlot.PsynergyRelic;
-    public Psynergy GrantedPsynergy => grantedPsynergy;
+    public PsynergySO GrantedPsynergy => grantedPsynergy;
     public IReadOnlyList<EquipmentStatBonus> StatModifiers => statModifiers;
 
     #endregion

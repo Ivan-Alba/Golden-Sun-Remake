@@ -12,10 +12,10 @@ public class PsynergyWorldController : MonoBehaviour
     [SerializeField] private GameObject psynergyPanel;
     [SerializeField] private Transform psynergyChoosePanel;
 
-    private Dictionary<GameObject, Psynergy[]> heroShortcuts = new Dictionary<GameObject, Psynergy[]>();
+    private Dictionary<GameObject, PsynergySO[]> heroShortcuts = new Dictionary<GameObject, PsynergySO[]>();
     private int chooseIndex;
 
-    public Dictionary<GameObject, Psynergy[]> HeroShortcuts { get => heroShortcuts; set => heroShortcuts = value; }
+    public Dictionary<GameObject, PsynergySO[]> HeroShortcuts { get => heroShortcuts; set => heroShortcuts = value; }
 
     private void Awake()
     {
@@ -86,7 +86,7 @@ public class PsynergyWorldController : MonoBehaviour
         {
             if (hero != null && !heroShortcuts.ContainsKey(hero))
             {
-                heroShortcuts.Add(hero, new Psynergy[4]);
+                heroShortcuts.Add(hero, new PsynergySO[4]);
             }
         }
 
@@ -96,13 +96,13 @@ public class PsynergyWorldController : MonoBehaviour
         }
     }
 
-    public void SetShortcut(GameObject hero, Psynergy psynergy, int position)
+    public void SetShortcut(GameObject hero, PsynergySO psynergy, int position)
     {
         if (hero == null || position < 0 || position >= 4) return;
 
         if (!HeroShortcuts.ContainsKey(hero))
         {
-            HeroShortcuts.Add(hero, new Psynergy[4]);
+            HeroShortcuts.Add(hero, new PsynergySO[4]);
         }
 
         HeroShortcuts[hero][position] = psynergy;
@@ -117,7 +117,7 @@ public class PsynergyWorldController : MonoBehaviour
 
         if (!HeroShortcuts.ContainsKey(activeHero)) return;
 
-        Psynergy usedPsynergy = HeroShortcuts[activeHero][position];
+        PsynergySO usedPsynergy = HeroShortcuts[activeHero][position];
         if (usedPsynergy != null)
         {
             if (target != null)
@@ -129,17 +129,17 @@ public class PsynergyWorldController : MonoBehaviour
 
                 if (success)
                 {
-                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.Name} executed successfully!");
+                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
                     // TODO: Deduct PP cost from activeHero stats if needed
                 }
                 else
                 {
-                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.Name} failed or target is not compatible.");
+                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} failed or target is not compatible.");
                 }
             }
             else
             {
-                Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.Name} but no target was selected.");
+                Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} but no target was selected.");
                 // Lógica para Psinergías que no necesitan target en pantalla (ej. Curar en mapa, Revelar)
             }
         }
@@ -164,12 +164,12 @@ public class PsynergyWorldController : MonoBehaviour
         FighterStats stats = GameManager.Instance.ActiveHero.GetComponent<FighterStats>();
         if (stats == null || stats.Psynergies == null) return;
 
-        List<Psynergy> allPsynergies = stats.Psynergies;
-        List<Psynergy> worldPsynergies = new List<Psynergy>();
+        List<PsynergySO> allPsynergies = stats.Psynergies;
+        List<PsynergySO> worldPsynergies = new List<PsynergySO>();
 
         for (int i = 0; i < allPsynergies.Count; i++)
         {
-            if (allPsynergies[i] != null && allPsynergies[i].IsWorldPsynergy)
+            if (allPsynergies[i] != null && allPsynergies[i].WorldData.CanBeUsedInWorld)
             {
                 worldPsynergies.Add(allPsynergies[i]);
             }
@@ -255,12 +255,12 @@ public class PsynergyWorldController : MonoBehaviour
         FighterStats stats = GameManager.Instance.ActiveHero.GetComponent<FighterStats>();
         if (stats == null || stats.Psynergies == null) return;
 
-        List<Psynergy> allPsynergies = stats.Psynergies;
-        List<Psynergy> worldPsynergies = new List<Psynergy>();
+        List<PsynergySO> allPsynergies = stats.Psynergies;
+        List<PsynergySO> worldPsynergies = new List<PsynergySO>();
 
         for (int i = 0; i < allPsynergies.Count; i++)
         {
-            if (allPsynergies[i] != null && allPsynergies[i].IsWorldPsynergy)
+            if (allPsynergies[i] != null && allPsynergies[i].WorldData.CanBeUsedInWorld)
             {
                 worldPsynergies.Add(allPsynergies[i]);
             }
@@ -351,7 +351,7 @@ public class PsynergyWorldController : MonoBehaviour
             Transform iconTrans = psynergyPanel.transform.Find($"Icon{i}");
             if (iconTrans == null) continue;
 
-            Psynergy currentPsynergy = HeroShortcuts[hero][i];
+            PsynergySO currentPsynergy = HeroShortcuts[hero][i];
 
             if (currentPsynergy != null)
             {

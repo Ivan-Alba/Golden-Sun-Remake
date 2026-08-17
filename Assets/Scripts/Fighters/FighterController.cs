@@ -77,7 +77,7 @@ public class FighterController : MonoBehaviour
         ElementalType weaponElement = ElementalType.None;
         int critRate = 1;
 
-        // Get equipped weapon using the new HeroEquipment slot accessor
+        // Get equipped weapon using the HeroEquipment slot accessor
         if (TryGetComponent<HeroEquipment>(out var heroEq))
         {
             EquipableSO weapon = heroEq.GetEquippedItem(EquipmentSlot.Weapon);
@@ -111,7 +111,7 @@ public class FighterController : MonoBehaviour
         actionFinished = true;
     }
 
-    public IEnumerator UsePsynergy(Psynergy psynergyToUse, GameObject primaryTarget, List<GameObject> areaTargets)
+    public IEnumerator UsePsynergy(PsynergySO psynergyToUse, GameObject primaryTarget, List<GameObject> areaTargets)
     {
         actionFinished = false;
 
@@ -127,8 +127,8 @@ public class FighterController : MonoBehaviour
         // Cast Animation
         if (fighterAnim != null) fighterAnim.SetTrigger("usePsynergy");
 
-        // Instantiate Cast VFX
-        GameObject castVfxPrefab = PsynergyDatabase.Instance?.getElementAnimation(psynergyToUse);
+        // 1. Instantiate Elemental Circle Cast VFX
+        GameObject castVfxPrefab = PsynergyDatabase.Instance?.GetElementAnimation(psynergyToUse);
         GameObject castVfxInstance = null;
         if (castVfxPrefab != null)
         {
@@ -137,8 +137,8 @@ public class FighterController : MonoBehaviour
 
         yield return new WaitForSeconds(1.5f);
 
-        // Instantiate Impact VFX on target
-        GameObject impactVfxPrefab = PsynergyDatabase.Instance?.PsynergyBattleAnim[psynergyToUse.SlugName];
+        // 2. Instantiate Impact VFX directly from PsynergySO property
+        GameObject impactVfxPrefab = psynergyToUse.VfxPrefab;
         GameObject impactVfxInstance = null;
         if (impactVfxPrefab != null && primaryTarget != null)
         {
@@ -147,14 +147,19 @@ public class FighterController : MonoBehaviour
 
         yield return new WaitForSeconds(1.5f);
 
-        // Process Effect according to Psynergy Type
-        if (psynergyToUse.Type == Psynergy.Types.ATTACK)
+        // 3. Process Effect according to PsynergySO Subclass
+        if (psynergyToUse is AttackPsynergySO attackPsynergy)
         {
-            foreach (GameObject targetObj in areaTargets)
+            for (int i = 0; i < areaTargets.Count; i++)
             {
+                GameObject targetObj = areaTargets[i];
                 if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
                 {
-                    int damage = BattleDamageCalculator.CalculatePsynergyDamage(stats, targetStats, psynergyToUse.Power, psynergyToUse.Element);
+                    // Calculate distance index from primary target (0 for primary, 1+ for area neighbors)
+                    int distanceIndex = (targetObj == primaryTarget) ? 0 : Mathf.Abs(areaTargets.IndexOf(primaryTarget) - i);
+                    if (distanceIndex < 0) distanceIndex = 1;
+
+                    int damage = BattleDamageCalculator.CalculateAttackPsynergyDamage(stats, targetStats, attackPsynergy, distanceIndex);
                     if (targetObj.TryGetComponent<FighterController>(out var targetController))
                     {
                         targetController.ReceiveDamage(damage);
@@ -162,9 +167,22 @@ public class FighterController : MonoBehaviour
                 }
             }
         }
-        else if (psynergyToUse.Type == Psynergy.Types.HEALING)
+        else if (psynergyToUse is HealPsynergySO healPsynergy)
         {
-            ExecuteHealing(psynergyToUse.Power, areaTargets);
+            ExecuteHealing(healPsynergy, areaTargets);
+        }
+        else if (psynergyToUse is SupportPsynergySO supportPsynergy)
+        {
+            List<FighterStats> targetStatsList = new List<FighterStats>();
+            foreach (GameObject targetObj in areaTargets)
+            {
+                if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var tStats))
+                {
+                    targetStatsList.Add(tStats);
+                }
+            }
+
+            supportPsynergy.ExecuteBattleEffect(stats, targetStatsList);
         }
 
         yield return new WaitForSeconds(0.5f);
@@ -202,22 +220,29 @@ public class FighterController : MonoBehaviour
         }
     }
 
-    private void ExecuteHealing(int healPower, List<GameObject> targets)
+    private void ExecuteHealing(HealPsynergySO healPsynergy, List<GameObject> targets)
     {
+        List<FighterStats> targetStatsList = new List<FighterStats>();
+
         foreach (GameObject targetObj in targets)
         {
             if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
             {
                 int beforeHp = targetStats.CurrHp;
-                targetStats.CurrHp += healPower;
+
+                targetStatsList.Add(targetStats);
+
                 int restoredHp = targetStats.CurrHp - beforeHp;
 
-                if (BattleFXManager.Instance != null)
+                if (restoredHp > 0 && BattleFXManager.Instance != null)
                 {
                     BattleFXManager.Instance.SpawnFloatingText(targetObj.transform, restoredHp.ToString(), Color.green);
                 }
             }
         }
+
+        // Execute full heal logic (including Revive and cleanses) using HealPsynergySO method
+        healPsynergy.ExecuteBattleEffect(stats, targetStatsList);
     }
 
     public void SetUpDefense()
