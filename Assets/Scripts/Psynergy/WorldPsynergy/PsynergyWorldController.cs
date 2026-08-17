@@ -1,21 +1,32 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Manages assigned Psynergy shortcuts for each hero and handles execution of world Psynergies.
+/// </summary>
 public class PsynergyWorldController : MonoBehaviour
 {
     public static PsynergyWorldController Instance { get; private set; }
 
-    [Header("UI Panels")]
-    [SerializeField] private GameObject psynergyPanel;
-    [SerializeField] private Transform psynergyChoosePanel;
+    #region Events
 
+    /// <summary>
+    /// Triggered whenever a hero's shortcuts are modified or refreshed.
+    /// Passes the Hero GameObject and their current 4-slot Psynergy array.
+    /// </summary>
+    public event Action<GameObject, PsynergySO[]> OnShortcutsChanged;
+
+    #endregion
+
+    #region Private Fields
+
+    // Stores up to 4 shortcut slots per hero (0: Up, 1: Down, 2: Left, 3: Right)
     private Dictionary<GameObject, PsynergySO[]> heroShortcuts = new Dictionary<GameObject, PsynergySO[]>();
-    private int chooseIndex;
 
-    public Dictionary<GameObject, PsynergySO[]> HeroShortcuts { get => heroShortcuts; set => heroShortcuts = value; }
+    #endregion
+
+    #region Unity Lifecycle & Initialization
 
     private void Awake()
     {
@@ -26,56 +37,15 @@ public class PsynergyWorldController : MonoBehaviour
         }
 
         Instance = this;
-
-        // Lazy UI cache if not assigned via Inspector
-        if (psynergyPanel == null)
-        {
-            psynergyPanel = GameObject.Find("PsynergyPanel");
-        }
-
-        if (psynergyPanel != null && psynergyChoosePanel == null)
-        {
-            psynergyChoosePanel = psynergyPanel.transform.Find("PsynergyChoosePanel");
-        }
     }
 
     /// <summary>
-    /// Clears all existing shortcut data and resets UI elements.
-    /// </summary>
-    public void ClearShortcuts()
-    {
-        if (heroShortcuts != null)
-        {
-            heroShortcuts.Clear();
-        }
-
-        if (psynergyChoosePanel != null)
-        {
-            psynergyChoosePanel.gameObject.SetActive(false);
-        }
-
-        chooseIndex = 0;
-
-        // Hide all shortcut icons if panel is assigned
-        if (psynergyPanel != null)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                Transform iconTrans = psynergyPanel.transform.Find($"Icon{i}");
-                if (iconTrans != null)
-                {
-                    iconTrans.gameObject.SetActive(false);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Called explicitly from GameManager when starting a new game or loading a save file.
+    /// Resets all shortcut data and re-initializes empty slots for the current party.
+    /// Called explicitly from GameManager upon new game or loading a save file.
     /// </summary>
     public void Initialize()
     {
-        ClearShortcuts();
+        heroShortcuts.Clear();
 
         if (GameManager.Instance == null) return;
 
@@ -92,280 +62,105 @@ public class PsynergyWorldController : MonoBehaviour
 
         if (GameManager.Instance.ActiveHero != null)
         {
-            ResfreshShortcutsUI(GameManager.Instance.ActiveHero);
+            NotifyShortcutsChanged(GameManager.Instance.ActiveHero);
         }
     }
 
-    public void SetShortcut(GameObject hero, PsynergySO psynergy, int position)
+    #endregion
+
+    #region Public API - Query & Assignment
+
+    /// <summary>
+    /// Gets the current array of 4 Psynergy shortcuts for the given hero.
+    /// </summary>
+    public PsynergySO[] GetShortcuts(GameObject hero)
     {
-        if (hero == null || position < 0 || position >= 4) return;
+        if (hero == null) return new PsynergySO[4];
 
-        if (!HeroShortcuts.ContainsKey(hero))
+        if (heroShortcuts.TryGetValue(hero, out PsynergySO[] shortcuts))
         {
-            HeroShortcuts.Add(hero, new PsynergySO[4]);
+            return shortcuts;
         }
 
-        HeroShortcuts[hero][position] = psynergy;
-        ResfreshShortcutsUI(hero);
+        // Auto-register hero if missing
+        PsynergySO[] newShortcuts = new PsynergySO[4];
+        heroShortcuts.Add(hero, newShortcuts);
+        return newShortcuts;
     }
 
-    public void UsePsynergy(int position, IPsynergyTargetable target)
+    /// <summary>
+    /// Assigns a Psynergy to a specific shortcut slot (0..3) for a hero.
+    /// Pass null as psynergy to clear the slot.
+    /// </summary>
+    public void SetShortcut(GameObject hero, PsynergySO psynergy, int slotIndex)
+    {
+        if (hero == null || slotIndex < 0 || slotIndex >= 4) return;
+
+        PsynergySO[] shortcuts = GetShortcuts(hero);
+        shortcuts[slotIndex] = psynergy;
+
+        NotifyShortcutsChanged(hero);
+    }
+
+    /// <summary>
+    /// Removes a shortcut from a specific slot.
+    /// </summary>
+    public void ClearShortcut(GameObject hero, int slotIndex)
+    {
+        SetShortcut(hero, null, slotIndex);
+    }
+
+    #endregion
+
+    #region Gameplay Execution
+
+    /// <summary>
+    /// Executes the Psynergy assigned to the active hero's shortcut slot.
+    /// </summary>
+    public void UsePsynergy(int slotIndex, IPsynergyTargetable target)
     {
         if (GameManager.Instance == null || GameManager.Instance.ActiveHero == null) return;
+        if (slotIndex < 0 || slotIndex >= 4) return;
 
         GameObject activeHero = GameManager.Instance.ActiveHero;
+        PsynergySO[] shortcuts = GetShortcuts(activeHero);
+        PsynergySO usedPsynergy = shortcuts[slotIndex];
 
-        if (!HeroShortcuts.ContainsKey(activeHero)) return;
+        if (usedPsynergy == null) return;
 
-        PsynergySO usedPsynergy = HeroShortcuts[activeHero][position];
-        if (usedPsynergy != null)
+        if (target != null)
         {
-            if (target != null)
+            Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.SlugName} on target.");
+
+            bool success = target.ExecutePsynergy(usedPsynergy, activeHero);
+            if (success)
             {
-                Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.SlugName} on target.");
-
-                // Execute Psynergy using the IPsynergyTargetable interface
-                bool success = target.ExecutePsynergy(usedPsynergy, activeHero);
-
-                if (success)
-                {
-                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
-                    // TODO: Deduct PP cost from activeHero stats if needed
-                }
-                else
-                {
-                    Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} failed or target is not compatible.");
-                }
+                Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
+                // TODO: Deduct PP cost from activeHero stats if needed
             }
             else
             {
-                Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} but no target was selected.");
-                // Lógica para Psinergías que no necesitan target en pantalla (ej. Curar en mapa, Revelar)
+                Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} failed or target is not compatible.");
             }
-        }
-    }
-
-    public void ChoosePanelMoveUp()
-    {
-        chooseIndex--;
-        RefreshPsynergyChoosePanel();
-    }
-
-    public void ChoosePanelMoveDown()
-    {
-        chooseIndex++;
-        RefreshPsynergyChoosePanel();
-    }
-
-    public void RefreshPsynergyChoosePanel()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.ActiveHero == null || psynergyChoosePanel == null) return;
-
-        FighterStats stats = GameManager.Instance.ActiveHero.GetComponent<FighterStats>();
-        if (stats == null || stats.Psynergies == null) return;
-
-        List<PsynergySO> allPsynergies = stats.Psynergies;
-        List<PsynergySO> worldPsynergies = new List<PsynergySO>();
-
-        for (int i = 0; i < allPsynergies.Count; i++)
-        {
-            if (allPsynergies[i] != null && allPsynergies[i].WorldData.CanBeUsedInWorld)
-            {
-                worldPsynergies.Add(allPsynergies[i]);
-            }
-        }
-
-        if (worldPsynergies.Count == 0) return;
-
-        if (chooseIndex < 0)
-        {
-            chooseIndex = worldPsynergies.Count - 1;
-        }
-        else if (chooseIndex >= worldPsynergies.Count)
-        {
-            chooseIndex = 0;
-        }
-
-        Transform maskTrans = psynergyChoosePanel.Find("Mask");
-        if (maskTrans == null) return;
-
-        if (worldPsynergies.Count >= 3)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                Transform iconTrans = maskTrans.Find($"Icon{i}");
-                if (iconTrans == null) continue;
-
-                Image img = iconTrans.GetComponent<Image>();
-                if (img != null)
-                {
-                    if (i == 2)
-                    {
-                        int targetIdx = (chooseIndex - 1 < 0) ? worldPsynergies.Count - 1 : chooseIndex - 1;
-                        img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[targetIdx].SlugName}");
-                    }
-                    else if (i == 1)
-                    {
-                        int targetIdx = (chooseIndex + 1 == worldPsynergies.Count) ? 0 : chooseIndex + 1;
-                        img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[targetIdx].SlugName}");
-                    }
-                    else
-                    {
-                        img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[chooseIndex].SlugName}");
-                    }
-                }
-                iconTrans.gameObject.SetActive(true);
-            }
-        }
-        else if (worldPsynergies.Count == 2)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                Transform iconTrans = maskTrans.Find($"Icon{i}");
-                if (iconTrans == null) continue;
-
-                Image img = iconTrans.GetComponent<Image>();
-                if (img != null)
-                {
-                    int targetIdx = (i == 0) ? chooseIndex : ((chooseIndex + 1 >= worldPsynergies.Count) ? 0 : chooseIndex + 1);
-                    img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[targetIdx].SlugName}");
-                }
-                iconTrans.gameObject.SetActive(true);
-            }
-        }
-        else if (worldPsynergies.Count == 1)
-        {
-            Transform iconTrans = maskTrans.Find("Icon0");
-            if (iconTrans != null)
-            {
-                Image img = iconTrans.GetComponent<Image>();
-                if (img != null)
-                {
-                    img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[0].SlugName}");
-                }
-                iconTrans.gameObject.SetActive(true);
-            }
-        }
-    }
-
-    public void ShowPsynergyChoosePanel(bool active, int position)
-    {
-        if (GameManager.Instance == null || GameManager.Instance.ActiveHero == null || psynergyChoosePanel == null) return;
-
-        FighterStats stats = GameManager.Instance.ActiveHero.GetComponent<FighterStats>();
-        if (stats == null || stats.Psynergies == null) return;
-
-        List<PsynergySO> allPsynergies = stats.Psynergies;
-        List<PsynergySO> worldPsynergies = new List<PsynergySO>();
-
-        for (int i = 0; i < allPsynergies.Count; i++)
-        {
-            if (allPsynergies[i] != null && allPsynergies[i].WorldData.CanBeUsedInWorld)
-            {
-                worldPsynergies.Add(allPsynergies[i]);
-            }
-        }
-
-        if (active)
-        {
-            Transform maskTrans = psynergyChoosePanel.Find("Mask");
-            if (maskTrans != null)
-            {
-                if (worldPsynergies.Count >= 3)
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        Transform iconTrans = maskTrans.Find($"Icon{i}");
-                        if (iconTrans == null) continue;
-
-                        Image img = iconTrans.GetComponent<Image>();
-                        if (img != null)
-                        {
-                            int targetIdx = (i == 2) ? worldPsynergies.Count - 1 : i;
-                            img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[targetIdx].SlugName}");
-                        }
-                        iconTrans.gameObject.SetActive(true);
-                    }
-                }
-                else if (worldPsynergies.Count == 2)
-                {
-                    for (int i = 0; i < 2; i++)
-                    {
-                        Transform iconTrans = maskTrans.Find($"Icon{i}");
-                        if (iconTrans == null) continue;
-
-                        Image img = iconTrans.GetComponent<Image>();
-                        if (img != null)
-                        {
-                            img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[i].SlugName}");
-                        }
-                        iconTrans.gameObject.SetActive(true);
-                    }
-                }
-                else if (worldPsynergies.Count == 1)
-                {
-                    Transform iconTrans = maskTrans.Find("Icon0");
-                    if (iconTrans != null)
-                    {
-                        Image img = iconTrans.GetComponent<Image>();
-                        if (img != null)
-                        {
-                            img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{worldPsynergies[0].SlugName}");
-                        }
-                        iconTrans.gameObject.SetActive(true);
-                    }
-                }
-            }
-
-            psynergyChoosePanel.gameObject.SetActive(true);
         }
         else
         {
-            if (worldPsynergies.Count > 0 && chooseIndex < worldPsynergies.Count)
-            {
-                SetShortcut(GameManager.Instance.ActiveHero, worldPsynergies[chooseIndex], position);
-            }
-
-            psynergyChoosePanel.gameObject.SetActive(false);
-            chooseIndex = 0;
+            Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} without an active target.");
+            // Logic for non-targeted world psynergies (e.g., Heal in map, Reveal)
         }
     }
 
-    public void ResfreshShortcutsUI(GameObject hero)
+    #endregion
+
+    #region Helper Methods
+
+    public void NotifyShortcutsChanged(GameObject hero)
     {
-        if (hero == null || psynergyPanel == null) return;
-
-        if (!heroShortcuts.ContainsKey(hero) || heroShortcuts[hero] == null)
+        if (heroShortcuts.TryGetValue(hero, out PsynergySO[] shortcuts))
         {
-            // Hide all icon objects if no shortcuts registered for this hero
-            for (int i = 0; i < 4; i++)
-            {
-                Transform iconTrans = psynergyPanel.transform.Find($"Icon{i}");
-                if (iconTrans != null) iconTrans.gameObject.SetActive(false);
-            }
-            return;
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            Transform iconTrans = psynergyPanel.transform.Find($"Icon{i}");
-            if (iconTrans == null) continue;
-
-            PsynergySO currentPsynergy = HeroShortcuts[hero][i];
-
-            if (currentPsynergy != null)
-            {
-                Image img = iconTrans.GetComponent<Image>();
-                if (img != null)
-                {
-                    img.sprite = Resources.Load<Sprite>($"Images/Psynergy/{currentPsynergy.SlugName}");
-                }
-                iconTrans.gameObject.SetActive(true);
-            }
-            else
-            {
-                iconTrans.gameObject.SetActive(false);
-            }
+            OnShortcutsChanged?.Invoke(hero, shortcuts);
         }
     }
+
+    #endregion
 }

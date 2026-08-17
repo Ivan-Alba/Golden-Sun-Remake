@@ -1,0 +1,78 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Psynergy/PagePsynergy.uss?fileID=7433441132597879392&amp;guid=c9d28fb7f5512eb4b95e881dbb350ab3&amp;type=3#PagePsynergy" />
+    <ui:VisualElement name="page_psynergy_container" class="page-psynergy-container">
+        <ui:VisualElement name="shortcuts_section" class="shortcuts-section">
+            <ui:Label text="ATAJOS DE EXPLORACIÓN" name="label_shortcuts_header" class="info-title-label" />
+            <ui:VisualElement name="hero_portrait_box" class="hero-portrait-box">
+                <ui:VisualElement name="hero_portrait_image" class="hero-portrait-image" style="margin-top: 8px;" />
+                <ui:Label text="HANS" name="label_hero_name" class="info-title-label hero-name-label" />
+            </ui:VisualElement>
+            <ui:VisualElement name="section_separator" class="section-separator" />
+            <ui:VisualElement name="dpad_shortcuts_container" class="dpad-shortcuts-container">
+                <ui:VisualElement name="dpad_row_top" class="dpad-row">
+                    <ui:VisualElement name="slot_shortcut_up" class="shortcut-slot slot-box">
+                        <ui:Label text="▲" class="dpad-arrow-label" />
+                        <ui:VisualElement name="slot_shortcut_up_icon" class="shortcut-icon" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="dpad_row_middle" class="dpad-row dpad-row-horizontal">
+                    <ui:VisualElement name="slot_shortcut_left" class="shortcut-slot slot-box">
+                        <ui:Label text="◄" class="dpad-arrow-label" />
+                        <ui:VisualElement name="slot_shortcut_left_icon" class="shortcut-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="dpad_center_decor" class="dpad-center-decor" />
+                    <ui:VisualElement name="slot_shortcut_right" class="shortcut-slot slot-box">
+                        <ui:Label text="►" class="dpad-arrow-label" />
+                        <ui:VisualElement name="slot_shortcut_right_icon" class="shortcut-icon" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="dpad_row_bottom" class="dpad-row">
+                    <ui:VisualElement name="slot_shortcut_down" class="shortcut-slot slot-box">
+                        <ui:Label text="▼" class="dpad-arrow-label" />
+                        <ui:VisualElement name="slot_shortcut_down_icon" class="shortcut-icon" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="psynergy_list_section" class="psynergy-list-section">
+            <ui:Label text="PSINERGÍAS DISPONIBLES" name="label_psynergy_title" class="info-title-label" style="-unity-text-align: upper-center;" />
+            <ui:VisualElement name="psynergy_filter_tabs" class="filter-tabs-row">
+                <ui:Button text="TODAS" name="btn_tab_all" class="tab-btn active" />
+                <ui:Button text="MUNDO" name="btn_tab_world" class="tab-btn" />
+                <ui:Button text="COMBATE" name="btn_tab_battle" class="tab-btn" />
+            </ui:VisualElement>
+            <ui:ScrollView name="psynergy_cards_scroll" class="psynergy-cards-scroll">
+                <ui:VisualElement class="psynergy-card item-card-box element-venus">
+                    <ui:VisualElement class="card-element-stripe" />
+                    <ui:VisualElement class="card-icon-box">
+                        <ui:VisualElement class="psynergy-card-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="card-text-details">
+                        <ui:Label text="Mover" class="psynergy-card-name" />
+                        <ui:VisualElement class="card-badges-row">
+                            <ui:Label text="Mundo" class="psynergy-badge badge-world" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="card-cost-box">
+                        <ui:VisualElement class="element-mini-icon" />
+                        <ui:Label text="2 PP" class="psynergy-card-pp" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+        <ui:VisualElement name="psynergy_info_panel" class="psynergy-info-panel" style="-unity-text-align: upper-center;">
+            <ui:Label text="INFORMACIÓN PSINERGÍA" name="label_info_title" class="info-title-label" />
+            <ui:VisualElement name="psynergy_preview_container" class="psynergy-preview-container">
+                <ui:VisualElement name="psynergy_icon_preview" class="psynergy-preview-icon" />
+            </ui:VisualElement>
+            <ui:Label text="Mover" name="label_psynergy_name" class="psynergy-name-label" />
+            <ui:Label text="Psinergía de Tierra - Venus" name="label_psynergy_type" class="psynergy-type-label" />
+            <ui:VisualElement name="psynergy_meta_row" class="psynergy-meta-row">
+                <ui:Label text="Coste: 2 PP" name="label_psynergy_cost" class="psynergy-meta-label" />
+                <ui:Label text="Alcance: 1 Objetivo" name="label_psynergy_range" class="psynergy-meta-label" />
+            </ui:VisualElement>
+            <ui:Label text="Desplaza pilares u objetos pesados a distancia utilizando el poder de la tierra." name="label_psynergy_desc" class="psynergy-desc-label" style="-unity-text-align: upper-left;" />
+            <ui:VisualElement name="psynergy_extra_details_box" class="stat-changes-box" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

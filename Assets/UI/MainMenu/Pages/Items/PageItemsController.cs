@@ -113,6 +113,8 @@ public class PageItemsController
     private VisualElement itemIconPreview;
     private Label labelItemName;
     private Label labelItemType;
+    private Label labelItemSellPrice;
+    private Label labelItemMaxStack;
     private Label labelItemDesc;
     private VisualElement statChangesBox;
 
@@ -234,6 +236,8 @@ public class PageItemsController
         itemIconPreview = rootElement.Q<VisualElement>("item_icon_preview");
         labelItemName = rootElement.Q<Label>("label_item_name");
         labelItemType = rootElement.Q<Label>("label_item_type");
+        labelItemSellPrice = rootElement.Q<Label>("label_item_sell_price");
+        labelItemMaxStack = rootElement.Q<Label>("label_item_max_stack");
         labelItemDesc = rootElement.Q<Label>("label_item_desc");
         statChangesBox = rootElement.Q<VisualElement>("stat_changes_box");
 
@@ -1592,6 +1596,16 @@ public class PageItemsController
 
         if (labelItemName != null) labelItemName.text = item.ItemName;
         if (labelItemType != null) labelItemType.text = item.ItemType.ToString();
+
+        // Format sell price text based on CanSell flag
+        if (labelItemSellPrice != null)
+        {
+            labelItemSellPrice.text = item.CanSell
+                ? $"Se vende por: {item.SellPrice} monedas"
+                : "No se puede vender";
+        }
+
+        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack: {item.MaxStack}";
         if (labelItemDesc != null) labelItemDesc.text = item.ItemDescription;
 
         if (itemIconPreview != null && item.Icon != null)
@@ -1619,6 +1633,8 @@ public class PageItemsController
     {
         if (labelItemName != null) labelItemName.text = "Seleccionar Objeto";
         if (labelItemType != null) labelItemType.text = "---";
+        if (labelItemSellPrice != null) labelItemSellPrice.text = "Se vende por: --- monedas";
+        if (labelItemMaxStack != null) labelItemMaxStack.text = "Máx. stack: ---";
         if (labelItemDesc != null) labelItemDesc.text = "Selecciona un objeto del inventario o del equipamiento para ver sus detalles.";
         if (itemIconPreview != null) itemIconPreview.style.backgroundImage = null;
     }

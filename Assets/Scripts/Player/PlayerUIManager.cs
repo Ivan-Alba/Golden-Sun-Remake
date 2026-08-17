@@ -62,6 +62,12 @@ public class PlayerUIManager : MonoBehaviour
             // 2. Immediately sync UI with the current state upon enablement
             HandleGameStateChanged(GameManager.Instance.CurrentState);
         }
+
+        // Subscribe to Psynergy shortcut updates
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.OnShortcutsChanged += HandleShortcutsChanged;
+        }
     }
 
     private void OnDisable()
@@ -71,6 +77,12 @@ public class PlayerUIManager : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
+        }
+
+        // Unsubscribe from Psynergy shortcut updates
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
         }
     }
 
@@ -83,11 +95,14 @@ public class PlayerUIManager : MonoBehaviour
 
             HandleGameStateChanged(GameManager.Instance.CurrentState);
         }
+
+        RefreshShortcuts();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         RefreshPartyInfo();
+        RefreshShortcuts();
     }
 
     #endregion
@@ -231,6 +246,63 @@ public class PlayerUIManager : MonoBehaviour
             else
             {
                 partySlots[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Shortcuts UI Methods
+
+    /// <summary>
+    /// Event handler for shortcuts changes triggered by PsynergyWorldController.
+    /// </summary>
+    private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
+    {
+        if (GameManager.Instance != null && GameManager.Instance.ActiveHero == hero)
+        {
+            UpdateShortcutsUI(shortcuts);
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the active hero's shortcuts display manually.
+    /// </summary>
+    public void RefreshShortcuts()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null && PsynergyWorldController.Instance != null)
+        {
+            PsynergySO[] shortcuts = PsynergyWorldController.Instance.GetShortcuts(GameManager.Instance.ActiveHero);
+            UpdateShortcutsUI(shortcuts);
+        }
+    }
+
+    /// <summary>
+    /// Updates the 4 shortcut icons (Icon0..Icon3) inside the shortcutsPanel object.
+    /// </summary>
+    public void UpdateShortcutsUI(PsynergySO[] shortcuts)
+    {
+        if (shortcutsPanel == null) return;
+
+        for (int i = 0; i < 4; i++)
+        {
+            Transform iconTrans = shortcutsPanel.transform.Find($"Icon{i}");
+            if (iconTrans == null) continue;
+
+            PsynergySO currentPsynergy = (shortcuts != null && i < shortcuts.Length) ? shortcuts[i] : null;
+
+            if (currentPsynergy != null)
+            {
+                Image img = iconTrans.GetComponent<Image>();
+                if (img != null)
+                {
+                    img.sprite = currentPsynergy.Icon;
+                }
+                iconTrans.gameObject.SetActive(true);
+            }
+            else
+            {
+                iconTrans.gameObject.SetActive(false);
             }
         }
     }

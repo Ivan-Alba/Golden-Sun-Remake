@@ -202,6 +202,23 @@ public class FighterStats : MonoBehaviour
         CurrPp += amount;
     }
 
+    /// <summary>
+    /// Consumes the specified amount of PP from the fighter.
+    /// </summary>
+    public void ConsumePP(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+        CurrPp -= amount;
+    }
+
+    /// <summary>
+    /// Checks if the fighter is alive and has at least the specified amount of PP.
+    /// </summary>
+    public bool HasEnoughPP(int amount)
+    {
+        return !IsDead && CurrPp >= amount;
+    }
+
     public void TakeDamage(int amount)
     {
         if (IsDead || amount <= 0) return;

@@ -28,6 +28,7 @@ public class MainMenuController : MonoBehaviour
     [Header("Page Assets")]
     [SerializeField] private VisualTreeAsset pageStatusAsset;
     [SerializeField] private VisualTreeAsset pageItemsAsset;
+    [SerializeField] private VisualTreeAsset pagePsynergyAsset;
     [SerializeField] private VisualTreeAsset itemSlotAsset;
 
     // Header Elements
@@ -60,6 +61,7 @@ public class MainMenuController : MonoBehaviour
     // Page Controllers
     private PageStatusController statusPageController;
     private PageItemsController itemsPageController;
+    private PagePsynergyController psynergyPageController;
 
     // State Trackers
     private MenuTab currentTab = MenuTab.Status;
@@ -375,6 +377,7 @@ public class MainMenuController : MonoBehaviour
         pageContent.Clear();
         statusPageController = null;
         itemsPageController = null;
+        psynergyPageController = null;
 
         switch (tab)
         {
@@ -437,7 +440,22 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadPsynergyPage()
     {
-        Debug.Log($"[MainMenu] Rendering Psynergy Page for Hero Index {selectedHeroIndex}...");
+        if (pagePsynergyAsset == null)
+        {
+            Debug.LogWarning("[MainMenu] 'pagePsynergyAsset' is not assigned in the Inspector.");
+            return;
+        }
+
+        TemplateContainer psynergyInstance = pagePsynergyAsset.Instantiate();
+        psynergyInstance.style.flexGrow = 1;
+        pageContent.Add(psynergyInstance);
+
+        psynergyPageController = new PagePsynergyController(psynergyInstance);
+
+        HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
+        GameObject selectedHeroObj = GetPartyMemberGameObject(selectedHeroIndex);
+
+        psynergyPageController.PopulateData(selectedHeroStats, selectedHeroObj);
     }
 
     private void LoadDjinnPage()
@@ -499,6 +517,23 @@ public class MainMenuController : MonoBehaviour
             {
                 return component;
             }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Retrieves the GameObject of a party member by index.
+    /// </summary>
+    /// <param name="index">Party member index.</param>
+    /// <returns>Party member GameObject if valid, null otherwise.</returns>
+    private GameObject GetPartyMemberGameObject(int index)
+    {
+        if (GameManager.Instance == null) return null;
+
+        List<GameObject> party = GameManager.Instance.GetParty();
+        if (party != null && index >= 0 && index < party.Count)
+        {
+            return party[index];
         }
         return null;
     }

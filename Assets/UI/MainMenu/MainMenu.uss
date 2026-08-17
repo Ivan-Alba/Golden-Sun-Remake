@@ -6,13 +6,10 @@
     border-width: 2px;
     border-color: rgba(218, 165, 32, 0.6); /* Golden frame border */
     border-radius: 12px;
-    padding: 12px;
+    padding: 10px;
     color: #FFFFFF;
 }
 
-#container_book Label {
-    color: #FFFFFF;
-}
 
 /* ==========================================
    HEADER SECTION & 3-COLUMN INFO BAR
@@ -168,9 +165,8 @@
 }
 
 .label-chapter {
-    font-size: 18px;
+    font-size: 20px;
     -unity-font-style: bold;
-    color: #FFD700;
     letter-spacing: 0.5px;
     margin: 0;
     padding: 0;

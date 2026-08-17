@@ -221,16 +221,16 @@ public class GameManager : MonoBehaviour
         {
             activeHero = party[0];
 
-            /*for (int i = 0; i < party.Count; i++) 
+            for (int i = 0; i < party.Count; i++) 
             { 
-                FighterStats stats = party[i].GetComponent<FighterStats>(); 
+                HeroStats stats = party[i].GetComponent<HeroStats>(); 
                 if (stats != null) 
-                { 
-                    stats.LevelUp(); 
-                    stats.LevelUp(); 
+                {
+                    stats.LevelUp();
+                    stats.LevelUp();
                     stats.LevelUp(); 
                 } 
-            }*/
+            }
 
             changeModelHero();
         }
@@ -351,7 +351,7 @@ public class GameManager : MonoBehaviour
 
             if (PsynergyWorldController.Instance != null)
             {
-                PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
+                PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
             }
 
             changeModelHero();
@@ -589,40 +589,42 @@ public class GameManager : MonoBehaviour
         // Refresh Psynergy Icons
         //party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies?.ForEach(p => p.SetElementIcon()));
 
-        /// ---- SHORTCUTS ----
+        // ---- SHORTCUTS ----
         if (PsynergyWorldController.Instance != null)
         {
+            // Inicializa el diccionario de atajos para los héroes del grupo actual
             PsynergyWorldController.Instance.Initialize();
 
             if (dataToLoad.heroShortcuts != null)
             {
                 foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
                 {
+                    // Localiza el GameObject del héroe guardado en la escena/party
                     GameObject heroObj = GameObject.Find(heroShortcut.Key);
 
-                    if (heroObj != null && PsynergyWorldController.Instance.HeroShortcuts.ContainsKey(heroObj))
+                    if (heroObj != null && heroShortcut.Value != null)
                     {
                         string[] savedSlugs = heroShortcut.Value;
-                        PsynergySO[] loadedShortcuts = new PsynergySO[savedSlugs != null ? savedSlugs.Length : 0];
 
-                        if (savedSlugs != null)
+                        for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
                         {
-                            for (int s = 0; s < savedSlugs.Length; s++)
-                            {
-                                string slug = savedSlugs[s];
-                                if (!string.IsNullOrEmpty(slug))
-                                {
-                                    loadedShortcuts[s] = PsynergyDatabase.Instance.GetPsynergy(slug);
-                                }
-                            }
-                        }
+                            string slug = savedSlugs[slotIdx];
+                            PsynergySO psynergy = !string.IsNullOrEmpty(slug)
+                                ? PsynergyDatabase.Instance.GetPsynergy(slug)
+                                : null;
 
-                        PsynergyWorldController.Instance.HeroShortcuts[heroObj] = loadedShortcuts;
+                            // Asigna la psinergía cargada (o null si la casilla estaba vacía) usando la API pública
+                            PsynergyWorldController.Instance.SetShortcut(heroObj, psynergy, slotIdx);
+                        }
                     }
                 }
             }
 
-            PsynergyWorldController.Instance.ResfreshShortcutsUI(activeHero);
+            // Sincroniza la UI del mundo/HUD para reflejar los atajos cargados del héroe activo
+            if (activeHero != null)
+            {
+                PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
+            }
         }
 
         // Re-enable Player Animator

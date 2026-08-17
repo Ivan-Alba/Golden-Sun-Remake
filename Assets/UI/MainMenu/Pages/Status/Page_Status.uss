@@ -6,17 +6,18 @@
     justify-content: space-between;
     align-items: stretch;
     flex-grow: 1;
-    padding: 8px;
+    padding: 10px;
     color: #FFFFFF;
 }
 
 .hero-card {
-    width: 23.5%;
+   width: 23.5%;
     margin: 0 6px;
-    border-radius: 8px;
-    background-color: rgba(25, 25, 32, 0.85);
+   background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
-    border-color: rgba(218, 165, 32, 0.3);
+    border-color: #2e3a4e;
+    border-radius: 6px;
+    padding: 10px;
     position: relative;
     overflow: hidden;
     color: #FFFFFF;

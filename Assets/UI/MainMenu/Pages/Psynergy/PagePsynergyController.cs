@@ -1,0 +1,1040 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+#region Shortcut & Drag Data Structures
+
+/// <summary>
+/// Identifies the four directions of the D-Pad exploration shortcuts.
+/// </summary>
+public enum DPadDirection
+{
+    Up,
+    Left,
+    Right,
+    Down
+}
+
+/// <summary>
+/// Context payload during an active Psynergy drag operation.
+/// </summary>
+public class PsynergyDragContext
+{
+    public PsynergySO Psynergy { get; private set; }
+    public VisualElement SourceCardUI { get; private set; }
+    public int SourceShortcutIndex { get; private set; } // -1 if dragged from list card
+
+    public PsynergyDragContext(PsynergySO psynergy, VisualElement sourceCardUI, int sourceShortcutIndex = -1)
+    {
+        Psynergy = psynergy;
+        SourceCardUI = sourceCardUI;
+        SourceShortcutIndex = sourceShortcutIndex;
+    }
+}
+
+/// <summary>
+/// Target drop information for D-Pad shortcut slots or hero header cards.
+/// </summary>
+public struct PsynergyDropTargetInfo
+{
+    public bool IsShortcutSlot;
+    public DPadDirection Direction;
+    public bool IsHeroCard;
+    public int HeroIndex;
+
+    public PsynergyDropTargetInfo(bool isShortcutSlot, DPadDirection direction, bool isHeroCard, int heroIndex)
+    {
+        IsShortcutSlot = isShortcutSlot;
+        Direction = direction;
+        IsHeroCard = isHeroCard;
+        HeroIndex = heroIndex;
+    }
+}
+
+#endregion
+
+public class PagePsynergyController
+{
+    #region Events & Properties
+
+    /// <summary>
+    /// Event triggered when a menu Psynergy modifies HP/PP of party members.
+    /// Used by MainMenuController to refresh top header hero cards.
+    /// </summary>
+    public event Action OnPsynergyUsedOnHero;
+
+    /// <summary>
+    /// Indicates if a Psynergy is currently in targeting mode to be cast on a hero.
+    /// </summary>
+    public bool IsTargetingPsynergy => isTargetingPsynergy;
+
+    #endregion
+
+    #region Private Fields
+
+    private VisualElement rootElement;
+
+    // Left Panel: Hero Portrait & D-Pad Shortcuts
+    private VisualElement heroPortraitImage;
+    private Label labelHeroName;
+
+    private VisualElement[] dpadSlotUI = new VisualElement[4]; // Up, Left, Right, Down
+    private VisualElement[] dpadIconUI = new VisualElement[4];
+    private PsynergySO[] assignedShortcuts = new PsynergySO[4];
+
+    // Center Panel: Filter Tabs & Scroll View
+    private Button btnTabAll;
+    private Button btnTabWorld;
+    private Button btnTabBattle;
+    private ScrollView psynergyCardsScroll;
+
+    // Right Panel: Detailed Info
+    private VisualElement psynergyIconPreview;
+    private Label labelPsynergyName;
+    private Label labelPsynergyType;
+    private Label labelPsynergyCost;
+    private Label labelPsynergyRange;
+    private Label labelPsynergyDesc;
+    private VisualElement psynergyExtraDetailsBox;
+
+    // Data Sources
+    private HeroStats currentHeroStats;
+    private GameObject currentHeroObj;
+    private List<PsynergySO> availablePsynergies = new List<PsynergySO>();
+
+    // Callback Memory tracking to prevent duplicate listener accumulation
+    private Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
+
+    // Drag & Drop State Tracking
+    private PsynergyDragContext currentDragContext;
+    private VisualElement ghostElement;
+    private bool isDragging = false;
+
+    // Pointer Tracking & Drag Threshold
+    private Vector2 pointerStartPosition;
+    private int activePointerId = -1;
+    private const float DRAG_THRESHOLD = 5f;
+    private const float CARD_SIZE = 52f;
+
+    // Manual Double-Click Tracking
+    private float lastClickTime = 0f;
+    private int lastClickIndex = -1;
+    private const float DOUBLE_CLICK_TIME_THRESHOLD = 0.3f; // 300 ms window
+
+    // Psynergy Targeting State Tracking
+    private bool isTargetingPsynergy = false;
+    private PsynergySO targetingPsynergy;
+    private VisualElement targetingGhostElement;
+
+    #endregion
+
+    #region Constructor
+
+    public PagePsynergyController(VisualElement root)
+    {
+        rootElement = root;
+        BindUIElements();
+        BindFilterTabs();
+        BindDPadSlotsInteractions();
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private VisualElement GetTopRootElement()
+    {
+        return rootElement?.panel?.visualTree ?? rootElement;
+    }
+
+    #endregion
+
+    #region UI Binding
+
+    private void BindUIElements()
+    {
+        if (rootElement == null) return;
+
+        // Left Panel Elements
+        heroPortraitImage = rootElement.Q<VisualElement>("hero_portrait_image");
+        labelHeroName = rootElement.Q<Label>("label_hero_name");
+
+        // D-Pad Shortcut Slots
+        dpadSlotUI[(int)DPadDirection.Up] = rootElement.Q<VisualElement>("slot_shortcut_up");
+        dpadSlotUI[(int)DPadDirection.Left] = rootElement.Q<VisualElement>("slot_shortcut_left");
+        dpadSlotUI[(int)DPadDirection.Right] = rootElement.Q<VisualElement>("slot_shortcut_right");
+        dpadSlotUI[(int)DPadDirection.Down] = rootElement.Q<VisualElement>("slot_shortcut_down");
+
+        dpadIconUI[(int)DPadDirection.Up] = rootElement.Q<VisualElement>("slot_shortcut_up_icon");
+        dpadIconUI[(int)DPadDirection.Left] = rootElement.Q<VisualElement>("slot_shortcut_left_icon");
+        dpadIconUI[(int)DPadDirection.Right] = rootElement.Q<VisualElement>("slot_shortcut_right_icon");
+        dpadIconUI[(int)DPadDirection.Down] = rootElement.Q<VisualElement>("slot_shortcut_down_icon");
+
+        // Center Panel Elements
+        btnTabAll = rootElement.Q<Button>("btn_tab_all");
+        btnTabWorld = rootElement.Q<Button>("btn_tab_world");
+        btnTabBattle = rootElement.Q<Button>("btn_tab_battle");
+        psynergyCardsScroll = rootElement.Q<ScrollView>("psynergy_cards_scroll");
+
+        // Right Panel Elements
+        psynergyIconPreview = rootElement.Q<VisualElement>("psynergy_icon_preview");
+        labelPsynergyName = rootElement.Q<Label>("label_psynergy_name");
+        labelPsynergyType = rootElement.Q<Label>("label_psynergy_type");
+        labelPsynergyCost = rootElement.Q<Label>("label_psynergy_cost");
+        labelPsynergyRange = rootElement.Q<Label>("label_psynergy_range");
+        labelPsynergyDesc = rootElement.Q<Label>("label_psynergy_desc");
+        psynergyExtraDetailsBox = rootElement.Q<VisualElement>("psynergy_extra_details_box");
+    }
+
+    private void BindFilterTabs()
+    {
+        if (btnTabAll != null) btnTabAll.clicked += () => FilterCards(0);
+        if (btnTabWorld != null) btnTabWorld.clicked += () => FilterCards(1);
+        if (btnTabBattle != null) btnTabBattle.clicked += () => FilterCards(2);
+    }
+
+    private void BindDPadSlotsInteractions()
+    {
+        for (int i = 0; i < dpadSlotUI.Length; i++)
+        {
+            int slotIdx = i;
+            VisualElement slot = dpadSlotUI[i];
+            if (slot == null) continue;
+
+            slot.RegisterCallback<PointerDownEvent>(evt => OnDPadSlotPointerDown(evt, slotIdx, slot));
+            slot.RegisterCallback<PointerMoveEvent>(OnCardPointerMove);
+            slot.RegisterCallback<PointerUpEvent>(OnCardPointerUp);
+            slot.RegisterCallback<PointerCaptureOutEvent>(OnCardPointerCancel);
+        }
+    }
+
+    private void OnDPadSlotPointerDown(PointerDownEvent evt, int slotIdx, VisualElement slotUI)
+    {
+        if (evt.button == 1) // Right Click -> Clear
+        {
+            ClearShortcut(slotIdx);
+            evt.StopPropagation();
+            return;
+        }
+
+        if (evt.button == 0) // Left Click -> Inspect & Prepare Drag
+        {
+            if (assignedShortcuts != null && slotIdx < assignedShortcuts.Length)
+            {
+                PsynergySO psynergy = assignedShortcuts[slotIdx];
+                if (psynergy != null)
+                {
+                    UpdateInfoPanel(psynergy);
+
+                    if (isTargetingPsynergy)
+                    {
+                        CancelPsynergyTargeting();
+                    }
+
+                    pointerStartPosition = evt.position;
+                    activePointerId = evt.pointerId;
+
+                    currentDragContext = new PsynergyDragContext(psynergy, slotUI, slotIdx);
+                    isDragging = false;
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Data Population & Initialization
+
+    public void PopulateData(HeroStats heroStats, GameObject heroObj)
+    {
+        currentHeroStats = heroStats;
+        currentHeroObj = heroObj;
+
+        UpdateLeftPanelHeroInfo();
+        FetchHeroPsynergies();
+        LoadShortcutsFromWorldController();
+        BuildPsynergyCardsList();
+        ClearInfoPanel();
+    }
+
+    private void UpdateLeftPanelHeroInfo()
+    {
+        if (currentHeroStats != null)
+        {
+            if (labelHeroName != null) labelHeroName.text = currentHeroStats.Name.ToUpper();
+            if (heroPortraitImage != null && currentHeroStats.TurnBarImage != null)
+            {
+                heroPortraitImage.style.backgroundImage = new StyleBackground(currentHeroStats.TurnBarImage);
+            }
+        }
+    }
+
+    private void FetchHeroPsynergies()
+    {
+        availablePsynergies.Clear();
+
+        if (currentHeroStats != null)
+        {
+            IReadOnlyList<PsynergySO> psyList = currentHeroStats.Psynergies;
+            if (psyList != null)
+            {
+                availablePsynergies.AddRange(psyList);
+            }
+        }
+    }
+
+    private void LoadShortcutsFromWorldController()
+    {
+        if (PsynergyWorldController.Instance != null && currentHeroObj != null)
+        {
+            assignedShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
+        }
+        else
+        {
+            assignedShortcuts = new PsynergySO[4];
+        }
+
+        RefreshShortcutsDisplay();
+    }
+
+    private void BuildPsynergyCardsList(Func<PsynergySO, bool> filterPredicate = null)
+    {
+        if (psynergyCardsScroll == null) return;
+
+        psynergyCardsScroll.Clear();
+
+        for (int i = 0; i < availablePsynergies.Count; i++)
+        {
+            PsynergySO psynergy = availablePsynergies[i];
+            if (psynergy == null) continue;
+
+            if (filterPredicate != null && !filterPredicate(psynergy)) continue;
+
+            VisualElement card = CreatePsynergyCard(psynergy, i);
+            psynergyCardsScroll.Add(card);
+        }
+    }
+
+    private VisualElement CreatePsynergyCard(PsynergySO psynergy, int index)
+    {
+        VisualElement card = new VisualElement();
+        card.AddToClassList("psynergy-card");
+        card.AddToClassList("item-card-box");
+        card.AddToClassList(GetElementCssClass(psynergy.Element));
+
+        // Stripe
+        VisualElement stripe = new VisualElement();
+        stripe.AddToClassList("card-element-stripe");
+        card.Add(stripe);
+
+        // Icon Box
+        VisualElement iconBox = new VisualElement();
+        iconBox.AddToClassList("card-icon-box");
+        VisualElement cardIcon = new VisualElement();
+        cardIcon.AddToClassList("psynergy-card-icon");
+        if (psynergy.Icon != null) cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
+        iconBox.Add(cardIcon);
+        card.Add(iconBox);
+
+        // Text Details
+        VisualElement textDetails = new VisualElement();
+        textDetails.AddToClassList("card-text-details");
+        Label nameLabel = new Label(psynergy.PsynergyName);
+        nameLabel.AddToClassList("psynergy-card-name");
+        textDetails.Add(nameLabel);
+
+        // Badges Row
+        VisualElement badgesRow = new VisualElement();
+        badgesRow.AddToClassList("card-badges-row");
+
+        if (psynergy.WorldData.CanBeUsedInWorld)
+        {
+            Label worldBadge = new Label("Mundo");
+            worldBadge.AddToClassList("psynergy-badge");
+            worldBadge.AddToClassList("badge-world");
+            badgesRow.Add(worldBadge);
+        }
+        if (psynergy.MenuData.CanBeUsedInMenu)
+        {
+            Label menuBadge = new Label("Menú");
+            menuBadge.AddToClassList("psynergy-badge");
+            menuBadge.AddToClassList("badge-menu");
+            badgesRow.Add(menuBadge);
+        }
+        if (psynergy.IsBattlePsynergy)
+        {
+            Label battleBadge = new Label("Combate");
+            battleBadge.AddToClassList("psynergy-badge");
+            battleBadge.AddToClassList("badge-battle");
+            badgesRow.Add(battleBadge);
+        }
+        textDetails.Add(badgesRow);
+        card.Add(textDetails);
+
+        // PP Cost Box
+        VisualElement costBox = new VisualElement();
+        costBox.AddToClassList("card-cost-box");
+        Label ppLabel = new Label($"{psynergy.PpCost} PP");
+        ppLabel.AddToClassList("psynergy-card-pp");
+
+        if (currentHeroStats != null && currentHeroStats.CurrPp < psynergy.PpCost)
+        {
+            ppLabel.style.color = new StyleColor(new Color(0.8f, 0.3f, 0.3f));
+            card.style.opacity = 0.6f;
+        }
+
+        costBox.Add(ppLabel);
+        card.Add(costBox);
+
+        RegisterPointerCallbacks(card, psynergy, index);
+
+        return card;
+    }
+
+    private string GetElementCssClass(ElementalType element)
+    {
+        switch (element)
+        {
+            case ElementalType.Venus: return "element-venus";
+            case ElementalType.Mars: return "element-mars";
+            case ElementalType.Jupiter: return "element-jupiter";
+            case ElementalType.Mercury: return "element-mercury";
+            default: return "element-venus";
+        }
+    }
+
+    #endregion
+
+    #region Pointer & Drag Events
+
+    private void RegisterPointerCallbacks(VisualElement cardUI, PsynergySO psynergy, int index)
+    {
+        UnregisterPointerCallbacks(cardUI);
+
+        EventCallback<PointerDownEvent> pointerDownCallback = evt => OnCardPointerDown(evt, psynergy, index, cardUI);
+        registeredPointerDownCallbacks[cardUI] = pointerDownCallback;
+
+        cardUI.RegisterCallback(pointerDownCallback);
+        cardUI.RegisterCallback<PointerMoveEvent>(OnCardPointerMove);
+        cardUI.RegisterCallback<PointerUpEvent>(OnCardPointerUp);
+        cardUI.RegisterCallback<PointerCaptureOutEvent>(OnCardPointerCancel);
+    }
+
+    private void UnregisterPointerCallbacks(VisualElement cardUI)
+    {
+        if (cardUI == null) return;
+
+        if (registeredPointerDownCallbacks.TryGetValue(cardUI, out var existingCallback))
+        {
+            slotUIUnregisterHelper(cardUI, existingCallback);
+            registeredPointerDownCallbacks.Remove(cardUI);
+        }
+
+        cardUI.UnregisterCallback<PointerMoveEvent>(OnCardPointerMove);
+        cardUI.UnregisterCallback<PointerUpEvent>(OnCardPointerUp);
+        cardUI.UnregisterCallback<PointerCaptureOutEvent>(OnCardPointerCancel);
+    }
+
+    private void slotUIUnregisterHelper(VisualElement element, EventCallback<PointerDownEvent> cb)
+    {
+        element.UnregisterCallback(cb);
+    }
+
+    private void OnCardPointerDown(PointerDownEvent evt, PsynergySO psynergy, int index, VisualElement cardUI)
+    {
+        if (evt.button != 0 || psynergy == null) return;
+
+        float currentTime = Time.unscaledTime;
+        bool isDoubleClick = (currentTime - lastClickTime <= DOUBLE_CLICK_TIME_THRESHOLD) && (lastClickIndex == index);
+
+        if (isDoubleClick)
+        {
+            lastClickTime = 0f;
+            lastClickIndex = -1;
+
+            RemoveGhostElement();
+            currentDragContext = null;
+            activePointerId = -1;
+            isDragging = false;
+
+            HandleCardDoubleClick(psynergy);
+            return;
+        }
+
+        lastClickTime = currentTime;
+        lastClickIndex = index;
+
+        if (isTargetingPsynergy)
+        {
+            CancelPsynergyTargeting();
+        }
+
+        pointerStartPosition = evt.position;
+        activePointerId = evt.pointerId;
+
+        currentDragContext = new PsynergyDragContext(psynergy, cardUI, -1);
+        isDragging = false;
+
+        UpdateInfoPanel(psynergy);
+    }
+
+    private void OnCardPointerMove(PointerMoveEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        Vector2 currentPosition = evt.position;
+
+        if (!isDragging)
+        {
+            float distance = Vector2.Distance(pointerStartPosition, currentPosition);
+            if (distance >= DRAG_THRESHOLD)
+            {
+                if (!currentDragContext.Psynergy.WorldData.CanBeUsedInWorld)
+                {
+                    return;
+                }
+
+                isDragging = true;
+
+                if (currentDragContext.SourceCardUI != null)
+                {
+                    currentDragContext.SourceCardUI.style.opacity = 0.3f;
+                }
+
+                HighlightShortcutSlots(true);
+                CreateGhostElement(currentDragContext.Psynergy.Icon, currentPosition);
+                currentDragContext.SourceCardUI.CapturePointer(activePointerId);
+            }
+        }
+        else
+        {
+            UpdateGhostPosition(currentPosition);
+        }
+    }
+
+    private void OnCardPointerUp(PointerUpEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        if (currentDragContext.SourceCardUI != null && currentDragContext.SourceCardUI.HasPointerCapture(activePointerId))
+        {
+            currentDragContext.SourceCardUI.ReleasePointer(activePointerId);
+        }
+
+        if (isDragging)
+        {
+            ProcessDrop(evt.position);
+            RemoveGhostElement();
+        }
+        else
+        {
+            currentDragContext = null;
+            activePointerId = -1;
+        }
+    }
+
+    private void OnCardPointerCancel(PointerCaptureOutEvent evt)
+    {
+        if (isDragging)
+        {
+            RemoveGhostElement();
+        }
+    }
+
+    #endregion
+
+    #region Double Click & Targeting Mode
+
+    private void HandleCardDoubleClick(PsynergySO psynergy)
+    {
+        if (psynergy == null) return;
+
+        if (!psynergy.MenuData.CanBeUsedInMenu)
+        {
+            Debug.LogWarning($"[PagePsynergy] '{psynergy.PsynergyName}' cannot be used in the main menu.");
+            return;
+        }
+
+        if (currentHeroStats != null && currentHeroStats.CurrPp < psynergy.PpCost)
+        {
+            Debug.LogWarning($"[PagePsynergy] Not enough PP to use '{psynergy.PsynergyName}'. Required: {psynergy.PpCost}, Current: {currentHeroStats.CurrPp}");
+            return;
+        }
+
+        StartPsynergyTargeting(psynergy);
+    }
+
+    private void StartPsynergyTargeting(PsynergySO psynergy)
+    {
+        CancelPsynergyTargeting();
+
+        isTargetingPsynergy = true;
+        targetingPsynergy = psynergy;
+
+        CreateTargetingGhost(psynergy.Icon);
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
+            topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
+        }
+    }
+
+    private void OnGlobalPointerDownTargeting(PointerDownEvent evt)
+    {
+        if (!isTargetingPsynergy) return;
+
+        if (evt.button == 1) // Right Click
+        {
+            CancelPsynergyTargeting();
+            evt.StopPropagation();
+            return;
+        }
+
+        if (evt.button == 0) // Left Click
+        {
+            if (TryGetDropTarget(evt.position, out PsynergyDropTargetInfo targetInfo) && targetInfo.IsHeroCard)
+            {
+                ExecutePsynergyOnHero(targetInfo.HeroIndex);
+                evt.StopPropagation();
+            }
+            else
+            {
+                CancelPsynergyTargeting();
+            }
+        }
+    }
+
+    private void OnGlobalPointerMoveTargeting(PointerMoveEvent evt)
+    {
+        VisualElement topRoot = GetTopRootElement();
+        if (!isTargetingPsynergy || targetingGhostElement == null || topRoot == null) return;
+
+        Vector2 localPos = topRoot.WorldToLocal(evt.position);
+        targetingGhostElement.style.left = localPos.x - (CARD_SIZE / 2f);
+        targetingGhostElement.style.top = localPos.y - (CARD_SIZE / 2f);
+    }
+
+    private void ExecutePsynergyOnHero(int targetHeroIdx)
+    {
+        if (targetingPsynergy == null || currentHeroStats == null)
+        {
+            CancelPsynergyTargeting();
+            return;
+        }
+
+        HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
+        if (targetHero == null)
+        {
+            Debug.LogWarning($"[PagePsynergy] Target hero at index {targetHeroIdx} not found.");
+            return;
+        }
+
+        Debug.Log($"[PagePsynergy] Casting '{targetingPsynergy.PsynergyName}' on {targetHero.Name}...");
+
+        currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
+        targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
+
+        OnPsynergyUsedOnHero?.Invoke();
+        BuildPsynergyCardsList();
+
+        if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
+        {
+            CancelPsynergyTargeting();
+        }
+    }
+
+    private HeroStats GetHeroStatsByIdx(int index)
+    {
+        if (GameManager.Instance != null)
+        {
+            List<GameObject> party = GameManager.Instance.GetParty();
+            if (party != null && index >= 0 && index < party.Count)
+            {
+                return party[index]?.GetComponent<HeroStats>();
+            }
+        }
+        return null;
+    }
+
+    public void CancelPsynergyTargeting()
+    {
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            topRoot.UnregisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
+            topRoot.UnregisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
+        }
+
+        DestroyTargetingGhost();
+
+        isTargetingPsynergy = false;
+        targetingPsynergy = null;
+    }
+
+    private void CreateTargetingGhost(Sprite icon)
+    {
+        DestroyTargetingGhost();
+
+        targetingGhostElement = new VisualElement
+        {
+            name = "targeting_psynergy_ghost",
+            pickingMode = PickingMode.Ignore
+        };
+
+        targetingGhostElement.style.position = Position.Absolute;
+        targetingGhostElement.style.width = CARD_SIZE;
+        targetingGhostElement.style.height = CARD_SIZE;
+        if (icon != null) targetingGhostElement.style.backgroundImage = new StyleBackground(icon);
+        targetingGhostElement.style.opacity = 0.85f;
+        targetingGhostElement.style.left = -9999f;
+        targetingGhostElement.style.top = -9999f;
+
+        GetTopRootElement()?.Add(targetingGhostElement);
+    }
+
+    private void DestroyTargetingGhost()
+    {
+        if (targetingGhostElement != null)
+        {
+            targetingGhostElement.RemoveFromHierarchy();
+            targetingGhostElement = null;
+        }
+    }
+
+    #endregion
+
+    #region Drop Processing & D-Pad Shortcuts Assignment
+
+    private void ProcessDrop(Vector2 pointerPosition)
+    {
+        if (currentDragContext == null || currentDragContext.Psynergy == null) return;
+
+        if (TryGetDropTarget(pointerPosition, out PsynergyDropTargetInfo targetInfo))
+        {
+            if (targetInfo.IsShortcutSlot)
+            {
+                int targetSlotIdx = (int)targetInfo.Direction;
+                int sourceSlotIdx = currentDragContext.SourceShortcutIndex;
+
+                // Swap case: Dragged from a D-Pad slot to another D-Pad slot
+                if (sourceSlotIdx != -1 && sourceSlotIdx != targetSlotIdx)
+                {
+                    if (currentHeroObj != null && PsynergyWorldController.Instance != null)
+                    {
+                        PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
+                        PsynergySO targetPsynergy = (currentShortcuts != null && targetSlotIdx < currentShortcuts.Length) ? currentShortcuts[targetSlotIdx] : null;
+
+                        // Assign target's previous psynergy to the source slot (swap)
+                        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, targetPsynergy, sourceSlotIdx);
+
+                        // Assign dragged psynergy to the target slot
+                        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, currentDragContext.Psynergy, targetSlotIdx);
+
+                        LoadShortcutsFromWorldController();
+                    }
+                    return;
+                }
+
+                // Default assignment (from list card to shortcut slot)
+                AssignShortcut(targetInfo.Direction, currentDragContext.Psynergy);
+                return;
+            }
+        }
+
+        // If dragged from a D-Pad slot and dropped anywhere else outside shortcut slots, clear it
+        if (currentDragContext.SourceShortcutIndex != -1)
+        {
+            ClearShortcut(currentDragContext.SourceShortcutIndex);
+        }
+    }
+
+    private void AssignShortcut(DPadDirection direction, PsynergySO psynergy)
+    {
+        if (psynergy == null || !psynergy.WorldData.CanBeUsedInWorld)
+        {
+            Debug.LogWarning($"[PagePsynergy] '{psynergy?.PsynergyName}' cannot be assigned to world shortcuts.");
+            return;
+        }
+
+        if (currentHeroObj == null || PsynergyWorldController.Instance == null) return;
+
+        int slotIndex = (int)direction;
+
+        // Clear previous assignment if this Psynergy was already assigned to another slot for this hero
+        PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
+        for (int i = 0; i < currentShortcuts.Length; i++)
+        {
+            if (currentShortcuts[i] == psynergy)
+            {
+                PsynergyWorldController.Instance.ClearShortcut(currentHeroObj, i);
+            }
+        }
+
+        // Persist shortcut via PsynergyWorldController
+        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, psynergy, slotIndex);
+        Debug.Log($"[PagePsynergy] Assigned '{psynergy.PsynergyName}' to D-Pad shortcut slot: {direction}");
+
+        LoadShortcutsFromWorldController();
+    }
+
+    private void ClearShortcut(int slotIndex)
+    {
+        if (currentHeroObj == null || PsynergyWorldController.Instance == null) return;
+
+        PsynergyWorldController.Instance.ClearShortcut(currentHeroObj, slotIndex);
+        LoadShortcutsFromWorldController();
+    }
+
+    private void RefreshShortcutsDisplay()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            VisualElement iconSlot = dpadIconUI[i];
+            if (iconSlot == null) continue;
+
+            PsynergySO assigned = (assignedShortcuts != null && i < assignedShortcuts.Length) ? assignedShortcuts[i] : null;
+
+            if (assigned != null && assigned.Icon != null)
+            {
+                iconSlot.style.backgroundImage = new StyleBackground(assigned.Icon);
+                iconSlot.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                iconSlot.style.backgroundImage = null;
+                iconSlot.style.display = DisplayStyle.None;
+            }
+        }
+    }
+
+    private void HighlightShortcutSlots(bool enable)
+    {
+        for (int i = 0; i < dpadSlotUI.Length; i++)
+        {
+            VisualElement slot = dpadSlotUI[i];
+            if (slot == null) continue;
+
+            if (enable)
+            {
+                Color highlightColor = new Color(0.83f, 0.68f, 0.21f, 0.9f);
+                slot.style.borderTopColor = new StyleColor(highlightColor);
+                slot.style.borderRightColor = new StyleColor(highlightColor);
+                slot.style.borderBottomColor = new StyleColor(highlightColor);
+                slot.style.borderLeftColor = new StyleColor(highlightColor);
+            }
+            else
+            {
+                slot.style.borderTopColor = StyleKeyword.Null;
+                slot.style.borderRightColor = StyleKeyword.Null;
+                slot.style.borderBottomColor = StyleKeyword.Null;
+                slot.style.borderLeftColor = StyleKeyword.Null;
+            }
+        }
+    }
+
+    private bool TryGetDropTarget(Vector2 pointerPosition, out PsynergyDropTargetInfo targetInfo)
+    {
+        targetInfo = new PsynergyDropTargetInfo(false, DPadDirection.Up, false, -1);
+        if (rootElement?.panel == null) return false;
+
+        VisualElement picked = rootElement.panel.Pick(pointerPosition);
+        if (picked == null) return false;
+
+        for (int i = 0; i < dpadSlotUI.Length; i++)
+        {
+            if (dpadSlotUI[i] != null && IsElementOrChildOf(picked, dpadSlotUI[i]))
+            {
+                targetInfo = new PsynergyDropTargetInfo(true, (DPadDirection)i, false, -1);
+                return true;
+            }
+        }
+
+        VisualElement heroCard = FindParentMatching(picked, elem => elem.name != null && elem.name.StartsWith("btn_hero"));
+        if (heroCard != null)
+        {
+            string nameStr = heroCard.name.Replace("btn_hero", "");
+            if (int.TryParse(nameStr, out int heroIdx))
+            {
+                targetInfo = new PsynergyDropTargetInfo(false, DPadDirection.Up, true, heroIdx);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsElementOrChildOf(VisualElement child, VisualElement parent)
+    {
+        VisualElement current = child;
+        while (current != null)
+        {
+            if (current == parent) return true;
+            current = current.parent;
+        }
+        return false;
+    }
+
+    private VisualElement FindParentMatching(VisualElement element, Predicate<VisualElement> predicate)
+    {
+        VisualElement current = element;
+        while (current != null)
+        {
+            if (predicate(current)) return current;
+            current = current.parent;
+        }
+        return null;
+    }
+
+    #endregion
+
+    #region Ghost Element Management
+
+    private void CreateGhostElement(Sprite icon, Vector2 startPosition)
+    {
+        DestroyGhostVisual();
+
+        ghostElement = new VisualElement
+        {
+            name = "psynergy_drag_ghost",
+            pickingMode = PickingMode.Ignore
+        };
+
+        ghostElement.style.position = Position.Absolute;
+        ghostElement.style.width = CARD_SIZE;
+        ghostElement.style.height = CARD_SIZE;
+        if (icon != null) ghostElement.style.backgroundImage = new StyleBackground(icon);
+        ghostElement.style.opacity = 0.85f;
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            Vector2 localPos = topRoot.WorldToLocal(startPosition);
+            ghostElement.style.left = localPos.x - (CARD_SIZE / 2f);
+            ghostElement.style.top = localPos.y - (CARD_SIZE / 2f);
+            topRoot.Add(ghostElement);
+        }
+    }
+
+    private void UpdateGhostPosition(Vector2 currentPosition)
+    {
+        VisualElement topRoot = GetTopRootElement();
+        if (ghostElement == null || topRoot == null) return;
+
+        Vector2 localPos = topRoot.WorldToLocal(currentPosition);
+        ghostElement.style.left = localPos.x - (CARD_SIZE / 2f);
+        ghostElement.style.top = localPos.y - (CARD_SIZE / 2f);
+    }
+
+    private void DestroyGhostVisual()
+    {
+        if (ghostElement != null)
+        {
+            ghostElement.RemoveFromHierarchy();
+            ghostElement = null;
+        }
+    }
+
+    private void RemoveGhostElement()
+    {
+        HighlightShortcutSlots(false);
+        DestroyGhostVisual();
+
+        if (currentDragContext?.SourceCardUI != null)
+        {
+            currentDragContext.SourceCardUI.style.opacity = 1f;
+        }
+
+        isDragging = false;
+        currentDragContext = null;
+        activePointerId = -1;
+    }
+
+    #endregion
+
+    #region Filter Tabs & Info Panel Display
+
+    private void FilterCards(int filterIndex)
+    {
+        if (btnTabAll != null) btnTabAll.RemoveFromClassList("active");
+        if (btnTabWorld != null) btnTabWorld.RemoveFromClassList("active");
+        if (btnTabBattle != null) btnTabBattle.RemoveFromClassList("active");
+
+        switch (filterIndex)
+        {
+            case 0: // All
+                btnTabAll?.AddToClassList("active");
+                BuildPsynergyCardsList();
+                break;
+
+            case 1: // World
+                btnTabWorld?.AddToClassList("active");
+                BuildPsynergyCardsList(p => p.WorldData.CanBeUsedInWorld);
+                break;
+
+            case 2: // Battle / Attack
+                btnTabBattle?.AddToClassList("active");
+                BuildPsynergyCardsList(p => p.IsBattlePsynergy);
+                break;
+        }
+    }
+
+    private void UpdateInfoPanel(PsynergySO psynergy)
+    {
+        if (psynergy == null)
+        {
+            ClearInfoPanel();
+            return;
+        }
+
+        if (labelPsynergyName != null) labelPsynergyName.text = psynergy.PsynergyName;
+        if (labelPsynergyType != null) labelPsynergyType.text = $"Psinergía de {GetElementNameSpanish(psynergy.Element)}";
+        if (labelPsynergyCost != null) labelPsynergyCost.text = $"Coste: {psynergy.PpCost} PP";
+        if (labelPsynergyRange != null) labelPsynergyRange.text = $"Alcance: {FormatTargetTypeSpanish(psynergy.TargetType)}";
+        if (labelPsynergyDesc != null) labelPsynergyDesc.text = psynergy.Description;
+
+        if (psynergyIconPreview != null && psynergy.Icon != null)
+        {
+            psynergyIconPreview.style.backgroundImage = new StyleBackground(psynergy.Icon);
+        }
+    }
+
+    private string FormatTargetTypeSpanish(PsynergyTargetType targetType)
+    {
+        switch (targetType)
+        {
+            case PsynergyTargetType.Self: return "Mismo usuario";
+            case PsynergyTargetType.SingleAlly: return "1 Aliado";
+            case PsynergyTargetType.AllAllies: return "Todos los aliados";
+            case PsynergyTargetType.SingleEnemy: return "1 Enemigo";
+            case PsynergyTargetType.AllEnemies: return "Todos los enemigos";
+            default: return targetType.ToString();
+        }
+    }
+
+    private string GetElementNameSpanish(ElementalType element)
+    {
+        switch (element)
+        {
+            case ElementalType.Venus: return "Tierra - Venus";
+            case ElementalType.Mars: return "Fuego - Marte";
+            case ElementalType.Jupiter: return "Viento - Júpiter";
+            case ElementalType.Mercury: return "Agua - Mercurio";
+            default: return element.ToString();
+        }
+    }
+
+    public void ClearInfoPanel()
+    {
+        if (labelPsynergyName != null) labelPsynergyName.text = "Seleccionar Psinergía";
+        if (labelPsynergyType != null) labelPsynergyType.text = "---";
+        if (labelPsynergyCost != null) labelPsynergyCost.text = "Coste: -- PP";
+        if (labelPsynergyRange != null) labelPsynergyRange.text = "Alcance: --";
+        if (labelPsynergyDesc != null) labelPsynergyDesc.text = "Selecciona una psinergía de la lista para ver su información detallada o asignarla a un atajo de exploración.";
+        if (psynergyIconPreview != null) psynergyIconPreview.style.backgroundImage = null;
+    }
+
+    #endregion
+}
