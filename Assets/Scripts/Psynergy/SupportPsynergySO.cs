@@ -26,11 +26,19 @@ public class SupportPsynergySO : PsynergySO
 
     #endregion
 
-    public override void ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
-    {
-        base.ExecuteBattleEffect(caster, targets);
+    #region Execution Methods Override
 
-        if (targets == null || targets.Count == 0) return;
+    public override bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    {
+        if (!IsBattlePsynergy)
+        {
+            Debug.LogWarning($"[Psynergy] '{PsynergyName}' no es una psinergía de combate.");
+            return false;
+        }
+
+        if (targets == null || targets.Count == 0) return false;
+
+        bool anyEffectApplied = false;
 
         foreach (FighterStats target in targets)
         {
@@ -39,8 +47,8 @@ public class SupportPsynergySO : PsynergySO
             // 1. Dispel Enemy Buffs (Break)
             if (dispelsEnemyBuffs)
             {
-                Debug.Log($"[Psynergy] '{PsynergyName}' dispelled positive stat buffs on {target.Name}.");
-                // TODO: Implement logic to purge positive StatModifiers from target stats
+                Debug.Log($"[Psynergy] '{PsynergyName}' disipó potenciadores positivos en {target.Name}.");
+                // TODO: Implement logic to purge positive StatModifiers from target stats and set anyEffectApplied = true if removed
             }
 
             // 2. Apply Stat Modifier (Buff / Debuff)
@@ -49,7 +57,6 @@ public class SupportPsynergySO : PsynergySO
                 Stat targetStat = target.GetStat(statToModify);
                 if (targetStat != null)
                 {
-                    // Create temporary StatModifier referencing this Psynergy as Source
                     StatModifier mod = new StatModifier(
                         value: modifierValue,
                         type: modifierType,
@@ -59,9 +66,20 @@ public class SupportPsynergySO : PsynergySO
                     );
 
                     targetStat.AddModifier(mod);
-                    Debug.Log($"[Psynergy] Applied StatModifier ({modifierValue}) to {statToModify} on {target.Name} for {durationInTurns} turns.");
+                    anyEffectApplied = true;
+                    Debug.Log($"[Psynergy] Aplicado StatModifier ({modifierValue}) a {statToModify} en {target.Name} durante {durationInTurns} turnos.");
                 }
             }
         }
+
+        return anyEffectApplied;
     }
+
+    public override bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    {
+        Debug.LogWarning($"[Psynergy] '{PsynergyName}' es una psinergía de soporte de combate y no puede usarse desde el menú.");
+        return false;
+    }
+
+    #endregion
 }

@@ -55,17 +55,33 @@ public class AttackPsynergySO : PsynergySO
 
     #endregion
 
-    public override void ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    #region Execution Methods Override
+
+    public override bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
     {
-        base.ExecuteBattleEffect(caster, targets);
+        if (!IsBattlePsynergy)
+        {
+            Debug.LogWarning($"[Psynergy] '{PsynergyName}' no es una psinergía de combate.");
+            return false;
+        }
 
-        if (targets == null || targets.Count == 0) return;
+        if (targets == null || targets.Count == 0) return false;
 
-        Debug.Log($"[Psynergy] {caster.Name} casts attack Psynergy '{PsynergyName}' (Scaling: {scalingType}, Multiplier: {damageMultiplier}x, Base Power: {basePower}) on {targets.Count} target(s).");
+        Debug.Log($"[Psynergy] {caster.Name} usa la psinergía de ataque '{PsynergyName}' (Escalado: {scalingType}, Multiplicador: {damageMultiplier}x, Poder Base: {basePower}) sobre {targets.Count} objetivo(s).");
 
         // TODO: Integrate actual damage calculation formula when combat manager executes actions
         // TODO: Handle HP/PP draining after damage calculation
         // TODO: Handle instant kill probability check against target resistances
         // TODO: Apply secondary StatModifier/StatusEffect if secondaryEffectChance roll succeeds
+
+        return true;
     }
+
+    public override bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    {
+        Debug.LogWarning($"[Psynergy] '{PsynergyName}' es una psinergía de ataque y no puede usarse desde el menú.");
+        return false;
+    }
+
+    #endregion
 }

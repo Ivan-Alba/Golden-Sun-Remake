@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Psynergy/PagePsynergy.uss?fileID=7433441132597879392&amp;guid=c9d28fb7f5512eb4b95e881dbb350ab3&amp;type=3#PagePsynergy" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Psynergy/Page_Psynergy.uss?fileID=7433441132597879392&amp;guid=c9d28fb7f5512eb4b95e881dbb350ab3&amp;type=3#Page_Psynergy" />
     <ui:VisualElement name="page_psynergy_container" class="page-psynergy-container">
         <ui:VisualElement name="shortcuts_section" class="shortcuts-section">
             <ui:Label text="ATAJOS DE EXPLORACIÓN" name="label_shortcuts_header" class="info-title-label" />
@@ -11,24 +11,24 @@
             <ui:VisualElement name="dpad_shortcuts_container" class="dpad-shortcuts-container">
                 <ui:VisualElement name="dpad_row_top" class="dpad-row">
                     <ui:VisualElement name="slot_shortcut_up" class="shortcut-slot slot-box">
-                        <ui:Label text="▲" class="dpad-arrow-label" />
+                        <ui:Label text="Q" class="dpad-arrow-label" />
                         <ui:VisualElement name="slot_shortcut_up_icon" class="shortcut-icon" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="dpad_row_middle" class="dpad-row dpad-row-horizontal">
                     <ui:VisualElement name="slot_shortcut_left" class="shortcut-slot slot-box">
-                        <ui:Label text="◄" class="dpad-arrow-label" />
+                        <ui:Label text="E" class="dpad-arrow-label" />
                         <ui:VisualElement name="slot_shortcut_left_icon" class="shortcut-icon" />
                     </ui:VisualElement>
                     <ui:VisualElement name="dpad_center_decor" class="dpad-center-decor" />
                     <ui:VisualElement name="slot_shortcut_right" class="shortcut-slot slot-box">
-                        <ui:Label text="►" class="dpad-arrow-label" />
+                        <ui:Label text="R" class="dpad-arrow-label" />
                         <ui:VisualElement name="slot_shortcut_right_icon" class="shortcut-icon" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="dpad_row_bottom" class="dpad-row">
                     <ui:VisualElement name="slot_shortcut_down" class="shortcut-slot slot-box">
-                        <ui:Label text="▼" class="dpad-arrow-label" />
+                        <ui:Label text="F" class="dpad-arrow-label" />
                         <ui:VisualElement name="slot_shortcut_down_icon" class="shortcut-icon" />
                     </ui:VisualElement>
                 </ui:VisualElement>

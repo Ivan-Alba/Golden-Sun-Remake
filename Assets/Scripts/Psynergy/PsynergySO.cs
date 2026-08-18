@@ -157,12 +157,16 @@ public abstract class PsynergySO : ScriptableObject
     /// Executes the combat logic for this Psynergy.
     /// Derived classes (Attack, Heal, Support) override this method to supply specific logic.
     /// </summary>
-    public virtual void ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    /// <returns>True if the battle effect succeeded/applied to at least one target; otherwise false (e.g. miss, immune).</returns>
+    public virtual bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
     {
         if (!isBattlePsynergy)
         {
             Debug.LogWarning($"[Psynergy] '{psynergyName}' is a non-battle Psynergy and cannot be executed in combat.");
+            return false;
         }
+
+        return false;
     }
 
     /// <summary>
@@ -182,15 +186,17 @@ public abstract class PsynergySO : ScriptableObject
     /// <summary>
     /// Executes pause/party menu logic out of combat if applicable.
     /// </summary>
-    public virtual void ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    /// <returns>True if the menu effect was successfully applied to at least one target; otherwise false.</returns>
+    public virtual bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
     {
         if (!menuData.CanBeUsedInMenu)
         {
             Debug.LogWarning($"[Psynergy] '{psynergyName}' cannot be executed from the party menu.");
-            return;
+            return false;
         }
 
         Debug.Log($"[Psynergy] Executing menu action for '{psynergyName}'.");
+        return false;
     }
 
     #endregion

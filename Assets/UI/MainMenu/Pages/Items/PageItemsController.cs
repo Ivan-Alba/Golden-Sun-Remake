@@ -748,8 +748,20 @@ public class PageItemsController
         // 1. Actions from Personal Inventory
         if (sourceType == DragSourceType.PersonalInventory)
         {
-            // Auto-equip logic for equipable items
-            if (item is EquipableSO)
+            // Auto-equip logic for Psynergy Relics
+            if (item is PsynergyRelicSO || (item is EquipableSO eqRelic && eqRelic.EquipmentSlot == EquipmentSlot.PsynergyRelic))
+            {
+                if (currentEquipment != null)
+                {
+                    int emptyRelicIndex = GetFirstEmptyRelicIndex();
+                    int targetRelicIndex = (emptyRelicIndex != -1) ? emptyRelicIndex : 0;
+
+                    currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
+                    RefreshAllData();
+                }
+            }
+            // Auto-equip logic for standard equipable items
+            else if (item is EquipableSO)
             {
                 currentEquipment?.EquipFromBackpack(slotIndex);
                 RefreshAllData();
@@ -798,6 +810,24 @@ public class PageItemsController
         }
     }
 
+    /// <summary>
+    /// Helper to locate the first available relic slot index (0-3) on current equipment.
+    /// Returns -1 if all relic slots are currently occupied.
+    /// </summary>
+    private int GetFirstEmptyRelicIndex()
+    {
+        if (currentEquipment == null) return -1;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (currentEquipment.GetEquippedRelic(i) == null)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private void StartItemTargeting(int sourceIndex, ItemSO item)
     {
         CancelItemTargeting();
@@ -833,8 +863,9 @@ public class PageItemsController
         {
             if (TryGetDropTarget(evt.position, out DropTargetInfo targetInfo) && targetInfo.TargetType == DropTargetType.HeroCard)
             {
+                // Cancela inmediatamente la propagación para evitar que MainMenuController reciba el PointerDownEvent
+                evt.StopImmediatePropagation();
                 ExecuteConsumableUsageOnHero(targetInfo.Index);
-                evt.StopPropagation();
             }
             else
             {
@@ -855,147 +886,42 @@ public class PageItemsController
 
     private void ExecuteConsumableUsageOnHero(int targetHeroIdx)
     {
-        Debug.Log($"[Consumable] === INTENTO DE USO DE CONSUMIBLE ===");
-
         if (currentInventory == null || targetingSourceIndex < 0)
         {
-            Debug.LogWarning($"[Consumable] Cancelado: Inventario nulo o índice de origen inválido ({targetingSourceIndex}).");
             CancelItemTargeting();
             return;
         }
 
         InventorySlot sourceSlot = currentInventory.GetSlot(targetingSourceIndex);
-        if (sourceSlot == null || sourceSlot.IsEmpty || sourceSlot.Item == null)
+        if (sourceSlot == null || sourceSlot.IsEmpty || !(sourceSlot.Item is ConsumableSO consumable))
         {
-            Debug.LogWarning($"[Consumable] Cancelado: El hueco {targetingSourceIndex} está vacío o es nulo.");
             CancelItemTargeting();
             return;
         }
 
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
-        if (targetHero == null)
-        {
-            Debug.LogWarning($"[Consumable] Cancelado: No se encontró HeroStats en el índice de grupo {targetHeroIdx}.");
-            return;
-        }
+        if (targetHero == null) return;
 
-        Debug.Log($"[Consumable] Usando '{sourceSlot.Item.ItemName}' (Slot {targetingSourceIndex}, Cantidad: {sourceSlot.Quantity}) sobre héroe: {targetHero.Name} (Índice {targetHeroIdx})");
+        Debug.Log($"[Consumable] Usando '{consumable.ItemName}' (Slot {targetingSourceIndex}) sobre {targetHero.Name}...");
 
-        bool effectApplied = ApplyConsumableEffect(targetHero, sourceSlot.Item);
+        bool effectApplied = consumable.ExecuteMenuEffect(targetHero);
 
         if (effectApplied)
         {
-            Debug.Log($"[Consumable] ÉXITO: Efecto aplicado a {targetHero.Name}. Consumiendo 1 unidad.");
             currentInventory.RemoveFromSlot(targetingSourceIndex, 1);
             RefreshAllData();
 
             InventorySlot updatedSlot = currentInventory.GetSlot(targetingSourceIndex);
             if (updatedSlot == null || updatedSlot.IsEmpty || updatedSlot.Quantity <= 0)
             {
-                Debug.Log($"[Consumable] El stack de objetos se ha agotado en el hueco {targetingSourceIndex}. Finalizando modo targeting.");
                 CancelItemTargeting();
-            }
-            else
-            {
-                Debug.Log($"[Consumable] Quedan {updatedSlot.Quantity} unidades. El modo targeting SIGUE ACTIVO para uso en cadena.");
             }
         }
         else
         {
-            Debug.LogWarning($"[Consumable] FALLO: El efecto NO se pudo aplicar en {targetHero.Name} (posiblemente vida/maná lleno o personaje muerto). El objeto NO fue consumido.");
+            // TODO: Play UI Error Sound
+            Debug.LogWarning($"[Consumable] '{consumable.ItemName}' no tuvo efecto sobre {targetHero.Name}. No se consume del inventario.");
         }
-    }
-
-    private bool ApplyConsumableEffect(HeroStats hero, ItemSO item)
-    {
-        if (hero == null || item == null)
-        {
-            Debug.LogError("[Consumable] Error crítico: héroe o ítem nulo en ApplyConsumableEffect.");
-            return false;
-        }
-
-        if (item is ConsumableSO consumable)
-        {
-            Debug.Log($"[Consumable] Datos del ScriptableObject -> Nombre: {consumable.ItemName} | EffectType: {consumable.EffectType} | BonusValue: {consumable.BonusValue} | StatToBonus: {consumable.StatToBonus} | UseInMenu: {consumable.UseInMenu}");
-
-            if (!consumable.UseInMenu)
-            {
-                Debug.LogWarning($"[Consumable] '{item.ItemName}' no está configurado para usarse fuera de combate (UseInMenu = false).");
-                return false;
-            }
-
-            bool used = false;
-
-            switch (consumable.EffectType)
-            {
-                case ConsumableEffectType.RestoreHp:
-                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PV Actual: {hero.CurrHp}/{hero.MaxHp} | ¿Muerto?: {hero.IsDead}");
-                    if (!hero.IsDead && hero.CurrHp < hero.MaxHp)
-                    {
-                        hero.RestoreHP(consumable.BonusValue);
-                        used = true;
-                        Debug.Log($"[Consumable] Restaurados {consumable.BonusValue} PV a {hero.Name}. Nuevo PV: {hero.CurrHp}/{hero.MaxHp}");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[Consumable] No se puede restaurar PV: {hero.Name} ya tiene la vida al máximo o está muerto.");
-                    }
-                    break;
-
-                case ConsumableEffectType.RestorePp:
-                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PP Actual: {hero.CurrPp}/{hero.MaxPp} | ¿Muerto?: {hero.IsDead}");
-                    if (!hero.IsDead && hero.CurrPp < hero.MaxPp)
-                    {
-                        hero.RestorePP(consumable.BonusValue);
-                        used = true;
-                        Debug.Log($"[Consumable] Restaurados {consumable.BonusValue} PP a {hero.Name}. Nuevo PP: {hero.CurrPp}/{hero.MaxPp}");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[Consumable] No se puede restaurar PP: {hero.Name} ya tiene los PP al máximo o está muerto.");
-                    }
-                    break;
-
-                case ConsumableEffectType.RestoreHpAndPp:
-                    Debug.Log($"[Consumable] Estado de {hero.Name} -> PV: {hero.CurrHp}/{hero.MaxHp} | PP: {hero.CurrPp}/{hero.MaxPp}");
-                    if (!hero.IsDead && (hero.CurrHp < hero.MaxHp || hero.CurrPp < hero.MaxPp))
-                    {
-                        hero.RestoreHP(consumable.BonusValue);
-                        hero.RestorePP(consumable.BonusValue);
-                        used = true;
-                        Debug.Log($"[Consumable] Restaurados PV y PP a {hero.Name}.");
-                    }
-                    break;
-
-                case ConsumableEffectType.Revive:
-                    if (hero.IsDead)
-                    {
-                        hero.Revive(consumable.BonusValue);
-                        used = true;
-                        Debug.Log($"[Consumable] Resucitado {hero.Name} con {consumable.BonusValue} PV.");
-                    }
-                    break;
-
-                case ConsumableEffectType.CureStatus:
-                    Debug.LogWarning($"[Consumable] CureStatus no implementado aún.");
-                    break;
-
-                case ConsumableEffectType.PermanentStatBoost:
-                    Debug.Log($"[Consumable] Aplicando boost permanente de {consumable.BonusValue} a {consumable.StatToBonus} en {hero.Name}");
-                    hero.AddPermanentStatBoost(consumable.StatToBonus, consumable.BonusValue);
-                    used = true;
-                    break;
-
-                default:
-                    Debug.LogWarning($"[Consumable] EffectType no reconocido o no manejado: {consumable.EffectType}");
-                    break;
-            }
-
-            return used;
-        }
-
-        Debug.LogError($"[Consumable] El objeto '{item.ItemName}' NO es de tipo ConsumableSO.");
-        return false;
     }
 
     private HeroStats GetHeroStatsByIdx(int index)
@@ -1063,25 +989,24 @@ public class PageItemsController
 
     private void HighlightCompatibleSlots(ItemSO item, bool enable)
     {
-        if (item is EquipableSO equipable)
+        bool isRelic = item is PsynergyRelicSO || (item is EquipableSO eqRelic && eqRelic.EquipmentSlot == EquipmentSlot.PsynergyRelic);
+
+        if (isRelic)
+        {
+            for (int i = 0; i < relicSlots.Length; i++)
+            {
+                SetSlotHighlight(relicSlots[i], enable);
+            }
+        }
+        else if (item is EquipableSO equipable)
         {
             EquipmentSlot slotType = equipable.EquipmentSlot;
 
-            if (slotType == EquipmentSlot.PsynergyRelic)
+            for (int i = 0; i < gearSlotTypes.Length; i++)
             {
-                for (int i = 0; i < relicSlots.Length; i++)
+                if (gearSlotTypes[i] == slotType && gearSlots[i] != null)
                 {
-                    SetSlotHighlight(relicSlots[i], enable);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < gearSlotTypes.Length; i++)
-                {
-                    if (gearSlotTypes[i] == slotType && gearSlots[i] != null)
-                    {
-                        SetSlotHighlight(gearSlots[i], enable);
-                    }
+                    SetSlotHighlight(gearSlots[i], enable);
                 }
             }
         }

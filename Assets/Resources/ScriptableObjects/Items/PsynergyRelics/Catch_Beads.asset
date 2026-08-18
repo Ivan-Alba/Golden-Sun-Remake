@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd52ee98c5456749be828bc1c5c2942, type: 3}
+  m_Name: Catch_Beads
+  m_EditorClassIdentifier: 
+  itemSlug: catch_beads
+  itemName: 'Collar de Poder '
+  itemDescription: "Al equipar, permite usar la psinerg\xEDa \"Coger\"."
+  icon: {fileID: 21300000, guid: 59c58468b36ec7148accd72e87ea3e76, type: 3}
+  itemType: 2
+  buyPrice: 0
+  sellPrice: 0
+  canSell: 0
+  maxStack: 1
+  grantedPsynergy: {fileID: 11400000, guid: ca4682f4b3119d343b85ee6ee594e656, type: 2}
+  statModifiers: []

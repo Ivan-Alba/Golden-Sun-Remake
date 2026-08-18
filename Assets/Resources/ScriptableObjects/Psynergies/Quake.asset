@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02a153bd3a5b8fd4d9d5e476f6d92fd0, type: 3}
+  m_Name: Quake
+  m_EditorClassIdentifier: 
+  psynergyName: Temblor
+  slugName: quake
+  description: Ataca a los enemigos con un poderoso temblor.
+  icon: {fileID: 21300000, guid: fe5582aac7839564a97e4eed644ab29c, type: 3}
+  ppCost: 4
+  element: 1
+  isBattlePsynergy: 1
+  targetType: 2
+  vfxPrefab: {fileID: 1535640691960112, guid: 96a8f73d24c38884bad7e4802680eaa7, type: 3}
+  soundEffect: {fileID: 0}
+  areaRange: 1
+  hasDiminishingSpread: 1
+  worldData:
+    canBeUsedInWorld: 0
+    worldAction: 0
+    worldVfxPrefab: {fileID: 0}
+    worldSoundEffect: {fileID: 0}
+  menuData:
+    canBeUsedInMenu: 0
+    menuSoundEffect: {fileID: 0}
+    menuVfxPrefab: {fileID: 0}
+  basePower: 12
+  scalingType: 0
+  damageMultiplier: 1
+  drainsHp: 0
+  drainsPp: 0
+  drainRatio: 0.5
+  isInstantKill: 0
+  instantKillChance: 0.2
+  appliesSecondaryStatEffect: 0
+  statToModify: 0
+  statModifierValue: 0
+  modifierType: 1
+  modifierDurationTurns: 3
+  secondaryEffectChance: 1

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.11182475, g: 0.24430145, b: 0.40946025, a: 1}
+  m_IndirectSpecularColor: {r: 0.10305652, g: 0.22862746, b: 0.38507217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1311,36 +1311,44 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 8459378965900201015, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: field of view
-      value: 55
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 30.95
+      value: 33.367046
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.9000002
+      value: 0.5666367
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -30.2
+      value: -34.937866
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.8632819
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: -0.40200904
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: -0.27665147
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: -0.12882975
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378966228098901, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: marsElementCircle
+      value: 
+      objectReference: {fileID: 1938559062727932, guid: 73dfabe99ff69c24ea921a5416a6598f, type: 3}
+    - target: {fileID: 8459378966228098901, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: venusElementCircle
+      value: 
+      objectReference: {fileID: 1014003377299866, guid: b3580144580c2974a97bc9a13dcfcda6, type: 3}
     - target: {fileID: 8459378966228098901, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: psynergiesResourcePath
       value: ScriptableObjects/Psynergies

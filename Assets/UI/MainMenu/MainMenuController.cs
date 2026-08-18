@@ -292,6 +292,7 @@ public class MainMenuController : MonoBehaviour
         {
             // Cancel active targeting when menu is closed
             itemsPageController?.CancelItemTargeting();
+            psynergyPageController?.CancelPsynergyTargeting();
             UnsubscribeFromMenuInputs();
         }
     }
@@ -300,6 +301,7 @@ public class MainMenuController : MonoBehaviour
     {
         // Cancel active targeting mode if changing tabs
         itemsPageController?.CancelItemTargeting();
+        psynergyPageController?.CancelPsynergyTargeting();
 
         currentTab = tab;
 
@@ -316,8 +318,9 @@ public class MainMenuController : MonoBehaviour
 
     public void SelectHero(int heroIndex)
     {
-        // If the items page is currently targeting a hero to apply a consumable, block page navigation
-        if (itemsPageController != null && itemsPageController.IsTargetingItem)
+        // If items page or psynergy page is targeting a hero to apply a spell/item, block changing the active hero view
+        if ((itemsPageController != null && itemsPageController.IsTargetingItem) ||
+            (psynergyPageController != null && psynergyPageController.IsTargetingPsynergy))
         {
             return;
         }
@@ -451,6 +454,7 @@ public class MainMenuController : MonoBehaviour
         pageContent.Add(psynergyInstance);
 
         psynergyPageController = new PagePsynergyController(psynergyInstance);
+        psynergyPageController.OnPsynergyUsedOnHero += RefreshHeaderHeroCards;
 
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
         GameObject selectedHeroObj = GetPartyMemberGameObject(selectedHeroIndex);

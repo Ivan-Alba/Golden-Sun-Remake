@@ -552,13 +552,13 @@ public class PagePsynergyController
 
         if (!psynergy.MenuData.CanBeUsedInMenu)
         {
-            Debug.LogWarning($"[PagePsynergy] '{psynergy.PsynergyName}' cannot be used in the main menu.");
+            Debug.LogWarning($"[PagePsynergy] '{psynergy.PsynergyName}' no se puede usar en el menú principal.");
             return;
         }
 
         if (currentHeroStats != null && currentHeroStats.CurrPp < psynergy.PpCost)
         {
-            Debug.LogWarning($"[PagePsynergy] Not enough PP to use '{psynergy.PsynergyName}'. Required: {psynergy.PpCost}, Current: {currentHeroStats.CurrPp}");
+            Debug.LogWarning($"[PagePsynergy] PP insuficientes para usar '{psynergy.PsynergyName}'. Requerido: {psynergy.PpCost}, Actual: {currentHeroStats.CurrPp}");
             return;
         }
 
@@ -577,6 +577,7 @@ public class PagePsynergyController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
+            // Registering with TrickleDown ensures we intercept clicks before hero header cards process them
             topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
         }
@@ -586,19 +587,22 @@ public class PagePsynergyController
     {
         if (!isTargetingPsynergy) return;
 
-        if (evt.button == 1) // Right Click
+        // Cancel targeting on right click
+        if (evt.button == 1)
         {
             CancelPsynergyTargeting();
             evt.StopPropagation();
             return;
         }
 
-        if (evt.button == 0) // Left Click
+        // Left click execution
+        if (evt.button == 0)
         {
             if (TryGetDropTarget(evt.position, out PsynergyDropTargetInfo targetInfo) && targetInfo.IsHeroCard)
             {
+                // Prevent MainMenuController from triggering SelectHero when clicking the card during targeting
+                evt.StopImmediatePropagation();
                 ExecutePsynergyOnHero(targetInfo.HeroIndex);
-                evt.StopPropagation();
             }
             else
             {
@@ -628,21 +632,32 @@ public class PagePsynergyController
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
         if (targetHero == null)
         {
-            Debug.LogWarning($"[PagePsynergy] Target hero at index {targetHeroIdx} not found.");
+            Debug.LogWarning($"[PagePsynergy] HeroStats no encontrado para el índice {targetHeroIdx}.");
             return;
         }
 
-        Debug.Log($"[PagePsynergy] Casting '{targetingPsynergy.PsynergyName}' on {targetHero.Name}...");
+        Debug.Log($"[PagePsynergy] Intentando lanzar '{targetingPsynergy.PsynergyName}' sobre {targetHero.Name}...");
 
-        currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
-        targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
+        // 1. Intentar aplicar el efecto en el héroe objetivo
+        bool effectApplied = targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
 
-        OnPsynergyUsedOnHero?.Invoke();
-        BuildPsynergyCardsList();
-
-        if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
+        // 2. Solo si el efecto tuvo éxito real consumimos los PP y actualizamos la UI
+        if (effectApplied)
         {
-            CancelPsynergyTargeting();
+            currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
+
+            OnPsynergyUsedOnHero?.Invoke();
+            BuildPsynergyCardsList();
+
+            // Si tras consumir PP el héroe ya no tiene suficiente para otra tirada, cancelamos el modo objetivo
+            if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
+            {
+                CancelPsynergyTargeting();
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' no tuvo efecto sobre {targetHero.Name}. No se consumen PP.");
         }
     }
 

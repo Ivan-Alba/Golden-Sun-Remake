@@ -8,6 +8,10 @@
           "name": "cure"
         },
         {
+          "level": 3,
+          "name": "quake"
+        },
+        {
           "level": 4,
           "name": "catch"
         }
@@ -16,6 +20,10 @@
     {
       "name": "Garet",
       "abilities": [
+        {
+          "level": 2,
+          "name": "move"
+        },
         {
           "level": 3,
           "name": "flames"

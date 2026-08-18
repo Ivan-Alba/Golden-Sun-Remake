@@ -137,6 +137,9 @@ public class FighterController : MonoBehaviour
 
         yield return new WaitForSeconds(1.5f);
 
+        if (castVfxInstance != null) Destroy(castVfxInstance);
+
+
         // 2. Instantiate Impact VFX directly from PsynergySO property
         GameObject impactVfxPrefab = psynergyToUse.VfxPrefab;
         GameObject impactVfxInstance = null;
@@ -189,7 +192,7 @@ public class FighterController : MonoBehaviour
 
         // Clean Up VFX Instances
         if (impactVfxInstance != null) Destroy(impactVfxInstance);
-        if (castVfxInstance != null) Destroy(castVfxInstance);
+        //if (castVfxInstance != null) Destroy(castVfxInstance);
 
         actionFinished = true;
     }

@@ -190,16 +190,28 @@ public class FighterStats : MonoBehaviour
 
     #region Health & Resource Operations
 
-    public void RestoreHP(int amount)
+    /// <summary>
+    /// Restores HP to the fighter if alive and not already at max HP.
+    /// </summary>
+    /// <returns>True if HP was actually restored; otherwise false.</returns>
+    public bool RestoreHP(int amount)
     {
-        if (IsDead || amount <= 0) return;
+        if (IsDead || amount <= 0 || CurrHp >= MaxHp) return false;
+
         CurrHp += amount;
+        return true;
     }
 
-    public void RestorePP(int amount)
+    /// <summary>
+    /// Restores PP to the fighter if alive and not already at max PP.
+    /// </summary>
+    /// <returns>True if PP was actually restored; otherwise false.</returns>
+    public bool RestorePP(int amount)
     {
-        if (IsDead || amount <= 0) return;
+        if (IsDead || amount <= 0 || CurrPp >= MaxPp) return false;
+
         CurrPp += amount;
+        return true;
     }
 
     /// <summary>
@@ -225,10 +237,31 @@ public class FighterStats : MonoBehaviour
         CurrHp -= amount;
     }
 
-    public void Revive(int healthAmount)
+    /// <summary>
+    /// Revives a defeated fighter with the specified health amount.
+    /// </summary>
+    /// <returns>True if the fighter was dead and was revived; otherwise false.</returns>
+    public bool Revive(int healthAmount)
     {
-        if (!IsDead) return;
+        if (!IsDead) return false;
+
         CurrHp = Mathf.Clamp(healthAmount, 1, MaxHp);
+        return true;
+    }
+
+    /// <summary>
+    /// Cures a status effect on the fighter.
+    /// </summary>
+    /// <returns>True if the status effect was present and cured; otherwise false.</returns>
+    public bool CureStatusEffect(/* TODO: Pass StatusEffectType enum when implemented */)
+    {
+        // TODO: Implement status effect check and removal logic
+        // Example:
+        // if (!HasStatusEffect(effectType)) return false;
+        // RemoveStatusEffect(effectType);
+        // return true;
+
+        return false;
     }
 
     public void AddPermanentStatBoost(StatType type, int amount)
