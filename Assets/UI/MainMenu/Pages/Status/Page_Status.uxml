@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Status/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
-    <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 451px;">
+    <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 100%;">
         
         <!-- CARD HERO 0 -->
         <ui:VisualElement name="hero_card_0" class="hero-card" style="display: flex;">
@@ -11,11 +11,11 @@
                     <ui:VisualElement name="hero_portrait_0" picking-mode="Ignore" class="hero-portrait" style="border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;" />
                     <ui:VisualElement name="hero_header_info_0" picking-mode="Ignore" class="hero-header-info">
                         <ui:Label text="Hans" name="label_hero_name_0" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:Label text="Nv. 15" name="label_hero_level_0" picking-mode="Ignore" class="hero-level-label" />
                         <ui:VisualElement class="exp-bar-wrapper">
                             <ui:ProgressBar value="85" name="bar_exp_0" picking-mode="Ignore" class="custom-bar exp-bar-header" />
                             <ui:Label text="EXP 1250/1500" name="label_exp_text_0" picking-mode="Ignore" class="exp-bar-text" />
                         </ui:VisualElement>
+                        <ui:Label text="Nv. 15" name="label_hero_level_0" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
 
@@ -149,11 +149,11 @@
                     <ui:VisualElement name="hero_portrait_1" picking-mode="Ignore" class="hero-portrait" />
                     <ui:VisualElement name="hero_header_info_1" picking-mode="Ignore" class="hero-header-info">
                         <ui:Label text="Garet" name="label_hero_name_1" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:Label text="Nv. 15" name="label_hero_level_1" picking-mode="Ignore" class="hero-level-label" />
                         <ui:VisualElement class="exp-bar-wrapper">
                             <ui:ProgressBar value="85" name="bar_exp_1" picking-mode="Ignore" class="custom-bar exp-bar-header" />
                             <ui:Label text="EXP 1250/1500" name="label_exp_text_1" picking-mode="Ignore" class="exp-bar-text" />
                         </ui:VisualElement>
+                        <ui:Label text="Nv. 15" name="label_hero_level_1" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
 
@@ -283,11 +283,11 @@
                     <ui:VisualElement name="hero_portrait_2" picking-mode="Ignore" class="hero-portrait" />
                     <ui:VisualElement name="hero_header_info_2" picking-mode="Ignore" class="hero-header-info">
                         <ui:Label text="Ivan" name="label_hero_name_2" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:Label text="Nv. 15" name="label_hero_level_2" picking-mode="Ignore" class="hero-level-label" />
                         <ui:VisualElement class="exp-bar-wrapper">
                             <ui:ProgressBar value="85" name="bar_exp_2" picking-mode="Ignore" class="custom-bar exp-bar-header" />
                             <ui:Label text="EXP 1250/1500" name="label_exp_text_2" picking-mode="Ignore" class="exp-bar-text" />
                         </ui:VisualElement>
+                        <ui:Label text="Nv. 15" name="label_hero_level_2" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
 
@@ -417,11 +417,11 @@
                     <ui:VisualElement name="hero_portrait_3" picking-mode="Ignore" class="hero-portrait" />
                     <ui:VisualElement name="hero_header_info_3" picking-mode="Ignore" class="hero-header-info">
                         <ui:Label text="Mia" name="label_hero_name_3" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:Label text="Nv. 15" name="label_hero_level_3" picking-mode="Ignore" class="hero-level-label" />
                         <ui:VisualElement class="exp-bar-wrapper">
                             <ui:ProgressBar value="85" name="bar_exp_3" picking-mode="Ignore" class="custom-bar exp-bar-header" />
                             <ui:Label text="EXP 1250/1500" name="label_exp_text_3" picking-mode="Ignore" class="exp-bar-text" />
                         </ui:VisualElement>
+                        <ui:Label text="Nv. 15" name="label_hero_level_3" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
 

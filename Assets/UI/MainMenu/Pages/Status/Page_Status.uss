@@ -62,7 +62,7 @@
     background-color: rgba(15, 15, 20, 0.6);
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.08);
-    padding: 6px 4px 0 4px;
+    padding: 6px 4px 4px 4px;
     margin-bottom: 6px;
 }
 
@@ -89,26 +89,28 @@
 }
 
 .hero-name-label {
-    font-size: 13px;
+    width: 45px;
+    font-size: 15px;
     -unity-font-style: bold;
+    -unity-text-align: middle-left;
     color: #FFFFFF;
-    margin-right: 4px;
     flex-shrink: 0;
 }
 
 .hero-level-label {
+    width: 45px;
     font-size: 11px;
     -unity-font-style: bold;
+    -unity-text-align: middle-right;
     color: #DAA520;
-    margin-right: 4px;
     flex-shrink: 0;
 }
 
-/* EXP BARRA INTEGRADA Y RELLENO EXACTO */
+/* BARRA DE EXP CENTRADA Y EXPANDIBLE EN LA MISMA FILA */
 .exp-bar-wrapper {
+    width: 50%;
     position: relative;
-    flex-grow: 1;
-    max-width: 105px;
+    margin: 0 8px;
     height: 14px;
     justify-content: center;
     align-items: center;
