@@ -3,17 +3,18 @@
    ========================================== */
 .page-status-container {
     flex-direction: row;
-    justify-content: space-between;
-    align-items: stretch;
+    justify-content: center;
+    align-items: center; /* Centra las tarjetas recortadas verticalmente */
     flex-grow: 1;
+    height: 100%;
     padding: 10px;
     color: #FFFFFF;
 }
 
 .hero-card {
-   width: 23.5%;
+    width: 23.5%;
     margin: 0 6px;
-   background-color: rgba(15, 20, 28, 0.85);
+    background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
@@ -21,15 +22,16 @@
     position: relative;
     overflow: hidden;
     color: #FFFFFF;
+    /* Elimina el estiramiento vertical forzado */
+    height: auto;
 }
 
 .card-face {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 10px;
+    position: relative; /* Cambiado de absolute a relative para colapsar alto exacto */
+    width: 100%;
+    height: auto;
+    padding: 0;
+    display: flex;
     flex-direction: column;
 }
 
@@ -39,11 +41,12 @@
     padding: 0;
 }
 
+/* CENTRADO Y DISTRIBUCIÓN UNIFORME */
 .card-front {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 100%;
+    height: auto;
 }
 
 /* ==========================================
@@ -56,11 +59,11 @@
     position: relative;
     border-radius: 5px;
     overflow: hidden;
-    margin-bottom: 8px;
     background-color: rgba(15, 15, 20, 0.6);
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.08);
     padding: 6px 4px 0 4px;
+    margin-bottom: 6px;
 }
 
 .hero-portrait {
@@ -86,110 +89,92 @@
 }
 
 .hero-name-label {
-    font-size: 14px;
+    font-size: 13px;
     -unity-font-style: bold;
     color: #FFFFFF;
-    margin-right: 6px;
+    margin-right: 4px;
     flex-shrink: 0;
 }
 
 .hero-level-label {
-    font-size: 12px;
+    font-size: 11px;
     -unity-font-style: bold;
     color: #DAA520;
-    margin-right: 8px;
+    margin-right: 4px;
     flex-shrink: 0;
 }
 
-/* Compact EXP Progress Bar inside Header (High Contrast Cyan/Turquoise) */
-.exp-bar-header {
-    width: 65px;
+/* EXP BARRA INTEGRADA Y RELLENO EXACTO */
+.exp-bar-wrapper {
+    position: relative;
+    flex-grow: 1;
+    max-width: 105px;
     height: 14px;
-    min-width: 65px;
-    max-width: 65px;
+    justify-content: center;
+    align-items: center;
+}
+
+.exp-bar-header {
+    width: 100%;
+    height: 14px;
     border-radius: 3px;
     margin: 0;
     padding: 0;
-    flex-shrink: 0;
+    background-color: rgba(10, 20, 35, 0.9);
+    border-width: 1px;
+    border-color: rgba(66, 165, 245, 0.5);
+    overflow: hidden;
 }
 
 .exp-bar-header .unity-progress-bar__container {
     height: 100%;
-    min-height: 14px;
-    max-height: 14px;
-    background-color: rgba(12, 40, 55, 0.95);
-    border-radius: 3px;
+    min-height: 12px;
+    max-height: 12px;
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
 }
 
 .exp-bar-header .unity-progress-bar__background {
-    background-color: rgba(15, 50, 68, 0.95); /* Visible track at 0% XP */
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(0, 229, 255, 0.5); /* Bright Cyan outline */
+    background-color: rgba(12, 25, 45, 0.85);
+    border-radius: 0;
+    border-width: 0;
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .exp-bar-header .unity-progress-bar__progress {
-    background-color: #00E5FF; /* Bright Cyan filled XP */
-    border-radius: 3px;
+    background-color: #1E88E5;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
-.class-djinn-bar {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    background-color: rgba(20, 20, 28, 0.85);
-    padding: 5px 6px;
-    border-top-width: 1px;
-    border-top-color: rgba(218, 165, 32, 0.25);
-}
-
-.hero-class-label {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: #FFD700;
-}
-
-.equipped-pips-row {
-    flex-direction: row;
-    align-items: center;
-}
-
-.pip-element-group {
-    flex-direction: row;
-    align-items: center;
-    margin-left: 4px;
-}
-
-.pip-icon {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    margin-right: 2px;
-    border-width: 1px;
-}
-
-.pip-count {
-    font-size: 11px;
+.exp-bar-text {
+    position: absolute;
+    font-size: 8px;
     -unity-font-style: bold;
     color: #FFFFFF;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
+    -unity-text-align: middle-center;
 }
 
 /* ==========================================
-   2. STAT BARS CONTAINER (PV & PP FIXED LAYOUT)
+   2. STAT BARS CONTAINER (PV & PP)
    ========================================== */
 .bars-container {
     width: 100%;
     flex-direction: column;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .stat-bar-box {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     flex-shrink: 0;
 }
 
@@ -236,16 +221,16 @@
 }
 
 /* ==========================================
-   3. STANDARDIZED SECTION BOX & HEADERS
+   3. SECTION BOX & HEADERS
    ========================================== */
 .section-box {
     width: 100%;
     background-color: rgba(15, 15, 20, 0.6);
     border-radius: 5px;
     padding: 6px 8px;
-    margin-bottom: 8px;
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.08);
+    margin-bottom: 6px;
 }
 
 .page-status-container .section-header-label {
@@ -294,7 +279,6 @@
     color: #FFFFFF;
 }
 
-/* Stat Icon Placeholders */
 .icon-attack { background-color: #E74C3C; }
 .icon-defense { background-color: #3498DB; }
 .icon-agility { background-color: #2ECC71; }
@@ -345,60 +329,173 @@
     text-align: center;
 }
 
-/* Elemental Pip Colors */
 .icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
 .icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
 .icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
 .icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
 
 /* ==========================================
-   6. BOTTOM SECTION: COMPACT MAIN DJINN CARD
+   6. BOTTOM UNIFIED CONTAINER (NEUTRAL OUTER BOX)
    ========================================== */
 .main-djinn-card {
+    width: 100%;
     flex-direction: column;
     background-color: rgba(15, 15, 20, 0.6);
-    padding: 8px;
-    border-width: 1px;
     border-radius: 5px;
-    margin-top: auto;
+    padding: 6px 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    transition-property: opacity;
+    transition-duration: 0.2s;
 }
 
-.page-status-container .djinn-header-label {
+.class-djinn-bar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.hero-class-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #FFD700;
+}
+
+.equipped-pips-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.pip-element-group {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 5px;
+}
+
+.pip-icon {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 2px;
+    border-width: 1px;
+}
+
+.pip-count {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #E0E0E0;
+}
+
+.djinn-card-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin-bottom: 5px;
+}
+
+.djinn-header-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 6px;
 }
 
+.page-status-container .djinn-header-label {
+    margin-bottom: 0;
+}
+
+/* STATUS BADGES */
+.status-badge {
+    padding: 1px 6px;
+    border-radius: 3px;
+    border-width: 1px;
+}
+
+.status-badge-text {
+    font-size: 8.5px;
+    -unity-font-style: bold;
+}
+
+.badge-active {
+    background-color: rgba(0, 255, 136, 0.15);
+    border-color: rgba(0, 255, 136, 0.8);
+}
+.badge-active .status-badge-text { color: #00FF88; }
+
+.badge-standby {
+    background-color: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.8);
+}
+.badge-standby .status-badge-text { color: #FFD700; }
+
+.badge-recovery {
+    background-color: rgba(231, 76, 60, 0.15);
+    border-color: rgba(231, 76, 60, 0.8);
+}
+.badge-recovery .status-badge-text { color: #FF6B6B; }
+
+/* DYNAMIC OPACITY BY STATE */
+.card-djinn-standby {
+    opacity: 0.65;
+}
+
+.card-djinn-recovery {
+    opacity: 0.45;
+}
+
+/* ==========================================
+   7. INNER DJINN CARD (THE ENVELOPING CARD)
+   ========================================== */
 .main-djinn-body {
     flex-direction: row;
     align-items: center;
-
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-width: 1px;
+    /* Altura fija para garantizar alineación exacta en las 4 hero cards */
+    height: 78px;
+    min-height: 78px;
+    box-sizing: border-box;
 }
 
-/* Elemental Borders & Backdrops for Main Djinn Card */
+/* Elemental Borders & Card Backgrounds for main-djinn-body */
 .djinn-venus-border { border-color: rgba(200, 138, 46, 0.7); }
 .djinn-mars-border { border-color: rgba(231, 76, 60, 0.7); }
 .djinn-jupiter-border { border-color: rgba(155, 89, 182, 0.7); }
 .djinn-mercury-border { border-color: rgba(52, 152, 219, 0.7); }
 
-.main-djinn-full-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 5px;
-    margin-right: 8px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.25);
-    flex-shrink: 0;
+.djinn-venus-bg { background-color: rgba(200, 138, 46, 0.12); }
+.djinn-mars-bg { background-color: rgba(231, 76, 60, 0.12); }
+.djinn-jupiter-bg { background-color: rgba(155, 89, 182, 0.12); }
+.djinn-mercury-bg { background-color: rgba(52, 152, 219, 0.12); }
+
+/* ESTILO DISCRETO Y OSCURO PARA DJINN SIN ASIGNAR */
+.djinn-none-border { 
+    border-color: rgba(255, 255, 255, 0.05); 
 }
 
-.djinn-venus-bg { background-color: rgba(200, 138, 46, 0.25); }
-.djinn-mars-bg { background-color: rgba(231, 76, 60, 0.25); }
-.djinn-jupiter-bg { background-color: rgba(155, 89, 182, 0.25); }
-.djinn-mercury-bg { background-color: rgba(52, 152, 219, 0.25); }
+.djinn-none-bg { 
+    background-color: rgba(10, 10, 15, 0.5); 
+}
+
+.main-djinn-full-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    margin-right: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(5, 5, 10, 0.6);
+    flex-shrink: 0;
+}
 
 .main-djinn-details {
     flex-grow: 1;
     width: 0;
     flex-direction: column;
     justify-content: center;
+    height: 100%;
 }
 
 .main-djinn-name-label {
@@ -416,13 +513,13 @@
 
 .passive-divider {
     height: 1px;
-    background-color: rgba(255, 255, 255, 0.15);
-    margin-top: 4px;
-    margin-bottom: 4px;
+    background-color: rgba(255, 255, 255, 0.12);
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 
 .passive-title-label {
-    font-size: 11px;
+    font-size: 10.5px;
     -unity-font-style: bold;
     color: #60A5FA;
     margin-bottom: 1px;

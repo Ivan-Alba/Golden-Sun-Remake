@@ -16,7 +16,7 @@ MonoBehaviour:
   djinnSlug: flint
   element: 1
   icon: {fileID: 0}
-  description: 
+  description: Ataca con un fuerte golpe que puede cortar la roca.
   setStatModifiers:
   - statType: 0
     value: 10
@@ -28,4 +28,4 @@ MonoBehaviour:
   unleashStatusEffects: []
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 11400000, guid: c8643129b21db7e4bbeebad50f45edb3, type: 2}
-  leaderPassiveDescription: 
+  leaderPassiveDescription: JAJAJA
