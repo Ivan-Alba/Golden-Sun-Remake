@@ -1,28 +1,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// ScriptableObject defining support and tactical Psynergies (e.g., Impact, High Impact, Guard, Resistance, Break, Delude).
+/// Utilizes the central StatusEffect system to apply buffs, debuffs, crowd control, shields, or purge target categories.
+/// </summary>
 [CreateAssetMenu(fileName = "NewSupportPsynergy", menuName = "Psynergy/Support Psynergy")]
 public class SupportPsynergySO : PsynergySO
 {
-    [Header("Support / Stat Modifier Properties")]
-    [SerializeField] private bool appliesStatModifier = true;
-    [SerializeField] private StatType statToModify;
-    [SerializeField] private float modifierValue = 0.25f; // e.g., +0.25 (+25% Attack) or -0.25 (-25% Attack)
-    [SerializeField] private StatModifierType modifierType = StatModifierType.PercentBase;
-    [SerializeField] private int durationInTurns = 3;
+    #region Serialized Fields
 
-    [Header("Dispel Enemy Buffs (Break / Anular)")]
-    [Tooltip("If true, removes positive stat modifiers (buffs) applied to the targets (e.g., Break Psynergy).")]
-    [SerializeField] private bool dispelsEnemyBuffs;
+    [Header("Status Effect Application (Buffs / Debuffs / CC)")]
+    [Tooltip("Status effect templates applied to targets upon executing this psynergy.")]
+    [SerializeField] private List<StatusEffectSO> statusEffectsToApply = new List<StatusEffectSO>();
+
+    [Tooltip("Optional custom duration override in turns. Set to -2 to use default duration defined inside each StatusEffectSO.")]
+    [SerializeField] private int overrideDurationTurns = -2;
+
+    [Header("Status Dispel & Purge Properties")]
+    [Tooltip("If true, purges ALL positive Buff category status effects from targets (e.g., Break / Anular).")]
+    [SerializeField] private bool dispelsEnemyBuffs = false;
+
+    [Tooltip("Broad categories of status effects to purge from targets (e.g., Buffs, Debuffs).")]
+    [SerializeField] private List<StatusEffectCategory> categoriesToPurge = new List<StatusEffectCategory>();
+
+    [Tooltip("Specific status effect templates to remove from targets.")]
+    [SerializeField] private List<StatusEffectSO> specificStatusToPurge = new List<StatusEffectSO>();
+
+    #endregion
 
     #region Public Properties
 
-    public bool AppliesStatModifier => appliesStatModifier;
-    public StatType StatToModify => statToModify;
-    public float ModifierValue => modifierValue;
-    public StatModifierType ModifierType => modifierType;
-    public int DurationInTurns => durationInTurns;
+    public IReadOnlyList<StatusEffectSO> StatusEffectsToApply => statusEffectsToApply;
+    public int OverrideDurationTurns => overrideDurationTurns;
     public bool DispelsEnemyBuffs => dispelsEnemyBuffs;
+    public IReadOnlyList<StatusEffectCategory> CategoriesToPurge => categoriesToPurge;
+    public IReadOnlyList<StatusEffectSO> SpecificStatusToPurge => specificStatusToPurge;
 
     #endregion
 
@@ -44,30 +57,52 @@ public class SupportPsynergySO : PsynergySO
         {
             if (target == null || target.IsDead) continue;
 
-            // 1. Dispel Enemy Buffs (Break)
+            // 1. Dispel Enemy Buffs (Break / Anular logic)
             if (dispelsEnemyBuffs)
             {
-                Debug.Log($"[Psynergy] '{PsynergyName}' disipó potenciadores positivos en {target.Name}.");
-                // TODO: Implement logic to purge positive StatModifiers from target stats and set anyEffectApplied = true if removed
+                int purgedBuffs = target.PurgeCategory(StatusEffectCategory.Buff);
+                if (purgedBuffs > 0)
+                {
+                    anyEffectApplied = true;
+                    Debug.Log($"[Psynergy] '{PsynergyName}' disipó {purgedBuffs} potenciador(es) en {target.Name}.");
+                }
             }
 
-            // 2. Apply Stat Modifier (Buff / Debuff)
-            if (appliesStatModifier)
+            // 2. Purge Additional Categories (e.g., Debuffs on allies)
+            foreach (var category in categoriesToPurge)
             {
-                Stat targetStat = target.GetStat(statToModify);
-                if (targetStat != null)
+                int purged = target.PurgeCategory(category);
+                if (purged > 0)
                 {
-                    StatModifier mod = new StatModifier(
-                        value: modifierValue,
-                        type: modifierType,
-                        source: this,
-                        isTemporary: true,
-                        durationInTurns: durationInTurns
-                    );
-
-                    targetStat.AddModifier(mod);
                     anyEffectApplied = true;
-                    Debug.Log($"[Psynergy] Aplicado StatModifier ({modifierValue}) a {statToModify} en {target.Name} durante {durationInTurns} turnos.");
+                    Debug.Log($"[Psynergy] '{PsynergyName}' eliminó {purged} efecto(s) de categoría '{category}' en {target.Name}.");
+                }
+            }
+
+            // 3. Purge Specific Status Effects
+            foreach (var statusSO in specificStatusToPurge)
+            {
+                if (statusSO != null && target.RemoveStatusEffect(statusSO))
+                {
+                    anyEffectApplied = true;
+                    Debug.Log($"[Psynergy] '{PsynergyName}' eliminó el estado '{statusSO.EffectName}' en {target.Name}.");
+                }
+            }
+
+            // 4. Apply Status Effects / Buffs / Debuffs
+            if (statusEffectsToApply != null)
+            {
+                foreach (var statusSO in statusEffectsToApply)
+                {
+                    if (statusSO != null)
+                    {
+                        bool applied = target.ApplyStatusEffect(statusSO, caster, overrideDurationTurns);
+                        if (applied)
+                        {
+                            anyEffectApplied = true;
+                            Debug.Log($"[Psynergy] '{PsynergyName}' aplicó el estado '{statusSO.EffectName}' en {target.Name}.");
+                        }
+                    }
                 }
             }
         }

@@ -1,8 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/ItemInfo_Consumable.uss?fileID=7433441132597879392&amp;guid=febc6c31c0a9de24ea484e69c6085cfd&amp;type=3#ItemInfo_Consumable" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/Consumable/ItemInfo_Consumable.uss?fileID=7433441132597879392&amp;guid=febc6c31c0a9de24ea484e69c6085cfd&amp;type=3#ItemInfo_Consumable" />
     <ui:VisualElement name="consumable_info_root" class="consumable-info-root">
-        
-        <!-- Block 1: Menu / Battle Usage Badges -->
         <ui:VisualElement name="usage_badges_container" class="usage-badges-container">
             <ui:VisualElement name="badge_menu_use" class="usage-badge badge-active">
                 <ui:VisualElement class="badge-dot" />
@@ -13,28 +11,18 @@
                 <ui:Label text="COMBATE" name="label_battle_use" class="badge-label" />
             </ui:VisualElement>
         </ui:VisualElement>
-
         <ui:VisualElement class="info-divider" />
-
-        <!-- Block 2: Effect Details -->
         <ui:VisualElement name="effect_details_box" class="effect-details-box">
-            <ui:VisualElement class="effect-header-row">
-                <ui:Label text="EFECTO PRINCIPAL" class="effect-header-title" />
+            <ui:VisualElement name="effects_header_row" class="effect-header-row">
+                <ui:Label text="EFECTOS" class="effect-header-title" />
             </ui:VisualElement>
-            <ui:VisualElement class="effect-value-row">
-                <ui:Label text="Restaura HP" name="label_effect_type" class="label-effect-type" />
-                <ui:Label text="+30" name="label_effect_value" class="label-effect-value" />
-            </ui:VisualElement>
+            <ui:VisualElement name="effects_list_container" />
         </ui:VisualElement>
-
         <ui:VisualElement class="info-divider" />
-
-        <!-- Block 3: Narrative Flavor Text (Lore) -->
         <ui:VisualElement name="lore_box" class="lore-box">
             <ui:VisualElement class="quote-mark quote-open" />
             <ui:Label text="Madurada bajo el sol de Vale. Su cáscara dura guarda un sabor dulce y reconfortante." name="label_flavor_text" class="lore-text" />
             <ui:VisualElement class="quote-mark quote-close" />
         </ui:VisualElement>
-
     </ui:VisualElement>
 </ui:UXML>

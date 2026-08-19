@@ -26,6 +26,19 @@ MonoBehaviour:
   maxStack: 10
   useInMenu: 1
   useInBattle: 1
-  effectType: 0
-  bonusValue: 30
+  restoresHp: 1
+  hpAmount: 30
+  isHpPercentage: 0
+  restoresPp: 0
+  ppAmount: 20
+  isPpPercentage: 0
+  canRevive: 0
+  reviveHpAmount: 100
+  isRevivePercentage: 1
+  cureAllStatusEffects: 0
+  categoriesToCure: 
+  specificStatusToCure: []
+  statusEffectsToApply: []
+  isPermanentStatBoost: 0
   statToBonus: 0
+  statBonusAmount: 1

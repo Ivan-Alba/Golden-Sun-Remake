@@ -213,9 +213,10 @@ public class InventoryController : MonoBehaviour
     #region Consumable Execution
 
     /// <summary>
-    /// Consumes a consumable item from a hero's inventory slot and applies its effects onto the target FighterStats.
+    /// Consumes a consumable item from a hero's inventory slot and applies its composite effects onto the target.
+    /// Delegates execution directly to ConsumableSO.
     /// </summary>
-    public bool ConsumeItem(HeroInventory sourceHero, int slotIndex, FighterStats target)
+    public bool ConsumeItem(HeroInventory sourceHero, int slotIndex, FighterStats target, bool isBattleContext = false)
     {
         if (sourceHero == null || target == null) return false;
 
@@ -226,8 +227,21 @@ public class InventoryController : MonoBehaviour
             return false;
         }
 
-        // Apply consumable effect onto target
-        bool effectApplied = ApplyConsumableEffect(consumable, target);
+        bool effectApplied = false;
+
+        // Delegate execution to the ConsumableSO instance
+        if (isBattleContext)
+        {
+            effectApplied = consumable.ExecuteBattleEffect(target);
+        }
+        else if (target is HeroStats heroTarget)
+        {
+            effectApplied = consumable.ExecuteMenuEffect(heroTarget);
+        }
+        else
+        {
+            effectApplied = consumable.ExecuteBattleEffect(target);
+        }
 
         if (effectApplied)
         {
@@ -237,45 +251,6 @@ public class InventoryController : MonoBehaviour
         }
 
         return false;
-    }
-
-    private bool ApplyConsumableEffect(ConsumableSO consumable, FighterStats target)
-    {
-        switch (consumable.EffectType)
-        {
-            case ConsumableEffectType.RestoreHp:
-                if (target.CurrHp >= target.MaxHp || target.IsDead) return false; // Waste check
-                target.RestoreHP(consumable.BonusValue);
-                return true;
-
-            case ConsumableEffectType.RestorePp:
-                if (target.CurrPp >= target.MaxPp || target.IsDead) return false;
-                target.RestorePP(consumable.BonusValue);
-                return true;
-
-            case ConsumableEffectType.RestoreHpAndPp:
-                if ((target.CurrHp >= target.MaxHp && target.CurrPp >= target.MaxPp) || target.IsDead) return false;
-                target.RestoreHP(consumable.BonusValue);
-                target.RestorePP(consumable.BonusValue);
-                return true;
-
-            case ConsumableEffectType.Revive:
-                if (!target.IsDead) return false;
-                target.Revive(consumable.BonusValue); // BonusValue can represent restored HP % or flat HP
-                return true;
-
-            case ConsumableEffectType.CureStatus:
-                // Hook with status effect system
-                return true;
-
-            case ConsumableEffectType.PermanentStatBoost:
-                // Applies permanent stat modifier to target's FighterStats
-                target.AddPermanentStatBoost(consumable.StatToBonus, consumable.BonusValue);
-                return true;
-
-            default:
-                return false;
-        }
     }
 
     #endregion

@@ -1579,6 +1579,7 @@ public class PageItemsController
 
     /// <summary>
     /// Instantiates and binds the matching UXML template into extraInfoContainer based on the selected ItemSO type.
+    /// Dynamically renders equipment stat modifiers and composite consumable status/resource effects.
     /// </summary>
     private void UpdateInfoExtraPanel(ItemSO item)
     {
@@ -1742,7 +1743,7 @@ public class PageItemsController
                 if (equipable.UseInBattle && equipable.BattleUseEffect != null)
                 {
                     battleEffectBox.style.display = DisplayStyle.Flex;
-                    if (labelBattleEffectName != null) labelBattleEffectName.text = equipable.BattleUseEffect.EffectName;
+                    if (labelBattleEffectName != null) labelBattleEffectName.text = equipable.BattleUseEffect.name;
                 }
                 else
                 {
@@ -1760,7 +1761,7 @@ public class PageItemsController
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = equipable.FlavorText;
         }
-        // 4. Consumables
+        // 4. Consumables (Composite Effects System)
         else if (item is ConsumableSO consumable)
         {
             if (templateInfoConsumable == null) return;
@@ -1780,24 +1781,79 @@ public class PageItemsController
                 badgeBattleUseClassToggle(badgeBattleUse, consumable.UseInBattle);
             }
 
-            Label labelEffectType = instance.Q<Label>("label_effect_type");
-            if (labelEffectType != null) labelEffectType.text = consumable.EffectType.ToString();
+            // Target the dynamic effects list container in UXML
+            VisualElement effectsContainer = instance.Q<VisualElement>("effects_list_container");
 
-            Label labelEffectValue = instance.Q<Label>("label_effect_value");
-            if (labelEffectValue != null)
+            if (effectsContainer != null)
             {
-                // Restorative items
-                bool isRestorative = consumable.EffectType == ConsumableEffectType.RestoreHp ||
-                                     consumable.EffectType == ConsumableEffectType.RestorePp ||
-                                     consumable.EffectType == ConsumableEffectType.RestoreHpAndPp;
+                effectsContainer.Clear();
 
-                labelEffectValue.text = isRestorative ? $"+{consumable.BonusValue}" : string.Empty;
-
-                if (consumable.EffectType == ConsumableEffectType.PermanentStatBoost)
+                // 1. HP Restoration
+                if (consumable.RestoresHp)
                 {
-                    labelEffectValue.text = $"+{consumable.BonusValue} {consumable.StatToBonus}";
+                    string hpText = consumable.IsHpPercentage ? $"+{consumable.HpAmount}% PV" : $"+{consumable.HpAmount} PV";
+                    AddEffectRow(effectsContainer, "Restaura HP", hpText);
                 }
 
+                // 2. PP Restoration
+                if (consumable.RestoresPp)
+                {
+                    string ppText = consumable.IsPpPercentage ? $"+{consumable.PpAmount}% PP" : $"+{consumable.PpAmount} PP";
+                    AddEffectRow(effectsContainer, "Restaura PP", ppText);
+                }
+
+                // 3. Revival Settings
+                if (consumable.CanRevive)
+                {
+                    string reviveText = consumable.IsRevivePercentage ? $"+{consumable.ReviveHpAmount}% PV" : $"+{consumable.ReviveHpAmount} PV";
+                    AddEffectRow(effectsContainer, "Resurrección", reviveText);
+                }
+
+                // 4. Status Removal & Cures
+                if (consumable.CureAllStatusEffects)
+                {
+                    AddEffectRow(effectsContainer, "Curar Estados", "Todos");
+                }
+                else
+                {
+                    if (consumable.CategoriesToCure != null)
+                    {
+                        foreach (var category in consumable.CategoriesToCure)
+                        {
+                            AddEffectRow(effectsContainer, "Curar Categoría", category.ToString());
+                        }
+                    }
+
+                    if (consumable.SpecificStatusToCure != null)
+                    {
+                        foreach (var statusSO in consumable.SpecificStatusToCure)
+                        {
+                            if (statusSO != null)
+                            {
+                                AddEffectRow(effectsContainer, "Curar Estado", statusSO.EffectName);
+                            }
+                        }
+                    }
+                }
+
+                // 5. Applied Status Effects / Buffs
+                if (consumable.StatusEffectsToApply != null)
+                {
+                    foreach (var statusSO in consumable.StatusEffectsToApply)
+                    {
+                        if (statusSO != null)
+                        {
+                            AddEffectRow(effectsContainer, "Aplica Estado", statusSO.EffectName);
+                        }
+                    }
+                }
+
+                // 6. Permanent Stat Boost
+                if (consumable.IsPermanentStatBoost)
+                {
+                    string statName = GetStatDisplayName(consumable.StatToBonus);
+                    AddEffectRow(effectsContainer, "Mejora Permanente", $"+{consumable.StatBonusAmount} {statName}");
+                }
             }
 
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
@@ -1814,6 +1870,28 @@ public class PageItemsController
             Label labelFlavor = instance.Q<Label>("label_lore_text") ?? instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = keyItem.FlavorText;
         }
+    }
+
+    /// <summary>
+    /// Helper method to dynamically instantiate an effect row using ItemInfo_Consumable.uss CSS classes.
+    /// </summary>
+    private void AddEffectRow(VisualElement container, string typeText, string valueText)
+    {
+        if (container == null) return;
+
+        VisualElement row = new VisualElement();
+        row.AddToClassList("effect-value-row");
+
+        Label labelType = new Label(typeText);
+        labelType.AddToClassList("label-effect-type");
+
+        Label labelValue = new Label(valueText);
+        labelValue.AddToClassList("label-effect-value");
+
+        row.Add(labelType);
+        row.Add(labelValue);
+
+        container.Add(row);
     }
 
     private void badgeBattleUseClassToggle(VisualElement elem, bool active)
