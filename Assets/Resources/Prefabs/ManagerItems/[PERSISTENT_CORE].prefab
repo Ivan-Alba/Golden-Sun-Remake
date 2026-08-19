@@ -1787,6 +1787,7 @@ MonoBehaviour:
   baseResistMars: 100
   baseResistJupiter: 105
   baseResistMercury: 100
+  baseElement: 1
   baseProgression: {fileID: 0}
   level: 1
   currentXp: 0
@@ -22778,6 +22779,7 @@ GameObject:
   - component: {fileID: 9044216244319915375}
   - component: {fileID: 7159021585786953010}
   - component: {fileID: 8459378965965534308}
+  - component: {fileID: 1121168648578549901}
   - component: {fileID: 8459378965965534307}
   - component: {fileID: 8459378965965534306}
   - component: {fileID: 8459378965965534304}
@@ -22835,6 +22837,7 @@ MonoBehaviour:
   baseResistMars: 105
   baseResistJupiter: 100
   baseResistMercury: 100
+  baseElement: 2
   baseProgression: {fileID: 11400000, guid: 28e7b6c41810c074ab43c48929488e8a, type: 2}
   level: 1
   currentXp: 0
@@ -22868,6 +22871,21 @@ MonoBehaviour:
   maxRelicSlots: 4
   fighterStats: {fileID: 9044216244319915375}
   heroInventory: {fileID: 7159021585786953010}
+--- !u!114 &1121168648578549901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8459378965965534310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86b0fac4f6eabb04d94718c07ef3bbe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  classDatabase: {fileID: 11400000, guid: bdb3db641c56da14488fe2b84e62eaca, type: 2}
+  initialDjinns: []
+  initialLeaderIndex: 0
 --- !u!114 &8459378965965534307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125399,6 +125417,7 @@ GameObject:
   - component: {fileID: 8293104066895028404}
   - component: {fileID: 6342542899712295493}
   - component: {fileID: 8459378967019290832}
+  - component: {fileID: 1916166346400731993}
   - component: {fileID: 8459378967019290831}
   - component: {fileID: 8459378967019290829}
   - component: {fileID: 8459378967019290830}
@@ -125457,6 +125476,7 @@ MonoBehaviour:
   baseResistMars: 100
   baseResistJupiter: 100
   baseResistMercury: 100
+  baseElement: 1
   baseProgression: {fileID: 11400000, guid: afb6123f5fb8203448273304cef8aa04, type: 2}
   level: 1
   currentXp: 0
@@ -125490,6 +125510,21 @@ MonoBehaviour:
   maxRelicSlots: 4
   fighterStats: {fileID: 8293104066895028404}
   heroInventory: {fileID: 6342542899712295493}
+--- !u!114 &1916166346400731993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8459378967019290834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86b0fac4f6eabb04d94718c07ef3bbe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  classDatabase: {fileID: 11400000, guid: bdb3db641c56da14488fe2b84e62eaca, type: 2}
+  initialDjinns: []
+  initialLeaderIndex: 0
 --- !u!114 &8459378967019290831
 MonoBehaviour:
   m_ObjectHideFlags: 0

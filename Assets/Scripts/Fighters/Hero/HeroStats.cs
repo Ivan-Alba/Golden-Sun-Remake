@@ -16,6 +16,10 @@ public class HeroStats : FighterStats
 
     #region Serialized Fields
 
+    [Header("Hero Base Element")]
+    [Tooltip("Base element of the hero (e.g., Venus for Isaac, Mars for Garet). Used for class calculation.")]
+    [SerializeField] private ElementalType baseElement = ElementalType.Venus;
+
     [Header("Hero Progression Assets")]
     [Tooltip("Base progression tree defining innate psynergies learned by level.")]
     [SerializeField] private HeroBaseProgressionSO baseProgression;
@@ -33,11 +37,14 @@ public class HeroStats : FighterStats
     #region Private Fields
 
     private int nextLevelXp;
+    private HeroDjinnController djinnController;
+    private readonly object classStatSourceTag = new object();
 
     #endregion
 
     #region Properties
 
+    public ElementalType BaseElement => baseElement;
     public int Level { get => level; private set => level = value; }
     public int CurrentXp { get => currentXp; private set => currentXp = value; }
     public int NextLevelXp { get => nextLevelXp; private set => nextLevelXp = value; }
@@ -51,6 +58,7 @@ public class HeroStats : FighterStats
     protected override void Awake()
     {
         base.Awake();
+        djinnController = GetComponent<HeroDjinnController>();
         CalculateNextLevelXp();
         SubscribeToStatEvents();
         SubscribeToEquipmentEvents();
@@ -66,80 +74,50 @@ public class HeroStats : FighterStats
 
     #region Event Subscriptions
 
-    /// <summary>
-    /// Subscribes to MaxHP and MaxPP value change events to ensure current HP/PP never exceeds maximums.
-    /// </summary>
     private void SubscribeToStatEvents()
     {
         Stat maxHpStat = GetStat(StatType.MaxHP);
-        if (maxHpStat != null)
-        {
-            maxHpStat.OnValueChanged += ClampCurrentHp;
-        }
+        if (maxHpStat != null) maxHpStat.OnValueChanged += ClampCurrentHp;
 
         Stat maxPpStat = GetStat(StatType.MaxPP);
-        if (maxPpStat != null)
-        {
-            maxPpStat.OnValueChanged += ClampCurrentPp;
-        }
+        if (maxPpStat != null) maxPpStat.OnValueChanged += ClampCurrentPp;
     }
 
-    /// <summary>
-    /// Unsubscribes from stat events upon destruction to prevent memory leaks.
-    /// </summary>
     private void UnsubscribeFromStatEvents()
     {
         Stat maxHpStat = GetStat(StatType.MaxHP);
-        if (maxHpStat != null)
-        {
-            maxHpStat.OnValueChanged -= ClampCurrentHp;
-        }
+        if (maxHpStat != null) maxHpStat.OnValueChanged -= ClampCurrentHp;
 
         Stat maxPpStat = GetStat(StatType.MaxPP);
-        if (maxPpStat != null)
-        {
-            maxPpStat.OnValueChanged -= ClampCurrentPp;
-        }
+        if (maxPpStat != null) maxPpStat.OnValueChanged -= ClampCurrentPp;
     }
 
-    /// <summary>
-    /// Subscribes to HeroEquipment changes to trigger central psynergy re-evaluation.
-    /// </summary>
     private void SubscribeToEquipmentEvents()
     {
         HeroEquipment equipment = GetComponent<HeroEquipment>();
         if (equipment != null)
         {
-            equipment.OnEquipmentChanged += ReevaluatePsynergies;
+            equipment.OnEquipmentChanged += RecalculateStatsAndPsynergies;
         }
     }
 
-    /// <summary>
-    /// Unsubscribes from HeroEquipment events upon destruction.
-    /// </summary>
     private void UnsubscribeFromEquipmentEvents()
     {
         HeroEquipment equipment = GetComponent<HeroEquipment>();
         if (equipment != null)
         {
-            equipment.OnEquipmentChanged -= ReevaluatePsynergies;
+            equipment.OnEquipmentChanged -= RecalculateStatsAndPsynergies;
         }
     }
 
     private void ClampCurrentHp()
     {
-        if (CurrHp > MaxHp)
-        {
-            CurrHp = MaxHp;
-        }
+        if (CurrHp > MaxHp) CurrHp = MaxHp;
     }
 
     private void ClampCurrentPp()
     {
-        if (CurrPp > MaxPp)
-        {
-            CurrPp = MaxPp;
-        }
+        if (CurrPp > MaxPp) CurrPp = MaxPp;
     }
 
     #endregion
@@ -151,9 +129,6 @@ public class HeroStats : FighterStats
         nextLevelXp = level * 125 + (125 * level / 2);
     }
 
-    /// <summary>
-    /// Adds experience to the hero, handles potential level-ups and returns a list of newly unlocked PsynergySO objects.
-    /// </summary>
     public List<PsynergySO> AddExperience(int amount)
     {
         List<PsynergySO> newlyLearnedPsynergies = new List<PsynergySO>();
@@ -171,9 +146,6 @@ public class HeroStats : FighterStats
         return newlyLearnedPsynergies;
     }
 
-    /// <summary>
-    /// Advances the hero to the next level, recalculates XP thresholds, and updates innate psynergies.
-    /// </summary>
     public List<PsynergySO> LevelUp()
     {
         level++;
@@ -181,14 +153,11 @@ public class HeroStats : FighterStats
         CalculateNextLevelXp();
 
         List<PsynergySO> newPsynergies = GetNewInnatePsynergiesForCurrentLevel();
-        ReevaluatePsynergies();
+        RecalculateStatsAndPsynergies();
 
         return newPsynergies;
     }
 
-    /// <summary>
-    /// Restores level and experience progress from save data and triggers a psynergy refresh.
-    /// </summary>
     public void LoadProgression(int savedLevel, int savedXp, List<PsynergySO> savedStoryPsynergies = null)
     {
         level = savedLevel;
@@ -200,16 +169,13 @@ public class HeroStats : FighterStats
         }
 
         CalculateNextLevelXp();
-        ReevaluatePsynergies();
+        RecalculateStatsAndPsynergies();
     }
 
     #endregion
 
     #region Story Psynergy Management
 
-    /// <summary>
-    /// Grants a psynergy permanently via a story event (e.g., Reveal, Force).
-    /// </summary>
     public bool GrantStoryPsynergy(PsynergySO psynergy)
     {
         if (psynergy == null) return false;
@@ -219,55 +185,40 @@ public class HeroStats : FighterStats
             unlockedStoryPsynergies.Add(psynergy);
             Debug.Log($"[HeroStats] {fighterName} learned story psynergy: '{psynergy.PsynergyName}'.");
 
-            ReevaluatePsynergies();
+            RecalculateStatsAndPsynergies();
             return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Consolidates all innate psynergies (by current level) and story-granted psynergies into a single list.
-    /// </summary>
     public List<PsynergySO> GetInnateAndStoryPsynergies()
     {
         List<PsynergySO> consolidatedInnate = new List<PsynergySO>();
 
-        // 1. Add innate level-based psynergies from HeroBaseProgressionSO
         if (baseProgression != null)
         {
             List<PsynergySO> levelPsynergies = baseProgression.GetInnatePsynergiesForLevel(level);
             foreach (var p in levelPsynergies)
             {
-                if (!consolidatedInnate.Contains(p))
-                {
-                    consolidatedInnate.Add(p);
-                }
+                if (!consolidatedInnate.Contains(p)) consolidatedInnate.Add(p);
             }
         }
 
-        // 2. Add story-granted psynergies
         if (unlockedStoryPsynergies != null)
         {
             foreach (var p in unlockedStoryPsynergies)
             {
-                if (p != null && !consolidatedInnate.Contains(p))
-                {
-                    consolidatedInnate.Add(p);
-                }
+                if (p != null && !consolidatedInnate.Contains(p)) consolidatedInnate.Add(p);
             }
         }
 
         return consolidatedInnate;
     }
 
-    /// <summary>
-    /// Evaluates if any new innate psynergies were unlocked specifically at the current level.
-    /// </summary>
     private List<PsynergySO> GetNewInnatePsynergiesForCurrentLevel()
     {
         List<PsynergySO> newEntries = new List<PsynergySO>();
-
         if (baseProgression == null || baseProgression.LearnablePsynergies == null) return newEntries;
 
         foreach (var entry in baseProgression.LearnablePsynergies)
@@ -284,17 +235,63 @@ public class HeroStats : FighterStats
 
     #endregion
 
-    #region Psynergy Source Consolidation
+    #region Central Recalculation Engine (Class Multipliers & Psynergies)
 
     /// <summary>
-    /// Central method that recalculates all available psynergies by combining all active sources:
+    /// Master refresh method triggered whenever equipment, Djinns, or classes change.
+    /// Updates class multipliers and consolidates active psynergies.
+    /// </summary>
+    public void RecalculateStatsAndPsynergies()
+    {
+        UpdateClassStatModifiers();
+        ReevaluatePsynergies();
+    }
+
+    /// <summary>
+    /// Applies Class Percentage Multipliers as PercentTotal StatModifiers to statsMap.
+    /// Formula executed inside Stat.cs: (Base + Flat Equipment + Flat Djinn) * ClassMultiplier
+    /// </summary>
+    private void UpdateClassStatModifiers()
+    {
+        if (statsMap == null) return;
+
+        // 1. Clear previous class modifiers
+        RemoveModifiersFromSource(classStatSourceTag);
+
+        // 2. Apply active Class Percentage Multipliers
+        if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
+        CharacterClassSO activeClass = (djinnController != null) ? djinnController.CurrentClass : null;
+
+        if (activeClass != null)
+        {
+            foreach (var kvp in statsMap)
+            {
+                StatType statType = kvp.Key;
+                float multiplier = activeClass.GetStatMultiplier(statType);
+
+                // In StatModifierType.PercentTotal, 1.10 = +0.10f modifier
+                float percentTotalMod = multiplier - 1.0f;
+
+                if (Mathf.Abs(percentTotalMod) > 0.001f)
+                {
+                    StatModifier mod = new StatModifier(percentTotalMod, StatModifierType.PercentTotal, classStatSourceTag);
+                    AddStatModifier(statType, mod);
+                }
+            }
+        }
+
+        ClampCurrentHp();
+        ClampCurrentPp();
+    }
+
+    /// <summary>
+    /// Recalculates all available psynergies from active sources:
     /// 1. Innate Level Progression + Story Granted
-    /// 2. Currently Equipped Relics / Equipment
-    /// 3. Current Class Psynergies (Will be integrated in Phase 4)
+    /// 2. Equipped Relics
+    /// 3. Current Class Psynergies
     /// </summary>
     public void ReevaluatePsynergies()
     {
-        // 1. Collect all valid psynergies from current active sources without duplicates
         HashSet<PsynergySO> newConsolidatedSet = new HashSet<PsynergySO>();
 
         // Source A: Innate + Story
@@ -304,25 +301,32 @@ public class HeroStats : FighterStats
             if (p != null) newConsolidatedSet.Add(p);
         }
 
-        // Source B: Equipped Relics & Equipment
+        // Source B: Equipped Relics
         HeroEquipment equipment = GetComponent<HeroEquipment>();
         if (equipment != null)
         {
-            for (int i = 0; i < equipment.MaxRelicSlots; i++)
+            List<PsynergySO> relicPsynergies = equipment.GetEquippedRelicPsynergies();
+            foreach (var p in relicPsynergies)
             {
-                var relic = equipment.GetEquippedRelic(i);
-                if (relic != null && relic.GrantedPsynergy != null)
+                if (p != null) newConsolidatedSet.Add(p);
+            }
+        }
+
+        // Source C: Active Class Psynergies
+        if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
+        if (djinnController != null && djinnController.CurrentClass != null)
+        {
+            IReadOnlyList<ClassPsynergyEntry> classEntries = djinnController.CurrentClass.GrantedPsynergies;
+            for (int i = 0; i < classEntries.Count; i++)
+            {
+                if (classEntries[i].psynergy != null && level >= classEntries[i].requiredLevel)
                 {
-                    newConsolidatedSet.Add(relic.GrantedPsynergy);
+                    newConsolidatedSet.Add(classEntries[i].psynergy);
                 }
             }
         }
 
-        // Source C: Class Psynergies (Will be integrated in Phase 4)
-        // List<PsynergySO> classPsynergies = GetCurrentClassPsynergies();
-        // foreach (var p in classPsynergies) { if (p != null) newConsolidatedSet.Add(p); }
-
-        // 2. Identify which psynergies were available previously but are no longer in any active source
+        // Identify lost psynergies
         List<PsynergySO> lostPsynergies = new List<PsynergySO>();
         foreach (var oldPsynergy in psynergies)
         {
@@ -332,11 +336,11 @@ public class HeroStats : FighterStats
             }
         }
 
-        // 3. Update active list in FighterStats
+        // Update active list in FighterStats
         psynergies.Clear();
         psynergies.AddRange(newConsolidatedSet);
 
-        // 4. Fire events for any lost psynergies so systems like Shortcuts can clean up
+        // Fire events for cleanup
         foreach (var lost in lostPsynergies)
         {
             Debug.Log($"[HeroStats] {fighterName} lost access to psynergy: '{lost.PsynergyName}'.");

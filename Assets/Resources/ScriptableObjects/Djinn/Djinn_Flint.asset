@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
+  m_Name: Djinn_Flint
+  m_EditorClassIdentifier: 
+  djinnName: Flint
+  djinnSlug: flint
+  element: 1
+  icon: {fileID: 0}
+  description: 
+  setStatModifiers:
+  - statType: 0
+    value: 10
+    modifierType: 0
+  - statType: 2
+    value: 4
+    modifierType: 0
+  unleashDamageMultiplier: 1
+  unleashStatusEffects: []
+  baseRecoveryTurns: 2
+  leaderPassiveEffect: {fileID: 11400000, guid: c8643129b21db7e4bbeebad50f45edb3, type: 2}
+  leaderPassiveDescription: 

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3d51ca6631c37745a4d625393ef22b0, type: 3}
+  m_Name: ClassDatabase
+  m_EditorClassIdentifier: 
+  defaultVenusClass: {fileID: 11400000, guid: 9273884ce75f3a2418927f97fa902732, type: 2}
+  defaultMarsClass: {fileID: 11400000, guid: 89ee1dd076550cd47bf873c2a83fc794, type: 2}
+  defaultJupiterClass: {fileID: 0}
+  defaultMercuryClass: {fileID: 0}
+  classEntries:
+  - baseElement: 1
+    venusCount: 1
+    marsCount: 0
+    jupiterCount: 0
+    mercuryCount: 0
+    priority: 0
+    targetClass: {fileID: 11400000, guid: e78fb11dadaf59449860e7e2cab5521c, type: 2}

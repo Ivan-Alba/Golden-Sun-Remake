@@ -315,6 +315,24 @@ public class HeroEquipment : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns a list of all psynergies currently granted by equipped relics.
+    /// </summary>
+    public List<PsynergySO> GetEquippedRelicPsynergies()
+    {
+        List<PsynergySO> relicPsynergies = new List<PsynergySO>();
+        if (equippedRelics == null) return relicPsynergies;
+
+        for (int i = 0; i < equippedRelics.Length; i++)
+        {
+            if (equippedRelics[i] != null && equippedRelics[i].GrantedPsynergy != null)
+            {
+                relicPsynergies.Add(equippedRelics[i].GrantedPsynergy);
+            }
+        }
+        return relicPsynergies;
+    }
+
+    /// <summary>
     /// Directly assigns an equipable item during save data loading, applying its modifiers.
     /// </summary>
     public void LoadEquippedItem(EquipableSO item)
