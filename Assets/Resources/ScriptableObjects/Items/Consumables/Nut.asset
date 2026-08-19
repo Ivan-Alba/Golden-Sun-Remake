@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: Nut
   m_EditorClassIdentifier: 
   itemSlug: nut
-  itemName: Nuez
-  itemDescription: Recupera 100 PV.
+  itemName: Avellana
+  itemDescription: Fruto seco revitalizante que restituye una gran cantidad de salud.
+  flavorText: "Un alimento nutritivo apreciado por los caminantes que cruzan el Lejano
+    Norte, ideal para recuperar energ\xEDas en momentos cr\xEDticos."
   icon: {fileID: 21300000, guid: 78e7f184325ea164fae38f624ff12e66, type: 3}
   itemType: 0
   buyPrice: 200

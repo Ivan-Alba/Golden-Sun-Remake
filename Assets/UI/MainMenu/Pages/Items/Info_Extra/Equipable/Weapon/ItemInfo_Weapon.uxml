@@ -1,0 +1,65 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/ItemInfo_Weapon.uss?fileID=7433441132597879392&amp;guid=ab7de61e03c727d44a7583aa1d8f975b&amp;type=3#ItemInfo_Weapon" />
+    <ui:VisualElement name="weapon_info_root" class="weapon-info-root">
+        
+        <!-- Block 1: Element, Hit Type & Battle Usage Badges -->
+        <ui:VisualElement name="weapon_meta_container" class="weapon-meta-container">
+            <ui:VisualElement name="badge_element" class="weapon-badge badge-element-mars">
+                <ui:VisualElement name="element_icon" class="badge-icon" />
+                <ui:Label text="MARS" name="label_element_name" class="badge-label" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="badge_hit_type" class="weapon-badge badge-hit-type">
+                <ui:Label text="CORTE" name="label_hit_type" class="badge-label" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="badge_battle_use" class="weapon-badge badge-inactive">
+                <ui:VisualElement class="badge-dot" />
+                <ui:Label text="USO EN BATALLA" name="label_battle_use" class="badge-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Block 2: Artifact Special Attack (Weapon Unleash) Container -->
+        <ui:VisualElement name="unleash_info_box" class="unleash-info-box">
+            <ui:VisualElement class="unleash-header-row">
+                <ui:Label text="ATAQUE ESPECIAL (UNLEASH)" class="unleash-header-title" />
+                <ui:Label text="0% Proc" name="label_unleash_rate" class="unleash-proc-rate" />
+            </ui:VisualElement>
+            <ui:VisualElement class="unleash-body-row">
+                <ui:VisualElement name="unleash_icon" class="unleash-icon" />
+                <ui:VisualElement class="unleash-text-container">
+                    <ui:Label text="---" name="label_unleash_name" class="unleash-name" />
+                    <ui:Label text="---" name="label_unleash_desc" class="unleash-desc" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="info-divider" />
+
+        <!-- Block 3: Weapon Base Attributes (Populated dynamically from statModifiers via C#) -->
+        <ui:VisualElement name="item_stats_box" class="stats-box">
+            <ui:Label text="ATRIBUTOS DE ARMA" class="section-header-title" />
+            <!-- Dynamic container for weapon stat bonuses -->
+            <ui:VisualElement name="stats_grid" class="stats-grid" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="info-divider" />
+
+        <!-- Block 4: Stat Comparison (Populated dynamically for Delta vs Currently Equipped Weapon via C#) -->
+        <ui:VisualElement name="comparison_box" class="comparison-box">
+            <ui:Label text="COMPARATIVA (EQUIPADO)" class="section-header-title" />
+            <!-- Dynamic container for delta stat comparison rows -->
+            <ui:VisualElement name="comparison_rows_container" class="comparison-rows-container" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="info-divider" />
+
+        <!-- Block 5: Narrative Flavor Text (Lore) -->
+        <ui:VisualElement name="lore_box" class="lore-box">
+            <ui:VisualElement class="quote-mark quote-open" />
+            <ui:Label text="" name="label_flavor_text" class="lore-text" />
+            <ui:VisualElement class="quote-mark quote-close" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

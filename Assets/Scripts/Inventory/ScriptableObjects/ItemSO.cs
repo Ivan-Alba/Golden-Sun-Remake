@@ -8,6 +8,7 @@ public class ItemSO : ScriptableObject
     [SerializeField] private string itemName;
     [TextArea(2, 4)]
     [SerializeField] private string itemDescription;
+    [TextArea][SerializeField] private string flavorText;
     [SerializeField] private Sprite icon;
     [SerializeField] private ItemType itemType;
 
@@ -22,6 +23,8 @@ public class ItemSO : ScriptableObject
     public string ItemSlug => itemSlug;
     public string ItemName => itemName;
     public string ItemDescription => itemDescription;
+    public string FlavorText => flavorText;
+
     public Sprite Icon => icon;
     public ItemType ItemType => itemType;
     public int BuyPrice => buyPrice;

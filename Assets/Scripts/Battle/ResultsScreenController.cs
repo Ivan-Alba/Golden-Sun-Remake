@@ -143,11 +143,11 @@ public class ResultsScreenController : MonoBehaviour
             else
             {
                 // Add experience through method and receive any newly learned abilities
-                List<string> learnedAbilities = heroStats.AddExperience(xpEarned);
+                List<PsynergySO> learnedAbilities = heroStats.AddExperience(xpEarned);
 
-                foreach (string learnedPsynergy in learnedAbilities)
+                foreach (PsynergySO learnedPsynergy in learnedAbilities)
                 {
-                    StartCoroutine(AbilityLearned(i, learnedPsynergy));
+                    StartCoroutine(AbilityLearned(i, learnedPsynergy.PsynergyName));
                 }
             }
         }

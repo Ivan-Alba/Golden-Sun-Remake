@@ -39,12 +39,18 @@ public class PsynergyWorldController : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        UnsubscribeFromPartyEvents();
+    }
+
     /// <summary>
-    /// Resets all shortcut data and re-initializes empty slots for the current party.
+    /// Resets all shortcut data, unbinds previous listeners, and re-initializes empty slots for the current party.
     /// Called explicitly from GameManager upon new game or loading a save file.
     /// </summary>
     public void Initialize()
     {
+        UnsubscribeFromPartyEvents();
         heroShortcuts.Clear();
 
         if (GameManager.Instance == null) return;
@@ -54,15 +60,79 @@ public class PsynergyWorldController : MonoBehaviour
 
         foreach (GameObject hero in party)
         {
-            if (hero != null && !heroShortcuts.ContainsKey(hero))
+            if (hero == null) continue;
+
+            if (!heroShortcuts.ContainsKey(hero))
             {
                 heroShortcuts.Add(hero, new PsynergySO[4]);
+            }
+
+            // Subscribe to Psynergy loss events on HeroStats
+            HeroStats stats = hero.GetComponent<HeroStats>();
+            if (stats != null)
+            {
+                stats.OnPsynergyLost += (lostPsynergy) => OnHeroLostPsynergy(hero, lostPsynergy);
             }
         }
 
         if (GameManager.Instance.ActiveHero != null)
         {
             NotifyShortcutsChanged(GameManager.Instance.ActiveHero);
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribes event listeners from all registered party members to prevent memory leaks.
+    /// </summary>
+    private void UnsubscribeFromPartyEvents()
+    {
+        foreach (var heroKey in heroShortcuts.Keys)
+        {
+            if (heroKey != null)
+            {
+                HeroStats stats = heroKey.GetComponent<HeroStats>();
+                if (stats != null)
+                {
+                    stats.OnPsynergyLost -= (lostPsynergy) => OnHeroLostPsynergy(heroKey, lostPsynergy);
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Event Handlers & Automatic Shortcut Cleanup
+
+    /// <summary>
+    /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
+    /// Filters early if the lost psynergy is not usable in the world.
+    /// </summary>
+    private void OnHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
+    {
+        if (hero == null || lostPsynergy == null) return;
+
+        // Optimization check: If the lost psynergy is not a world psynergy, it could never be assigned to a shortcut.
+        if (lostPsynergy.WorldData.CanBeUsedInWorld == false)
+        {
+            return;
+        }
+
+        PsynergySO[] shortcuts = GetShortcuts(hero);
+        bool modified = false;
+
+        for (int i = 0; i < shortcuts.Length; i++)
+        {
+            if (shortcuts[i] == lostPsynergy)
+            {
+                shortcuts[i] = null;
+                modified = true;
+                Debug.Log($"[PsynergyWorldController] Cleared shortcut slot {i} for {hero.name} due to lost access to '{lostPsynergy.PsynergyName}'.");
+            }
+        }
+
+        if (modified)
+        {
+            NotifyShortcutsChanged(hero);
         }
     }
 

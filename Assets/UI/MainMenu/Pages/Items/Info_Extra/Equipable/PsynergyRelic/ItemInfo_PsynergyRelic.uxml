@@ -1,0 +1,45 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/Equipable/PsynergyRelic/ItemInfo_PsynergyRelic.uss?fileID=7433441132597879392&amp;guid=b00f111c2f966394e82bcf41cd99e243&amp;type=3#ItemInfo_PsynergyRelic" />
+    <ui:VisualElement name="relic_info_root" class="relic-info-root">
+        
+        <!-- Block 1: Granted Psynergy Section & Card -->
+        <ui:VisualElement name="granted_psynergy_section" class="granted-psynergy-section">
+            <ui:Label text="PSINERGÍA OTORGADA" class="section-header-title" />
+            <ui:VisualElement name="granted_psynergy_card" class="psynergy-card item-card-box element-venus">
+                <ui:VisualElement name="card_element_stripe" class="card-element-stripe" />
+                <ui:VisualElement class="card-icon-box">
+                    <ui:VisualElement name="psynergy_card_icon" class="psynergy-card-icon" />
+                </ui:VisualElement>
+                <ui:VisualElement class="card-text-details">
+                    <ui:Label text="---" name="label_psynergy_name" class="psynergy-card-name" />
+                    <ui:VisualElement name="badges_row" class="card-badges-row">
+                        <ui:Label text="Mundo" name="badge_usage_type" class="psynergy-badge badge-world" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="card-cost-box">
+                    <ui:VisualElement name="element_mini_icon" class="element-mini-icon" />
+                    <ui:Label text="0 PP" name="label_psynergy_pp" class="psynergy-card-pp" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="info-divider" />
+
+        <!-- Block 2: Relic Base Stats (Populated dynamically from statModifiers via C#) -->
+        <ui:VisualElement name="item_stats_box" class="stats-box">
+            <ui:Label text="ATRIBUTOS DE RELIQUIA" class="section-header-title" />
+            <!-- Dynamic container for relic stat bonuses -->
+            <ui:VisualElement name="stats_grid" class="stats-grid" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="info-divider" />
+
+        <!-- Block 3: Narrative Flavor Text (Lore) -->
+        <ui:VisualElement name="lore_box" class="lore-box">
+            <ui:VisualElement class="quote-mark quote-open" />
+            <ui:Label text="" name="label_flavor_text" class="lore-text" />
+            <ui:VisualElement class="quote-mark quote-close" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

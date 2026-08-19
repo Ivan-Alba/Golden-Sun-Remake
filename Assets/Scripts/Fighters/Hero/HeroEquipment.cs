@@ -17,7 +17,7 @@ public class HeroEquipment : MonoBehaviour
     // Dedicated Psynergy Relic Slots Array
     private PsynergyRelicSO[] equippedRelics;
 
-    // Event fired whenever equipment changes, allowing UI auto-refresh
+    // Event fired whenever equipment changes, allowing UI auto-refresh and psynergy re-evaluation
     public event Action OnEquipmentChanged;
 
     #region Properties
@@ -27,6 +27,8 @@ public class HeroEquipment : MonoBehaviour
     public IReadOnlyList<PsynergyRelicSO> EquippedRelics => equippedRelics;
 
     #endregion
+
+    #region Unity Lifecycle Methods
 
     private void Awake()
     {
@@ -53,6 +55,8 @@ public class HeroEquipment : MonoBehaviour
         equippedRelics = new PsynergyRelicSO[maxRelicSlots];
     }
 
+    #endregion
+
     #region Equip Operations
 
     /// <summary>
@@ -68,15 +72,15 @@ public class HeroEquipment : MonoBehaviour
 
         ItemSO itemToEquip = slot.Item;
 
-        // Handle Standard Equipment
-        if (itemToEquip is EquipableSO equipable)
-        {
-            return EquipStandardItem(equipable, backpackSlotIndex);
-        }
-        // Handle Psynergy Relics
-        else if (itemToEquip is PsynergyRelicSO relic)
+        // 1. Handle Psynergy Relics FIRST (more specific derived type)
+        if (itemToEquip is PsynergyRelicSO relic)
         {
             return EquipRelicItem(relic, backpackSlotIndex, targetRelicIndex);
+        }
+        // 2. Handle Standard Equipment SECOND (base type)
+        else if (itemToEquip is EquipableSO equipable)
+        {
+            return EquipStandardItem(equipable, backpackSlotIndex);
         }
 
         Debug.LogWarning($"[HeroEquipment] Item '{itemToEquip.ItemName}' is neither an Equipable nor a PsynergyRelic.");
@@ -98,11 +102,11 @@ public class HeroEquipment : MonoBehaviour
         // 1. Remove stat bonuses of previously equipped item (if any)
         if (currentEquipped != null)
         {
-            RemoveItemModifiersAndAbilities(currentEquipped);
+            RemoveItemModifiers(currentEquipped);
         }
 
         // 2. Apply stat bonuses of the new item
-        ApplyItemModifiersAndAbilities(newEquipable);
+        ApplyItemModifiers(newEquipable);
 
         // 3. Update equipped slot map
         equippedItems[slotType] = newEquipable;
@@ -131,14 +135,14 @@ public class HeroEquipment : MonoBehaviour
 
         PsynergyRelicSO currentRelic = equippedRelics[relicSlotIndex];
 
-        // 1. Remove modifiers and granted psynergy of previously equipped relic
+        // 1. Remove modifiers of previously equipped relic
         if (currentRelic != null)
         {
-            RemoveItemModifiersAndAbilities(currentRelic);
+            RemoveItemModifiers(currentRelic);
         }
 
-        // 2. Apply modifiers and granted psynergy of new relic
-        ApplyItemModifiersAndAbilities(newRelic);
+        // 2. Apply modifiers of new relic
+        ApplyItemModifiers(newRelic);
 
         // 3. Assign new relic to dedicated array
         equippedRelics[relicSlotIndex] = newRelic;
@@ -179,7 +183,7 @@ public class HeroEquipment : MonoBehaviour
         }
 
         // 1. Remove modifiers
-        RemoveItemModifiersAndAbilities(itemToUnequip);
+        RemoveItemModifiers(itemToUnequip);
 
         // 2. Clear slot
         equippedItems[slotType] = null;
@@ -209,8 +213,8 @@ public class HeroEquipment : MonoBehaviour
             return false;
         }
 
-        // 1. Remove modifiers and granted psynergy
-        RemoveItemModifiersAndAbilities(relicToUnequip);
+        // 1. Remove modifiers
+        RemoveItemModifiers(relicToUnequip);
 
         // 2. Clear slot
         equippedRelics[relicSlotIndex] = null;
@@ -225,14 +229,27 @@ public class HeroEquipment : MonoBehaviour
 
     #endregion
 
-    #region Modifier & Ability Application Helpers
+    #region Modifier Helpers
 
-    private void ApplyItemModifiersAndAbilities(ItemSO item)
+    private void ApplyItemModifiers(ItemSO item)
     {
         if (fighterStats == null || item == null) return;
 
-        // Handle EquipableSO
-        if (item is EquipableSO equipable)
+        if (item is PsynergyRelicSO relic)
+        {
+            foreach (var bonus in relic.StatModifiers)
+            {
+                StatModifier modifier = new StatModifier(
+                    value: bonus.value,
+                    type: bonus.modifierType,
+                    source: relic,
+                    isTemporary: false
+                );
+
+                fighterStats.AddStatModifier(bonus.statType, modifier);
+            }
+        }
+        else if (item is EquipableSO equipable)
         {
             foreach (var bonus in equipable.StatModifiers)
             {
@@ -246,49 +263,19 @@ public class HeroEquipment : MonoBehaviour
                 fighterStats.AddStatModifier(bonus.statType, modifier);
             }
         }
-        // Handle PsynergyRelicSO
-        else if (item is PsynergyRelicSO relic)
-        {
-            foreach (var bonus in relic.StatModifiers)
-            {
-                StatModifier modifier = new StatModifier(
-                    value: bonus.value,
-                    type: bonus.modifierType,
-                    source: relic,
-                    isTemporary: false
-                );
-
-                fighterStats.AddStatModifier(bonus.statType, modifier);
-            }
-
-            // Grant Psynergy ability if present
-            if (relic.GrantedPsynergy != null && fighterStats.Psynergies != null)
-            {
-                if (!fighterStats.Psynergies.Contains(relic.GrantedPsynergy))
-                {
-                    fighterStats.Psynergies.Add(relic.GrantedPsynergy);
-                }
-            }
-        }
     }
 
-    private void RemoveItemModifiersAndAbilities(ItemSO item)
+    private void RemoveItemModifiers(ItemSO item)
     {
         if (fighterStats == null || item == null) return;
 
-        // Remove all stat modifiers associated with this ScriptableObject instance as source
+        // Remove stat modifiers associated with this ScriptableObject instance as source
         fighterStats.RemoveModifiersFromSource(item);
-
-        // Remove granted psynergy if it was a relic
-        if (item is PsynergyRelicSO relic && relic.GrantedPsynergy != null && fighterStats.Psynergies != null)
-        {
-            fighterStats.Psynergies.Remove(relic.GrantedPsynergy);
-        }
     }
 
     #endregion
 
-    #region Public Queries
+    #region Public Queries & Loading
 
     /// <summary>
     /// Gets the item currently equipped in a standard equipment slot.
@@ -298,6 +285,19 @@ public class HeroEquipment : MonoBehaviour
         if (equippedItems.TryGetValue(slotType, out var item))
         {
             return item;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the item currently equipped in a weapon equipment slot safely.
+    /// Returns null if the slot is empty or if the item is not a WeaponSO.
+    /// </summary>
+    public WeaponSO GetEquippedWeapon()
+    {
+        if (equippedItems.TryGetValue(EquipmentSlot.Weapon, out var item))
+        {
+            return item as WeaponSO;
         }
         return null;
     }
@@ -324,20 +324,19 @@ public class HeroEquipment : MonoBehaviour
         EquipmentSlot slotType = item.EquipmentSlot;
         if (equippedItems.ContainsKey(slotType))
         {
-            // 1. Remove previous if any
             if (equippedItems[slotType] != null)
             {
-                RemoveItemModifiersAndAbilities(equippedItems[slotType]);
+                RemoveItemModifiers(equippedItems[slotType]);
             }
 
-            // 2. Assign and apply new stats
             equippedItems[slotType] = item;
-            ApplyItemModifiersAndAbilities(item);
+            ApplyItemModifiers(item);
+            OnEquipmentChanged?.Invoke();
         }
     }
 
     /// <summary>
-    /// Directly assigns a relic item during save data loading, applying its modifiers and abilities.
+    /// Directly assigns a relic item during save data loading, applying its modifiers.
     /// </summary>
     public void LoadEquippedRelic(PsynergyRelicSO relic, int slotIndex)
     {
@@ -345,11 +344,12 @@ public class HeroEquipment : MonoBehaviour
 
         if (equippedRelics[slotIndex] != null)
         {
-            RemoveItemModifiersAndAbilities(equippedRelics[slotIndex]);
+            RemoveItemModifiers(equippedRelics[slotIndex]);
         }
 
         equippedRelics[slotIndex] = relic;
-        ApplyItemModifiersAndAbilities(relic);
+        ApplyItemModifiers(relic);
+        OnEquipmentChanged?.Invoke();
     }
 
     #endregion

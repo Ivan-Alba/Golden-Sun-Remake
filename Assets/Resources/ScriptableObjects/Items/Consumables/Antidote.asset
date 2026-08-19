@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemSlug: antidote
   itemName: "Ant\xEDdoto"
-  itemDescription: Cura el estado veneno.
+  itemDescription: Bebida medicinal que purifica la sangre y elimina el veneno del
+    cuerpo.
+  flavorText: "Preparado tradicional de los bot\xE1nicos de Bilibin, extra\xEDdo
+    de ra\xEDces amargas capaces de neutralizar toxinas letales."
   icon: {fileID: 21300000, guid: c6d48b794de980b4dad1aa1a190c8347, type: 3}
   itemType: 0
   buyPrice: 30
@@ -24,5 +27,5 @@ MonoBehaviour:
   useInMenu: 1
   useInBattle: 1
   effectType: 4
-  bonusValue: 30
+  bonusValue: 0
   statToBonus: 0

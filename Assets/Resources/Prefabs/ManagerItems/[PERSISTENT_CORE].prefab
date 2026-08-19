@@ -65,6 +65,11 @@ MonoBehaviour:
   pageItemsAsset: {fileID: 9197481963319205126, guid: 437816b739eea074eb22c349a21b9858, type: 3}
   pagePsynergyAsset: {fileID: 9197481963319205126, guid: 2074efc47207d5145a30135d3a29bcff, type: 3}
   itemSlotAsset: {fileID: 9197481963319205126, guid: 24e92de9bbb31e74fbf4d0e62744abee, type: 3}
+  templateInfoConsumable: {fileID: 0}
+  templateInfoEquipable: {fileID: 0}
+  templateInfoWeapon: {fileID: 0}
+  templateInfoPsynergyRelic: {fileID: 0}
+  templateInfoKeyItem: {fileID: 0}
 --- !u!1 &4245145516459992524
 GameObject:
   m_ObjectHideFlags: 0
@@ -1782,8 +1787,10 @@ MonoBehaviour:
   baseResistMars: 100
   baseResistJupiter: 105
   baseResistMercury: 100
+  baseProgression: {fileID: 0}
   level: 1
   currentXp: 0
+  unlockedStoryPsynergies: []
 --- !u!114 &2187188976868689514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22828,8 +22835,10 @@ MonoBehaviour:
   baseResistMars: 105
   baseResistJupiter: 100
   baseResistMercury: 100
+  baseProgression: {fileID: 11400000, guid: 28e7b6c41810c074ab43c48929488e8a, type: 2}
   level: 1
   currentXp: 0
+  unlockedStoryPsynergies: []
 --- !u!114 &7159021585786953010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125448,8 +125457,10 @@ MonoBehaviour:
   baseResistMars: 100
   baseResistJupiter: 100
   baseResistMercury: 100
+  baseProgression: {fileID: 11400000, guid: afb6123f5fb8203448273304cef8aa04, type: 2}
   level: 1
   currentXp: 0
+  unlockedStoryPsynergies: []
 --- !u!114 &6342542899712295493
 MonoBehaviour:
   m_ObjectHideFlags: 0

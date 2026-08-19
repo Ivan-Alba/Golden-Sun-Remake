@@ -1,26 +1,25 @@
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Represents a special equipment piece (Psynergy Relic) that grants field or battle Psynergies when equipped.
+/// Inherits from EquipableSO to leverage equipment stat modifiers and slot rules seamlessly.
+/// </summary>
 [CreateAssetMenu(fileName = "New_PsynergyRelic", menuName = "Inventory/Items/Psynergy Relic")]
-public class PsynergyRelicSO : ItemSO
+public class PsynergyRelicSO : EquipableSO
 {
     [Header("Relic Granted Abilities")]
-    [SerializeField] private PsynergySO grantedPsynergy; // Granted field/battle Psynergy (e.g., Catch, Carry, Cloak)
-
-    [Header("Optional Relic Stats")]
-    [SerializeField] private List<EquipmentStatBonus> statModifiers = new List<EquipmentStatBonus>();
+    [Tooltip("Reference to the Psynergy granted to the hero while this relic is equipped.")]
+    [SerializeField] private PsynergySO grantedPsynergy;
 
     private void OnValidate()
     {
-        // Enforce that Psynergy Relics always belong to the dedicated slot
-        // and belong to the PsynergyRelic ItemType
+        // Ensure Psynergy Relics are permanently configured for the Relic Equipment Slot and ItemType
+        // Note: Set equipmentSlot to EquipmentSlot.PsynergyRelic in inspector
     }
 
     #region Properties
 
-    public EquipmentSlot EquipmentSlot => EquipmentSlot.PsynergyRelic;
     public PsynergySO GrantedPsynergy => grantedPsynergy;
-    public IReadOnlyList<EquipmentStatBonus> StatModifiers => statModifiers;
 
     #endregion
 }

@@ -244,8 +244,8 @@ public class GameManager : MonoBehaviour
         if (PsynergyWorldController.Instance != null)
         {
             PsynergyWorldController.Instance.Initialize();
-            PsynergyWorldController.Instance.SetShortcut(party[0], PsynergyDatabase.Instance.GetPsynergy("catch"), 0);
-            Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").PsynergyName + " set to shortcut 0");
+            //PsynergyWorldController.Instance.SetShortcut(party[0], PsynergyDatabase.Instance.GetPsynergy("catch"), 0);
+            //Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").PsynergyName + " set to shortcut 0");
         }
 
         ChangeScene(firstSceneName, initialSpawnID);

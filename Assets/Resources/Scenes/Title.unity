@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.10305652, g: 0.22862746, b: 0.38507217, a: 1}
+  m_IndirectSpecularColor: {r: 0.013881072, g: 0.052655384, b: 0.11371973, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1309,6 +1309,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: templateInfoWeapon
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: 3257c7afefba5aa4685809df5409a8ca, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: templateInfoKeyItem
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: 476532ed557255148871735c9e937564, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: templateInfoEquipable
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: de030aebb110d874981afed65adf1906, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: templateInfoConsumable
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: 75862113b3732214a9051702eeba2168, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: templateInfoPsynergyRelic
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: c2e35c2b5f5ab70468b4097b5ff46ad7, type: 3}
     - target: {fileID: 8459378965900201015, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: field of view
       value: 3

@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/KeyItem/ItemInfo_KeyItem.uss?fileID=7433441132597879392&amp;guid=bf09765d7abd2b04f98d8a18dbc6614f&amp;type=3#ItemInfo_KeyItem" />
+    <ui:VisualElement name="key_item_info_root" class="key-item-info-root">
+        <ui:VisualElement name="key_item_badge_container" class="key-item-badge-container">
+            <ui:VisualElement class="key-badge-icon" />
+            <ui:Label text="OBJETO DE HISTORIA" class="key-badge-label" />
+        </ui:VisualElement>
+        <ui:VisualElement class="info-divider" />
+        <ui:VisualElement name="lore_box" class="lore-box">
+            <ui:VisualElement class="quote-mark quote-open" />
+            <ui:Label text="Antiguo artefacto encontrado en las profundidades de las ruinas. Se dice que sus runas resonaban con el flujo de la Alquimia antes de la gran parálisis." name="label_lore_text" class="lore-text" />
+            <ui:VisualElement class="quote-mark quote-close" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -116,7 +116,16 @@ public class PageItemsController
     private Label labelItemSellPrice;
     private Label labelItemMaxStack;
     private Label labelItemDesc;
-    private VisualElement statChangesBox;
+
+    // Container holding modular dynamic UXML templates for item extra information
+    private VisualElement extraInfoContainer;
+
+    // Modular UXML Template Assets for Detailed Item Info Views
+    private VisualTreeAsset templateInfoConsumable;
+    private VisualTreeAsset templateInfoEquipable;
+    private VisualTreeAsset templateInfoWeapon;
+    private VisualTreeAsset templateInfoPsynergyRelic;
+    private VisualTreeAsset templateInfoKeyItem;
 
     // Stack Splitter Overlay Popup Elements
     private VisualElement splitPopupOverlay;
@@ -175,6 +184,9 @@ public class PageItemsController
     private ItemSO targetingItem;
     private VisualElement targetingGhostElement;
 
+    // Item Selected (Info Panel) State Tracking
+    private ItemSO selectedItem;
+
     // Equipment slot type mapping matching gearSlots[0..6] indices
     private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
     {
@@ -205,6 +217,23 @@ public class PageItemsController
     #endregion
 
     #region Helper Methods for Global Panel Access
+
+    /// <summary>
+    /// Binds the modular VisualTreeAsset templates required for dynamic item details rendering.
+    /// </summary>
+    public void SetExtraInfoTemplates(
+        VisualTreeAsset consumableTpl,
+        VisualTreeAsset equipableTpl,
+        VisualTreeAsset weaponTpl,
+        VisualTreeAsset relicTpl,
+        VisualTreeAsset keyItemTpl)
+    {
+        templateInfoConsumable = consumableTpl;
+        templateInfoEquipable = equipableTpl;
+        templateInfoWeapon = weaponTpl;
+        templateInfoPsynergyRelic = relicTpl;
+        templateInfoKeyItem = keyItemTpl;
+    }
 
     /// <summary>
     /// Retrieves the top-level root visual element of the entire UI Document panel
@@ -239,7 +268,9 @@ public class PageItemsController
         labelItemSellPrice = rootElement.Q<Label>("label_item_sell_price");
         labelItemMaxStack = rootElement.Q<Label>("label_item_max_stack");
         labelItemDesc = rootElement.Q<Label>("label_item_desc");
-        statChangesBox = rootElement.Q<VisualElement>("stat_changes_box");
+
+        // Container holding extra item details
+        extraInfoContainer = rootElement.Q<VisualElement>("extra_info_container") ?? rootElement.Q<VisualElement>("stat_changes_box");
 
         // Split Modal Overlay Elements
         splitPopupOverlay = rootElement.Q<VisualElement>("split_popup_overlay");
@@ -271,6 +302,17 @@ public class PageItemsController
         relicSlots[1] = rootElement.Q<VisualElement>("slot_relic_1");
         relicSlots[2] = rootElement.Q<VisualElement>("slot_relic_2");
         relicSlots[3] = rootElement.Q<VisualElement>("slot_relic_3");
+
+        // Ensure equipment and relic slots register pointer hit tests properly
+        for (int i = 0; i < gearSlots.Length; i++)
+        {
+            if (gearSlots[i] != null) gearSlots[i].pickingMode = PickingMode.Position;
+        }
+
+        for (int i = 0; i < relicSlots.Length; i++)
+        {
+            if (relicSlots[i] != null) relicSlots[i].pickingMode = PickingMode.Position;
+        }
     }
 
     private void BindSplitPopupEvents()
@@ -401,6 +443,11 @@ public class PageItemsController
         RefreshInventorySlots();
         RefreshEquipmentSlots();
         RefreshGlobalBagSlots();
+
+        if (selectedItem != null)
+        {
+            UpdateInfoPanel(selectedItem);
+        }
 
         // Notify MainMenuController to update top header hero cards (HP/PP/Stats)
         OnItemUsedOnHero?.Invoke();
@@ -581,7 +628,6 @@ public class PageItemsController
 
     private void RegisterPointerCallbacks(VisualElement slotUI, DragSourceType sourceType, int slotIndex, ItemSO item, int quantity)
     {
-        // Strictly purge previous event callbacks to prevent listener accumulation
         UnregisterPointerCallbacks(slotUI);
 
         EventCallback<PointerDownEvent> pointerDownCallback = evt => OnSlotPointerDown(evt, sourceType, slotIndex, slotUI, item, quantity);
@@ -637,7 +683,6 @@ public class PageItemsController
         ItemSO liveItem = GetLiveItemFromSource(sourceType, slotIndex);
         if (liveItem == null) return;
 
-        // Robust manual double-click detection based on time window and matching slot
         float currentTime = Time.unscaledTime;
         bool isDoubleClick = (currentTime - lastClickTime <= DOUBLE_CLICK_TIME_THRESHOLD)
                              && (lastClickSlotIndex == slotIndex)
@@ -645,11 +690,9 @@ public class PageItemsController
 
         if (isDoubleClick)
         {
-            // Reset click trackers
             lastClickTime = 0f;
             lastClickSlotIndex = -1;
 
-            // Purge transient drag contexts created by the first click
             RemoveGhostElement();
             currentDragContext = null;
             activePointerId = -1;
@@ -663,7 +706,6 @@ public class PageItemsController
         lastClickSlotIndex = slotIndex;
         lastClickSourceType = sourceType;
 
-        // Cancel active targeting mode on new slot selection
         if (isTargetingItem)
         {
             CancelItemTargeting();
@@ -748,25 +790,27 @@ public class PageItemsController
         // 1. Actions from Personal Inventory
         if (sourceType == DragSourceType.PersonalInventory)
         {
-            // Auto-equip logic for Psynergy Relics
-            if (item is PsynergyRelicSO || (item is EquipableSO eqRelic && eqRelic.EquipmentSlot == EquipmentSlot.PsynergyRelic))
+            if (item is EquipableSO equipable)
             {
-                if (currentEquipment != null)
+                Debug.Log("Double-clicked equipable item in inventory: " + item.name);
+                if (equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
                 {
-                    int emptyRelicIndex = GetFirstEmptyRelicIndex();
-                    int targetRelicIndex = (emptyRelicIndex != -1) ? emptyRelicIndex : 0;
+                    Debug.Log("Equipping relic: " + item.name);
+                    if (currentEquipment != null)
+                    {
+                        int emptyRelicIndex = GetFirstEmptyRelicIndex();
+                        int targetRelicIndex = (emptyRelicIndex != -1) ? emptyRelicIndex : 0;
 
-                    currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
+                        currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
+                        RefreshAllData();
+                    }
+                }
+                else
+                {
+                    currentEquipment?.EquipFromBackpack(slotIndex);
                     RefreshAllData();
                 }
             }
-            // Auto-equip logic for standard equipable items
-            else if (item is EquipableSO)
-            {
-                currentEquipment?.EquipFromBackpack(slotIndex);
-                RefreshAllData();
-            }
-            // Enter chained targeting mode for consumables
             else if (item is ConsumableSO)
             {
                 StartItemTargeting(slotIndex, item);
@@ -778,10 +822,9 @@ public class PageItemsController
             if (currentEquipment == null || currentInventory == null) return;
             if (slotIndex < 0 || slotIndex >= gearSlotTypes.Length) return;
 
-            // Ensure personal inventory has space before unequipping
             if (GetFirstEmptyInventoryIndex() == -1)
             {
-                Debug.LogWarning("[PageItems] No se puede desequipar: El inventario personal está lleno.");
+                Debug.LogWarning("[PageItems] Cannot unequip: Personal inventory is full.");
                 return;
             }
 
@@ -796,10 +839,9 @@ public class PageItemsController
         {
             if (currentEquipment == null || currentInventory == null) return;
 
-            // Ensure personal inventory has space before unequipping
             if (GetFirstEmptyInventoryIndex() == -1)
             {
-                Debug.LogWarning("[PageItems] No se puede desequipar la reliquia: El inventario personal está lleno.");
+                Debug.LogWarning("[PageItems] Cannot unequip relic: Personal inventory is full.");
                 return;
             }
 
@@ -810,10 +852,6 @@ public class PageItemsController
         }
     }
 
-    /// <summary>
-    /// Helper to locate the first available relic slot index (0-3) on current equipment.
-    /// Returns -1 if all relic slots are currently occupied.
-    /// </summary>
     private int GetFirstEmptyRelicIndex()
     {
         if (currentEquipment == null) return -1;
@@ -850,7 +888,6 @@ public class PageItemsController
     {
         if (!isTargetingItem) return;
 
-        // Cancel on right-click (button 1)
         if (evt.button == 1)
         {
             CancelItemTargeting();
@@ -858,12 +895,10 @@ public class PageItemsController
             return;
         }
 
-        // Handle left-click (button 0)
         if (evt.button == 0)
         {
             if (TryGetDropTarget(evt.position, out DropTargetInfo targetInfo) && targetInfo.TargetType == DropTargetType.HeroCard)
             {
-                // Cancela inmediatamente la propagación para evitar que MainMenuController reciba el PointerDownEvent
                 evt.StopImmediatePropagation();
                 ExecuteConsumableUsageOnHero(targetInfo.Index);
             }
@@ -902,7 +937,7 @@ public class PageItemsController
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
         if (targetHero == null) return;
 
-        Debug.Log($"[Consumable] Usando '{consumable.ItemName}' (Slot {targetingSourceIndex}) sobre {targetHero.Name}...");
+        Debug.Log($"[Consumable] Using '{consumable.ItemName}' (Slot {targetingSourceIndex}) on {targetHero.Name}...");
 
         bool effectApplied = consumable.ExecuteMenuEffect(targetHero);
 
@@ -919,8 +954,7 @@ public class PageItemsController
         }
         else
         {
-            // TODO: Play UI Error Sound
-            Debug.LogWarning($"[Consumable] '{consumable.ItemName}' no tuvo efecto sobre {targetHero.Name}. No se consume del inventario.");
+            Debug.LogWarning($"[Consumable] '{consumable.ItemName}' had no effect on {targetHero.Name}. Item was not consumed.");
         }
     }
 
@@ -989,24 +1023,25 @@ public class PageItemsController
 
     private void HighlightCompatibleSlots(ItemSO item, bool enable)
     {
-        bool isRelic = item is PsynergyRelicSO || (item is EquipableSO eqRelic && eqRelic.EquipmentSlot == EquipmentSlot.PsynergyRelic);
-
-        if (isRelic)
+        if (item is EquipableSO equipable)
         {
-            for (int i = 0; i < relicSlots.Length; i++)
+            if (equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
             {
-                SetSlotHighlight(relicSlots[i], enable);
-            }
-        }
-        else if (item is EquipableSO equipable)
-        {
-            EquipmentSlot slotType = equipable.EquipmentSlot;
-
-            for (int i = 0; i < gearSlotTypes.Length; i++)
-            {
-                if (gearSlotTypes[i] == slotType && gearSlots[i] != null)
+                for (int i = 0; i < relicSlots.Length; i++)
                 {
-                    SetSlotHighlight(gearSlots[i], enable);
+                    SetSlotHighlight(relicSlots[i], enable);
+                }
+            }
+            else
+            {
+                EquipmentSlot slotType = equipable.EquipmentSlot;
+
+                for (int i = 0; i < gearSlotTypes.Length; i++)
+                {
+                    if (gearSlotTypes[i] == slotType && gearSlots[i] != null)
+                    {
+                        SetSlotHighlight(gearSlots[i], enable);
+                    }
                 }
             }
         }
@@ -1191,7 +1226,7 @@ public class PageItemsController
     {
         if (currentDragContext.SourceType == DragSourceType.PersonalInventory)
         {
-            if (currentDragContext.Item is PsynergyRelicSO || (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic))
+            if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
             {
                 currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex, targetIndex);
             }
@@ -1509,10 +1544,12 @@ public class PageItemsController
 
     #endregion
 
-    #region Info Panel & Details Display
+    #region Info Panel & Dynamic Extra Details Display
 
     private void UpdateInfoPanel(ItemSO item)
     {
+        selectedItem = item;
+
         if (item == null)
         {
             ClearInfoPanel();
@@ -1522,7 +1559,6 @@ public class PageItemsController
         if (labelItemName != null) labelItemName.text = item.ItemName;
         if (labelItemType != null) labelItemType.text = item.ItemType.ToString();
 
-        // Format sell price text based on CanSell flag
         if (labelItemSellPrice != null)
         {
             labelItemSellPrice.text = item.CanSell
@@ -1536,6 +1572,472 @@ public class PageItemsController
         if (itemIconPreview != null && item.Icon != null)
         {
             itemIconPreview.style.backgroundImage = new StyleBackground(item.Icon);
+        }
+
+        UpdateInfoExtraPanel(item);
+    }
+
+    /// <summary>
+    /// Instantiates and binds the matching UXML template into extraInfoContainer based on the selected ItemSO type.
+    /// </summary>
+    private void UpdateInfoExtraPanel(ItemSO item)
+    {
+        if (extraInfoContainer == null) return;
+
+        extraInfoContainer.Clear();
+
+        if (item == null) return;
+
+        // 1. Weapon Artifacts / Standard Weapons
+        if (item is WeaponSO weapon)
+        {
+            if (templateInfoWeapon == null) return;
+
+            TemplateContainer instance = templateInfoWeapon.Instantiate();
+            extraInfoContainer.Add(instance);
+
+            // Element Badge
+            VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
+            Label labelElementName = instance.Q<Label>("label_element_name");
+            ApplyElementBadgeTheme(badgeElement, labelElementName, weapon.Element);
+
+            // Hit Type Badge
+            Label labelHitType = instance.Q<Label>("label_hit_type");
+            if (labelHitType != null) labelHitType.text = weapon.HitFXType.ToString().ToUpper();
+
+            // Battle Use Badge
+            VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
+            if (badgeBattleUse != null)
+            {
+                badgeBattleUse.RemoveFromClassList("badge-active");
+                badgeBattleUse.RemoveFromClassList("badge-inactive");
+                badgeBattleUse.AddToClassList(weapon.UseInBattle ? "badge-active" : "badge-inactive");
+            }
+
+            // Weapon Unleash Box
+            VisualElement unleashBox = instance.Q<VisualElement>("unleash_info_box");
+            if (unleashBox != null)
+            {
+                if (weapon.HasUnleash && weapon.UnleashEffect != null)
+                {
+                    unleashBox.style.display = DisplayStyle.Flex;
+
+                    Label labelUnleashRate = instance.Q<Label>("label_unleash_rate");
+                    if (labelUnleashRate != null) labelUnleashRate.text = $"{Mathf.RoundToInt(weapon.UnleashProcRate * 100f)}% Proc";
+
+                    VisualElement unleashIcon = instance.Q<VisualElement>("unleash_icon");
+                    if (unleashIcon != null && weapon.UnleashEffect.Icon != null)
+                    {
+                        unleashIcon.style.backgroundImage = new StyleBackground(weapon.UnleashEffect.Icon);
+                    }
+
+                    Label labelUnleashName = instance.Q<Label>("label_unleash_name");
+                    if (labelUnleashName != null) labelUnleashName.text = weapon.UnleashEffect.UnleashName;
+
+                    Label labelUnleashDesc = instance.Q<Label>("label_unleash_desc");
+                    if (labelUnleashDesc != null) labelUnleashDesc.text = weapon.UnleashEffect.Description;
+                }
+                else
+                {
+                    unleashBox.style.display = DisplayStyle.None;
+                }
+            }
+
+            // Render Stat Modifiers
+            RenderEquipableStatModifiers(instance, weapon);
+
+            // Stat Delta Comparison
+            PopulateStatDeltaComparison(instance, weapon);
+
+            // Flavor Text
+            Label labelFlavor = instance.Q<Label>("label_flavor_text");
+            if (labelFlavor != null) labelFlavor.text = weapon.FlavorText;
+        }
+        // 2. Psynergy Relics
+        else if (item is PsynergyRelicSO relic)
+        {
+            if (templateInfoPsynergyRelic == null) return;
+
+            TemplateContainer instance = templateInfoPsynergyRelic.Instantiate();
+            extraInfoContainer.Add(instance);
+
+            VisualElement cardStripe = instance.Q<VisualElement>("card_element_stripe");
+            VisualElement cardIcon = instance.Q<VisualElement>("psynergy_card_icon");
+            Label labelPsynergyName = instance.Q<Label>("label_psynergy_name");
+            Label badgeUsageType = instance.Q<Label>("badge_usage_type");
+            VisualElement elemMiniIcon = instance.Q<VisualElement>("element_mini_icon");
+            Label labelPsynergyPp = instance.Q<Label>("label_psynergy_pp");
+
+            if (relic.GrantedPsynergy != null)
+            {
+                if (labelPsynergyName != null) labelPsynergyName.text = relic.GrantedPsynergy.PsynergyName;
+                if (labelPsynergyPp != null) labelPsynergyPp.text = $"{relic.GrantedPsynergy.PpCost} PP";
+
+                if (cardIcon != null && relic.GrantedPsynergy.Icon != null)
+                {
+                    cardIcon.style.backgroundImage = new StyleBackground(relic.GrantedPsynergy.Icon);
+                }
+
+                if (elemMiniIcon != null && relic.GrantedPsynergy.ElemIcon != null)
+                {
+                    elemMiniIcon.style.backgroundImage = new StyleBackground(relic.GrantedPsynergy.ElemIcon);
+                }
+
+                if (badgeUsageType != null)
+                {
+                    badgeUsageType.RemoveFromClassList("badge-world");
+                    badgeUsageType.RemoveFromClassList("badge-battle");
+                    badgeUsageType.RemoveFromClassList("badge-menu");
+
+                    if (relic.GrantedPsynergy.WorldData.CanBeUsedInWorld)
+                    {
+                        badgeUsageType.text = "Mundo";
+                        badgeUsageType.AddToClassList("badge-world");
+                    }
+                    else if (relic.GrantedPsynergy.IsBattlePsynergy)
+                    {
+                        badgeUsageType.text = "Combate";
+                        badgeUsageType.AddToClassList("badge-battle");
+                    }
+                    else
+                    {
+                        badgeUsageType.text = "Menú";
+                        badgeUsageType.AddToClassList("badge-menu");
+                    }
+                }
+            }
+
+            RenderEquipableStatModifiers(instance, relic);
+
+            Label labelFlavor = instance.Q<Label>("label_flavor_text");
+            if (labelFlavor != null) labelFlavor.text = relic.FlavorText;
+        }
+        // 3. Standard Equipables (Armors, Helmets, Accessories, etc.)
+        else if (item is EquipableSO equipable)
+        {
+            if (templateInfoEquipable == null) return;
+
+            TemplateContainer instance = templateInfoEquipable.Instantiate();
+            extraInfoContainer.Add(instance);
+
+            // Element Badge
+            VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
+            Label labelElementName = instance.Q<Label>("label_element_name");
+            ApplyElementBadgeTheme(badgeElement, labelElementName, equipable.Element);
+
+            // Battle Use Badge & Effect Description
+            VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
+            VisualElement battleEffectBox = instance.Q<VisualElement>("battle_effect_info_box");
+            Label labelBattleEffectName = instance.Q<Label>("label_battle_effect_name");
+
+            if (badgeBattleUse != null)
+            {
+                badgeBattleUse.RemoveFromClassList("badge-active");
+                badgeBattleUse.RemoveFromClassList("badge-inactive");
+                badgeBattleUse.AddToClassList(equipable.UseInBattle ? "badge-active" : "badge-inactive");
+            }
+
+            if (battleEffectBox != null)
+            {
+                if (equipable.UseInBattle && equipable.BattleUseEffect != null)
+                {
+                    battleEffectBox.style.display = DisplayStyle.Flex;
+                    if (labelBattleEffectName != null) labelBattleEffectName.text = equipable.BattleUseEffect.EffectName;
+                }
+                else
+                {
+                    battleEffectBox.style.display = DisplayStyle.None;
+                }
+            }
+
+            // Render Stat Modifiers
+            RenderEquipableStatModifiers(instance, equipable);
+
+            // Stat Delta Comparison
+            PopulateStatDeltaComparison(instance, equipable);
+
+            // Flavor Text
+            Label labelFlavor = instance.Q<Label>("label_flavor_text");
+            if (labelFlavor != null) labelFlavor.text = equipable.FlavorText;
+        }
+        // 4. Consumables
+        else if (item is ConsumableSO consumable)
+        {
+            if (templateInfoConsumable == null) return;
+
+            TemplateContainer instance = templateInfoConsumable.Instantiate();
+            extraInfoContainer.Add(instance);
+
+            VisualElement badgeMenuUse = instance.Q<VisualElement>("badge_menu_use");
+            if (badgeMenuUse != null)
+            {
+                badgeBattleUseClassToggle(badgeMenuUse, consumable.UseInMenu);
+            }
+
+            VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
+            if (badgeBattleUse != null)
+            {
+                badgeBattleUseClassToggle(badgeBattleUse, consumable.UseInBattle);
+            }
+
+            Label labelEffectType = instance.Q<Label>("label_effect_type");
+            if (labelEffectType != null) labelEffectType.text = consumable.EffectType.ToString();
+
+            Label labelEffectValue = instance.Q<Label>("label_effect_value");
+            if (labelEffectValue != null)
+            {
+                // Restorative items
+                bool isRestorative = consumable.EffectType == ConsumableEffectType.RestoreHp ||
+                                     consumable.EffectType == ConsumableEffectType.RestorePp ||
+                                     consumable.EffectType == ConsumableEffectType.RestoreHpAndPp;
+
+                labelEffectValue.text = isRestorative ? $"+{consumable.BonusValue}" : string.Empty;
+
+                if (consumable.EffectType == ConsumableEffectType.PermanentStatBoost)
+                {
+                    labelEffectValue.text = $"+{consumable.BonusValue} {consumable.StatToBonus}";
+                }
+
+            }
+
+            Label labelFlavor = instance.Q<Label>("label_flavor_text");
+            if (labelFlavor != null) labelFlavor.text = consumable.FlavorText;
+        }
+        // 5. Key / Story Items
+        else if (item is KeyItemSO keyItem)
+        {
+            if (templateInfoKeyItem == null) return;
+
+            TemplateContainer instance = templateInfoKeyItem.Instantiate();
+            extraInfoContainer.Add(instance);
+
+            Label labelFlavor = instance.Q<Label>("label_lore_text") ?? instance.Q<Label>("label_flavor_text");
+            if (labelFlavor != null) labelFlavor.text = keyItem.FlavorText;
+        }
+    }
+
+    private void badgeBattleUseClassToggle(VisualElement elem, bool active)
+    {
+        elem.RemoveFromClassList("badge-active");
+        elem.RemoveFromClassList("badge-inactive");
+        elem.AddToClassList(active ? "badge-active" : "badge-inactive");
+    }
+
+    /// <summary>
+    /// Applies CSS class themes to the elemental badge according to ElementalType.
+    /// </summary>
+    private void ApplyElementBadgeTheme(VisualElement badgeElement, Label labelElementName, ElementalType element)
+    {
+        if (badgeElement == null) return;
+
+        badgeElement.RemoveFromClassList("badge-element-none");
+        badgeElement.RemoveFromClassList("badge-element-venus");
+        badgeElement.RemoveFromClassList("badge-element-mars");
+        badgeElement.RemoveFromClassList("badge-element-jupiter");
+        badgeElement.RemoveFromClassList("badge-element-mercury");
+
+        string elemString = element.ToString().ToLower();
+        badgeElement.AddToClassList($"badge-element-{elemString}");
+
+        if (labelElementName != null)
+        {
+            labelElementName.text = element.ToString().ToUpper();
+        }
+    }
+
+    /// <summary>
+    /// Renders all Stat Modifiers belonging strictly to the equipable item into generic containers.
+    /// </summary>
+    private void RenderEquipableStatModifiers(VisualElement rootInstance, EquipableSO equipable)
+    {
+        if (equipable == null) return;
+
+        // Query generic grid containers across weapon, equipable, or relic views
+        VisualElement statsContainer = rootInstance.Q<VisualElement>("stats_grid") ??
+                                       rootInstance.Q<VisualElement>("stats_list_container") ??
+                                       rootInstance.Q<VisualElement>("stat_modifiers_box");
+
+        IReadOnlyList<EquipmentStatBonus> modifiers = equipable.StatModifiers;
+        if (modifiers == null || modifiers.Count == 0 || statsContainer == null) return;
+
+        statsContainer.Clear();
+
+        foreach (var mod in modifiers)
+        {
+            if (mod.value == 0) continue;
+
+            VisualElement row = new VisualElement();
+            row.AddToClassList("stat-row");
+
+            Label nameLabel = new Label(GetStatDisplayName(mod.statType));
+            nameLabel.AddToClassList("stat-name");
+
+            string percentSuffix = (mod.modifierType != StatModifierType.Flat) ? "%" : string.Empty;
+            string valuePrefix = (mod.value > 0) ? "+" : string.Empty;
+
+            Label valueLabel = new Label($"{valuePrefix}{mod.value}{percentSuffix}");
+            valueLabel.AddToClassList("stat-value");
+
+            row.Add(nameLabel);
+            row.Add(valueLabel);
+
+            statsContainer.Add(row);
+        }
+    }
+
+    /// <summary>
+    /// Calculates current vs new stat comparison delta values for ALL stats present in either new item or currently equipped item.
+    /// </summary>
+    private void PopulateStatDeltaComparison(VisualElement rootInstance, EquipableSO newEquipable)
+    {
+        if (currentHero == null || currentEquipment == null || newEquipable == null) return;
+
+        EquipableSO currentlyEquipped = currentEquipment.GetEquippedItem(newEquipable.EquipmentSlot);
+
+        // Query generic comparison containers across UXML views
+        VisualElement deltaContainer = rootInstance.Q<VisualElement>("comparison_rows_container") ??
+                                        rootInstance.Q<VisualElement>("delta_comparison_container") ??
+                                        rootInstance.Q<VisualElement>("stat_delta_box");
+
+        if (deltaContainer == null) return;
+
+        deltaContainer.Clear();
+
+        // Collect union of all stats modified by new or equipped items
+        HashSet<StatType> relevantStats = new HashSet<StatType>();
+
+        if (newEquipable.StatModifiers != null)
+        {
+            foreach (var mod in newEquipable.StatModifiers)
+            {
+                if (mod.value != 0) relevantStats.Add(mod.statType);
+            }
+        }
+
+        if (currentlyEquipped != null && currentlyEquipped.StatModifiers != null)
+        {
+            foreach (var mod in currentlyEquipped.StatModifiers)
+            {
+                if (mod.value != 0) relevantStats.Add(mod.statType);
+            }
+        }
+
+        foreach (StatType stat in relevantStats)
+        {
+            float currentStatBaseValue = GetHeroBaseStatValue(currentHero, stat);
+
+            float currentlyEquippedBonus = (currentlyEquipped != null) ? CalculateStatBonusTotal(currentlyEquipped, stat, currentStatBaseValue) : 0f;
+            float newBonus = CalculateStatBonusTotal(newEquipable, stat, currentStatBaseValue);
+
+            float newTotalStat = currentStatBaseValue - currentlyEquippedBonus + newBonus;
+            float delta = newTotalStat - currentStatBaseValue;
+
+            VisualElement row = new VisualElement();
+            row.AddToClassList("comparison-row");
+
+            Label nameLabel = new Label(GetStatDisplayName(stat));
+            nameLabel.AddToClassList("stat-name");
+
+            VisualElement deltaGroup = new VisualElement();
+            deltaGroup.AddToClassList("delta-container");
+
+            Label currentValLabel = new Label(Mathf.RoundToInt(currentStatBaseValue).ToString());
+            currentValLabel.AddToClassList("current-value");
+
+            Label arrowLabel = new Label("→");
+            arrowLabel.AddToClassList("arrow-separator");
+
+            Label newValLabel = new Label(Mathf.RoundToInt(newTotalStat).ToString());
+            newValLabel.AddToClassList("new-value");
+
+            Label deltaTagLabel = new Label($"({(delta >= 0 ? "+" : "")}{Mathf.RoundToInt(delta)})");
+            deltaTagLabel.AddToClassList("delta-tag");
+
+            if (delta > 0) deltaTagLabel.AddToClassList("delta-positive");
+            else if (delta < 0) deltaTagLabel.AddToClassList("delta-negative");
+            else deltaTagLabel.AddToClassList("delta-neutral");
+
+            deltaGroup.Add(currentValLabel);
+            deltaGroup.Add(arrowLabel);
+            deltaGroup.Add(newValLabel);
+            deltaGroup.Add(deltaTagLabel);
+
+            row.Add(nameLabel);
+            row.Add(deltaGroup);
+
+            deltaContainer.Add(row);
+        }
+    }
+
+    /// <summary>
+    /// Calculates the bonus value given flat or percent modifiers.
+    /// </summary>
+    private float CalculateStatBonusTotal(EquipableSO equipable, StatType statType, float baseStatValue)
+    {
+        if (equipable?.StatModifiers == null) return 0f;
+
+        float totalFlat = 0f;
+        float totalPercent = 0f;
+
+        foreach (var mod in equipable.StatModifiers)
+        {
+            if (mod.statType == statType)
+            {
+                if (mod.modifierType == StatModifierType.Flat)
+                {
+                    totalFlat += mod.value;
+                }
+                else
+                {
+                    totalPercent += mod.value;
+                }
+            }
+        }
+
+        return totalFlat + (baseStatValue * (totalPercent / 100f));
+    }
+
+    /// <summary>
+    /// Helper method to retrieve current base stat value from HeroStats.
+    /// </summary>
+    private float GetHeroBaseStatValue(HeroStats hero, StatType statType)
+    {
+        if (hero == null) return 0f;
+
+        switch (statType)
+        {
+            case StatType.MaxHP: return hero.MaxHp;
+            case StatType.MaxPP: return hero.MaxPp;
+            case StatType.Attack: return hero.Attack;
+            case StatType.Defense: return hero.Defense;
+            case StatType.Agility: return hero.Agility;
+            case StatType.Luck: return hero.Luck;
+            default: return 0f;
+        }
+    }
+
+    /// <summary>
+    /// Friendly name resolver for StatType enums.
+    /// </summary>
+    private string GetStatDisplayName(StatType statType)
+    {
+        switch (statType)
+        {
+            case StatType.MaxHP: return "Puntos de Vida";
+            case StatType.MaxPP: return "Puntos de Psinergia";
+            case StatType.Attack: return "Ataque";
+            case StatType.Defense: return "Defensa";
+            case StatType.Agility: return "Agilidad";
+            case StatType.Luck: return "Suerte";
+            case StatType.PowerVenus: return "Poder Venus";
+            case StatType.PowerMars: return "Poder Marte";
+            case StatType.PowerJupiter: return "Poder Júpiter";
+            case StatType.PowerMercury: return "Poder Mercurio";
+            case StatType.ResistVenus: return "Resist. Venus";
+            case StatType.ResistMars: return "Resist. Marte";
+            case StatType.ResistJupiter: return "Resist. Júpiter";
+            case StatType.ResistMercury: return "Resist. Mercurio";
+            default: return statType.ToString();
         }
     }
 
@@ -1556,12 +2058,19 @@ public class PageItemsController
 
     public void ClearInfoPanel()
     {
+        selectedItem = null;
+
         if (labelItemName != null) labelItemName.text = "Seleccionar Objeto";
         if (labelItemType != null) labelItemType.text = "---";
         if (labelItemSellPrice != null) labelItemSellPrice.text = "Se vende por: --- monedas";
         if (labelItemMaxStack != null) labelItemMaxStack.text = "Máx. stack: ---";
         if (labelItemDesc != null) labelItemDesc.text = "Selecciona un objeto del inventario o del equipamiento para ver sus detalles.";
         if (itemIconPreview != null) itemIconPreview.style.backgroundImage = null;
+
+        if (extraInfoContainer != null)
+        {
+            extraInfoContainer.Clear();
+        }
     }
 
     public void HandleConfirm()

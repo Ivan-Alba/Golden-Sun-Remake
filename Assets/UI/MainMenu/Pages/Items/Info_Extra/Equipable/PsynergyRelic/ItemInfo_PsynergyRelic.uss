@@ -1,0 +1,236 @@
+/* =========================================================================
+   ItemInfo_PsynergyRelic.uss
+   Styles for the modular detail view of Psynergy Relics
+   ========================================================================= */
+
+.relic-info-root {
+    flex-grow: 1;
+    justify-content: flex-start;
+    padding: 8px 10px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* --- Section Titles --- */
+.section-header-title {
+    font-size: 10px;
+    color: #DAA520; /* Golden Sun Gold */
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    padding: 0;
+    margin-bottom: 4px;
+}
+
+/* --- Block 1: Granted Psynergy Section & Card --- */
+.granted-psynergy-section {
+    margin-bottom: 4px;
+}
+
+/* Adapted Psynergy Card (Matches Page_Psynergy.uss with 100% width) */
+.psynergy-card {
+    flex-direction: row;
+    height: 50px;
+    width: 100%;
+    background-color: #111722;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    padding-right: 10px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.card-element-stripe {
+    width: 5px;
+    height: 100%;
+    background-color: #888888;
+}
+
+.card-icon-box {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 6px;
+}
+
+.psynergy-card-icon {
+    width: 32px;
+    height: 32px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.card-text-details {
+    flex-grow: 1;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.psynergy-card-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    padding: 0;
+    margin: 0;
+}
+
+.card-badges-row {
+    flex-direction: row;
+    margin-top: 2px;
+}
+
+.psynergy-badge {
+    font-size: 9px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-radius: 3px;
+    color: #ffffff;
+    -unity-font-style: bold;
+}
+
+.badge-world {
+    background-color: #2874a6;
+}
+
+.badge-battle {
+    background-color: #b03a2e;
+}
+
+.badge-menu {
+    background-color: #1e8449;
+}
+
+.card-cost-box {
+    flex-direction: row;
+    align-items: center;
+}
+
+.element-mini-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.psynergy-card-pp {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #5dade2;
+}
+
+/* --- Elemental Color Themes for Cards --- */
+
+/* VENUS (EARTH) */
+.element-venus .card-element-stripe {
+    background-color: #d4ac0d;
+}
+.element-venus {
+    border-color: #7d6608;
+}
+
+/* MARS (FIRE) */
+.element-mars .card-element-stripe {
+    background-color: #e74c3c;
+}
+.element-mars {
+    border-color: #78281f;
+}
+
+/* JUPITER (WIND) */
+.element-jupiter .card-element-stripe {
+    background-color: #af7ac5;
+}
+.element-jupiter {
+    border-color: #512e5f;
+}
+
+/* MERCURY (WATER) */
+.element-mercury .card-element-stripe {
+    background-color: #3498db;
+}
+.element-mercury {
+    border-color: #1b4f72;
+}
+
+/* NONE / NEUTRAL */
+.element-none .card-element-stripe {
+    background-color: #888888;
+}
+.element-none {
+    border-color: #444444;
+}
+
+/* --- Visual Separator --- */
+.info-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+    margin-bottom: 6px;
+}
+
+/* --- Block 2: Relic Base Stats --- */
+.stats-box {
+    margin-bottom: 2px;
+}
+
+.stats-grid {
+    flex-direction: column;
+}
+
+.stat-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.stat-name {
+    font-size: 12px;
+    color: #CCCCCC;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    padding: 0;
+    margin: 0;
+}
+
+/* --- Block 3: Narrative Flavor Text (Lore) --- */
+.lore-box {
+    justify-content: center;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: rgba(15, 15, 20, 0.4);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    margin-top: 2px;
+}
+
+.quote-mark {
+    width: 10px;
+    height: 1px;
+    background-color: rgba(218, 165, 32, 0.4); /* Gold Accent Lines */
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.lore-text {
+    font-size: 10px;
+    -unity-font-style: italic;
+    color: #D3C399; /* Warm Parchment / Golden Tint */
+    -unity-text-align: middle-center;
+    white-space: normal;
+    line-height: 13px;
+    padding: 2px 0;
+    margin: 0;
+}

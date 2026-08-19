@@ -31,6 +31,13 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private VisualTreeAsset pagePsynergyAsset;
     [SerializeField] private VisualTreeAsset itemSlotAsset;
 
+    [Header("Item Info Modular Templates")]
+    [SerializeField] private VisualTreeAsset templateInfoConsumable;
+    [SerializeField] private VisualTreeAsset templateInfoEquipable;
+    [SerializeField] private VisualTreeAsset templateInfoWeapon;
+    [SerializeField] private VisualTreeAsset templateInfoPsynergyRelic;
+    [SerializeField] private VisualTreeAsset templateInfoKeyItem;
+
     // Header Elements
     private VisualElement headerHeroesBar;
     private Label labelGold;
@@ -430,6 +437,13 @@ public class MainMenuController : MonoBehaviour
 
         itemsPageController = new PageItemsController(itemsInstance);
         itemsPageController.SetParty(GetPartyHeroStatsList());
+        itemsPageController.SetExtraInfoTemplates(
+            templateInfoConsumable,
+            templateInfoEquipable,
+            templateInfoWeapon,
+            templateInfoPsynergyRelic,
+            templateInfoKeyItem
+        );
 
         // Refresh header cards when an item is consumed on a hero
         itemsPageController.OnItemUsedOnHero += RefreshHeaderHeroCards;

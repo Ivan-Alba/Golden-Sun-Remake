@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemSlug: life_water
   itemName: Agua de vida
-  itemDescription: "Trae de vuelta a un aliado ca\xEDdo."
+  itemDescription: "El\xEDxir sagrado capaz de revivir a un aliado ca\xEDdo y devolverle
+    las fuerzas."
+  flavorText: "Extra\xEDda de los manantiales ocultos del Santuario de Vale, sus
+    gotas contienen el destello vital que despierta a las almas durmientes."
   icon: {fileID: 21300000, guid: 7bfa7c6e33a01b447ace2f8cad9f0a31, type: 3}
   itemType: 0
   buyPrice: 1000
@@ -24,5 +27,5 @@ MonoBehaviour:
   useInMenu: 1
   useInBattle: 1
   effectType: 3
-  bonusValue: 30
+  bonusValue: 0
   statToBonus: 0

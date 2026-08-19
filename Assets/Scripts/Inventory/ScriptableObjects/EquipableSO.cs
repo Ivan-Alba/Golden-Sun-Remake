@@ -9,31 +9,30 @@ public struct EquipmentStatBonus
     public StatModifierType modifierType; // Flat, PercentBase, PercentTotal
 }
 
-[CreateAssetMenu(fileName = "New_Equipable", menuName = "Inventory/Items/Equipable")]
+[CreateAssetMenu(fileName = "New_Equipable", menuName = "Inventory/Items/Equipable Standard")]
 public class EquipableSO : ItemSO
 {
     [Header("Equipment Slot & Stats")]
-    [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.Weapon;
+    [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.Armor;
     [SerializeField] private List<EquipmentStatBonus> statModifiers = new List<EquipmentStatBonus>();
 
-    [Header("Combat Bonuses")]
-    [SerializeField] private int criticalRateBonus = 0;
+    [Header("Elemental & Combat Modifiers")]
     [SerializeField] private ElementalType element = ElementalType.None;
     [SerializeField] private int elementalPowerBonus = 0;
 
-    [Header("Battle Usage (Artifact Skill)")]
+    [Header("Active Item Use in Battle (Anillos, Varas Usables)")]
     [SerializeField] private bool useInBattle = false;
-    [SerializeField] private PsynergySO battleUsePsynergy; // Reference to Psynergy invoked when used as item in battle
+    [SerializeField] private ItemBattleEffectSO battleUseEffect = null;
 
-    #region Properties
+    #region Public Properties
 
     public EquipmentSlot EquipmentSlot => equipmentSlot;
     public IReadOnlyList<EquipmentStatBonus> StatModifiers => statModifiers;
-    public int CriticalRateBonus => criticalRateBonus;
     public ElementalType Element => element;
     public int ElementalPowerBonus => elementalPowerBonus;
+
     public bool UseInBattle => useInBattle;
-    public PsynergySO BattleUsePsynergy => battleUsePsynergy;
+    public ItemBattleEffectSO BattleUseEffect => battleUseEffect;
 
     #endregion
 }

@@ -1,0 +1,246 @@
+/* =========================================================================
+   ItemInfo_Equipable.uss
+   Styles for the modular detail view of Standard Equipment
+   ========================================================================= */
+
+.equipment-info-root {
+    flex-grow: 1;
+    justify-content: flex-start;
+    padding: 8px 10px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* --- Block 1: Meta Badging (Element and Battle Use) --- */
+.equip-meta-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.equip-badge {
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background-color: rgba(20, 20, 20, 0.7);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.badge-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    margin-right: 5px;
+    background-color: #555555;
+}
+
+.badge-label {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #888888;
+    padding: 0;
+    margin: 0;
+}
+
+/* Specific Element Theme Classes */
+.badge-element-none { border-color: #777777; background-color: rgba(50, 50, 50, 0.25); }
+.badge-element-none .badge-label { color: #AAAAAA; }
+
+.badge-element-venus { border-color: #C8A2C8; background-color: rgba(160, 82, 45, 0.25); }
+.badge-element-venus .badge-label { color: #E6C280; }
+
+.badge-element-mars { border-color: #FF4500; background-color: rgba(255, 69, 0, 0.25); }
+.badge-element-mars .badge-label { color: #FF8C00; }
+
+.badge-element-jupiter { border-color: #00BFFF; background-color: rgba(0, 191, 255, 0.25); }
+.badge-element-jupiter .badge-label { color: #E0FFFF; }
+
+.badge-element-mercury { border-color: #1E90FF; background-color: rgba(30, 144, 255, 0.25); }
+.badge-element-mercury .badge-label { color: #ADD8E6; }
+
+.badge-active {
+    border-color: rgba(255, 215, 0, 0.8);
+    background-color: rgba(255, 215, 0, 0.12);
+}
+.badge-active .badge-dot { background-color: #00FF88; }
+.badge-active .badge-label { color: #FFFFFF; }
+
+.badge-inactive { opacity: 0.5; }
+
+/* --- Active Battle Effect Description Container --- */
+.battle-effect-info-box {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding: 2px 4px;
+    background-color: rgba(255, 215, 0, 0.05);
+    border-radius: 4px;
+}
+
+.sub-header-title {
+    font-size: 9px;
+    color: #DAA520;
+    -unity-font-style: bold;
+    margin-right: 6px;
+    padding: 0;
+}
+
+.battle-effect-text {
+    font-size: 10px;
+    color: #E0E0E0;
+    padding: 0;
+    margin: 0;
+}
+
+/* --- Visual Separator --- */
+.info-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+/* --- Section Titles --- */
+.section-header-title {
+    font-size: 10px;
+    color: #DAA520; /* Classic Golden Sun Gold */
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    padding: 0;
+    margin-bottom: 4px;
+}
+
+/* --- Block 2: Item Stats --- */
+.stats-box {
+    margin-bottom: 2px;
+}
+
+.stats-grid {
+    flex-direction: column;
+}
+
+.stat-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.stat-name {
+    font-size: 12px;
+    color: #CCCCCC;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-zero {
+    color: #666666;
+}
+
+/* --- Block 3: Delta Comparison --- */
+.comparison-box {
+    margin-top: 2px;
+}
+
+.comparison-rows-container {
+    flex-direction: column;
+}
+
+.comparison-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.delta-container {
+    flex-direction: row;
+    align-items: center;
+}
+
+.current-value {
+    font-size: 11px;
+    color: #AAAAAA;
+    padding: 0;
+    margin: 0;
+}
+
+.arrow-separator {
+    font-size: 10px;
+    color: #666666;
+    margin-left: 4px;
+    margin-right: 4px;
+    padding: 0;
+}
+
+.new-value {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    padding: 0;
+    margin: 0;
+}
+
+.delta-tag {
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-left: 5px;
+    padding: 0;
+}
+
+/* Delta States */
+.delta-positive { color: #00FF88; } /* Green improvement */
+.delta-negative { color: #FF4444; } /* Red downgrade */
+.delta-neutral  { color: #888888; } /* Neutral grey */
+
+/* --- Block 4: Narrative Flavor Text (Lore) --- */
+.lore-box {
+    justify-content: center;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: rgba(15, 15, 20, 0.4);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    margin-top: 2px;
+}
+
+.quote-mark {
+    width: 10px;
+    height: 1px;
+    background-color: rgba(218, 165, 32, 0.4); /* Gold Accent Lines */
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.lore-text {
+    font-size: 10px;
+    -unity-font-style: italic;
+    color: #D3C399; /* Warm Parchment / Golden Tint */
+    -unity-text-align: middle-center;
+    white-space: normal;
+    line-height: 13px;
+    padding: 2px 0;
+    margin: 0;
+}

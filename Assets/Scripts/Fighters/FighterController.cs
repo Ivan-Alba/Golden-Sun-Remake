@@ -80,7 +80,7 @@ public class FighterController : MonoBehaviour
         // Get equipped weapon using the HeroEquipment slot accessor
         if (TryGetComponent<HeroEquipment>(out var heroEq))
         {
-            EquipableSO weapon = heroEq.GetEquippedItem(EquipmentSlot.Weapon);
+            WeaponSO weapon = heroEq.GetEquippedWeapon();
             if (weapon != null)
             {
                 weaponElement = weapon.Element;

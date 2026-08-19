@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/PageItems.uss?fileID=7433441132597879392&amp;guid=581e09ee37e14ba418794ae98f9a5a7f&amp;type=3#PageItems" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Page_Items.uss?fileID=7433441132597879392&amp;guid=581e09ee37e14ba418794ae98f9a5a7f&amp;type=3#Page_Items" />
     <ui:VisualElement name="page_items_container" class="page-items-container">
         <ui:VisualElement name="equipment_section" class="equipment-section">
             <ui:Label text="EQUIPAMIENTO" name="label_gear_title" class="info-title-label" />
@@ -40,14 +40,14 @@
             <ui:VisualElement name="item_preview_container" class="item-preview-container">
                 <ui:VisualElement name="item_icon_preview" class="item-preview-icon" />
             </ui:VisualElement>
-            <ui:Label text="Espada Larga" name="label_item_name" class="item-name-label" style="-unity-text-align: upper-center;" />
+            <ui:Label text="Espada Larga" name="label_item_name" class="item-name-label" style="-unity-text-align: upper-center; height: auto;" />
             <ui:Label text="Equipable - Arma" name="label_item_type" class="item-type-label" style="-unity-text-align: upper-center;" />
             <ui:VisualElement name="item_meta_row" class="item-meta-row">
                 <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="item-meta-label" />
                 <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="item-meta-label" />
             </ui:VisualElement>
             <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="item-desc-label" />
-            <ui:VisualElement name="stat_changes_box" class="stat-changes-box" />
+            <ui:ScrollView name="extra_info_container" class="extra-info-container" />
         </ui:VisualElement>
         <ui:VisualElement name="split_popup_overlay" class="split-popup-overlay">
             <ui:VisualElement name="split_popup_dialog" class="split-popup-dialog">

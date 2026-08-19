@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemSlug: spirit_ring
   itemName: Anillo espiritual
-  itemDescription: "Se cuenta que este anillo contiene el esp\xEDritu de un antiguo
-    Adepto."
+  itemDescription: "Anillo protector enfocado en potenciar la afinidad y resistencia
+    psin\xE9rgica del usuario."
+  flavorText: "Una sortija m\xEDstica que resuena con la vibraci\xF3n de la Psinergia.
+    Protege la mente del portador encendiendo su aura elemental."
   icon: {fileID: 21300000, guid: 7f76bdc486b45744292260c3be17e02a, type: 3}
   itemType: 1
   buyPrice: 2300
@@ -39,7 +41,7 @@ MonoBehaviour:
   - statType: 9
     value: 5
     modifierType: 0
-  criticalRateBonus: 0
   element: 0
   elementalPowerBonus: 0
   useInBattle: 0
+  battleUseEffect: {fileID: 0}

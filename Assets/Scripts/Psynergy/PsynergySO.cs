@@ -113,6 +113,12 @@ public abstract class PsynergySO : ScriptableObject
     [SerializeField] private GameObject vfxPrefab;
     [SerializeField] private AudioClip soundEffect;
 
+    [Header("Impact & Hit Visuals")]
+    [Tooltip("Type of impact visual effect spawned on each affected target.")]
+    [SerializeField] private HitFXType hitFXType = HitFXType.None;
+    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
+    [SerializeField] private GameObject customHitVFX = null;
+
     [Header("Area & Spread Rules")]
     [Tooltip("Number of additional targets affected around the primary target (e.g., 0 = single target, 1 = 3 targets total, 2 = 5 targets total).")]
     [SerializeField] private int areaRange = 0;
@@ -139,6 +145,11 @@ public abstract class PsynergySO : ScriptableObject
     public PsynergyTargetType TargetType => targetType;
     public GameObject VfxPrefab => vfxPrefab;
     public AudioClip SoundEffect => soundEffect;
+
+    // Hit Visual Properties
+    public HitFXType HitFXType => hitFXType;
+    public GameObject CustomHitVFX => customHitVFX;
+
     public int AreaRange => areaRange;
     public bool HasDiminishingSpread => hasDiminishingSpread;
 

@@ -149,10 +149,10 @@
 }
 
 /* Djinn Element Icons */
-.icon-djinn-venus { background-color: rgba(46, 204, 113, 0.3); border-radius: 3px; }
-.icon-djinn-mars { background-color: rgba(231, 76, 60, 0.3); border-radius: 3px; }
-.icon-djinn-jupiter { background-color: rgba(241, 196, 15, 0.3); border-radius: 3px; }
-.icon-djinn-mercury { background-color: rgba(52, 152, 219, 0.3); border-radius: 3px; }
+.icon-djinn-venus { background-color: rgba(200, 138, 46, 0.7); border-radius: 3px; }
+.icon-djinn-mars { background-color: rgba(231, 76, 60, 0.7); border-radius: 3px; }
+.icon-djinn-jupiter { background-color: rgba(155, 89, 182, 0.7); border-radius: 3px; }
+.icon-djinn-mercury { background-color: rgba(52, 152, 219, 0.7); border-radius: 3px; }
 
 /* ------------------------------------------
    HEADER COLUMN 2: CENTER BOX (44% PERFECT CENTER)
@@ -339,11 +339,30 @@
    PAGE CONTENT CONTAINER
    ========================================== */
 #page_content {
+   flex-grow: 1;          /* Takes up all remaining vertical space dynamically */
+    flex-shrink: 1;        /* Adapts smoothly if header components toggle visibility */
+    min-height: 0;         /* CRITICAL: Prevents internal elements from pushing the box height */
+    width: 100%;
+    overflow: hidden;      /* Clips subpage layout overflow cleanly */
+    position: relative;
+
     background-color: rgba(25, 25, 30, 0.5);
     border-radius: 8px;
     margin-top: 4px;
     margin-bottom: 4px;
     padding: 4px;
+}
+
+/* Regla UNIVERSAL en MainMenu.uss para bloquear CUALQUIER página/submenú instanciado */
+#page_content > TemplateContainer,
+#page_content > VisualElement {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ==========================================

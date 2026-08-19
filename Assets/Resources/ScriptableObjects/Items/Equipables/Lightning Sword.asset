@@ -9,12 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9928646a845431a4e9229587b5ecfe1a, type: 3}
+  m_Script: {fileID: 11500000, guid: 253b9b422704b5b41beca4e3e59c2289, type: 3}
   m_Name: Lightning Sword
   m_EditorClassIdentifier: 
   itemSlug: lightning_sword
   itemName: Espada rayo
-  itemDescription: Una espada que contiene el poder del rayo.
+  itemDescription: "Hoja elemental impregnada del poder del viento que desata ataques
+    rel\xE1mpago."
+  flavorText: "Forjada en las cumbres azotadas por las tormentas de J\xFApiter. Su
+    filo chisporrotea con el furor de los truenos de la meseta de Karagol."
   icon: {fileID: 21300000, guid: 59bb3b24e84e4e940a3b5cf0a30f79d5, type: 3}
   itemType: 1
   buyPrice: 1500
@@ -29,7 +32,15 @@ MonoBehaviour:
   - statType: 5
     value: 5
     modifierType: 0
-  criticalRateBonus: 3
   element: 3
   elementalPowerBonus: 10
   useInBattle: 0
+  battleUseEffect: {fileID: 0}
+  weaponModelPrefab: {fileID: 0}
+  hitFXType: 1
+  customHitVFX: {fileID: 0}
+  swingSoundEffect: {fileID: 0}
+  hasUnleash: 0
+  unleashProcRate: 0.35
+  unleashEffect: {fileID: 0}
+  criticalRateBonus: 4

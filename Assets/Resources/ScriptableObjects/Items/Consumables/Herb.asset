@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemSlug: herb
   itemName: Hierba
-  itemDescription: Recupera 30 PV.
+  itemDescription: "Planta silvestre reconfortante que restaura una peque\xF1a cantidad
+    de salud."
+  flavorText: Abunda en los campos que rodean Vale. Los ancianos del pueblo la recomiendan
+    para sanar las magulladuras del viaje.
   icon: {fileID: 21300000, guid: 8abf2aa83d89ddd46982d5b011364717, type: 3}
   itemType: 0
   buyPrice: 50
