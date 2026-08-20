@@ -31,11 +31,8 @@ public class DjinnSO : ScriptableObject
     #region Battle Unleash Properties
 
     [Header("Battle Unleash Properties")]
-    [Tooltip("Damage multiplier or bonus applied when unleashed in battle.")]
-    [SerializeField] private float unleashDamageMultiplier = 1.0f;
-
-    [Tooltip("Status effects applied to target or allies upon unleash (e.g. Stun for Flint, Shield for Granite).")]
-    [SerializeField] private List<StatusEffectSO> unleashStatusEffects = new List<StatusEffectSO>();
+    [Tooltip("Reference to the battle unleash effect asset executed when this Djinn is unleashed in combat.")]
+    [SerializeField] private DjinnUnleashSO unleashEffect;
 
     [Tooltip("Base individual turns required to recover to SET state after being consumed in a Summon.")]
     [SerializeField] private int baseRecoveryTurns = 2;
@@ -63,12 +60,12 @@ public class DjinnSO : ScriptableObject
 
     public IReadOnlyList<EquipmentStatBonus> SetStatModifiers => setStatModifiers;
 
-    public float UnleashDamageMultiplier => unleashDamageMultiplier;
-    public IReadOnlyList<StatusEffectSO> UnleashStatusEffects => unleashStatusEffects;
     public int BaseRecoveryTurns => baseRecoveryTurns;
 
     public StatusEffectSO LeaderPassiveEffect => leaderPassiveEffect;
     public string LeaderPassiveDescription => leaderPassiveDescription;
+
+    public DjinnUnleashSO UnleashEffect { get => unleashEffect; }
 
     #endregion
 }

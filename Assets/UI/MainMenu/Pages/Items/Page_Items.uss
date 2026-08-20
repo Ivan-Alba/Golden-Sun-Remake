@@ -9,7 +9,7 @@
     flex-shrink: 1;
     min-height: 0;
     flex-direction: row; /* Horizontal 3-column distribution */
-    padding: 8px;        /* Slightly tighter padding for better internal fit */
+    padding: 6px;        /* Slightly tighter padding for better internal fit */
     overflow: hidden;    /* Clips any internal column overflow */
 }
 
@@ -18,7 +18,7 @@
     font-size: 15px;
     -unity-font-style: bold;
     color: #DAA520; /* Golden section title */
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     margin-top: 4px;
     text-align: center;
     letter-spacing: 1px;
@@ -286,11 +286,11 @@
 }
 
 /* ==========================================
-   UNIFIED SQUARE SLOT STYLES (70px x 70px)
+   UNIFIED SQUARE SLOT STYLES (65px x 65px)
    ========================================== */
 .slot-box {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     margin: 3px;
     background-color: rgba(20, 26, 38, 0.8);
     border-width: 1px;

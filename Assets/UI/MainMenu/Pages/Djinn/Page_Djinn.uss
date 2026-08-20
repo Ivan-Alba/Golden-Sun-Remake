@@ -1,0 +1,697 @@
+/* ==========================================================================
+   PAGE DJINN MAIN LAYOUT (25% / 45% / 30%)
+   ========================================================================== */
+.page-djinn-container {
+    flex-grow: 1;
+    flex-direction: row;
+    padding: 6px;
+    color: #FFFFFF;
+}
+
+.info-title-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #DAA520; /* Golden section title */
+    margin-bottom: 8px;
+    margin-top: 2px;
+    text-align: center;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   LEFT PANEL: HERO SUMMARY, PIPS, STATS & PSYNERGY PROJECTION (25%)
+   ========================================================================== */
+.djinn-summary-section {
+    width: 25%;
+    height: 100%;
+    padding: 8px;
+    background-color: rgba(15, 20, 28, 0.85);
+    border-width: 2px;
+    border-color: #2e3a4e;
+    border-radius: 6px;
+    align-items: stretch;
+    margin-right: 10px;
+}
+
+.summary-box {
+    background-color: rgba(10, 15, 22, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    align-items: center;
+}
+
+.class-name-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.summary-class-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #FFD700;
+}
+
+.summary-class-arrow {
+    font-size: 11px;
+    color: #8C9BA5;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.class-title-next {
+    color: #00FF88;
+}
+
+.summary-pips-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.pip-element-group {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 4px;
+}
+
+.pip-icon {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 3px;
+    border-width: 1px;
+}
+
+.pip-count {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #E0E0E0;
+}
+
+.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
+.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
+.icon-none { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }
+
+.summary-stats-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.summary-stat-item {
+    width: 48%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(25, 25, 35, 0.6);
+    border-radius: 3px;
+    padding: 0px 5px;
+    margin-bottom: 4px;
+}
+
+.stat-label-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.stat-icon {
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    border-radius: 2px;
+}
+
+.stat-name {
+    font-size: 10px;
+    color: #CCCCCC;
+}
+
+.stat-val {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+.stat-delta {
+    font-size: 10px;
+    -unity-font-style: bold;
+    margin-left: 3px;
+}
+
+.delta-positive { color: #00FF88; }
+.delta-negative { color: #FF4444; }
+
+.icon-attack { background-color: #E74C3C; }
+.icon-defense { background-color: #3498DB; }
+.icon-agility { background-color: #2ECC71; }
+.icon-luck { background-color: #F1C40F; }
+
+.section-separator {
+    height: 1px;
+    background-color: #2e3a4e;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.psynergy-view-container {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.subpanel-header-label {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.psynergy-filter-tabs {
+    flex-direction: row;
+    margin-bottom: 6px;
+}
+
+.mini-tab-btn {
+    flex-grow: 1;
+    height: 20px;
+    background-color: #141c28;
+    border-width: 1px;
+    border-color: #2e3a4e;
+    border-radius: 3px;
+    color: #8c9ba5;
+    font-size: 9px;
+    -unity-font-style: bold;
+    margin-right: 2px;
+    padding: 0;
+}
+
+.mini-tab-btn.active {
+    background-color: #2b3d59;
+    border-color: #d4af37;
+    color: #ffffff;
+}
+
+.psynergy-list-scroll {
+    flex-grow: 1;
+    padding-right: 2px;
+}
+
+.mini-psy-card {
+    flex-direction: row;
+    height: 44px;
+    width: 100%;
+    background-color: #111722;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-right: 6px;
+    overflow: hidden;
+}
+
+.mini-psy-card:hover {
+    background-color: #1a2538;
+    border-color: #d4af37;
+}
+
+.card-element-stripe {
+    width: 4px;
+    height: 100%;
+    background-color: #888888;
+    flex-shrink: 0;
+}
+
+.card-icon-box {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+.mini-psy-card-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.card-text-details {
+    width: 48%;
+    height: 100%;
+    justify-content: center;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+.card-title-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.element-pip-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 3px;
+    border-width: 1px;
+    flex-shrink: 0;
+}
+
+.mini-psy-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    -unity-text-overflow-position: end;
+}
+
+.card-badges-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.psynergy-badge {
+    font-size: 8px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin: 0 2px 0 0;
+    border-radius: 2px;
+    color: #ffffff;
+    -unity-font-style: bold;
+}
+
+.badge-world { background-color: #2874a6; }
+.badge-battle { background-color: #b03a2e; }
+.badge-menu { background-color: #1e8449; }
+
+.card-status-box {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.badge-psy-status {
+    font-size: 8px;
+    -unity-font-style: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.badge-gained {
+    color: #00FF88;
+    background-color: rgba(0, 255, 136, 0.2);
+    border-width: 1px;
+    border-color: rgba(0, 255, 136, 0.4);
+}
+
+.badge-lost {
+    color: #FF6B6B;
+    background-color: rgba(255, 107, 107, 0.2);
+    border-width: 1px;
+    border-color: rgba(255, 107, 107, 0.4);
+}
+
+.card-cost-box {
+    width: 38px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.mini-psy-pp {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #5dade2;
+}
+
+.mini-psy-req {
+    font-size: 9px;
+    color: #8C9BA5;
+}
+
+.psy-card-new {
+    border-color: rgba(0, 255, 136, 0.5);
+    background-color: rgba(0, 255, 136, 0.05);
+}
+
+.psy-card-lost {
+    background-color: rgba(255, 68, 68, 0.05);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.stripe-lost { background-color: #FF4444; }
+.text-lost { color: #FF8888; }
+
+.psy-card-locked {
+    background-color: rgba(12, 16, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.stripe-locked { background-color: #4A5A73; }
+.text-locked { color: #6A7B95; }
+.icon-lock { background-color: rgba(0, 0, 0, 0.4); }
+
+.element-venus .card-element-stripe { background-color: #d4ac0d; }
+.element-venus { border-color: #7d6608; }
+
+.element-mars .card-element-stripe { background-color: #e74c3c; }
+.element-mars { border-color: #78281f; }
+
+.element-jupiter .card-element-stripe { background-color: #af7ac5; }
+.element-jupiter { border-color: #512e5f; }
+
+.element-mercury .card-element-stripe { background-color: #3498db; }
+.element-mercury { border-color: #1b4f72; }
+
+/* ==========================================================================
+   CENTER PANEL: SANCTUARY 3D VIEWPORT & DJINN GRID (45%)
+   ========================================================================== */
+.djinn-list-section {
+    width: 45%;
+    height: 100%;
+    padding: 8px;
+    background-color: rgba(15, 20, 28, 0.85);
+    border-width: 2px;
+    border-color: #2e3a4e;
+    border-radius: 6px;
+    margin-right: 10px;
+    flex-direction: column;
+}
+
+/* 1. UPPER 55%: 3D VIEWPORT */
+.djinn-viewport-container {
+    height: 52%;
+    width: 100%;
+    background-color: #070a0f;
+    border-width: 1px;
+    border-color: #1f2d40;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.djinn-render-target {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 2. LOWER 45%: DJINN GRID (2x4 = 8 SLOTS) */
+.djinn-grid-section {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.grid-header-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.djinn-slots-grid {
+    flex-grow: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: space-between;
+}
+
+/* DJINN SLOT CARD DESIGN */
+.djinn-slot-card {
+    width: 24%;
+    height: 48%;
+    background-color: #0d131d;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 5px;
+    padding: 4px;
+    justify-content: space-between;
+    position: relative;
+}
+
+.djinn-slot-card:hover {
+    border-color: #d4af37;
+    background-color: #141d2c;
+}
+
+.djinn-card-selected {
+    border-color: #FFD700;
+    background-color: rgba(212, 175, 55, 0.1);
+}
+
+.djinn-principal-star {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: #FFD700;
+}
+
+.djinn-card-top-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.djinn-card-icon {
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.djinn-card-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #ffffff;
+}
+
+.djinn-status-btn {
+    height: 16px;
+    font-size: 8px;
+    -unity-font-style: bold;
+    border-radius: 2px;
+    padding: 0;
+    border-width: 1px;
+    margin: 0;
+}
+
+.status-set {
+    background-color: rgba(0, 255, 136, 0.15);
+    border-color: rgba(0, 255, 136, 0.4);
+    color: #00FF88;
+}
+
+.status-standby {
+    background-color: rgba(241, 196, 15, 0.15);
+    border-color: rgba(241, 196, 15, 0.4);
+    color: #F1C40F;
+}
+
+/* EMPTY SLOT DESIGN */
+.djinn-card-empty {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(10, 15, 22, 0.3);
+    align-items: center;
+    justify-content: center;
+}
+
+.djinn-empty-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* ELEMENTAL COLOR BORDERS FOR DJINN CARDS */
+.djinn-card-venus { border-color: rgba(212, 172, 13, 0.5); }
+.djinn-card-mars { border-color: rgba(231, 76, 60, 0.5); }
+.djinn-card-jupiter { border-color: rgba(175, 122, 197, 0.5); }
+.djinn-card-mercury { border-color: rgba(52, 152, 219, 0.5); }
+
+/* 3. FOOTER ACTION BAR */
+.djinn-action-bar {
+    height: 28px;
+    margin-top: 6px;
+    justify-content: center;
+}
+
+.action-switch-btn {
+    height: 100%;
+    background-color: #1a2538;
+    border-width: 1px;
+    border-color: #2e3a4e;
+    border-radius: 4px;
+    color: #DAA520;
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+
+.action-switch-btn:hover {
+    background-color: #2b3d59;
+    border-color: #d4af37;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   RIGHT PANEL: DETAILED INFORMATION (30%)
+   ========================================================================== */
+.djinn-info-panel {
+    width: 30%;
+    height: 100%;
+    padding: 10px;
+    background-color: rgba(15, 20, 28, 0.85);
+    border-width: 2px;
+    border-color: #2e3a4e;
+    border-radius: 6px;
+}
+
+.djinn-preview-container {
+    width: 100%;
+    height: 100px;
+    background-color: #0d131d;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.djinn-video-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    background-color: #000000;
+}
+
+.djinn-name-label {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    text-alignment: middle-center;
+}
+
+.djinn-type-label {
+    font-size: 14px;
+    color: #60A5FA;
+    text-alignment: middle-center;
+    margin-bottom: 6px;
+}
+
+.djinn-meta-row {
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #121a26;
+    padding: 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.djinn-meta-label {
+    font-size: 12px;
+    color: #aeb6bf;
+}
+
+.djinn-desc-label {
+    font-size: 14px;
+    color: #d5dbdb;
+    white-space: normal;
+    margin-bottom: 6px;
+}
+
+.stat-changes-box {
+    flex-grow: 1;
+    background-color: #101722;
+    border-width: 1px;
+    border-color: #1f2d40;
+    border-radius: 4px;
+    padding: 6px;
+}
+
+/* RIGHT PANEL DETAIL EXTRA STYLES */
+.detail-section-title {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    margin-bottom: 4px;
+    text-align: left;
+    -unity-text-align: upper-left;
+}
+
+.detail-separator {
+    height: 1px;
+    background-color: #1f2d40;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.unleash-desc-label {
+    font-size: 9.5px;
+    color: #d5dbdb;
+    white-space: normal;
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+.detail-unleash-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.unleash-badge {
+    font-size: 9.5px;
+    -unity-font-style: bold;
+    color: #5DADE2;
+    background-color: rgba(93, 173, 226, 0.15);
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-right: 4px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+.effect-badge {
+    color: #E74C3C;
+    background-color: rgba(231, 76, 60, 0.15);
+}
+
+.passive-name-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #FFD700;
+    text-align: left;
+}
+
+.passive-desc-label {
+    font-size: 9.5px;
+    color: #AEB6BF;
+    white-space: normal;
+    text-align: left;
+    margin-top: 1px;
+}

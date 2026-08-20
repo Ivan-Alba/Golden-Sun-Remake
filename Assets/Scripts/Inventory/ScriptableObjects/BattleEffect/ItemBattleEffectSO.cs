@@ -3,14 +3,16 @@ using UnityEngine;
 
 /// <summary>
 /// ScriptableObject defining battle-use effects for non-consumable items, equipment, or artifacts (e.g. Hermes' Wand, Healing Ring).
-/// Supports damage, healing, status cures, buff applications, and item break chance mechanics upon use.
+/// Supports damage, healing, status cures, buff applications, VFX/SFX playback, and item break chance mechanics upon use.
 /// </summary>
 [CreateAssetMenu(fileName = "BattleEffect_", menuName = "GoldenSun/Items/Item Battle Effect")]
 public class ItemBattleEffectSO : ScriptableObject
 {
-    #region Usage Restrictions & Targets
+    #region Usage Restrictions & Element
 
-    [Header("Targeting & Usage")]
+    [Header("Targeting & Element")]
+    [SerializeField] private ElementalType element = ElementalType.None;
+
     [Tooltip("Does this effect target an ally or an enemy?")]
     [SerializeField] private bool targetsAlly = true;
 
@@ -75,12 +77,49 @@ public class ItemBattleEffectSO : ScriptableObject
 
     #endregion
 
-    #region Properties
+    #region VFX & SFX Assets
 
+    [Header("VFX & SFX Assets")]
+    [Tooltip("Impact visual effect type applied on the victim.")]
+    [SerializeField] private HitFXType hitFXType = HitFXType.None;
+    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
+    [SerializeField] private GameObject customHitVFX = null;
+    [Tooltip("VFX instantiated around the caster when initiating the Item Effect.")]
+    [SerializeField] private GameObject casterAuraVFX = null;
+    [Tooltip("Main effect sequence VFXPrefab executed over the target/area.")]
+    [SerializeField] private GameObject effectMainVFX = null;
+    [Tooltip("Audio clip played when the Item Effect is activated.")]
+    [SerializeField] private AudioClip soundEffect = null;
+
+    #endregion
+
+    #region Public Properties
+
+    public ElementalType Element => element;
     public bool TargetsAlly => targetsAlly;
     public bool IsAreaOfEffect => isAreaOfEffect;
+
+    public bool RestoresHp => restoresHp;
+    public int HpAmount => hpAmount;
+    public bool IsHpPercentage => isHpPercentage;
+
+    public bool RestoresPp => restoresPp;
+    public int PpAmount => ppAmount;
+    public bool IsPpPercentage => isPpPercentage;
+
+    public bool CureAllStatusEffects => cureAllStatusEffects;
+    public IReadOnlyList<StatusEffectCategory> CategoriesToCure => categoriesToCure;
+    public IReadOnlyList<StatusEffectSO> SpecificStatusToCure => specificStatusToCure;
+    public IReadOnlyList<StatusEffectSO> StatusEffectsToApply => statusEffectsToApply;
+
     public bool CanBreakOnUse => canBreakOnUse;
     public float BreakChancePercentage => breakChancePercentage;
+
+    public HitFXType HitFXType => hitFXType;
+    public GameObject CustomHitVFX => customHitVFX;
+    public GameObject CasterAuraVFX => casterAuraVFX;
+    public GameObject EffectMainVFX => effectMainVFX;
+    public AudioClip SoundEffect => soundEffect;
 
     #endregion
 

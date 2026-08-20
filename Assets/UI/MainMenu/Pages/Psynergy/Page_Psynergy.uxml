@@ -48,7 +48,10 @@
                         <ui:VisualElement class="psynergy-card-icon" />
                     </ui:VisualElement>
                     <ui:VisualElement class="card-text-details">
-                        <ui:Label text="Mover" class="psynergy-card-name" />
+                        <ui:VisualElement class="card-title-row">
+                            <ui:VisualElement class="element-pip-icon icon-venus" />
+                            <ui:Label text="Mover" class="psynergy-card-name" />
+                        </ui:VisualElement>
                         <ui:VisualElement class="card-badges-row">
                             <ui:Label text="Mundo" class="psynergy-badge badge-world" />
                         </ui:VisualElement>

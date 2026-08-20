@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -6,12 +7,18 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New_WeaponUnleash", menuName = "Inventory/Combat/Weapon Unleash")]
 public class WeaponUnleashSO : ScriptableObject
 {
+    #region Core Identification
+
     [Header("Core Identification")]
     [SerializeField] private string unleashName;
     [SerializeField] private string slugName;
     [TextArea(2, 4)]
     [SerializeField] private string description;
     [SerializeField] private Sprite icon;
+
+    #endregion
+
+    #region Combat Properties
 
     [Header("Combat Properties")]
     [SerializeField] private ElementalType element = ElementalType.None;
@@ -20,11 +27,21 @@ public class WeaponUnleashSO : ScriptableObject
     [Tooltip("Flat bonus damage added to the total unleashed attack calculation.")]
     [SerializeField] private int flatBonusDamage = 0;
 
+    #endregion
+
+    #region Status & Secondary Effects
+
     [Header("Status & Secondary Effects")]
-    //[SerializeField] private StatusEffectType statusCondition = StatusEffectType.None;
+    [Tooltip("List of status effects applied to the target upon hitting with this unleash.")]
+    [SerializeField] private List<StatusEffectSO> statusEffects = new List<StatusEffectSO>();
+
     [Range(0f, 1f)]
-    [Tooltip("Probability (0.0 to 1.0) of applying the secondary status condition upon hitting the target.")]
+    [Tooltip("Probability (0.0 to 1.0) of applying the secondary status conditions upon hitting the target.")]
     [SerializeField] private float statusChance = 0.2f;
+
+    #endregion
+
+    #region VFX & SFX Assets
 
     [Header("VFX & SFX Assets")]
     [Tooltip("Impact visual effect type applied on the victim.")]
@@ -38,6 +55,8 @@ public class WeaponUnleashSO : ScriptableObject
     [Tooltip("Audio clip played when the Unleash is activated.")]
     [SerializeField] private AudioClip soundEffect = null;
 
+    #endregion
+
     #region Public Properties
 
     public string UnleashName => unleashName;
@@ -49,7 +68,7 @@ public class WeaponUnleashSO : ScriptableObject
     public float DamageMultiplier => damageMultiplier;
     public int FlatBonusDamage => flatBonusDamage;
 
-    //public StatusEffectType StatusCondition => statusCondition;
+    public IReadOnlyList<StatusEffectSO> StatusEffects => statusEffects;
     public float StatusChance => statusChance;
 
     public HitFXType HitFXType => hitFXType;

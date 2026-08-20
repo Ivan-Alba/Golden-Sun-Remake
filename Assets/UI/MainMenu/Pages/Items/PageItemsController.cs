@@ -200,7 +200,7 @@ public class PageItemsController
     };
 
     // Slot Dimension Constants for Layout Calculations
-    private const float SLOT_SIZE = 70f;
+    private const float SLOT_SIZE = 65f;
     private const float SLOT_MARGIN_TOTAL = 6f; // 3px left + 3px right (matches .slot-box margin: 3px)
 
     #endregion
@@ -1600,7 +1600,8 @@ public class PageItemsController
             // Element Badge
             VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
             Label labelElementName = instance.Q<Label>("label_element_name");
-            ApplyElementBadgeTheme(badgeElement, labelElementName, weapon.Element);
+            VisualElement elementIcon = instance.Q<VisualElement>("element_icon");
+            ApplyElementBadgeTheme(badgeElement, labelElementName, elementIcon, weapon.Element);
 
             // Hit Type Badge
             Label labelHitType = instance.Q<Label>("label_hit_type");
@@ -1724,7 +1725,8 @@ public class PageItemsController
             // Element Badge
             VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
             Label labelElementName = instance.Q<Label>("label_element_name");
-            ApplyElementBadgeTheme(badgeElement, labelElementName, equipable.Element);
+            VisualElement elementIcon = instance.Q<VisualElement>("element_icon");
+            ApplyElementBadgeTheme(badgeElement, labelElementName, elementIcon, equipable.Element);
 
             // Battle Use Badge & Effect Description
             VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
@@ -1904,7 +1906,7 @@ public class PageItemsController
     /// <summary>
     /// Applies CSS class themes to the elemental badge according to ElementalType.
     /// </summary>
-    private void ApplyElementBadgeTheme(VisualElement badgeElement, Label labelElementName, ElementalType element)
+    private void ApplyElementBadgeTheme(VisualElement badgeElement, Label labelElementName, VisualElement elementIcon, ElementalType element)
     {
         if (badgeElement == null) return;
 
@@ -1916,6 +1918,28 @@ public class PageItemsController
 
         string elemString = element.ToString().ToLower();
         badgeElement.AddToClassList($"badge-element-{elemString}");
+
+        if (elementIcon != null)
+        { 
+            switch (element)
+            {
+                case ElementalType.None:
+                    elementIcon.AddToClassList("icon-none");
+                    break;
+                case ElementalType.Venus:
+                    elementIcon.AddToClassList("icon-venus");
+                    break;
+                case ElementalType.Mars:
+                    elementIcon.AddToClassList("icon-mars");
+                    break;
+                case ElementalType.Jupiter:
+                    elementIcon.AddToClassList("icon-jupiter");
+                    break;
+                case ElementalType.Mercury:
+                    elementIcon.AddToClassList("icon-mercury");
+                    break;
+                }
+            }
 
         if (labelElementName != null)
         {

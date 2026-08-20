@@ -340,9 +340,21 @@ public class PagePsynergyController
         // Text Details
         VisualElement textDetails = new VisualElement();
         textDetails.AddToClassList("card-text-details");
+
+        // Title Row (Pip Icon + Name)
+        VisualElement titleRow = new VisualElement();
+        titleRow.AddToClassList("card-title-row");
+
+        VisualElement elementPipIcon = new VisualElement();
+        elementPipIcon.AddToClassList("element-pip-icon");
+        elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
+        titleRow.Add(elementPipIcon);
+
         Label nameLabel = new Label(psynergy.PsynergyName);
         nameLabel.AddToClassList("psynergy-card-name");
-        textDetails.Add(nameLabel);
+        titleRow.Add(nameLabel);
+
+        textDetails.Add(titleRow);
 
         // Badges Row
         VisualElement badgesRow = new VisualElement();
@@ -390,6 +402,19 @@ public class PagePsynergyController
         RegisterPointerCallbacks(card, psynergy, index);
 
         return card;
+    }
+
+    // Helper method to resolve the element pip CSS class
+    private string GetElementPipCssClass(ElementalType element)
+    {
+        return element switch
+        {
+            ElementalType.Venus => "icon-venus",
+            ElementalType.Mars => "icon-mars",
+            ElementalType.Jupiter => "icon-jupiter",
+            ElementalType.Mercury => "icon-mercury",
+            _ => "icon-none"
+        };
     }
 
     private string GetElementCssClass(ElementalType element)

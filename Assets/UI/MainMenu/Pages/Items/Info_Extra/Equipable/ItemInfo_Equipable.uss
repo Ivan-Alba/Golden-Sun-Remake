@@ -32,10 +32,11 @@
 }
 
 .badge-icon {
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
     margin-right: 4px;
-    -unity-background-scale-mode: scale-to-fit;
+    border-width: 1px;
 }
 
 .badge-dot {
@@ -53,6 +54,12 @@
     padding: 0;
     margin: 0;
 }
+
+.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
+.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
+.icon-none { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }
 
 /* Specific Element Theme Classes */
 .badge-element-none { border-color: #777777; background-color: rgba(50, 50, 50, 0.25); }
