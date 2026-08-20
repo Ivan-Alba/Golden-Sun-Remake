@@ -13,6 +13,12 @@
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+
+.consumable-info-root Label {
+    margin: 0;
+    padding: 0;
+}
+
 /* --- Block 1: Usage Badges (Menu / Battle) --- */
 .usage-badges-container {
     flex-direction: row;
@@ -46,8 +52,6 @@
     font-size: 11px;
     -unity-font-style: bold;
     color: #777777;
-    padding: 0;
-    margin: 0;
 }
 
 /* Inactive State (default if useInMenu/useInBattle is false) */
@@ -93,8 +97,6 @@
     color: #DAA520; /* Classic Golden Sun Gold */
     -unity-font-style: bold;
     letter-spacing: 1px;
-    padding: 0;
-    margin: 0;
 }
 
 .effect-value-row {
@@ -107,16 +109,12 @@
 .label-effect-type {
     font-size: 13px;
     color: #E0E0E0;
-    padding: 0;
-    margin: 0;
 }
 
 .label-effect-value {
     font-size: 15px;
     -unity-font-style: bold;
     color: #00FF88; /* Bright green for boosts / healing */
-    padding: 0;
-    margin: 0;
 }
 
 /* --- Block 3: Narrative Flavor Text (Lore) --- */
@@ -135,11 +133,11 @@
     width: 10px;
     height: 1px;
     background-color: rgba(218, 165, 32, 0.4); /* Gold Accent Lines */
-    margin-top: 1px;
-    margin-bottom: 1px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
-.lore-text {
+.consumable-info-root .lore-text {
     font-size: 10px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
@@ -147,5 +145,4 @@
     white-space: normal;
     line-height: 13px;
     padding: 2px 0;
-    margin: 0;
 }

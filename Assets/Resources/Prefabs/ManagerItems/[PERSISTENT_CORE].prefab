@@ -64,12 +64,15 @@ MonoBehaviour:
   pageStatusAsset: {fileID: 9197481963319205126, guid: d7c5c68794b10a040a2fbae0d0a44844, type: 3}
   pageItemsAsset: {fileID: 9197481963319205126, guid: 437816b739eea074eb22c349a21b9858, type: 3}
   pagePsynergyAsset: {fileID: 9197481963319205126, guid: 2074efc47207d5145a30135d3a29bcff, type: 3}
+  pageDjinnAsset: {fileID: 9197481963319205126, guid: ea56cc62170bd8049ba70af60cbe6f02, type: 3}
+  templateInfoConsumable: {fileID: 9197481963319205126, guid: 75862113b3732214a9051702eeba2168, type: 3}
+  templateInfoEquipable: {fileID: 9197481963319205126, guid: de030aebb110d874981afed65adf1906, type: 3}
+  templateInfoWeapon: {fileID: 9197481963319205126, guid: 3257c7afefba5aa4685809df5409a8ca, type: 3}
+  templateInfoPsynergyRelic: {fileID: 9197481963319205126, guid: c2e35c2b5f5ab70468b4097b5ff46ad7, type: 3}
+  templateInfoKeyItem: {fileID: 9197481963319205126, guid: 476532ed557255148871735c9e937564, type: 3}
   itemSlotAsset: {fileID: 9197481963319205126, guid: 24e92de9bbb31e74fbf4d0e62744abee, type: 3}
-  templateInfoConsumable: {fileID: 0}
-  templateInfoEquipable: {fileID: 0}
-  templateInfoWeapon: {fileID: 0}
-  templateInfoPsynergyRelic: {fileID: 0}
-  templateInfoKeyItem: {fileID: 0}
+  miniPsynergyCardAsset: {fileID: 9197481963319205126, guid: 6b05764d537ecf84a8b45bec223308ae, type: 3}
+  djinnSlotCardAAsset: {fileID: 9197481963319205126, guid: cc9232f85f2c8e54dbb2adc55096ecce, type: 3}
 --- !u!1 &4245145516459992524
 GameObject:
   m_ObjectHideFlags: 0

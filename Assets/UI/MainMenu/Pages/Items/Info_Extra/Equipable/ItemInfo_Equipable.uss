@@ -13,6 +13,11 @@
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+.equipment-info-root Label {
+    margin: 0;
+    padding: 0;
+}
+
 /* --- Block 1: Meta Badging (Element and Battle Use) --- */
 .equip-meta-container {
     flex-direction: row;
@@ -51,8 +56,6 @@
     font-size: 10px;
     -unity-font-style: bold;
     color: #888888;
-    padding: 0;
-    margin: 0;
 }
 
 .icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
@@ -97,19 +100,16 @@
     border-radius: 4px;
 }
 
-.sub-header-title {
+.equipment-info-root .sub-header-title {
     font-size: 9px;
     color: #DAA520;
     -unity-font-style: bold;
     margin-right: 6px;
-    padding: 0;
 }
 
 .battle-effect-text {
     font-size: 10px;
     color: #E0E0E0;
-    padding: 0;
-    margin: 0;
 }
 
 /* --- Visual Separator --- */
@@ -121,12 +121,11 @@
 }
 
 /* --- Section Titles --- */
-.section-header-title {
+.equipment-info-root .section-header-title {
     font-size: 10px;
     color: #DAA520; /* Classic Golden Sun Gold */
     -unity-font-style: bold;
     letter-spacing: 1px;
-    padding: 0;
     margin-bottom: 4px;
 }
 
@@ -149,16 +148,12 @@
 .stat-name {
     font-size: 12px;
     color: #CCCCCC;
-    padding: 0;
-    margin: 0;
 }
 
 .stat-value {
     font-size: 12px;
     -unity-font-style: bold;
     color: #FFFFFF;
-    padding: 0;
-    margin: 0;
 }
 
 .stat-zero {
@@ -189,31 +184,25 @@
 .current-value {
     font-size: 11px;
     color: #AAAAAA;
-    padding: 0;
-    margin: 0;
 }
 
-.arrow-separator {
+.equipment-info-root .arrow-separator {
     font-size: 10px;
     color: #666666;
     margin-left: 4px;
     margin-right: 4px;
-    padding: 0;
 }
 
 .new-value {
     font-size: 12px;
     -unity-font-style: bold;
     color: #FFFFFF;
-    padding: 0;
-    margin: 0;
 }
 
-.delta-tag {
+.equipment-info-root .delta-tag {
     font-size: 11px;
     -unity-font-style: bold;
     margin-left: 5px;
-    padding: 0;
 }
 
 /* Delta States */
@@ -241,7 +230,7 @@
     margin-bottom: 1px;
 }
 
-.lore-text {
+.equipment-info-root .lore-text {
     font-size: 10px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
@@ -249,5 +238,4 @@
     white-space: normal;
     line-height: 13px;
     padding: 2px 0;
-    margin: 0;
 }

@@ -29,14 +29,19 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private VisualTreeAsset pageStatusAsset;
     [SerializeField] private VisualTreeAsset pageItemsAsset;
     [SerializeField] private VisualTreeAsset pagePsynergyAsset;
-    [SerializeField] private VisualTreeAsset itemSlotAsset;
+    [SerializeField] private VisualTreeAsset pageDjinnAsset;
 
-    [Header("Item Info Modular Templates")]
+    [Header("Item Page Templates")]
     [SerializeField] private VisualTreeAsset templateInfoConsumable;
     [SerializeField] private VisualTreeAsset templateInfoEquipable;
     [SerializeField] private VisualTreeAsset templateInfoWeapon;
     [SerializeField] private VisualTreeAsset templateInfoPsynergyRelic;
     [SerializeField] private VisualTreeAsset templateInfoKeyItem;
+    [SerializeField] private VisualTreeAsset itemSlotAsset;
+
+    [Header("Djinn Page Templates")]
+    [SerializeField] private VisualTreeAsset miniPsynergyCardAsset;
+    [SerializeField] private VisualTreeAsset djinnSlotCardAAsset;
 
     // Header Elements
     private VisualElement headerHeroesBar;
@@ -69,6 +74,7 @@ public class MainMenuController : MonoBehaviour
     private PageStatusController statusPageController;
     private PageItemsController itemsPageController;
     private PagePsynergyController psynergyPageController;
+    private PageDjinnController djinnPageController;
 
     // State Trackers
     private MenuTab currentTab = MenuTab.Status;
@@ -92,7 +98,6 @@ public class MainMenuController : MonoBehaviour
         BindUIElements();
         RegisterUICallbacks();
 
-        // Hide root element visually without triggering side effects during initialization
         rootElement.style.display = DisplayStyle.None;
         isMenuOpen = false;
     }
@@ -104,7 +109,6 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
-        // Global singleton subscription happens here when all scene objects are initialized
         if (InputManager.Instance != null)
         {
             InputManager.Instance.OnToggleMenuPressed += HandleToggleMenuInput;
@@ -115,10 +119,8 @@ public class MainMenuController : MonoBehaviour
     {
         if (!isMenuOpen || GameManager.Instance == null || labelTime == null) return;
 
-        // Accumulate delta time
         timeUpdateTimer += Time.deltaTime;
 
-        // Only update UI text once per second
         if (timeUpdateTimer >= 1.0f)
         {
             timeUpdateTimer = 0f;
@@ -147,28 +149,23 @@ public class MainMenuController : MonoBehaviour
 
     private void BindUIElements()
     {
-        // Query Header Elements
         headerHeroesBar = rootElement.Q<VisualElement>("header_heroes_bar");
         labelGold = rootElement.Q<Label>("label_gold");
         labelLocation = rootElement.Q<Label>("label_location");
         labelTime = rootElement.Q<Label>("label_time");
 
-        // Query Main Content Container
         pageContent = rootElement.Q<VisualElement>("page_content");
 
-        // Query Bookmark Tabs
         btnStatus = rootElement.Q<Button>("btn_status");
         btnItems = rootElement.Q<Button>("btn_items");
         btnPsynergy = rootElement.Q<Button>("btn_psynergy");
         btnDjinn = rootElement.Q<Button>("btn_djinn");
         btnEncyclopedia = rootElement.Q<Button>("btn_encyclopedia");
 
-        // Query Hero Selection Header Cards Internal Elements
         for (int i = 0; i < 4; i++)
         {
             btnHeroes[i] = rootElement.Q<Button>($"btn_hero{i}");
 
-            // Flexible query for hero portrait (by element name or USS class fallback)
             imgHeroPortraits[i] = rootElement.Q<VisualElement>($"header_hero_portrait_{i}")
                                 ?? btnHeroes[i]?.Q<VisualElement>(className: "header-hero-portrait");
 
@@ -183,14 +180,12 @@ public class MainMenuController : MonoBehaviour
 
     private void RegisterUICallbacks()
     {
-        // Mouse / Click Interactions for Tabs
         btnStatus?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Status));
         btnItems?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Items));
         btnPsynergy?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Psynergy));
         btnDjinn?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Djinn));
         btnEncyclopedia?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Encyclopedia));
 
-        // Mouse / Click Interactions for Hero Selection
         for (int i = 0; i < btnHeroes.Length; i++)
         {
             int index = i;
@@ -215,7 +210,7 @@ public class MainMenuController : MonoBehaviour
 
     #endregion
 
-    #region Input Event Subscriptions
+    #region Input Event Subscriptions & Handlers
 
     private void SubscribeToMenuInputs()
     {
@@ -234,10 +229,6 @@ public class MainMenuController : MonoBehaviour
         InputManager.Instance.OnMenuPreviousTabPressed -= HandlePreviousTab;
         InputManager.Instance.OnMenuCancelPressed -= HandleCancelInput;
     }
-
-    #endregion
-
-    #region Input Event Handlers
 
     private void HandleToggleMenuInput()
     {
@@ -258,14 +249,12 @@ public class MainMenuController : MonoBehaviour
     {
         if (!isMenuOpen) return;
 
-        // Priority 1: If an item is active in targeting mode, cancel targeting first
         if (itemsPageController != null && itemsPageController.IsTargetingItem)
         {
             itemsPageController.CancelItemTargeting();
             return;
         }
 
-        // Priority 2: Otherwise close the entire menu
         SetMenuVisibility(false);
     }
 
@@ -297,7 +286,6 @@ public class MainMenuController : MonoBehaviour
         }
         else
         {
-            // Cancel active targeting when menu is closed
             itemsPageController?.CancelItemTargeting();
             psynergyPageController?.CancelPsynergyTargeting();
             UnsubscribeFromMenuInputs();
@@ -306,7 +294,6 @@ public class MainMenuController : MonoBehaviour
 
     public void SelectTab(MenuTab tab)
     {
-        // Cancel active targeting mode if changing tabs
         itemsPageController?.CancelItemTargeting();
         psynergyPageController?.CancelPsynergyTargeting();
 
@@ -325,7 +312,6 @@ public class MainMenuController : MonoBehaviour
 
     public void SelectHero(int heroIndex)
     {
-        // If items page or psynergy page is targeting a hero to apply a spell/item, block changing the active hero view
         if ((itemsPageController != null && itemsPageController.IsTargetingItem) ||
             (psynergyPageController != null && psynergyPageController.IsTargetingPsynergy))
         {
@@ -378,7 +364,7 @@ public class MainMenuController : MonoBehaviour
 
     #endregion
 
-    #region Sub-page Content Loading & Data Refresh
+    #region Sub-page Content Loading
 
     private void LoadTabContent(MenuTab tab)
     {
@@ -388,6 +374,7 @@ public class MainMenuController : MonoBehaviour
         statusPageController = null;
         itemsPageController = null;
         psynergyPageController = null;
+        djinnPageController = null;
 
         switch (tab)
         {
@@ -411,20 +398,14 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadStatusPage()
     {
-        if (pageStatusAsset == null)
-        {
-            Debug.LogWarning("[MainMenu] 'pageStatusAsset' is not assigned in the Inspector.");
-            return;
-        }
+        if (pageStatusAsset == null) return;
 
         TemplateContainer statusInstance = pageStatusAsset.Instantiate();
         statusInstance.style.flexGrow = 1;
         pageContent.Add(statusInstance);
 
         statusPageController = new PageStatusController(statusInstance);
-
-        List<HeroStats> partyHeroStats = GetPartyHeroStatsList();
-        statusPageController.PopulateData(partyHeroStats);
+        statusPageController.PopulateData(GetPartyHeroStatsList());
     }
 
     private void LoadItemsPage()
@@ -445,7 +426,6 @@ public class MainMenuController : MonoBehaviour
             templateInfoKeyItem
         );
 
-        // Refresh header cards when an item is consumed on a hero
         itemsPageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
 
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
@@ -457,11 +437,7 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadPsynergyPage()
     {
-        if (pagePsynergyAsset == null)
-        {
-            Debug.LogWarning("[MainMenu] 'pagePsynergyAsset' is not assigned in the Inspector.");
-            return;
-        }
+        if (pagePsynergyAsset == null) return;
 
         TemplateContainer psynergyInstance = pagePsynergyAsset.Instantiate();
         psynergyInstance.style.flexGrow = 1;
@@ -478,7 +454,19 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadDjinnPage()
     {
-        Debug.Log($"[MainMenu] Rendering Djinn Page for Hero Index {selectedHeroIndex}...");
+        if (pageDjinnAsset == null) return;
+
+        TemplateContainer djinnInstance = pageDjinnAsset.Instantiate();
+        djinnInstance.style.flexGrow = 1;
+        pageContent.Add(djinnInstance);
+
+        djinnPageController = new PageDjinnController(djinnInstance);
+        djinnPageController.SetParty(GetPartyHeroStatsList());
+        djinnPageController.SetTemplates(miniPsynergyCardAsset, djinnSlotCardAAsset);
+        djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
+
+        HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
+        djinnPageController.PopulateData(selectedHeroStats);
     }
 
     private void LoadEncyclopediaPage()
@@ -517,12 +505,6 @@ public class MainMenuController : MonoBehaviour
         return partyHeroStats;
     }
 
-    /// <summary>
-    /// Retrieves a specific component from a party member GameObject by index.
-    /// </summary>
-    /// <typeparam name="T">Component type to retrieve.</typeparam>
-    /// <param name="index">Party member index.</param>
-    /// <returns>Component of type T if found, null otherwise.</returns>
     private T GetPartyMemberComponent<T>(int index) where T : Component
     {
         if (GameManager.Instance == null) return null;
@@ -539,11 +521,6 @@ public class MainMenuController : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Retrieves the GameObject of a party member by index.
-    /// </summary>
-    /// <param name="index">Party member index.</param>
-    /// <returns>Party member GameObject if valid, null otherwise.</returns>
     private GameObject GetPartyMemberGameObject(int index)
     {
         if (GameManager.Instance == null) return null;

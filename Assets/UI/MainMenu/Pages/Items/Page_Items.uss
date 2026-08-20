@@ -13,14 +13,20 @@
     overflow: hidden;    /* Clips any internal column overflow */
 }
 
+/* Clean up the default Unity scroll view styles for a more compact and visually appealing layout */
+.page-items-container Label {
+    margin: 0;
+    padding: 0;
+}
+
 /* Common Section Titles (Unified RPG Style Across All 3 Panels) */
-.info-title-label {
-    font-size: 15px;
+ .page-items-container .info-title-label {
+ font-size: 15px;
     -unity-font-style: bold;
     color: #DAA520; /* Golden section title */
-    margin-bottom: 10px;
-    margin-top: 4px;
-    text-align: center;
+    margin-bottom: 8px;
+    margin-top: 2px;
+    -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
 }
@@ -30,15 +36,16 @@
    ========================================== */
 .equipment-section {
     width: 25%;
-    margin-right: 10px;
+    height: 100%;
+    max-height: 100%;
+    padding: 8px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
-    padding: 10px;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
+    align-items: stretch;
+    margin-right: 10px;
+    flex-shrink: 0;
 }
 
 /* Paperdoll Grid: Left Column | Character Space | Right Column */
@@ -102,15 +109,18 @@
    ========================================== */
 .inventory-section {
     width: 45%;
-    margin-right: 10px;
+    height: 100%;
+    max-height: 100%;
+    padding: 8px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
-    padding: 10px;
+    margin-right: 10px;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
+    flex-shrink: 0;
+        align-items: center;
+
 }
 
 /* Inventory Header Box with Hero Icon Badge */
@@ -162,6 +172,11 @@
     border-radius: 6px;
 }
 
+.item-info-panel Label  {
+margin: 0;
+padding: 0;
+}
+
 .item-preview-container {
     width: 100%;
     height: 100px;
@@ -188,27 +203,29 @@
     background-repeat: no-repeat;
 }
 
-.item-name-label {
+.page-items-container .item-name-label {
     font-size: 18px;
     -unity-font-style: bold;
     color: #ffffff;
     text-align: center;
+    margin-bottom: 4px;
 }
 
-.item-type-label {
+.page-items-container .item-type-label {
     font-size: 14px;
     color: #60A5FA;
     text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .item-meta-row {
     flex-direction: row;
     justify-content: space-between;
     background-color: #121a26;
-    padding: 6px;
+    padding: 4px 6px;
     border-radius: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .item-meta-label {
@@ -216,39 +233,69 @@
     color: #aeb6bf;
 }
 
-.item-desc-label {
-    font-size: 14px;
+.page-items-container .item-desc-label {
+    font-size: 12px;
     color: #d5dbdb;
     white-space: normal;
     margin-bottom: 6px;
+    -unity-text-align: upper-left;
+    flex-shrink: 0;
 }
 
-.extra-info-container {
-     flex-grow: 1;
 
+
+/* ==========================================================================
+   EXTRA INFO SCROLLVIEW & INNER CARD (IGUALADO A PAGE ITEMS)
+   ========================================================================== */
+.extra-info-container {
+    flex-grow: 1;
     flex-shrink: 1;
-    height: 0;             /* CLAVE EN UNITY: Al poner height 0 con flex-grow 1, la caja SE ADAPTA al espacio sobrante pero NUNCA crece por su contenido */
+    height: 0;
     min-height: 0;
     overflow: hidden;
+    background-color: transparent;
+    border-width: 0;
+    padding: 0;
+}
 
+/* Forzamos a que el contenido de la ScrollView se centre verticalmente */
+.extra-info-container .unity-scroll-view__content-container {
+    flex-direction: column;
+    flex-grow: 1;               /* Ocupa todo el alto de la ScrollView */
+    justify-content: center;   /* Centra la tarjeta interna (.scroll-inner-card) si sobra espacio */
+}
+
+/* El contenedor interno con borde y fondo */
+.scroll-inner-card {
     background-color: #101722;
     border-width: 1px;
     border-color: #1f2d40;
     border-radius: 4px;
-    padding: 4px;
+    padding: 6px 8px;
+    margin-right: 4px; /* Espacio exacto para la barra de scroll */
 }
 
 /* ==========================================
-   CUSTOM RPG STYLED SCROLLBAR FOR EXTRA INFO
+   CORRECCIÓN DE ANCHO Y POSICIÓN DEL SCROLLER
    ========================================== */
 
-/* Ancho general de la barra de scroll vertical */
+/* 1. Contenedor principal del Scroller vertical */
 .extra-info-container .unity-scroller--vertical {
-    width: 8px;
-    margin-left: 4px;
+    width: 6px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
 }
 
-/* Oculta los botones de flecha arriba/abajo obsoletos */
+/* 2. Slider interno del Scroller (Elimina el ancho fantasma por defecto) */
+.extra-info-container .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+/* 3. Oculta botones sobrantes */
 .extra-info-container .unity-scroller__low-button,
 .extra-info-container .unity-scroller__high-button {
     display: none;
@@ -256,33 +303,34 @@
     height: 0;
 }
 
-/* Pista/Fondo por donde se desliza el cursor */
+/* 4. Pista/Fondo por donde se desliza el cursor */
 .extra-info-container .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
     background-color: rgba(10, 15, 24, 0.8);
     border-width: 1px;
     border-color: rgba(31, 45, 64, 0.6);
-    border-radius: 4px;
+    border-radius: 3px;
+    margin: 0;
 }
 
-/* El cursor/tirador de la barra (Dragger) */
+/* 5. El cursor/tirador amarillo (Dragger) */
 .extra-info-container .unity-base-slider__dragger {
     width: 6px;
-    background-color: rgba(218, 165, 32, 0.5); /* Dorado suave de Golden Sun */
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
     border-width: 1px;
-    border-color: rgba(255, 215, 0, 0.8);
+    border-color: rgba(255, 215, 0, 0.9);
     border-radius: 3px;
-    transition-duration: 0.15s;
 }
 
-/* Efecto al pasar el ratón por encima del tirador */
 .extra-info-container .unity-base-slider__dragger:hover {
-    background-color: #FFD700;                  /* Dorado brillante */
-    border-color: #FFFFFF;
+    background-color: #FFD700;
 }
 
-/* Efecto al arrastrar activamente el tirador */
 .extra-info-container .unity-base-slider__dragger:active {
-    background-color: #FFA500;                  /* Tono ámbar/naranja */
+    background-color: #FFA500;
 }
 
 /* ==========================================

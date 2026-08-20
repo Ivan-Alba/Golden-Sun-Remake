@@ -18,7 +18,7 @@ MonoBehaviour:
   defaultMercuryClass: {fileID: 0}
   classEntries:
   - baseElement: 1
-    venusCount: 1
+    venusCount: 2
     marsCount: 0
     jupiterCount: 0
     mercuryCount: 0

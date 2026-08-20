@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.106532, g: 0.23473813, b: 0.39448974, a: 1}
+  m_IndirectSpecularColor: {r: 0.035323054, g: 0.09340413, b: 0.17339543, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1310,13 +1310,21 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1916166346400731993, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: initialDjinns.Array.size
+      propertyPath: initialLeaderIndex
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1916166346400731993, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: initialDjinns.Array.size
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1916166346400731993, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: initialDjinns.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: 849e9dc677a02144a987c3d06b74bf10, type: 2}
+    - target: {fileID: 1916166346400731993, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: initialDjinns.Array.data[1]
+      value: 
+      objectReference: {fileID: 11400000, guid: 046b3a504735af84f818d645c85aaa73, type: 2}
     - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: templateInfoWeapon
       value: 

@@ -3,18 +3,28 @@
    ========================================================================== */
 .page-djinn-container {
     flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
     flex-direction: row;
     padding: 6px;
     color: #FFFFFF;
+    overflow: hidden;
 }
 
-.info-title-label {
+.page-djinn-container Label {
+    margin: 0;
+    padding: 0;
+}
+
+.page-djinn-container .info-title-label {
     font-size: 15px;
     -unity-font-style: bold;
     color: #DAA520; /* Golden section title */
     margin-bottom: 8px;
     margin-top: 2px;
-    text-align: center;
+    -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
 }
@@ -25,13 +35,17 @@
 .djinn-summary-section {
     width: 25%;
     height: 100%;
+    max-height: 100%;
     padding: 8px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: stretch;
     margin-right: 10px;
+    flex-shrink: 0;
 }
 
 .summary-box {
@@ -42,18 +56,24 @@
     padding: 6px 8px;
     margin-bottom: 6px;
     align-items: center;
+    justify-content: flex-start; /* Empaqueta el contenido arriba sin repartir espacio */
+    height: auto;               /* Se colapsa al alto exacto de sus hijos */
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .class-name-container {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
+    margin-top: 0;
+    margin-bottom: 5px;         /* Controla aquí la separación exacta con los pips */
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .summary-class-title {
-    font-size: 13px;
+    font-size: 15px;
     -unity-font-style: bold;
     color: #FFD700;
 }
@@ -73,6 +93,9 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    margin: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .pip-element-group {
@@ -95,6 +118,15 @@
     color: #E0E0E0;
 }
 
+.summary-class-title,
+.summary-class-arrow,
+.pip-count {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 .icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
 .icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
 .icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
@@ -105,18 +137,28 @@
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-items: flex-start;    /* EVITA que estire verticalmente los ítems */
+    align-content: flex-start;  /* Junta las filas arriba sin repartir espacio sobrante */
     margin-bottom: 4px;
+    flex-shrink: 0;
+    flex-grow: 0;
 }
 
+/* 2. EL ÍTEM: Le fijamos una altura compacta y evitamos que crezca */
 .summary-stat-item {
     width: 48%;
+    height: 18px;
+    min-height: 18px;
+    flex-grow: 0;
+    flex-shrink: 0;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     background-color: rgba(25, 25, 35, 0.6);
     border-radius: 3px;
-    padding: 0px 5px;
-    margin-bottom: 4px;
+    padding: 0px 6px;
+    margin-bottom: 2px;
+    -unity-text-align: middle-center;
 }
 
 .stat-label-group {
@@ -132,8 +174,10 @@
 }
 
 .stat-name {
-    font-size: 10px;
+    font-size: 11px;
     color: #CCCCCC;
+    flex-grow: 1;
+    -unity-font-style: bold;
 }
 
 .stat-val {
@@ -142,7 +186,7 @@
     color: #FFFFFF;
 }
 
-.stat-delta {
+.page-djinn-container .stat-delta {
     font-size: 10px;
     -unity-font-style: bold;
     margin-left: 3px;
@@ -151,9 +195,11 @@
 .delta-positive { color: #00FF88; }
 .delta-negative { color: #FF4444; }
 
+.icon-max-hp { background-color: #2ECC71; }
+.icon-max-pp { background-color: #3498DB; }
 .icon-attack { background-color: #E74C3C; }
-.icon-defense { background-color: #3498DB; }
-.icon-agility { background-color: #2ECC71; }
+.icon-defense { background-color: #574725; }
+.icon-agility { background-color: #A32BBA; }
 .icon-luck { background-color: #F1C40F; }
 
 .section-separator {
@@ -161,24 +207,30 @@
     background-color: #2e3a4e;
     margin-top: 2px;
     margin-bottom: 6px;
+    flex-shrink: 0;
+    flex-grow: 0;
 }
 
 .psynergy-view-container {
     flex-grow: 1;
+    height: 0;
+    min-height: 0;
     flex-direction: column;
 }
 
-.subpanel-header-label {
+.page-djinn-container .subpanel-header-label {
     font-size: 10px;
     -unity-font-style: bold;
     color: #DAA520;
     margin-bottom: 4px;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .psynergy-filter-tabs {
     flex-direction: row;
     margin-bottom: 6px;
+    flex-shrink: 0;
 }
 
 .mini-tab-btn {
@@ -203,182 +255,14 @@
 
 .psynergy-list-scroll {
     flex-grow: 1;
+    height: 0;
+    min-height: 0;
     padding-right: 2px;
 }
 
-.mini-psy-card {
-    flex-direction: row;
-    height: 44px;
-    width: 100%;
-    background-color: #111722;
-    border-width: 1px;
-    border-color: #253347;
-    border-radius: 6px;
-    align-items: center;
-    margin-bottom: 5px;
-    padding-right: 6px;
-    overflow: hidden;
+.psynergy-list-scroll .unity-scroll-view__content-container {
+    flex-direction: column;
 }
-
-.mini-psy-card:hover {
-    background-color: #1a2538;
-    border-color: #d4af37;
-}
-
-.card-element-stripe {
-    width: 4px;
-    height: 100%;
-    background-color: #888888;
-    flex-shrink: 0;
-}
-
-.card-icon-box {
-    width: 32px;
-    height: 32px;
-    justify-content: center;
-    align-items: center;
-    margin-left: 4px;
-    flex-shrink: 0;
-}
-
-.mini-psy-card-icon {
-    width: 26px;
-    height: 26px;
-}
-
-.card-text-details {
-    width: 48%;
-    height: 100%;
-    justify-content: center;
-    margin-left: 4px;
-    flex-shrink: 0;
-}
-
-.card-title-row {
-    flex-direction: row;
-    align-items: center;
-}
-
-.element-pip-icon {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 3px;
-    border-width: 1px;
-    flex-shrink: 0;
-}
-
-.mini-psy-name {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
-    -unity-text-overflow-position: end;
-}
-
-.card-badges-row {
-    flex-direction: row;
-    align-items: center;
-    margin-top: 2px;
-}
-
-.psynergy-badge {
-    font-size: 8px;
-    padding-left: 3px;
-    padding-right: 3px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    margin: 0 2px 0 0;
-    border-radius: 2px;
-    color: #ffffff;
-    -unity-font-style: bold;
-}
-
-.badge-world { background-color: #2874a6; }
-.badge-battle { background-color: #b03a2e; }
-.badge-menu { background-color: #1e8449; }
-
-.card-status-box {
-    flex-grow: 1;
-    justify-content: center;
-    align-items: center;
-}
-
-.badge-psy-status {
-    font-size: 8px;
-    -unity-font-style: bold;
-    padding: 2px 4px;
-    border-radius: 3px;
-    text-align: center;
-}
-
-.badge-gained {
-    color: #00FF88;
-    background-color: rgba(0, 255, 136, 0.2);
-    border-width: 1px;
-    border-color: rgba(0, 255, 136, 0.4);
-}
-
-.badge-lost {
-    color: #FF6B6B;
-    background-color: rgba(255, 107, 107, 0.2);
-    border-width: 1px;
-    border-color: rgba(255, 107, 107, 0.4);
-}
-
-.card-cost-box {
-    width: 38px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    flex-shrink: 0;
-}
-
-.mini-psy-pp {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: #5dade2;
-}
-
-.mini-psy-req {
-    font-size: 9px;
-    color: #8C9BA5;
-}
-
-.psy-card-new {
-    border-color: rgba(0, 255, 136, 0.5);
-    background-color: rgba(0, 255, 136, 0.05);
-}
-
-.psy-card-lost {
-    background-color: rgba(255, 68, 68, 0.05);
-    border-color: rgba(255, 68, 68, 0.3);
-}
-
-.stripe-lost { background-color: #FF4444; }
-.text-lost { color: #FF8888; }
-
-.psy-card-locked {
-    background-color: rgba(12, 16, 23, 0.5);
-    border-color: rgba(255, 255, 255, 0.05);
-}
-
-.stripe-locked { background-color: #4A5A73; }
-.text-locked { color: #6A7B95; }
-.icon-lock { background-color: rgba(0, 0, 0, 0.4); }
-
-.element-venus .card-element-stripe { background-color: #d4ac0d; }
-.element-venus { border-color: #7d6608; }
-
-.element-mars .card-element-stripe { background-color: #e74c3c; }
-.element-mars { border-color: #78281f; }
-
-.element-jupiter .card-element-stripe { background-color: #af7ac5; }
-.element-jupiter { border-color: #512e5f; }
-
-.element-mercury .card-element-stripe { background-color: #3498db; }
-.element-mercury { border-color: #1b4f72; }
 
 /* ==========================================================================
    CENTER PANEL: SANCTUARY 3D VIEWPORT & DJINN GRID (45%)
@@ -386,6 +270,7 @@
 .djinn-list-section {
     width: 45%;
     height: 100%;
+    max-height: 100%;
     padding: 8px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
@@ -393,9 +278,9 @@
     border-radius: 6px;
     margin-right: 10px;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
-/* 1. UPPER 55%: 3D VIEWPORT */
 .djinn-viewport-container {
     height: 52%;
     width: 100%;
@@ -405,6 +290,7 @@
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: 6px;
+    flex-shrink: 0;
 }
 
 .djinn-render-target {
@@ -413,18 +299,20 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-/* 2. LOWER 45%: DJINN GRID (2x4 = 8 SLOTS) */
 .djinn-grid-section {
     flex-grow: 1;
+    height: 0;
+    min-height: 0;
     flex-direction: column;
 }
 
-.grid-header-label {
+.page-djinn-container .grid-header-label {
     font-size: 11px;
     -unity-font-style: bold;
     color: #DAA520;
     margin-bottom: 4px;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .djinn-slots-grid {
@@ -435,104 +323,11 @@
     align-content: space-between;
 }
 
-/* DJINN SLOT CARD DESIGN */
-.djinn-slot-card {
-    width: 24%;
-    height: 48%;
-    background-color: #0d131d;
-    border-width: 1px;
-    border-color: #253347;
-    border-radius: 5px;
-    padding: 4px;
-    justify-content: space-between;
-    position: relative;
-}
-
-.djinn-slot-card:hover {
-    border-color: #d4af37;
-    background-color: #141d2c;
-}
-
-.djinn-card-selected {
-    border-color: #FFD700;
-    background-color: rgba(212, 175, 55, 0.1);
-}
-
-.djinn-principal-star {
-    position: absolute;
-    top: 2px;
-    right: 4px;
-    font-size: 10px;
-    color: #FFD700;
-}
-
-.djinn-card-top-row {
-    flex-direction: row;
-    align-items: center;
-}
-
-.djinn-card-icon {
-    width: 20px;
-    height: 20px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-    margin-right: 4px;
-    flex-shrink: 0;
-}
-
-.djinn-card-name {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: #ffffff;
-}
-
-.djinn-status-btn {
-    height: 16px;
-    font-size: 8px;
-    -unity-font-style: bold;
-    border-radius: 2px;
-    padding: 0;
-    border-width: 1px;
-    margin: 0;
-}
-
-.status-set {
-    background-color: rgba(0, 255, 136, 0.15);
-    border-color: rgba(0, 255, 136, 0.4);
-    color: #00FF88;
-}
-
-.status-standby {
-    background-color: rgba(241, 196, 15, 0.15);
-    border-color: rgba(241, 196, 15, 0.4);
-    color: #F1C40F;
-}
-
-/* EMPTY SLOT DESIGN */
-.djinn-card-empty {
-    border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.1);
-    background-color: rgba(10, 15, 22, 0.3);
-    align-items: center;
-    justify-content: center;
-}
-
-.djinn-empty-label {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.2);
-}
-
-/* ELEMENTAL COLOR BORDERS FOR DJINN CARDS */
-.djinn-card-venus { border-color: rgba(212, 172, 13, 0.5); }
-.djinn-card-mars { border-color: rgba(231, 76, 60, 0.5); }
-.djinn-card-jupiter { border-color: rgba(175, 122, 197, 0.5); }
-.djinn-card-mercury { border-color: rgba(52, 152, 219, 0.5); }
-
-/* 3. FOOTER ACTION BAR */
 .djinn-action-bar {
     height: 28px;
     margin-top: 6px;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .action-switch-btn {
@@ -574,8 +369,9 @@
     border-radius: 6px;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .djinn-video-preview {
@@ -585,83 +381,174 @@
     background-color: #000000;
 }
 
-.djinn-name-label {
-    font-size: 18px;
+.page-djinn-container .djinn-name-label {
+    font-size: 16px;
     -unity-font-style: bold;
     color: #ffffff;
-    text-alignment: middle-center;
+    -unity-text-align: middle-center;
+    flex-shrink: 0;
+    margin-bottom: 4px;
 }
 
-.djinn-type-label {
-    font-size: 14px;
+.page-djinn-container .djinn-type-label {
+    font-size: 12px;
     color: #60A5FA;
-    text-alignment: middle-center;
-    margin-bottom: 6px;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .djinn-meta-row {
     flex-direction: row;
     justify-content: space-between;
     background-color: #121a26;
-    padding: 6px;
+    padding: 4px 6px;
     border-radius: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .djinn-meta-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #aeb6bf;
 }
 
-.djinn-desc-label {
-    font-size: 14px;
+.page-djinn-container .djinn-desc-label {
+    font-size: 12px;
     color: #d5dbdb;
     white-space: normal;
     margin-bottom: 6px;
+    -unity-text-align: upper-left;
+    flex-shrink: 0;
 }
 
-.stat-changes-box {
+/* ==========================================================================
+   EXTRA INFO SCROLLVIEW & INNER CARD (IGUALADO A PAGE ITEMS)
+   ========================================================================== */
+.extra-info-container {
     flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    background-color: transparent;
+    border-width: 0;
+    padding: 0;
+}
+
+/* El contenedor interno con borde y fondo */
+.scroll-inner-card {
     background-color: #101722;
     border-width: 1px;
     border-color: #1f2d40;
     border-radius: 4px;
-    padding: 6px;
+    padding: 6px 8px;
+    margin-right: 4px; /* Espacio exacto entre la tarjeta y la barra de scroll */
 }
 
-/* RIGHT PANEL DETAIL EXTRA STYLES */
-.detail-section-title {
+.extra-info-container .unity-scroll-view__content-container {
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+}
+
+/* ==========================================
+   CORRECCIÓN DE ANCHO Y POSICIÓN DEL SCROLLER
+   ========================================== */
+
+/* 1. Contenedor principal del Scroller vertical */
+.extra-info-container .unity-scroller--vertical {
+    width: 6px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+}
+
+/* 2. Slider interno del Scroller (Elimina el ancho fantasma por defecto) */
+.extra-info-container .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+/* 3. Oculta botones sobrantes */
+.extra-info-container .unity-scroller__low-button,
+.extra-info-container .unity-scroller__high-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* 4. Pista/Fondo por donde se desliza el cursor */
+.extra-info-container .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
+    background-color: rgba(10, 15, 24, 0.8);
+    border-width: 1px;
+    border-color: rgba(31, 45, 64, 0.6);
+    border-radius: 3px;
+    margin: 0;
+}
+
+/* 5. El cursor/tirador amarillo (Dragger) */
+.extra-info-container .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.9);
+    border-radius: 3px;
+}
+
+.extra-info-container .unity-base-slider__dragger:hover {
+    background-color: #FFD700;
+}
+
+.extra-info-container .unity-base-slider__dragger:active {
+    background-color: #FFA500;
+}
+
+/* RIGHT PANEL DETAILS INNER CONTENT */
+.page-djinn-container .detail-section-title {
     font-size: 10px;
     -unity-font-style: bold;
     color: #DAA520;
-    margin-bottom: 4px;
-    text-align: left;
+    margin-bottom: 3px;
     -unity-text-align: upper-left;
 }
 
 .detail-separator {
     height: 1px;
     background-color: #1f2d40;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
-.unleash-desc-label {
+.page-djinn-container .unleash-name-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #60A5FA;
+    -unity-text-align: upper-left;
+    margin-bottom: 2px;
+}
+
+.page-djinn-container .unleash-desc-label {
     font-size: 9.5px;
     color: #d5dbdb;
     white-space: normal;
-    text-align: left;
+    -unity-text-align: upper-left;
     margin-bottom: 4px;
 }
+
 
 .detail-unleash-row {
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     margin-bottom: 2px;
 }
 
-.unleash-badge {
+.page-djinn-container .unleash-badge {
     font-size: 9.5px;
     -unity-font-style: bold;
     color: #5DADE2;
@@ -669,29 +556,464 @@
     padding: 2px 5px;
     border-radius: 3px;
     margin-right: 4px;
-    margin-left: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    -unity-text-align: middle-center;
 }
 
-.effect-badge {
+.page-djinn-container .effect-badge {
     color: #E74C3C;
     background-color: rgba(231, 76, 60, 0.15);
 }
 
-.passive-name-label {
+.page-djinn-container .passive-name-label {
     font-size: 11px;
     -unity-font-style: bold;
-    color: #FFD700;
-    text-align: left;
+    color: #60A5FA;
+    -unity-text-align: upper-left;
+    margin-bottom: 2px;
 }
 
 .passive-desc-label {
     font-size: 9.5px;
-    color: #AEB6BF;
-    white-space: normal;
-    text-align: left;
-    margin-top: 1px;
+    -unity-text-align: upper-left;
+}
+
+/* ==========================================================================
+   VISTA B: GLOBAL PARTY DJINN ORGANIZER (100% WIDTH)
+   ========================================================================== */
+.djinn-global-section {
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background-color: rgba(15, 20, 28, 0.85);
+    border-width: 2px;
+    border-color: #2e3a4e;
+    border-radius: 6px;
+    flex-direction: column;
+}
+
+.party-columns-container {
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 6px;
+}
+
+.hero-djinn-column {
+    width: 23%;
+    max-width: 24%;
+    margin: 0 6px;
+    background-color: rgba(10, 15, 22, 0.6);
+    border-width: 1px;
+    border-color: #1f2d40;
+    border-radius: 5px;
+    padding: 5px;
+    flex-direction: column;
+}
+
+/* HERO HEADER IN VISTA B */
+.hero-column-header {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(20, 29, 44, 0.9);
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 6px;
+    border-width: 1px;
+    border-color: #2e3a4e;
+}
+
+.hero-avatar-box {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    align-items: center;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.hero-avatar-icon {
+    width: 90%;
+    height: 90%;
+}
+
+.hero-info-box {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: space-between;
+    padding-top: 2px;               
+    padding-bottom: 2px;
+    overflow: hidden;
+}
+
+.hero-title-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.hero-column-name {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFD700;
+}
+
+.hero-column-level {
+    font-size: 9px;
+    color: #8C9BA5;
+}
+
+.hero-class-pips-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.hero-column-class {
+    font-size: 10px;
+    color: #00FF88;
+    margin: 0;
+    padding: 0;
+}
+
+.pips-row-compact {
+    justify-content: flex-end;
+}
+
+.pips-row-compact .pip-element-group {
+    margin: 0 0 0 2px;
+}
+
+.pips-row-compact .pip-count {
+    font-size: 8.5px;
+}
+
+.pips-row-compact .pip-icon {
+    width: 9px;
+    height: 9px;
+    margin-right: 2px;
+}
+
+/* SLOTS CONTAINER DISTRIBUTED VERTICALLY */
+.column-slots-container {
+    flex-grow: 1;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+/* GLOBAL ENRICHED DJINN CARD */
+.djinn-card-global {
+    width: 100%;
+    height: 11.5%;
+    margin-bottom: 0;
+    padding: 3px 5px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.djinn-card-main-info {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: space-between;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin-left: 5px;
+    overflow: hidden;
+}
+
+.djinn-card-title-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.djinn-card-name {
+    font-size: 10.5px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    margin: 0;
+    padding: 0;
+}
+
+/* LEADER PASSIVE + STAR GROUP ALIGNED RIGHT */
+.djinn-card-leader-group {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.djinn-card-passive-tag {
+    font-size: 8px;
+    border-radius: 2px;
+    padding: 0 4px;
+    -unity-text-overflow-position: end;
+    margin-right: 2px;
+}
+
+.passive-active {
+    color: #FFD700;
+    background-color: rgba(255, 215, 0, 0.15);
+    -unity-font-style: bold;
+}
+
+.passive-inactive {
+    color: #8C9BA5;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.djinn-principal-star-inline {
+    font-size: 9px;
+    color: #FFD700;
+    margin: 0;
+    padding: 0;
+    width: 10px;
+    text-align: center;
+}
+
+.star-hidden {
+    visibility: hidden;
+}
+
+.djinn-card-bottom-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.djinn-card-unleash-row {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+    margin-right: 6px;
+}
+
+.djinn-unleash-label {
+    font-size: 8px;
+    color: #8C9BA5;
+    margin-right: 3px;
+    flex-shrink: 0;
+}
+
+.djinn-unleash-val {
+    font-size: 8px;
+    color: #5DADE2;
+    -unity-font-style: bold;
+    -unity-text-overflow-position: end;
+    overflow: hidden;
+}
+
+.btn-compact {
+    width: 58px;
+    height: 13px;
+    font-size: 7px;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   GOLDEN SUN COMPARISON MODAL OVERLAY
+   ========================================================================== */
+.modal-overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(5, 8, 12, 0.88);
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+}
+
+.compare-modal-box {
+    width: 920px;
+    height: 540px;
+    background-color: #0b1017;
+    border-width: 2px;
+    border-color: #DAA520;
+    border-radius: 8px;
+    padding: 12px;
+    flex-direction: column;
+}
+
+.compare-modal-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.compare-modal-content {
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.modal-hero-panel {
+    width: 38%;
+    height: 100%;
+    margin: 0;
+}
+
+/* INTEGRATED HERO CARD STYLES FOR MODAL FIRST BLOCK */
+.modal-integrated-hero-box {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px;
+    margin-bottom: 8px;
+}
+
+.modal-hero-avatar-large {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.modal-hero-details-col {
+    flex-grow: 1;
+    height: 60px;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.modal-hero-identity-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.modal-hero-name {
+    font-size: 13px;
+}
+
+.modal-hero-lvl {
+    font-size: 10px;
+}
+
+.modal-class-container {
+    margin: 0;
+    padding: 0;
+}
+
+.modal-pips-row {
+    margin: 0;
+    justify-content: flex-start;
+}
+
+/* STAT VALUE GROUP WITH INLINE HORIZONTAL DELTAS */
+.summary-stat-item .stat-value-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.stat-delta {
+    margin-left: 4px;
+}
+
+.modal-psy-scroll {
+    flex-grow: 1;
+    max-height: 140px;
+}
+
+/* CENTER TRANSITION & ACTION PANEL */
+.compare-center-action-box {
+    width: 20%;
+    height: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 4px;
+    background-color: rgba(10, 15, 22, 0.4);
+    border-radius: 6px;
+}
+
+.compare-action-title {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #DAA520;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.compare-exchange-visual {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.compare-djinn-pill {
+    width: 92%;
+    height: 32px;
+    border-width: 1px;
+    border-radius: 4px;
+    justify-content: center;
+    align-items: center;
+    margin: 4px 0;
+    background-color: #111722;
+}
+
+.compare-djinn-pill-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+.compare-exchange-arrow {
+    font-size: 22px;
+    color: #DAA520;
+    -unity-font-style: bold;
+    margin: 4px 0;
+}
+
+.modal-actions-row {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.modal-btn {
+    width: 90%;
+    height: 28px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    border-radius: 4px;
+    margin: 3px 0;
+}
+
+.btn-confirm {
+    background-color: rgba(0, 255, 136, 0.15);
+    border-color: #00FF88;
+    color: #00FF88;
+}
+
+.btn-confirm:hover {
+    background-color: rgba(0, 255, 136, 0.3);
+}
+
+.btn-cancel {
+    background-color: rgba(255, 68, 68, 0.15);
+    border-color: #FF4444;
+    color: #FF4444;
+}
+
+.btn-cancel:hover {
+    background-color: rgba(255, 68, 68, 0.3);
 }

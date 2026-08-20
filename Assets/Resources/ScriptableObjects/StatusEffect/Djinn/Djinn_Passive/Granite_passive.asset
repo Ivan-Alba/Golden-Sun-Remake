@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Flint Passive
+  m_Name: Granite_passive
   m_EditorClassIdentifier: 
-  effectSlug: flint_pasive
-  effectName: Romperocas
+  effectSlug: granite_passive
+  effectName: "Protecci\xF3n elemental"
   icon: {fileID: 0}
-  description: Aumenta el ataque un 2%.
+  description: Aumenta la resistencia a todos los elementos un 10%.
   category: 0
   effectType: 0
   persistsAfterBattle: 1
@@ -30,9 +30,18 @@ MonoBehaviour:
   damageMitigationPercentage: 0
   doomTurnCount: 3
   statModifiers:
-  - statType: 2
+  - statType: 10
     valueType: 1
-    value: 2
+    value: 0.1
+  - statType: 11
+    valueType: 1
+    value: 0.1
+  - statType: 12
+    valueType: 1
+    value: 0.1
+  - statType: 13
+    valueType: 1
+    value: 0.1
   elementalModifiers: []
   resourceRegens: []
   damagesOverTime: []

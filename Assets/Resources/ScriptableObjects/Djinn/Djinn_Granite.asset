@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
+  m_Name: Djinn_Granite
+  m_EditorClassIdentifier: 
+  djinnName: Granite
+  djinnSlug: granite
+  element: 1
+  icon: {fileID: 21300000, guid: 77913dd3bfa37a843aed9ce2335daba9, type: 3}
+  description: 
+  setStatModifiers:
+  - statType: 3
+    value: 3
+    modifierType: 0
+  - statType: 1
+    value: 3
+    modifierType: 0
+  - statType: 1
+    value: 3
+    modifierType: 0
+  unleashEffect: {fileID: 11400000, guid: 52c6a1aabc59aba4384b72df889520fe, type: 2}
+  baseRecoveryTurns: 2
+  leaderPassiveEffect: {fileID: 11400000, guid: 4157abea7d062b543a5de5153186dd23, type: 2}
+  leaderPassiveDescription: 

@@ -13,6 +13,12 @@
     border-color: rgba(255, 215, 0, 0.25); /* Subtle Golden Border for Key Items */
 }
 
+.key-item-info-root Label {
+    margin: 0;
+    padding: 0;
+}
+
+
 /* --- Key Item Header Badge --- */
 .key-item-badge-container {
     flex-direction: row;
@@ -39,8 +45,6 @@
     -unity-font-style: bold;
     color: #FFD700; /* Golden Sun Gold */
     letter-spacing: 1px;
-    padding: 0;
-    margin: 0;
 }
 
 /* --- Visual Separator --- */
@@ -71,7 +75,7 @@
     margin-bottom: 2px;
 }
 
-.lore-text {
+.key-item-info-root .lore-text {
     font-size: 11px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
@@ -79,5 +83,4 @@
     white-space: normal;
     line-height: 14px;
     padding: 4px 0;
-    margin: 0;
 }

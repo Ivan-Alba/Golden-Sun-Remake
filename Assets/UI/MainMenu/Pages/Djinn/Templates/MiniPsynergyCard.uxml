@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Templates/MiniPsynergyCard.uss?fileID=7433441132597879392&amp;guid=8913f21f3a9a71a449144b824e65464b&amp;type=3#MiniPsynergyCard" />
+    <ui:VisualElement name="mini_psy_card_root" picking-mode="Ignore" class="mini-psy-card element-venus">
+        <ui:VisualElement name="mini_psy_element_stripe" class="card-element-stripe" />
+        <ui:VisualElement class="card-icon-box">
+            <ui:VisualElement name="mini_psy_icon" class="mini-psy-card-icon" />
+        </ui:VisualElement>
+        <ui:VisualElement class="card-text-details">
+            <ui:VisualElement class="card-title-row">
+                <ui:VisualElement name="mini_psy_element_pip" class="element-pip-icon icon-venus" />
+                <ui:Label text="Curación" name="mini_psy_name" class="mini-psy-name" />
+            </ui:VisualElement>
+            <ui:VisualElement name="mini_psy_badges_row" class="card-badges-row">
+                <ui:Label text="Menú" name="badge_menu" class="psynergy-badge badge-menu" />
+                <ui:Label text="Combate" name="badge_battle" class="psynergy-badge badge-battle" />
+                <ui:Label text="Combate" name="badge_world" class="psynergy-badge badge-world" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="mini_psy_status_box" class="card-status-box">
+            <ui:Label text="+ GANADA" name="label_psy_status" class="badge-psy-status badge-gained" style="display: none;" />
+        </ui:VisualElement>
+        <ui:VisualElement class="card-cost-box">
+            <ui:Label text="3 PP" name="mini_psy_pp" class="mini-psy-pp" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

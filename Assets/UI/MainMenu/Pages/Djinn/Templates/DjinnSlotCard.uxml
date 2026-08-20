@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Templates/DjinnSlotCard.uss?fileID=7433441132597879392&amp;guid=c23bfffca5a5fda42b0c9a1dd7246e30&amp;type=3#DjinnSlotCard" />
+    <ui:VisualElement name="djinn_slot_card_root" class="djinn-slot-card djinn-card-venus">
+        <ui:Label text="★" name="label_djinn_star" class="djinn-principal-star" style="display: none;" />
+        
+        <ui:VisualElement name="djinn_portrait_box" class="djinn-card-portrait-box">
+            <ui:VisualElement name="djinn_card_icon" class="djinn-card-icon" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement name="djinn_info_col" class="djinn-card-info-col">
+            <ui:VisualElement name="djinn_name_row" class="djinn-card-title-row">
+                <ui:VisualElement name="djinn_element_pip" class="element-pip-icon icon-venus" />
+                <ui:Label text="Flint" name="label_djinn_card_name" class="djinn-card-name" />
+            </ui:VisualElement>
+            <ui:Button text="PREPARADO" name="btn_djinn_status" class="djinn-status-btn status-set" />
+        </ui:VisualElement>
+        
+        <ui:Label text="Vacío" name="label_djinn_empty" class="djinn-empty-label" style="display: none;" />
+    </ui:VisualElement>
+</ui:UXML>

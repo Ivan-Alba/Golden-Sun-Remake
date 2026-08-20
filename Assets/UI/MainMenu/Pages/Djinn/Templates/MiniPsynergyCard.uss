@@ -1,0 +1,188 @@
+/* ==========================================================================
+   MINI PSYNERGY CARD TEMPLATE STYLES
+   ========================================================================== */
+
+/* Regla de reset de texto propia del componente */
+.mini-psy-card Label {
+    margin: 0;
+    padding: 0;
+}
+
+.mini-psy-card {
+    flex-direction: row;
+    height: 44px;
+    width: 100%;
+    background-color: #111722;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-right: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.mini-psy-card,
+.mini-psy-card * {
+    picking-mode: ignore;
+    cursor: default;
+}
+
+.card-element-stripe {
+    width: 4px;
+    height: 100%;
+    background-color: #888888;
+    flex-shrink: 0;
+}
+
+.card-icon-box {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+.mini-psy-card-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.card-text-details {
+    width: 48%;
+    height: 100%;
+    justify-content: center;
+    margin-left: 6px;
+    flex-shrink: 0;
+}
+
+.card-title-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.element-pip-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 3px;
+    border-width: 1px;
+    flex-shrink: 0;
+}
+
+.mini-psy-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    -unity-text-overflow-position: end;
+}
+
+.card-badges-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.mini-psy-card .psynergy-badge {
+    font-size: 8px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin: 0 2px 0 0;
+    border-radius: 2px;
+    color: #ffffff;
+    -unity-font-style: bold;
+}
+
+.badge-world { background-color: #2874a6; }
+.badge-battle { background-color: #b03a2e; }
+.badge-menu { background-color: #1e8449; }
+
+.card-status-box {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.badge-psy-status {
+    font-size: 8px;
+    -unity-font-style: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.badge-gained {
+    color: #00FF88;
+    background-color: rgba(0, 255, 136, 0.2);
+    border-width: 1px;
+    border-color: rgba(0, 255, 136, 0.4);
+}
+
+.badge-lost {
+    color: #FF6B6B;
+    background-color: rgba(255, 107, 107, 0.2);
+    border-width: 1px;
+    border-color: rgba(255, 107, 107, 0.4);
+}
+
+.card-cost-box {
+    width: 38px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.mini-psy-pp {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #5dade2;
+}
+
+.mini-psy-req {
+    font-size: 9px;
+    color: #8C9BA5;
+}
+
+.psy-card-new {
+    border-color: rgba(0, 255, 136, 0.5);
+    background-color: rgba(0, 255, 136, 0.05);
+}
+
+.psy-card-lost {
+    background-color: rgba(255, 68, 68, 0.05);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.stripe-lost { background-color: #FF4444; }
+.text-lost { color: #FF8888; }
+
+.psy-card-locked {
+    background-color: rgba(12, 16, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.stripe-locked { background-color: #4A5A73; }
+.text-locked { color: #6A7B95; }
+.icon-lock { background-color: rgba(0, 0, 0, 0.4); }
+
+.element-venus .card-element-stripe { background-color: #d4ac0d; }
+.element-venus { border-color: #7d6608; }
+
+.element-mars .card-element-stripe { background-color: #e74c3c; }
+.element-mars { border-color: #78281f; }
+
+.element-jupiter .card-element-stripe { background-color: #af7ac5; }
+.element-jupiter { border-color: #512e5f; }
+
+.element-mercury .card-element-stripe { background-color: #3498db; }
+.element-mercury { border-color: #1b4f72; }
+
+.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
+.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
+.icon-none { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }

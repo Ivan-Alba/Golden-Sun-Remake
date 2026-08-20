@@ -13,13 +13,17 @@
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+.relic-info-root Label {
+    margin: 0;
+    padding: 0;
+}
+
 /* --- Section Titles --- */
-.section-header-title {
+.relic-info-root .section-header-title {
     font-size: 10px;
     color: #DAA520; /* Golden Sun Gold */
     -unity-font-style: bold;
     letter-spacing: 1px;
-    padding: 0;
     margin-bottom: 4px;
 }
 
@@ -73,8 +77,6 @@
     font-size: 13px;
     -unity-font-style: bold;
     color: #ffffff;
-    padding: 0;
-    margin: 0;
 }
 
 .card-badges-row {
@@ -82,7 +84,7 @@
     margin-top: 2px;
 }
 
-.psynergy-badge {
+.relic-info-root .psynergy-badge {
     font-size: 9px;
     padding-left: 5px;
     padding-right: 5px;
@@ -192,16 +194,12 @@
 .stat-name {
     font-size: 12px;
     color: #CCCCCC;
-    padding: 0;
-    margin: 0;
 }
 
 .stat-value {
     font-size: 12px;
     -unity-font-style: bold;
     color: #FFFFFF;
-    padding: 0;
-    margin: 0;
 }
 
 /* --- Block 3: Narrative Flavor Text (Lore) --- */
@@ -224,7 +222,7 @@
     margin-bottom: 1px;
 }
 
-.lore-text {
+.relic-info-root .lore-text {
     font-size: 10px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
