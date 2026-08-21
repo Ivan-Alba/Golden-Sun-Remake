@@ -40,8 +40,10 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private VisualTreeAsset itemSlotAsset;
 
     [Header("Djinn Page Templates")]
+    [SerializeField] private VisualTreeAsset globalViewAsset;
     [SerializeField] private VisualTreeAsset miniPsynergyCardAsset;
     [SerializeField] private VisualTreeAsset djinnSlotCardAAsset;
+    [SerializeField] private VisualTreeAsset djinnSlotCardBAsset;
     [SerializeField] private Sprite targetSingleIcon;
     [SerializeField] private Sprite targetGroupIcon;
 
@@ -464,7 +466,7 @@ public class MainMenuController : MonoBehaviour
 
         djinnPageController = new PageDjinnController(djinnInstance);
         djinnPageController.SetParty(GetPartyHeroStatsList());
-        djinnPageController.SetTemplates(miniPsynergyCardAsset, djinnSlotCardAAsset);
+        djinnPageController.SetTemplates(globalViewAsset, miniPsynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
         djinnPageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
         djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
 

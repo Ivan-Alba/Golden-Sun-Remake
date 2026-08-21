@@ -1,0 +1,29 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Templates/DjinnSlotCardB.uss?fileID=7433441132597879392&amp;guid=f9bda8d369eb7874ab51378c440e1076&amp;type=3#DjinnSlotCardB" />
+    <ui:VisualElement name="djinn_slot_card_b_root" class="djinn-card-b-root djinn-card-venus">
+        <ui:VisualElement name="djinn_card_body" class="djinn-card-b-body">
+            <ui:VisualElement name="djinn_portrait_box" class="djinn-card-portrait-box">
+                <ui:VisualElement name="djinn_card_icon" class="djinn-card-icon" />
+            </ui:VisualElement>
+            <ui:VisualElement name="djinn_card_main_info" class="djinn-card-main-info">
+                <ui:VisualElement class="djinn-card-title-row">
+                    <ui:VisualElement class="djinn-card-name-group">
+                        <ui:VisualElement name="djinn_element_pip" class="element-pip-icon icon-venus" />
+                        <ui:Label text="Flint" name="label_djinn_card_name" class="djinn-card-name" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="djinn-card-leader-group">
+                        <ui:Button text="★ LÍDER" name="btn_leader_tag" class="btn-leader-tag leader-active" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="djinn-card-bottom-row">
+                    <ui:VisualElement class="djinn-card-unleash-row">
+                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
+                        <ui:Label text="Golpe fuerte que puede cortar la roca." name="label_unleash_short_desc" class="djinn-unleash-val" />
+                    </ui:VisualElement>
+                    <ui:Button text="PREPARADO" name="btn_djinn_status" class="djinn-status-btn status-set btn-compact" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="Vacío" name="label_djinn_empty" class="djinn-empty-label" style="display: none;" />
+    </ui:VisualElement>
+</ui:UXML>

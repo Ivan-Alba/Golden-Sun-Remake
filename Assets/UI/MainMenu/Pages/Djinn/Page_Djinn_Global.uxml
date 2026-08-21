@@ -3,346 +3,180 @@
     <ui:VisualElement name="page_djinn_global_container" class="page-djinn-container">
         <ui:VisualElement name="djinn_global_section" class="djinn-global-section">
             <ui:Label text="ORGANIZACIÓN GLOBAL DE DJINNS" class="info-title-label" />
+            
             <ui:VisualElement name="party_columns_container" class="party-columns-container">
+                
+                <!-- COLUMNA HÉROE 1 (Hans) -->
                 <ui:VisualElement class="hero-djinn-column">
-                    <ui:VisualElement class="hero-column-header">
-                        <ui:VisualElement class="hero-avatar-box">
-                            <ui:VisualElement class="hero-avatar-icon" />
+                    <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
+                        <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
+                            <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
                         </ui:VisualElement>
                         <ui:VisualElement class="hero-info-box">
                             <ui:VisualElement class="hero-title-row">
-                                <ui:Label text="Hans" class="hero-column-name" />
-                                <ui:Label text="Nv. 4" class="hero-column-level" />
+                                <ui:Label text="Hans" name="label_hero_name" class="summary-hero-name" />
+                                <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="hero-class-pips-row">
-                                <ui:Label text="Escudero" class="hero-column-class" />
-                                <ui:VisualElement class="summary-pips-row pips-row-compact">
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-venus" />
-                                        <ui:Label text="1/2" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mars" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mercury" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
+                            <ui:VisualElement name="class_name_container" class="class-name-container">
+                                <ui:Label text="Escudero" name="label_hero_class_current" class="summary-class-title" />
+                                <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                                <ui:Label text="Bestia" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
+                            </ui:VisualElement>
+                            <ui:VisualElement name="pips_row" class="summary-pips-row">
+                                <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                                    <ui:VisualElement class="pip-icon icon-venus" />
+                                    <ui:Label text="1/2" name="label_pip_venus" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mars" />
+                                    <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                                    <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mercury" />
+                                    <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="column-slots-container">
-                        <ui:VisualElement class="djinn-slot-card djinn-card-venus djinn-card-global">
-                            <ui:VisualElement class="djinn-card-portrait-box">
-                                <ui:VisualElement class="djinn-card-icon" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="djinn-card-main-info">
-                                <ui:VisualElement class="djinn-card-title-row">
-                                    <ui:Label text="Flint" class="djinn-card-name" />
-                                    <ui:VisualElement class="djinn-card-leader-group">
-                                        <ui:Label text="Líder: Romperocas" class="djinn-card-passive-tag passive-active" />
-                                        <ui:Label text="★" class="djinn-principal-star-inline" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                                <ui:VisualElement class="djinn-card-bottom-row">
-                                    <ui:VisualElement class="djinn-card-unleash-row">
-                                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                                        <ui:Label text="Golpe fuerte que puede cortar la roca." class="djinn-unleash-val" />
-                                    </ui:VisualElement>
-                                    <ui:Button text="PREPARADO" class="djinn-status-btn status-set btn-compact" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-venus djinn-card-global">
-                            <ui:VisualElement class="djinn-card-portrait-box">
-                                <ui:VisualElement class="djinn-card-icon" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="djinn-card-main-info">
-                                <ui:VisualElement class="djinn-card-title-row">
-                                    <ui:Label text="Granite" class="djinn-card-name" />
-                                    <ui:VisualElement class="djinn-card-leader-group">
-                                        <ui:Label text="Líder: Bastión" class="djinn-card-passive-tag passive-inactive" />
-                                        <ui:Label text="★" class="djinn-principal-star-inline star-hidden" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                                <ui:VisualElement class="djinn-card-bottom-row">
-                                    <ui:VisualElement class="djinn-card-unleash-row">
-                                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                                        <ui:Label text="Crea un escudo que reduce el daño 50%." class="djinn-unleash-val" />
-                                    </ui:VisualElement>
-                                    <ui:Button text="PREPARADO" class="djinn-status-btn status-set btn-compact" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:VisualElement name="column_slots_hero_0" class="column-slots-container" />
                 </ui:VisualElement>
+
+                <!-- COLUMNA HÉROE 2 (Garet) -->
                 <ui:VisualElement class="hero-djinn-column">
-                    <ui:VisualElement class="hero-column-header">
-                        <ui:VisualElement class="hero-avatar-box">
-                            <ui:VisualElement class="hero-avatar-icon" />
+                    <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
+                        <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
+                            <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
                         </ui:VisualElement>
                         <ui:VisualElement class="hero-info-box">
                             <ui:VisualElement class="hero-title-row">
-                                <ui:Label text="Garet" class="hero-column-name" />
-                                <ui:Label text="Nv. 4" class="hero-column-level" />
+                                <ui:Label text="Garet" name="label_hero_name" class="summary-hero-name" />
+                                <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="hero-class-pips-row">
-                                <ui:Label text="Guardián" class="hero-column-class" />
-                                <ui:VisualElement class="summary-pips-row pips-row-compact">
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-venus" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mars" />
-                                        <ui:Label text="1/1" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mercury" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
+                            <ui:VisualElement name="class_name_container" class="class-name-container">
+                                <ui:Label text="Guardián" name="label_hero_class_current" class="summary-class-title" />
+                                <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                                <ui:Label text="Guerrero" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
+                            </ui:VisualElement>
+                            <ui:VisualElement name="pips_row" class="summary-pips-row">
+                                <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                                    <ui:VisualElement class="pip-icon icon-venus" />
+                                    <ui:Label text="0/0" name="label_pip_venus" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mars" />
+                                    <ui:Label text="1/1" name="label_pip_mars" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                                    <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mercury" />
+                                    <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="column-slots-container">
-                        <ui:VisualElement class="djinn-slot-card djinn-card-mars djinn-card-global">
-                            <ui:VisualElement class="djinn-card-portrait-box">
-                                <ui:VisualElement class="djinn-card-icon" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="djinn-card-main-info">
-                                <ui:VisualElement class="djinn-card-title-row">
-                                    <ui:Label text="Forge" class="djinn-card-name" />
-                                    <ui:VisualElement class="djinn-card-leader-group">
-                                        <ui:Label text="Líder: Forja" class="djinn-card-passive-tag passive-active" />
-                                        <ui:Label text="★" class="djinn-principal-star-inline" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                                <ui:VisualElement class="djinn-card-bottom-row">
-                                    <ui:VisualElement class="djinn-card-unleash-row">
-                                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                                        <ui:Label text="Ataque envuelto en llamas de área." class="djinn-unleash-val" />
-                                    </ui:VisualElement>
-                                    <ui:Button text="PREPARADO" class="djinn-status-btn status-set btn-compact" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:VisualElement name="column_slots_hero_1" class="column-slots-container" />
                 </ui:VisualElement>
+
+                <!-- COLUMNA HÉROE 3 (Ivan) -->
                 <ui:VisualElement class="hero-djinn-column">
-                    <ui:VisualElement class="hero-column-header">
-                        <ui:VisualElement class="hero-avatar-box">
-                            <ui:VisualElement class="hero-avatar-icon" />
+                    <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
+                        <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
+                            <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
                         </ui:VisualElement>
                         <ui:VisualElement class="hero-info-box">
                             <ui:VisualElement class="hero-title-row">
-                                <ui:Label text="Ivan" class="hero-column-name" />
-                                <ui:Label text="Nv. 4" class="hero-column-level" />
+                                <ui:Label text="Ivan" name="label_hero_name" class="summary-hero-name" />
+                                <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="hero-class-pips-row">
-                                <ui:Label text="Vidente" class="hero-column-class" />
-                                <ui:VisualElement class="summary-pips-row pips-row-compact">
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-venus" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mars" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                                        <ui:Label text="1/1" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mercury" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
+                            <ui:VisualElement name="class_name_container" class="class-name-container">
+                                <ui:Label text="Vidente" name="label_hero_class_current" class="summary-class-title" />
+                                <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                                <ui:Label text="Mago" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
+                            </ui:VisualElement>
+                            <ui:VisualElement name="pips_row" class="summary-pips-row">
+                                <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                                    <ui:VisualElement class="pip-icon icon-venus" />
+                                    <ui:Label text="0/0" name="label_pip_venus" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mars" />
+                                    <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                                    <ui:Label text="1/1" name="label_pip_jupiter" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mercury" />
+                                    <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="column-slots-container">
-                        <ui:VisualElement class="djinn-slot-card djinn-card-jupiter djinn-card-global">
-                            <ui:VisualElement class="djinn-card-portrait-box">
-                                <ui:VisualElement class="djinn-card-icon" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="djinn-card-main-info">
-                                <ui:VisualElement class="djinn-card-title-row">
-                                    <ui:Label text="Gust" class="djinn-card-name" />
-                                    <ui:VisualElement class="djinn-card-leader-group">
-                                        <ui:Label text="Líder: Céfiro" class="djinn-card-passive-tag passive-active" />
-                                        <ui:Label text="★" class="djinn-principal-star-inline" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                                <ui:VisualElement class="djinn-card-bottom-row">
-                                    <ui:VisualElement class="djinn-card-unleash-row">
-                                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                                        <ui:Label text="Ataque de viento que induce sueño." class="djinn-unleash-val" />
-                                    </ui:VisualElement>
-                                    <ui:Button text="PREPARADO" class="djinn-status-btn status-set btn-compact" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:VisualElement name="column_slots_hero_2" class="column-slots-container" />
                 </ui:VisualElement>
+
+                <!-- COLUMNA HÉROE 4 (Mia) -->
                 <ui:VisualElement class="hero-djinn-column">
-                    <ui:VisualElement class="hero-column-header">
-                        <ui:VisualElement class="hero-avatar-box">
-                            <ui:VisualElement class="hero-avatar-icon" />
+                    <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
+                        <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
+                            <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
                         </ui:VisualElement>
                         <ui:VisualElement class="hero-info-box">
                             <ui:VisualElement class="hero-title-row">
-                                <ui:Label text="Mia" class="hero-column-name" />
-                                <ui:Label text="Nv. 4" class="hero-column-level" />
+                                <ui:Label text="Mia" name="label_hero_name" class="summary-hero-name" />
+                                <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="hero-class-pips-row">
-                                <ui:Label text="Mágica" class="hero-column-class" />
-                                <ui:VisualElement class="summary-pips-row pips-row-compact">
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-venus" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mars" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                                        <ui:Label text="0/0" class="pip-count" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="pip-element-group">
-                                        <ui:VisualElement class="pip-icon icon-mercury" />
-                                        <ui:Label text="1/1" class="pip-count" />
-                                    </ui:VisualElement>
+                            <ui:VisualElement name="class_name_container" class="class-name-container">
+                                <ui:Label text="Mágica" name="label_hero_class_current" class="summary-class-title" />
+                                <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                                <ui:Label text="Clérigo" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
+                            </ui:VisualElement>
+                            <ui:VisualElement name="pips_row" class="summary-pips-row">
+                                <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                                    <ui:VisualElement class="pip-icon icon-venus" />
+                                    <ui:Label text="0/0" name="label_pip_venus" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mars" />
+                                    <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                                    <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="pip-element-group">
+                                    <ui:VisualElement class="pip-icon icon-mercury" />
+                                    <ui:Label text="1/1" name="label_pip_mercury" class="pip-count" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="column-slots-container">
-                        <ui:VisualElement class="djinn-slot-card djinn-card-mercury djinn-card-global">
-                            <ui:VisualElement class="djinn-card-portrait-box">
-                                <ui:VisualElement class="djinn-card-icon" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="djinn-card-main-info">
-                                <ui:VisualElement class="djinn-card-title-row">
-                                    <ui:Label text="Fizz" class="djinn-card-name" />
-                                    <ui:VisualElement class="djinn-card-leader-group">
-                                        <ui:Label text="Líder: Manantial" class="djinn-card-passive-tag passive-active" />
-                                        <ui:Label text="★" class="djinn-principal-star-inline" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                                <ui:VisualElement class="djinn-card-bottom-row">
-                                    <ui:VisualElement class="djinn-card-unleash-row">
-                                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                                        <ui:Label text="Restaura una porción de HP a la party." class="djinn-unleash-val" />
-                                    </ui:VisualElement>
-                                    <ui:Button text="PREPARADO" class="djinn-status-btn status-set btn-compact" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="djinn-slot-card djinn-card-empty djinn-card-global">
-                            <ui:Label text="Vacío" class="djinn-empty-label" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:VisualElement name="column_slots_hero_3" class="column-slots-container" />
                 </ui:VisualElement>
+
             </ui:VisualElement>
+
+            <!-- BARRA DE ACCIÓN INFERIOR VISTA B -->
             <ui:VisualElement name="djinn_global_action_bar" class="djinn-action-bar">
                 <ui:Button text="[ CANCEL / SELECT ] VOLVER A VISTA INDIVIDUAL" name="btn_switch_vista_a" class="action-switch-btn" />
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <!-- MODAL OVERLAY DE COMPARACIÓN E INTERCAMBIO -->
         <ui:VisualElement name="compare_modal_overlay" class="modal-overlay-container" style="display: none;">
             <ui:VisualElement class="compare-modal-box">
                 <ui:Label text="CONFIRMAR INTERCAMBIO DE DJINNS" class="info-title-label compare-modal-title" />
                 <ui:VisualElement class="compare-modal-content">
+                    
+                    <!-- PANEL IZQUIERDO HÉROE ORIGEN -->
                     <ui:VisualElement name="modal_hero_left" class="djinn-summary-section modal-hero-panel">
                         <ui:VisualElement class="summary-box modal-integrated-hero-box">
                             <ui:VisualElement class="modal-hero-avatar-large">
@@ -423,31 +257,11 @@
                         <ui:VisualElement class="section-separator" />
                         <ui:VisualElement class="psynergy-view-container">
                             <ui:Label text="PSINERGÍAS AFECTADAS" class="subpanel-header-label" />
-                            <ui:ScrollView class="psynergy-list-scroll modal-psy-scroll">
-                                <ui:VisualElement class="mini-psy-card element-mars psy-card-new">
-                                    <ui:VisualElement class="card-element-stripe" />
-                                    <ui:VisualElement class="card-icon-box">
-                                        <ui:VisualElement class="mini-psy-card-icon" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-text-details">
-                                        <ui:VisualElement class="card-title-row">
-                                            <ui:VisualElement class="element-pip-icon icon-mars" />
-                                            <ui:Label text="Fuego" class="mini-psy-name" />
-                                        </ui:VisualElement>
-                                        <ui:VisualElement class="card-badges-row">
-                                            <ui:Label text="Combate" class="psynergy-badge badge-battle" />
-                                        </ui:VisualElement>
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-status-box">
-                                        <ui:Label text="NUEVA" class="badge-psy-status badge-gained" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-cost-box">
-                                        <ui:Label text="6 PP" class="mini-psy-pp" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                            </ui:ScrollView>
+                            <ui:ScrollView class="psynergy-list-scroll modal-psy-scroll" />
                         </ui:VisualElement>
                     </ui:VisualElement>
+
+                    <!-- PANEL CENTRAL ACCIONES -->
                     <ui:VisualElement class="compare-center-action-box">
                         <ui:Label text="INTERCAMBIO" class="compare-action-title" />
                         <ui:VisualElement class="compare-exchange-visual">
@@ -464,6 +278,8 @@
                             <ui:Button text="[ B ] CANCELAR" name="btn_modal_cancel" class="modal-btn btn-cancel" />
                         </ui:VisualElement>
                     </ui:VisualElement>
+
+                    <!-- PANEL DERECHO HÉROE DESTINO -->
                     <ui:VisualElement name="modal_hero_right" class="djinn-summary-section modal-hero-panel">
                         <ui:VisualElement class="summary-box modal-integrated-hero-box">
                             <ui:VisualElement class="modal-hero-avatar-large">
@@ -544,33 +360,13 @@
                         <ui:VisualElement class="section-separator" />
                         <ui:VisualElement class="psynergy-view-container">
                             <ui:Label text="PSINERGÍAS AFECTADAS" class="subpanel-header-label" />
-                            <ui:ScrollView class="psynergy-list-scroll modal-psy-scroll">
-                                <ui:VisualElement class="mini-psy-card psy-card-lost">
-                                    <ui:VisualElement class="card-element-stripe stripe-lost" />
-                                    <ui:VisualElement class="card-icon-box">
-                                        <ui:VisualElement class="mini-psy-card-icon" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-text-details">
-                                        <ui:VisualElement class="card-title-row">
-                                            <ui:VisualElement class="element-pip-icon icon-none" />
-                                            <ui:Label text="Explosión" class="mini-psy-name text-lost" />
-                                        </ui:VisualElement>
-                                        <ui:VisualElement class="card-badges-row">
-                                            <ui:Label text="Combate" class="psynergy-badge badge-battle" />
-                                        </ui:VisualElement>
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-status-box">
-                                        <ui:Label text="PERDIDA" class="badge-psy-status badge-lost" />
-                                    </ui:VisualElement>
-                                    <ui:VisualElement class="card-cost-box">
-                                        <ui:Label text="---" class="mini-psy-req" />
-                                    </ui:VisualElement>
-                                </ui:VisualElement>
-                            </ui:ScrollView>
+                            <ui:ScrollView class="psynergy-list-scroll modal-psy-scroll" />
                         </ui:VisualElement>
                     </ui:VisualElement>
+
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
     </ui:VisualElement>
 </ui:UXML>

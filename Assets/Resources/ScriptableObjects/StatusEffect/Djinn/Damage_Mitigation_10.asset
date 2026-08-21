@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Damage_Mitigation_10
   m_EditorClassIdentifier: 
   effectSlug: damage_mitigation_10
-  effectName: "Da\xF1o reducido"
+  effectName: "Da\xF1o reducido 10%"
   icon: {fileID: 0}
   description: "Crea una barrera que protege del da\xF1o."
   category: 0

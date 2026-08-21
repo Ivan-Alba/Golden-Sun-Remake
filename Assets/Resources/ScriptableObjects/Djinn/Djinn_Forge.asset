@@ -27,7 +27,7 @@ MonoBehaviour:
   - statType: 0
     value: 5
     modifierType: 0
-  unleashEffect: {fileID: 0}
+  unleashEffect: {fileID: 11400000, guid: 4aaffd3b7dace724893152e259ea30f4, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 0}
   leaderPassiveDescription: 

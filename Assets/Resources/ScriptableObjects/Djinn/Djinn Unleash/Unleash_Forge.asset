@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cb274ac509a3049813737a782853fa, type: 3}
   m_Name: Unleash_Forge
   m_EditorClassIdentifier: 
-  unleashName: 
-  slugName: 
-  description: 
+  unleashName: Forjado a fuego
+  slugName: forge
+  description: Aumenta temporalmente el ataque del grupo.
   icon: {fileID: 0}
-  element: 0
-  targetsAlly: 0
-  isAreaOfEffect: 0
+  element: 2
+  targetsAlly: 1
+  isAreaOfEffect: 1
   damageMultiplier: 1
   flatBonusDamage: 0
-  statusEffects: []
+  statusEffects:
+  - {fileID: 11400000, guid: 21f4ade35a31aab45a97e2e84bc4df1d, type: 2}
   statusChance: 1
   hitFXType: 0
   customHitVFX: {fileID: 0}

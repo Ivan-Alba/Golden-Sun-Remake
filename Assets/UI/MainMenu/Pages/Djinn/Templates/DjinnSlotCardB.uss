@@ -1,0 +1,187 @@
+/* ==========================================================================
+   GLOBAL ENRICHED DJINN CARD (VISTA B)
+   ========================================================================== */
+
+/* 1. NODO RAÍZ DEL COMPONENTE */
+.djinn-card-b-root {
+    width: 100%;
+    height: 100%;
+    min-height: 38px;
+    background-color: rgba(10, 16, 26, 0.75);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 3px 5px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+/* 2. CONTENEDOR INTERNO DE CONTENIDO (RETRATO + INFO) */
+.djinn-card-b-body {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* 3. CAJA DEL RETRATO (IZQUIERDA) */
+.djinn-card-portrait-box {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.djinn-card-icon {
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 4. BLOQUE PRINCIPAL DE INFORMACIÓN (DERECHA) */
+.djinn-card-main-info {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: space-between;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin-left: 6px;
+    overflow: hidden;
+}
+
+/* 5. FILA SUPERIOR: PIP + NOMBRE | CHIP LÍDER */
+.djinn-card-title-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 14px;
+}
+
+.djinn-card-name-group {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.element-pip-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.djinn-card-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    margin: 0;
+    padding: 0;
+    -unity-text-overflow-position: end;
+}
+
+/* CHIP / BOTÓN DE LÍDER */
+.djinn-card-leader-group {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn-leader-tag {
+    font-size: 8px;
+    -unity-font-style: bold;
+    border-radius: 2px;
+    padding: 1px 4px;
+    margin: 0;
+    border-width: 1px;
+}
+
+.leader-active {
+    color: #FFD700;
+    background-color: rgba(255, 215, 0, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.leader-inactive {
+    color: #8C9BA5;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 6. FILA INFERIOR: TEXTO LIBERAR | BOTÓN PREPARADO */
+.djinn-card-bottom-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 14px;
+}
+
+.djinn-card-unleash-row {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+    margin-right: 4px;
+}
+
+.djinn-unleash-label {
+    font-size: 8px;
+    color: #8C9BA5;
+    margin-right: 3px;
+    flex-shrink: 0;
+}
+
+.djinn-unleash-val {
+    font-size: 8px;
+    color: #5DADE2;
+    -unity-font-style: bold;
+    -unity-text-overflow-position: end;
+    overflow: hidden;
+}
+
+/* BOTÓN ESTADO COMPACTO */
+.btn-compact {
+    width: 58px;
+    height: 13px;
+    font-size: 7px;
+    -unity-font-style: bold;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+    border-radius: 2px;
+}
+
+.status-set {
+    background-color: rgba(46, 204, 113, 0.2);
+    border-color: rgba(46, 204, 113, 0.5);
+    color: #2ECC71;
+}
+
+/* ESTADO VACÍO */
+.djinn-empty-label {
+    width: 100%;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.3);
+    -unity-text-align: middle-center;
+}
+
+/* COLORES ELEMENTALES PARA BORDES Y FONDOS DE LA CARD B */
+.djinn-card-venus { border-color: rgba(200, 138, 46, 0.5); }
+.djinn-card-mars { border-color: rgba(231, 76, 60, 0.5); }
+.djinn-card-jupiter { border-color: rgba(155, 89, 182, 0.5); }
+.djinn-card-mercury { border-color: rgba(52, 152, 219, 0.5); }

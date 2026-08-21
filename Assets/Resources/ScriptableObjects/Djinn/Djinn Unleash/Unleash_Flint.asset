@@ -21,8 +21,9 @@ MonoBehaviour:
   isAreaOfEffect: 0
   damageMultiplier: 1.25
   flatBonusDamage: 0
-  statusEffects: []
-  statusChance: 1
+  statusEffects:
+  - {fileID: 11400000, guid: 05fb25099c9fc6b4dbf0f9e66929e5ae, type: 2}
+  statusChance: 0.5
   hitFXType: 0
   customHitVFX: {fileID: 0}
   casterAuraVFX: {fileID: 0}

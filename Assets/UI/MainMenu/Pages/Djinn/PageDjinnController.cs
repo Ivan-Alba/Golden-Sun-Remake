@@ -29,6 +29,11 @@ public class PageDjinnController
     /// </summary>
     public event Action OnDjinnStateChanged;
 
+    /// <summary>
+    /// Event triggered when switching between Vista A and Vista B to toggle the top heroes bar visibility in MainMenuController.
+    /// </summary>
+    public event Action<bool> OnToggleTopHeroesBar;
+
     #endregion
 
     #region Private Fields - Containers & Views
@@ -39,6 +44,10 @@ public class PageDjinnController
     private VisualElement pageDjinnContainer;
     private VisualElement sectionVistaB;
     private VisualElement modalOverlayCompare;
+
+    // Vista B Elements
+    private VisualElement partyColumnsContainer;
+    private Button btnSwitchToVistaA;
 
     // Current View State
     private DjinnViewMode currentViewMode = DjinnViewMode.Individual;
@@ -127,6 +136,8 @@ public class PageDjinnController
     // Templates UXML
     private VisualTreeAsset psynergyCardAsset;
     private VisualTreeAsset djinnSlotCardAAsset;
+    private VisualTreeAsset djinnSlotCardBAsset;
+    private VisualTreeAsset pageDjinnGlobalAsset;
 
     // Djinn Selected for Detail Display in Vista A
     private DjinnInstance selectedDjinnForDetails;
@@ -158,7 +169,6 @@ public class PageDjinnController
 
         // 1. Root Containers
         pageDjinnContainer = rootElement.Q<VisualElement>("page_djinn_container");
-        sectionVistaB = rootElement.Q<VisualElement>("djinn_global_section");
         modalOverlayCompare = rootElement.Q<VisualElement>("compare_modal_overlay");
 
         // 2. Left Panel Elements
@@ -234,7 +244,7 @@ public class PageDjinnController
 
     #endregion
 
-    #region Data Initialization & Tab Switch
+    #region Data Initialization & Layout Setup
 
     public void SetParty(List<HeroStats> party)
     {
@@ -242,12 +252,49 @@ public class PageDjinnController
     }
 
     /// <summary>
-    /// Assigns the UXML templates used for dynamic instantiation in the page.
+    /// Assigns the UXML templates used for dynamic instantiation in the page (Vista A, Vista B, and Psynergy Cards).
     /// </summary>
-    public void SetTemplates(VisualTreeAsset miniPsynergyCard, VisualTreeAsset djinnSlotCardA)
+    public void SetTemplates(VisualTreeAsset globalViewTemplate, VisualTreeAsset miniPsynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
     {
+        pageDjinnGlobalAsset = globalViewTemplate;
         psynergyCardAsset = miniPsynergyCard;
         djinnSlotCardAAsset = djinnSlotCardA;
+        djinnSlotCardBAsset = djinnSlotCardB;
+
+        InitializeVistaBLayout();
+    }
+
+    /// <summary>
+    /// Instantiates and injects Vista B layout into rootElement if it hasn't been instantiated yet.
+    /// </summary>
+    private void InitializeVistaBLayout()
+    {
+        if (sectionVistaB != null || pageDjinnGlobalAsset == null || rootElement == null) return;
+
+        // English comment: Instantiate Vista B UXML template
+        TemplateContainer globalInstance = pageDjinnGlobalAsset.Instantiate();
+        globalInstance.style.flexGrow = 1;
+        globalInstance.style.width = Length.Percent(100);
+        globalInstance.style.height = Length.Percent(100);
+
+        // English comment: Query root element from template or fallback to the instance itself
+        sectionVistaB = globalInstance.Q<VisualElement>("page_djinn_global_container")
+                     ?? globalInstance.Q<VisualElement>("djinn_global_section")
+                     ?? globalInstance;
+
+        sectionVistaB.style.display = DisplayStyle.None;
+
+        // English comment: Append instantiated layout to page root
+        rootElement.Add(sectionVistaB);
+
+        // English comment: Bind Vista B controls and events
+        partyColumnsContainer = sectionVistaB.Q<VisualElement>("party_columns_container");
+        btnSwitchToVistaA = sectionVistaB.Q<Button>("btn_switch_vista_a");
+
+        if (btnSwitchToVistaA != null)
+        {
+            btnSwitchToVistaA.clicked += () => SwitchToView(DjinnViewMode.Individual);
+        }
     }
 
     /// <summary>
@@ -318,7 +365,7 @@ public class PageDjinnController
         if (labelClassArrow != null) labelClassArrow.style.display = DisplayStyle.None;
 
         // 2. Update Elemental Pips
-        UpdateElementalPips();
+        UpdateElementalPips(currentHeroDjinnController, labelPipVenus, labelPipMars, labelPipJupiter, labelPipMercury);
 
         // 3. Update Base Stats
         if (labelStatAtq != null) labelStatAtq.text = Mathf.RoundToInt(currentHero.Attack).ToString();
@@ -370,14 +417,14 @@ public class PageDjinnController
         UpdateSanctuaryUI();
     }
 
-    private void UpdateElementalPips()
+    private void UpdateElementalPips(HeroDjinnController djinnCtrl, Label pVenus, Label pMars, Label pJupiter, Label pMercury)
     {
-        if (currentHeroDjinnController == null) return;
+        if (djinnCtrl == null) return;
 
         int vCount = 0, mCount = 0, jCount = 0, meCount = 0;
         int totalVCount = 0, totalMCount = 0, totalJCount = 0, totalMeCount = 0;
 
-        foreach (var djinn in currentHeroDjinnController.AssignedDjinns)
+        foreach (var djinn in djinnCtrl.AssignedDjinns)
         {
             if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null)
             {
@@ -401,10 +448,10 @@ public class PageDjinnController
             }
         }
 
-        if (labelPipVenus != null) labelPipVenus.text = $"{vCount}/{totalVCount + vCount}";
-        if (labelPipMars != null) labelPipMars.text = $"{mCount}/{totalMCount + mCount}";
-        if (labelPipJupiter != null) labelPipJupiter.text = $"{jCount}/{totalJCount + jCount}";
-        if (labelPipMercury != null) labelPipMercury.text = $"{meCount}/{totalMeCount + meCount}";
+        if (pVenus != null) pVenus.text = $"{vCount}/{totalVCount + vCount}";
+        if (pMars != null) pMars.text = $"{mCount}/{totalMCount + mCount}";
+        if (pJupiter != null) pJupiter.text = $"{jCount}/{totalJCount + jCount}";
+        if (pMercury != null) pMercury.text = $"{meCount}/{totalMeCount + meCount}";
     }
 
     private void HideStatDeltas()
@@ -499,7 +546,6 @@ public class PageDjinnController
                         btnLeaderTag.AddToClassList("leader-disabled");
                     }
 
-                    // Cambiar el líder al hacer clic directamente sobre el chip
                     btnLeaderTag.RegisterCallback<ClickEvent>(evt =>
                     {
                         evt.StopPropagation();
@@ -582,9 +628,6 @@ public class PageDjinnController
 
         UpdateSetBonusGrid(data);
 
-        // =========================================================================
-        // EFECTOS DE LIBERACIÓN Y BADGES DINÁMICAS
-        // =========================================================================
         if (data.UnleashEffect != null)
         {
             DjinnUnleashSO unleash = data.UnleashEffect;
@@ -592,7 +635,6 @@ public class PageDjinnController
             if (labelUnleashName != null) labelUnleashName.text = unleash.UnleashName;
             if (labelUnleashDesc != null) labelUnleashDesc.text = unleash.Description;
 
-            // Renderizar Badges Dinámicas
             RenderUnleashBadges(unleash);
         }
         else
@@ -610,9 +652,6 @@ public class PageDjinnController
             }
         }
 
-        // =========================================================================
-        // PASIVA DE LÍDER
-        // =========================================================================
         if (labelLeaderPassiveTitle != null)
         {
             labelLeaderPassiveTitle.text = (data.LeaderPassiveEffect != null) ? data.LeaderPassiveEffect.EffectName : "Sin Pasiva";
@@ -628,9 +667,6 @@ public class PageDjinnController
         RenderDjinnVideo(djinnInstance);
     }
 
-    /// <summary>  
-    /// Instancia dinámicamente las badges de Target, Daño y Status Effects según las propiedades de DjinnUnleashSO.  
-    /// </summary>  
     private void RenderUnleashBadges(DjinnUnleashSO unleash)
     {
         if (boxUnleashInfo == null) return;
@@ -663,9 +699,7 @@ public class PageDjinnController
             {
                 if (status == null) continue;
 
-                // Prefijo de Probabilidad (ej. "30% " si la probabilidad no es del 100%) 
                 string chancePrefix = (unleash.StatusChance < 1.0f) ? $" {(int)(unleash.StatusChance * 100)}%" : "";
-
                 string categoryPrefix = "";
                 string categoryClass = "badge-target";
                 Sprite effectIcon = null;
@@ -675,18 +709,18 @@ public class PageDjinnController
                     case StatusEffectCategory.Buff:
                         categoryPrefix = "↑ ";
                         categoryClass = "badge-buff";
-                        effectIcon = null; // En Buffs no mostramos icono, usaremos la flecha en texto
+                        effectIcon = null;
                         break;
 
                     case StatusEffectCategory.Debuff:
                         categoryPrefix = "↓ ";
                         categoryClass = "badge-debuff";
-                        effectIcon = null; // En Debuffs no mostramos icono, usaremos la flecha en texto
+                        effectIcon = null;
                         break;
 
                     case StatusEffectCategory.Ailment:
                         categoryClass = "badge-ailment";
-                        effectIcon = status.Icon; // Muestra el icono definido en el StatusEffectSO
+                        effectIcon = status.Icon;
                         break;
                 }
 
@@ -698,9 +732,6 @@ public class PageDjinnController
         }
     }
 
-    /// <summary>
-    /// Crea el contenedor modular de una Badge con su caja de icono y su etiqueta de texto.
-    /// </summary>
     private VisualElement CreateBadgeContainer(string categoryClass, Sprite iconSprite, string text)
     {
         // English comment: Create parent badge container with flex layout
@@ -722,7 +753,6 @@ public class PageDjinnController
             iconElem.style.display = DisplayStyle.None;
         }
 
-        // English comment: Create label element for badge text
         Label textLabel = new Label(text);
 
         badgeContainer.Add(iconElem);
@@ -731,9 +761,6 @@ public class PageDjinnController
         return badgeContainer;
     }
 
-    /// <summary>
-    /// Devuelve el Sprite correspondiente para la badge de objetivo según el ámbito de la habilidad.
-    /// </summary>
     private Sprite GetTargetIcon(bool targetsAlly, bool isAreaOfEffect)
     {
         // English comment: Return the corresponding target icon based on alliance and AoE status
@@ -785,8 +812,6 @@ public class PageDjinnController
         if (labelSetBonusDef != null) labelSetBonusDef.text = formatBonus(def, labelSetBonusDef);
         if (labelSetBonusAgi != null) labelSetBonusAgi.text = formatBonus(agi, labelSetBonusAgi);
         if (labelSetBonusSue != null) labelSetBonusSue.text = formatBonus(sue, labelSetBonusSue);
-
-        //string formatBonus(float val) => (val >= 0) ? $"+{Mathf.RoundToInt(val)}" : $"{Mathf.RoundToInt(val)}";
     }
 
     private string formatBonus(float val, Label setBonusLabel)
@@ -795,7 +820,6 @@ public class PageDjinnController
         {
             setBonusLabel.style.color = new StyleColor(Color.green);
             return $"+{Mathf.RoundToInt(val)}";
-
         }
         else
         {
@@ -850,9 +874,6 @@ public class PageDjinnController
 
     #region Modular Psynergy Card Instantiation
 
-    /// <summary>
-    /// Creates and populates a single Psynergy card instance based on the provided state.
-    /// </summary>
     private TemplateContainer CreatePsynergyCardInstance(PsynergySO psynergy, PsynergyCardState state, int requiredLevel = 0)
     {
         if (psynergyCardAsset == null) return null;
@@ -861,7 +882,6 @@ public class PageDjinnController
         VisualElement cardRoot = cardInstance.Q<VisualElement>("mini_psy_card_root");
         if (cardRoot == null) return cardInstance;
 
-        // 1. Limpiar temas elementales previos
         cardRoot.RemoveFromClassList("element-venus");
         cardRoot.RemoveFromClassList("element-mars");
         cardRoot.RemoveFromClassList("element-jupiter");
@@ -871,7 +891,6 @@ public class PageDjinnController
         {
             cardRoot.AddToClassList($"element-{psynergy.Element.ToString().ToLower()}");
 
-            // Element Pip Icon
             VisualElement elementPip = cardRoot.Q<VisualElement>("mini_psy_element_pip");
             if (elementPip != null)
             {
@@ -882,21 +901,18 @@ public class PageDjinnController
                 elementPip.AddToClassList($"icon-{psynergy.Element.ToString().ToLower()}");
             }
 
-            // Icono Principal
             VisualElement iconElem = cardRoot.Q<VisualElement>("mini_psy_icon");
             if (iconElem != null && psynergy.Icon != null)
             {
                 iconElem.style.backgroundImage = new StyleBackground(psynergy.Icon);
             }
 
-            // Nombre y Coste PP
             Label nameLabel = cardRoot.Q<Label>("mini_psy_name");
             if (nameLabel != null) nameLabel.text = psynergy.PsynergyName;
 
             Label ppLabel = cardRoot.Q<Label>("mini_psy_pp");
             if (ppLabel != null) ppLabel.text = $"{psynergy.PpCost} PP";
 
-            // Badges
             Label badgeMenu = cardRoot.Q<Label>("badge_menu");
             if (badgeMenu != null)
             {
@@ -916,7 +932,6 @@ public class PageDjinnController
             }
         }
 
-        // 2. Aplicar capa de estado / proyección / candado
         VisualElement statusBox = cardRoot.Q<VisualElement>("mini_psy_status_box");
         Label labelStatus = cardRoot.Q<Label>("label_psy_status");
 
@@ -967,7 +982,6 @@ public class PageDjinnController
 
         if (currentHero == null || psynergyCardAsset == null) return;
 
-        // 1. Instanciar Psinergías Aprendidas Actuales
         IReadOnlyList<PsynergySO> heroPsynergies = currentHero.Psynergies;
         if (heroPsynergies != null)
         {
@@ -979,7 +993,6 @@ public class PageDjinnController
             }
         }
 
-        // 2. Instanciar Psinergías Bloqueadas de la clase actual
         List<ClassPsynergyEntry> futurePsynergies = currentHeroDjinnController.CurrentClass.GetFuturePsynergies(currentHero.Level);
         foreach (var entry in futurePsynergies)
         {
@@ -988,9 +1001,6 @@ public class PageDjinnController
         }
     }
 
-    /// <summary>
-    /// Populates a given ScrollView with Psynergies categorized by state for Projection/Comparison views.
-    /// </summary>
     private void RefreshPsynergiesComparison(ScrollView container, List<PsynergySO> gained, List<PsynergySO> lost, List<PsynergySO> kept)
     {
         if (container == null) return;
@@ -1026,19 +1036,186 @@ public class PageDjinnController
 
     #endregion
 
-    #region Vista B & Modal Placeholder
+    #region Vista B & Party Rendering
 
     private void RefreshVistaB()
     {
-        // TODO: Renderizar vista B
+        if (partyColumnsContainer == null || partyHeroes == null || djinnSlotCardBAsset == null) return;
+
+        // English comment: Find all hero columns dynamically in partyColumnsContainer
+        List<VisualElement> columns = partyColumnsContainer.Query<VisualElement>(className: "hero-djinn-column").ToList();
+
+        for (int i = 0; i < columns.Count; i++)
+        {
+            VisualElement columnElem = columns[i];
+            HeroStats hero = (i < partyHeroes.Count) ? partyHeroes[i] : null;
+
+            if (hero == null)
+            {
+                columnElem.style.display = DisplayStyle.None;
+                continue;
+            }
+
+            columnElem.style.display = DisplayStyle.Flex;
+
+            // 1. Populate Header Data
+            VisualElement avatarIcon = columnElem.Q<VisualElement>("hero_avatar_icon");
+            Label nameLabel = columnElem.Q<Label>("label_hero_name");
+            Label levelLabel = columnElem.Q<Label>("label_hero_level");
+            Label classCurrentLabel = columnElem.Q<Label>("label_hero_class_current");
+
+            Label pipVenus = columnElem.Q<Label>("label_pip_venus");
+            Label pipMars = columnElem.Q<Label>("label_pip_mars");
+            Label pipJupiter = columnElem.Q<Label>("label_pip_jupiter");
+            Label pipMercury = columnElem.Q<Label>("label_pip_mercury");
+
+            if (avatarIcon != null) avatarIcon.style.backgroundImage = new StyleBackground(hero.TurnBarImage);
+            if (nameLabel != null) nameLabel.text = hero.Name;
+            if (levelLabel != null) levelLabel.text = $"Nv. {hero.Level}";
+
+            HeroDjinnController djinnCtrl = hero.GetComponent<HeroDjinnController>();
+            if (classCurrentLabel != null && djinnCtrl != null && djinnCtrl.CurrentClass != null)
+            {
+                classCurrentLabel.text = djinnCtrl.CurrentClass.ClassName;
+            }
+
+            UpdateElementalPips(djinnCtrl, pipVenus, pipMars, pipJupiter, pipMercury);
+
+            // 2. Populate Djinn Slot Cards
+            VisualElement slotsContainer = columnElem.Q<VisualElement>(className: "column-slots-container");
+            if (slotsContainer == null) continue;
+
+            slotsContainer.Clear();
+
+            IReadOnlyList<DjinnInstance> assignedDjinns = (djinnCtrl != null) ? djinnCtrl.AssignedDjinns : null;
+
+            for (int slotIndex = 0; slotIndex < 8; slotIndex++)
+            {
+                TemplateContainer slotInstance = djinnSlotCardBAsset.Instantiate();
+                VisualElement cardRoot = slotInstance.Q<VisualElement>("djinn_slot_card_b_root");
+                if (cardRoot == null) continue;
+
+                DjinnInstance djinn = (assignedDjinns != null && slotIndex < assignedDjinns.Count) ? assignedDjinns[slotIndex] : null;
+
+                VisualElement cardBody = cardRoot.Q<VisualElement>("djinn_card_body");
+                VisualElement iconElem = cardRoot.Q<VisualElement>("djinn_card_icon");
+                Label cardNameLabel = cardRoot.Q<Label>("label_djinn_card_name");
+                Button btnLeaderTag = cardRoot.Q<Button>("btn_leader_tag");
+                Label unleashValLabel = cardRoot.Q<Label>("label_unleash_short_desc");
+                Button statusBtn = cardRoot.Q<Button>("btn_djinn_status");
+                Label emptyLabel = cardRoot.Q<Label>("label_djinn_empty");
+                VisualElement elementPip = cardRoot.Q<VisualElement>("djinn_element_pip");
+
+                cardRoot.RemoveFromClassList("djinn-card-venus");
+                cardRoot.RemoveFromClassList("djinn-card-mars");
+                cardRoot.RemoveFromClassList("djinn-card-jupiter");
+                cardRoot.RemoveFromClassList("djinn-card-mercury");
+
+                if (djinn != null && djinn.DjinnData != null)
+                {
+                    DjinnSO data = djinn.DjinnData;
+
+                    if (cardBody != null) cardBody.style.display = DisplayStyle.Flex;
+                    if (emptyLabel != null) emptyLabel.style.display = DisplayStyle.None;
+
+                    cardRoot.AddToClassList($"djinn-card-{data.Element.ToString().ToLower()}");
+
+                    if (elementPip != null)
+                    {
+                        elementPip.RemoveFromClassList("icon-venus");
+                        elementPip.RemoveFromClassList("icon-mars");
+                        elementPip.RemoveFromClassList("icon-jupiter");
+                        elementPip.RemoveFromClassList("icon-mercury");
+                        elementPip.AddToClassList($"icon-{data.Element.ToString().ToLower()}");
+                    }
+
+                    if (iconElem != null && data.Icon != null)
+                    {
+                        iconElem.style.backgroundImage = new StyleBackground(data.Icon);
+                    }
+
+                    if (cardNameLabel != null) cardNameLabel.text = data.DjinnName;
+
+                    // Leader Tag Status
+                    bool isLeader = (djinnCtrl != null && djinnCtrl.LeaderDjinn == djinn);
+                    if (btnLeaderTag != null)
+                    {
+                        btnLeaderTag.RemoveFromClassList("leader-active");
+                        btnLeaderTag.RemoveFromClassList("leader-inactive");
+
+                        if (isLeader)
+                        {
+                            btnLeaderTag.AddToClassList("leader-active");
+                            btnLeaderTag.text = "★ LÍDER";
+                        }
+                        else
+                        {
+                            btnLeaderTag.AddToClassList("leader-inactive");
+                            btnLeaderTag.text = "LÍDER";
+                        }
+                    }
+
+                    // Unleash short description
+                    if (unleashValLabel != null)
+                    {
+                        unleashValLabel.text = (data.UnleashEffect != null) ? data.UnleashEffect.Description : "Sin efecto";
+                    }
+
+                    // Status Button
+                    if (statusBtn != null)
+                    {
+                        statusBtn.text = GetStatusButtonText(djinn.CurrentState);
+                        statusBtn.RemoveFromClassList("status-set");
+                        statusBtn.RemoveFromClassList("status-standby");
+                        statusBtn.RemoveFromClassList("status-recovery");
+
+                        switch (djinn.CurrentState)
+                        {
+                            case DjinnState.Set: statusBtn.AddToClassList("status-set"); break;
+                            case DjinnState.Standby: statusBtn.AddToClassList("status-standby"); break;
+                            case DjinnState.Recovery: statusBtn.AddToClassList("status-recovery"); break;
+                        }
+
+                        statusBtn.RegisterCallback<ClickEvent>(evt =>
+                        {
+                            evt.StopPropagation();
+                            ToggleDjinnStatus(djinn);
+                        });
+                    }
+                }
+                else
+                {
+                    if (cardBody != null) cardBody.style.display = DisplayStyle.None;
+                    if (emptyLabel != null)
+                    {
+                        emptyLabel.text = "Vacío";
+                        emptyLabel.style.display = DisplayStyle.Flex;
+                    }
+                }
+
+                slotsContainer.Add(slotInstance);
+            }
+        }
     }
 
     private void SwitchToView(DjinnViewMode newMode)
     {
         currentViewMode = newMode;
 
-        if (pageDjinnContainer != null) pageDjinnContainer.style.display = (newMode == DjinnViewMode.Individual) ? DisplayStyle.Flex : DisplayStyle.None;
-        if (sectionVistaB != null) sectionVistaB.style.display = (newMode == DjinnViewMode.Global) ? DisplayStyle.Flex : DisplayStyle.None;
+        // Lazy check in case SetTemplates ran prior to layout binding
+        if (newMode == DjinnViewMode.Global && sectionVistaB == null)
+        {
+            InitializeVistaBLayout();
+        }
+
+        if (pageDjinnContainer != null)
+            pageDjinnContainer.style.display = (newMode == DjinnViewMode.Individual) ? DisplayStyle.Flex : DisplayStyle.None;
+
+        if (sectionVistaB != null)
+            sectionVistaB.style.display = (newMode == DjinnViewMode.Global) ? DisplayStyle.Flex : DisplayStyle.None;
+
+        // Notify MainMenuController to hide heroes bar in Vista B (show in Vista A)
+        OnToggleTopHeroesBar?.Invoke(newMode == DjinnViewMode.Individual);
 
         RefreshAllData();
     }
