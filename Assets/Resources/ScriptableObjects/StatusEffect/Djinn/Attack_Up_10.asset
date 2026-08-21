@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Granite_StatusEffect
+  m_Name: Attack_Up_10
   m_EditorClassIdentifier: 
-  effectSlug: barrier
-  effectName: Barrera
+  effectSlug: attack_up_10
+  effectName: Ataque 10%
   icon: {fileID: 0}
-  description: "Crea una barrera que protege del da\xF1o."
+  description: Aumenta el ataque un 10%.
   category: 0
-  effectType: 5
+  effectType: 0
   persistsAfterBattle: 0
   ticksInOverworld: 0
   stepsPerOverworldTick: 4
@@ -27,9 +27,12 @@ MonoBehaviour:
   autoCureChancePerTurn: 0
   cureOnPhysicalDamage: 0
   incapacitateType: 0
-  damageMitigationPercentage: 10
+  damageMitigationPercentage: 0
   doomTurnCount: 3
-  statModifiers: []
+  statModifiers:
+  - statType: 2
+    valueType: 1
+    value: 0.1
   elementalModifiers: []
   resourceRegens: []
   damagesOverTime: []

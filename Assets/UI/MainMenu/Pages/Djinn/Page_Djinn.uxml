@@ -3,28 +3,37 @@
     <ui:VisualElement name="page_djinn_container" class="page-djinn-container">
         <ui:VisualElement name="djinn_summary_section" class="djinn-summary-section">
             <ui:Label text="ESTADO DE CLASE" name="label_summary_header" class="info-title-label" />
-            <ui:VisualElement name="class_pips_box" class="summary-box">
-                <ui:VisualElement name="class_name_container" class="class-name-container">
-                    <ui:Label text="Escudero" name="label_hero_class_current" class="summary-class-title" />
-                    <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
-                    <ui:Label text="Bestia" name="label_hero_class_next" class="summary-class-title class-title-next" style="display: none;" />
+            <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
+                <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
+                    <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
                 </ui:VisualElement>
-                <ui:VisualElement name="pips_row" class="summary-pips-row">
-                    <ui:VisualElement class="pip-element-group">
-                        <ui:VisualElement class="pip-icon icon-venus" />
-                        <ui:Label text="1/2" name="label_pip_venus" class="pip-count" />
+                <ui:VisualElement class="hero-info-box">
+                    <ui:VisualElement class="hero-title-row">
+                        <ui:Label text="Hans" name="label_hero_name" class="summary-hero-name" />
+                        <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="pip-element-group">
-                        <ui:VisualElement class="pip-icon icon-mars" />
-                        <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                    <ui:VisualElement name="class_name_container" class="class-name-container">
+                        <ui:Label text="Escudero" name="label_hero_class_current" class="summary-class-title" />
+                        <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                        <ui:Label text="Bestia" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
                     </ui:VisualElement>
-                    <ui:VisualElement class="pip-element-group">
-                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                        <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="pip-element-group">
-                        <ui:VisualElement class="pip-icon icon-mercury" />
-                        <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
+                    <ui:VisualElement name="pips_row" class="summary-pips-row">
+                        <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                            <ui:VisualElement class="pip-icon icon-venus" />
+                            <ui:Label text="1/2" name="label_pip_venus" class="pip-count" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="pip-element-group">
+                            <ui:VisualElement class="pip-icon icon-mars" />
+                            <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="pip-element-group">
+                            <ui:VisualElement class="pip-icon icon-jupiter" />
+                            <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="pip-element-group">
+                            <ui:VisualElement class="pip-icon icon-mercury" />
+                            <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -122,7 +131,7 @@
             <ui:Label text="Flint" name="label_djinn_name" class="djinn-name-label" />
             <ui:Label text="Djinn de Tierra - Venus" name="label_djinn_type" class="djinn-type-label" />
             <ui:VisualElement name="djinn_meta_row" class="djinn-meta-row">
-                <ui:Label text="Estado: Preparado" name="label_djinn_status" class="djinn-meta-label" />
+                <ui:Label text="Estado: PREPARADO" name="label_djinn_status" class="djinn-meta-label" />
                 <ui:Label text="Recuperación: 2 Turnos" name="label_djinn_recovery" class="djinn-meta-label" />
             </ui:VisualElement>
             <ui:Label text="Desencadena un ataque terrestre impregnado de la fuerza telúrica de Venus." name="label_djinn_desc" class="djinn-desc-label" />
@@ -177,10 +186,10 @@
                     <ui:Label text="EFECTO DE LIBERACIÓN" class="detail-section-title" />
                     <ui:Label text="Golpe Demoledor" name="label_unleash_name" class="unleash-name-label" />
                     <ui:Label text="Ataca al enemigo con un potente golpe telúrico que puede causar aturdimiento." name="label_unleash_desc" class="unleash-desc-label" />
-                    <ui:VisualElement name="box_unleash_info" class="detail-unleash-row">
-                        <ui:Label text="Daño: x1.25" name="label_unleash_damage" class="unleash-badge" />
-                        <ui:Label text="Efecto: Aturdimiento" name="label_unleash_effect" class="unleash-badge effect-badge" />
-                    </ui:VisualElement>
+                    
+                    <!-- CONTENEDOR DINÁMICO DE BADGES DE LIBERACIÓN -->
+                    <ui:VisualElement name="box_unleash_info" class="detail-unleash-row" />
+                    
                     <ui:VisualElement class="detail-separator" />
                     <ui:Label text="PASIVA DE LÍDER" class="detail-section-title" />
                     <ui:Label text="Romperocas" name="label_leader_passive_title" class="passive-name-label" />

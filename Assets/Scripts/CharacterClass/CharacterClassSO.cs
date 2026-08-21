@@ -99,5 +99,18 @@ public class CharacterClassSO : ScriptableObject
         }
     }
 
+    public List<ClassPsynergyEntry> GetFuturePsynergies(int currentLevel)
+    {
+        List<ClassPsynergyEntry> futurePsynergies = new List<ClassPsynergyEntry>();
+        foreach (var entry in grantedPsynergies)
+        {
+            if (entry.requiredLevel > currentLevel)
+            {
+                futurePsynergies.Add(entry);
+            }
+        }
+        return futurePsynergies;
+    }
+
     #endregion
 }

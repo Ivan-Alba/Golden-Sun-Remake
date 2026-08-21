@@ -42,6 +42,8 @@ public class MainMenuController : MonoBehaviour
     [Header("Djinn Page Templates")]
     [SerializeField] private VisualTreeAsset miniPsynergyCardAsset;
     [SerializeField] private VisualTreeAsset djinnSlotCardAAsset;
+    [SerializeField] private Sprite targetSingleIcon;
+    [SerializeField] private Sprite targetGroupIcon;
 
     // Header Elements
     private VisualElement headerHeroesBar;
@@ -463,6 +465,7 @@ public class MainMenuController : MonoBehaviour
         djinnPageController = new PageDjinnController(djinnInstance);
         djinnPageController.SetParty(GetPartyHeroStatsList());
         djinnPageController.SetTemplates(miniPsynergyCardAsset, djinnSlotCardAAsset);
+        djinnPageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
         djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
 
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);

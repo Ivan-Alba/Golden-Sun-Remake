@@ -22,5 +22,17 @@
         <ui:VisualElement class="card-cost-box">
             <ui:Label text="3 PP" name="mini_psy_pp" class="mini-psy-pp" />
         </ui:VisualElement>
+
+        <!-- BLOCKED LAYER -->
+        <ui:VisualElement name="mini_psy_lock_overlay" class="lock-overlay">
+            <ui:VisualElement class="stripe-lock-overlay" />
+            <ui:VisualElement class="card-icon-box">
+                <ui:VisualElement class="icon-lock-symbol" />
+            </ui:VisualElement>
+            <ui:VisualElement class="lock-text-details">
+                <ui:Label text="DESBLOQUEA A" name="label_lock_subtitle" class="lock-subtitle" />
+                <ui:Label text="NIVEL 12" name="label_lock_level" class="lock-level-text" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

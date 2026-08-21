@@ -7,63 +7,70 @@
     padding: 0;
 }
 
-/* 1. Wrapper posicional (TemplateContainer) */
+/* --------------------------------------------------------------------------
+   1. Contenedor Raíz (Wrapper de Grid)
+   -------------------------------------------------------------------------- */
 .djinn-slot-card {
     width: 24%;
     height: 48%;
     background-color: transparent;
     border-width: 0;
     padding: 0;
-    margin: 0;
+    margin: 0 0 3px 0;
 }
 
-/* 2. Tarjeta real (Interior del UXML) */
-#djinn_slot_card_root {
+/* --------------------------------------------------------------------------
+   2. Estado Base de la Tarjeta (No seleccionado / No líder)
+   -------------------------------------------------------------------------- */
+.djinn-card-root {
     width: 100%;
     height: 100%;
     flex-grow: 1;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
     background-color: #0d131d;
     border-width: 1px;
     border-color: #253347;
     border-radius: 5px;
-    padding: 4px;
+    padding: 3px 5px 4px 5px;
     position: relative;
     overflow: hidden;
 }
 
-#djinn_slot_card_root:hover {
+.djinn-card-root:hover {
     border-color: #d4af37;
     background-color: #141d2c;
 }
 
-/* Estado Seleccionado / Destacado */
-#djinn_slot_card_root.djinn-card-selected {
-    border-color: #FFD700 !important;
-    border-width: 2px !important;
-    background-color: rgba(212, 175, 55, 0.12) !important;
+/* --------------------------------------------------------------------------
+   3. Estructura Interna (Header de Líder + Cuerpo de Contenido)
+   -------------------------------------------------------------------------- */
+.djinn-card-header {
+    height: 12px;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 2px;
 }
 
-.djinn-principal-star {
-    position: absolute;
-    top: 2px;
-    right: 4px;
-    font-size: 9px;
-    color: #FFD700;
+.djinn-card-body {
+    flex-grow: 1;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
 }
 
-/* Caja del Retrato / Icono */
+/* Retrato e Icono */
 .djinn-card-portrait-box {
-    width: 50px;
-    height: 50px;
-    background-color: rgba(0, 0, 0, 0.3);
+    width: 44px;
+    height: 44px;
+    background-color: rgba(0, 0, 0, 0.4);
     border-radius: 3px;
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
     justify-content: center;
     align-items: center;
-    margin-right: 6px;
+    margin-right: 5px;
     flex-shrink: 0;
 }
 
@@ -73,43 +80,25 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* Columna de Información a la derecha del retrato */
+/* Columna de Información */
 .djinn-card-info-col {
     flex-grow: 1;
-    height: 38px; /* Muestra la misma altura útil que el retrato */
+    height: 100%;
     justify-content: space-between;
     align-items: flex-start;
     overflow: hidden;
 }
 
-/* Fila del Título (Pip + Nombre alineados a la izquierda) */
 .djinn-card-title-row {
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start; /* Forzar pegado a la izquierda */
+    justify-content: flex-start;
     width: 100%;
     overflow: hidden;
 }
 
-/* Pip elemental */
-.element-pip-icon {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 4px;
-    border-width: 1px;
-    flex-shrink: 0;
-}
-
-.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
-.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
-.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
-.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
-.icon-none { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }
-
-/* Nombre pegado a la izquierda junto al pip */
 .djinn-card-name {
-    font-size: 10.5px;
+    font-size: 10px;
     -unity-font-style: bold;
     color: #ffffff;
     -unity-text-align: middle-left;
@@ -117,10 +106,26 @@
     flex-shrink: 1;
 }
 
-/* Botón de Estado ajustado al ancho de la columna */
+/* Pips Elementales */
+.element-pip-icon {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 4px;
+    border-width: 1px;
+    flex-shrink: 0;
+}
+
+.icon-venus   { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mars    { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
+.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
+.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
+.icon-none    { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }
+
+/* Botones de Estado */
 .djinn-status-btn {
-    height: 16px;
-    font-size: 7.5px;
+    height: 15px;
+    font-size: 7px;
     -unity-font-style: bold;
     border-radius: 2px;
     padding: 0;
@@ -147,8 +152,99 @@
     color: #E74C3C;
 }
 
-/* Estado Vacío */
-#djinn_slot_card_root.djinn-card-empty {
+/* --------------------------------------------------------------------------
+   4. Botón / Chip de Líder (Interactive Leader Tag)
+   -------------------------------------------------------------------------- */
+.btn-leader-tag {
+    height: 11px;
+    font-size: 6.5px;
+    -unity-font-style: bold;
+    border-radius: 2px;
+    padding: 0 4px;
+    margin: 0;
+    border-width: 1px;
+    background-color: transparent;
+}
+
+/* Estado Deshabilitado (No es líder) */
+.btn-leader-tag.leader-disabled {
+    color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.btn-leader-tag.leader-disabled:hover {
+    color: rgba(255, 215, 0, 0.6);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* Estado Activo (Es el Líder) */
+.btn-leader-tag.leader-active {
+    color: #FFD700;
+    background-color: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   5. Modificadores por Elemento (Bordes base y tintes)
+   -------------------------------------------------------------------------- */
+.djinn-card-root.djinn-card-venus {
+    border-color: rgba(212, 172, 13, 0.5);
+}
+
+.djinn-card-root.djinn-card-mars {
+    border-color: rgba(231, 76, 60, 0.5);
+}
+
+.djinn-card-root.djinn-card-jupiter {
+    border-color: rgba(175, 122, 197, 0.5);
+}
+
+.djinn-card-root.djinn-card-mercury {
+    border-color: rgba(52, 152, 219, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   6. Modificador LÍDER (Refuerza el elemento con un tinte y borde ligeramente mayor)
+   -------------------------------------------------------------------------- */
+.djinn-card-root.djinn-card-leader {
+    border-width: 1.5px;
+}
+
+.djinn-card-root.djinn-card-venus.djinn-card-leader {
+    border-color: rgba(212, 172, 13, 0.95);
+    background-color: rgba(212, 172, 13, 0.01);
+}
+
+.djinn-card-root.djinn-card-mars.djinn-card-leader {
+    border-color: rgba(231, 76, 60, 0.95);
+    background-color: rgba(231, 76, 60, 0.01);
+}
+
+.djinn-card-root.djinn-card-jupiter.djinn-card-leader {
+    border-color: rgba(175, 122, 197, 0.95);
+    background-color: rgba(175, 122, 197, 0.01);
+}
+
+.djinn-card-root.djinn-card-mercury.djinn-card-leader {
+    border-color: rgba(52, 152, 219, 0.95);
+    background-color: rgba(52, 152, 219, 0.01);
+}
+
+/* --------------------------------------------------------------------------
+   7. Modificador SELECCIONADO (Gana jerarquía máxima)
+   -------------------------------------------------------------------------- */
+.djinn-card-root.djinn-card-selected,
+.djinn-card-root.djinn-card-leader.djinn-card-selected {
+    border-color: #FFD700;
+    border-width: 2px;
+    background-color: rgba(255, 215, 0, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   8. Estado Vacío
+   -------------------------------------------------------------------------- */
+.djinn-card-root.djinn-card-empty {
     border-style: dashed;
     border-color: rgba(255, 255, 255, 0.15);
     background-color: rgba(10, 15, 22, 0.3);
@@ -162,9 +258,3 @@
     -unity-text-align: middle-center;
     width: 100%;
 }
-
-/* Bordes por Elemento */
-#djinn_slot_card_root.djinn-card-venus { border-color: rgba(212, 172, 13, 0.6); }
-#djinn_slot_card_root.djinn-card-mars { border-color: rgba(231, 76, 60, 0.6); }
-#djinn_slot_card_root.djinn-card-jupiter { border-color: rgba(175, 122, 197, 0.6); }
-#djinn_slot_card_root.djinn-card-mercury { border-color: rgba(52, 152, 219, 0.6); }

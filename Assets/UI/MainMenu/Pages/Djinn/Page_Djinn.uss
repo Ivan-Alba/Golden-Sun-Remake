@@ -56,33 +56,51 @@
     padding: 6px 8px;
     margin-bottom: 6px;
     align-items: center;
-    justify-content: flex-start; /* Empaqueta el contenido arriba sin repartir espacio */
-    height: auto;               /* Se colapsa al alto exacto de sus hijos */
+    justify-content: flex-start;
+    height: auto;
     flex-grow: 0;
     flex-shrink: 0;
+}
+
+.summary-hero-name {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: #FFD700;
 }
 
 .class-name-container {
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     margin-top: 0;
-    margin-bottom: 5px;         /* Controla aquí la separación exacta con los pips */
+    margin-bottom: 5px;
     flex-grow: 0;
     flex-shrink: 0;
 }
 
-.summary-class-title {
-    font-size: 15px;
+.page-djinn-container .summary-class-title {
+    font-size: 14px;
     -unity-font-style: bold;
-    color: #FFD700;
+    color: #00FF88;
+    letter-spacing: 0.5px;
+
+    /* Marco estilo cápsula/insignia */
+    background-color: rgba(10, 16, 26, 0.75);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.4);
+    border-radius: 4px;
+    padding: 1px 8px;
 }
 
-.summary-class-arrow {
+.page-djinn-container .summary-class-arrow {
     font-size: 11px;
     color: #8C9BA5;
     margin-left: 4px;
     margin-right: 4px;
+}
+
+.class-title-previous {
+    color: #FF6347;
 }
 
 .class-title-next {
@@ -91,7 +109,9 @@
 
 .summary-pips-row {
     flex-direction: row;
-    justify-content: center;
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
     align-items: center;
     margin: 0;
     flex-grow: 0;
@@ -105,8 +125,8 @@
 }
 
 .pip-icon {
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     margin-right: 3px;
     border-width: 1px;
@@ -223,6 +243,7 @@
     -unity-font-style: bold;
     color: #DAA520;
     margin-bottom: 4px;
+    margin-top: 2px;
     letter-spacing: 0.5px;
     flex-shrink: 0;
 }
@@ -284,9 +305,9 @@
 .djinn-viewport-container {
     height: 52%;
     width: 100%;
-    background-color: #070a0f;
+    background-color: #05080c;
     border-width: 1px;
-    border-color: #1f2d40;
+    border-color: rgba(46, 75, 110, 0.6);
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: 6px;
@@ -296,7 +317,10 @@
 .djinn-render-target {
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(8, 14, 22, 0.85);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
 }
 
 .djinn-grid-section {
@@ -363,9 +387,9 @@
 .djinn-preview-container {
     width: 100%;
     height: 100px;
-    background-color: #0d131d;
+    background-color: #05080c;
     border-width: 1px;
-    border-color: #253347;
+    border-color: rgba(46, 75, 110, 0.6);
     border-radius: 6px;
     align-items: center;
     justify-content: center;
@@ -377,8 +401,10 @@
 .djinn-video-preview {
     width: 100%;
     height: 100%;
+    background-color: rgba(8, 14, 22, 0.85);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.5);
     border-radius: 5px;
-    background-color: #000000;
 }
 
 .page-djinn-container .djinn-name-label {
@@ -524,6 +550,8 @@
     margin-bottom: 6px;
 }
 
+
+
 .page-djinn-container .unleash-name-label {
     font-size: 11px;
     -unity-font-style: bold;
@@ -541,21 +569,72 @@
 }
 
 
+/* ==========================================================================
+   UNLEASH DYNAMIC BADGES (TARGET, DAMAGE, BUFF, DEBUFF, AILMENT)
+   ========================================================================== */
 .detail-unleash-row {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
     margin-bottom: 2px;
 }
 
+/* Contenedor Badge */
 .page-djinn-container .unleash-badge {
-    font-size: 9.5px;
+    flex-direction: row;
+    align-items: center;
+    font-size: 9px;
     -unity-font-style: bold;
-    color: #5DADE2;
-    background-color: rgba(93, 173, 226, 0.15);
-    padding: 2px 5px;
+    padding: 2px 6px;
     border-radius: 3px;
     margin-right: 4px;
+    margin-bottom: 3px;
+    border-width: 1px;
+}
+
+/* Icono dentro de la Badge */
+.page-djinn-container .badge-icon {
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 1. Badge de Objetivo / Alcance (Gris neutro metálico) */
+.page-djinn-container .badge-target {
+    color: #A0B0C0;
+    background-color: rgba(160, 176, 192, 0.15);
+    border-color: rgba(160, 176, 192, 0.3);
+}
+
+/* 2. Badge de Potencia / Multiplicador de Daño (Azul Psinérgico) */
+.page-djinn-container .badge-damage {
+    color: #5DADE2;
+    background-color: rgba(93, 173, 226, 0.15);
+    border-color: rgba(93, 173, 226, 0.35);
+}
+
+/* 3. Badge de Buffs (Verde Esmeralda) */
+.page-djinn-container .badge-buff {
+    color: #2ECC71;
+    background-color: rgba(46, 204, 113, 0.15);
+    border-color: rgba(46, 204, 113, 0.35);
+}
+
+/* 4. Badge de Debuffs (Naranja / Rojo Suave) */
+.page-djinn-container .badge-debuff {
+    color: #E67E22;
+    background-color: rgba(230, 126, 34, 0.15);
+    border-color: rgba(230, 126, 34, 0.35);
+}
+
+/* 5. Badge de Alteraciones de Estado / Ailments (Púrpura / Carmesí) */
+.page-djinn-container .badge-ailment {
+    color: #A569BD;
+    background-color: rgba(165, 105, 189, 0.18);
+    border-color: rgba(165, 105, 189, 0.4);
 }
 
 .page-djinn-container .effect-badge {
@@ -623,8 +702,8 @@
 }
 
 .hero-avatar-box {
-    width: 48px;
-    height: 48px;
+    width: 62px;
+    height: 62px;
     background-color: rgba(0, 0, 0, 0.4);
     border-radius: 4px;
     border-width: 1px;
@@ -636,8 +715,8 @@
 }
 
 .hero-avatar-icon {
-    width: 90%;
-    height: 90%;
+    width: 100%;
+    height: 100%;
 }
 
 .hero-info-box {
@@ -663,8 +742,8 @@
 }
 
 .hero-column-level {
-    font-size: 9px;
-    color: #8C9BA5;
+    font-size: 12px;
+    color: #94A3B8;
 }
 
 .hero-class-pips-row {
