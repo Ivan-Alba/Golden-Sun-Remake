@@ -6,7 +6,7 @@
 .equipment-info-root {
     flex-grow: 1;
     justify-content: flex-start;
-    padding: 8px 10px;
+    padding: 10px;
     background-color: rgba(0, 0, 0, 0.35);
     border-radius: 6px;
     border-width: 1px;
@@ -23,13 +23,13 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 .equip-badge {
     flex-direction: row;
     align-items: center;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 10px;
     background-color: rgba(20, 20, 20, 0.7);
     border-width: 1px;
@@ -53,7 +53,7 @@
 }
 
 .badge-label {
-    font-size: 10px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: #888888;
 }
@@ -122,7 +122,7 @@
 
 /* --- Section Titles --- */
 .equipment-info-root .section-header-title {
-    font-size: 10px;
+    font-size: 12px;
     color: #DAA520; /* Classic Golden Sun Gold */
     -unity-font-style: bold;
     letter-spacing: 1px;
@@ -146,12 +146,12 @@
 }
 
 .stat-name {
-    font-size: 12px;
+    font-size: 13px;
     color: #CCCCCC;
 }
 
 .stat-value {
-    font-size: 12px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #FFFFFF;
 }
@@ -182,12 +182,12 @@
 }
 
 .current-value {
-    font-size: 11px;
+    font-size: 13px;
     color: #AAAAAA;
 }
 
 .equipment-info-root .arrow-separator {
-    font-size: 10px;
+    font-size: 12px;
     color: #666666;
     margin-left: 4px;
     margin-right: 4px;
@@ -200,7 +200,7 @@
 }
 
 .equipment-info-root .delta-tag {
-    font-size: 11px;
+    font-size: 13px;
     -unity-font-style: bold;
     margin-left: 5px;
 }
@@ -223,19 +223,19 @@
 }
 
 .quote-mark {
-    width: 10px;
-    height: 1px;
-    background-color: rgba(218, 165, 32, 0.4); /* Gold Accent Lines */
-    margin-top: 1px;
-    margin-bottom: 1px;
+    width: 12px;
+    height: 2px;
+    background-color: rgba(218, 165, 32, 0.5); /* Gold Accent Lines */
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .equipment-info-root .lore-text {
-    font-size: 10px;
+    font-size: 12px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
     -unity-text-align: middle-center;
     white-space: normal;
-    line-height: 13px;
-    padding: 2px 0;
+    line-height: 15px;
+    padding: 3px 0;
 }

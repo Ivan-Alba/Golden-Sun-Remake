@@ -21,11 +21,11 @@
 
 /* Common Section Titles (Unified RPG Style Across All 3 Panels) */
  .page-items-container .info-title-label {
- font-size: 15px;
+    font-size: 17px;
     -unity-font-style: bold;
     color: #DAA520; /* Golden section title */
-    margin-bottom: 8px;
-    margin-top: 2px;
+    margin-bottom: 14px;
+    margin-top: 6px;
     -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
@@ -35,65 +35,63 @@
    LEFT PANEL: EQUIPMENT & PSYNERGY RELICS (25% Width)
    ========================================== */
 .equipment-section {
-    width: 25%;
+    flex-grow: 25;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
     max-height: 100%;
-    padding: 8px;
+    padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: stretch;
     margin-right: 10px;
-    flex-shrink: 0;
+    overflow: hidden;
 }
 
-/* Paperdoll Grid: Left Column | Character Space | Right Column */
+/* Paperdoll Grid */
 .paperdoll-container {
     flex-direction: row;
     width: 100%;
+    min-height: 200px;
+    flex-grow: 1;
+    flex-shrink: 1;
     justify-content: space-between;
     align-items: center;
-    margin-top: 2px;
-    margin-bottom: 12px;
+    margin-top: 4px;
+    margin-bottom: 10px;
 }
 
 .gear-column {
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: center;
+    height: 100%;
     align-items: center;
 }
 
-/* Central Space Reserved for 3D Character Model / Sprite */
+/* Render 3D */
 .character-preview-space {
     flex-grow: 1;
     height: 100%;
-    min-height: 210px;
     margin-left: 6px;
     margin-right: 6px;
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: rgba(8, 14, 22, 0.85);
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
+    border-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
 }
 
-/* Bottom Relics Container inside Equipment Panel */
 .relics-container {
     width: 100%;
     flex-direction: column;
+    flex-shrink: 0;
     align-items: center;
     border-top-width: 1px;
     border-top-color: rgba(255, 255, 255, 0.12);
-    padding-top: 10px;
-    margin-top: auto;
-}
-
-.strip-title-label {
-    font-size: 15px;
-    -unity-font-style: bold;
-    color: #DAA520;
-    margin-bottom: 6px;
-    text-align: center;
+    padding-top: 8px;
 }
 
 /* Relics Row: Centered with Controlled Margins */
@@ -108,41 +106,37 @@
    CENTER PANEL: MAIN INVENTORY & GLOBAL BAG (45% Width)
    ========================================== */
 .inventory-section {
-    width: 45%;
+    flex-grow: 45;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
     max-height: 100%;
-    padding: 8px;
+    padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
     margin-right: 10px;
     flex-direction: column;
-    flex-shrink: 0;
-        align-items: center;
-
-}
-
-/* Inventory Header Box with Hero Icon Badge */
-.inventory-header-box {
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
+    overflow: hidden;
 }
 
 .inventory-grid {
+    width: 90%;
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
     justify-content: center;
     margin-top: 4px;
+    flex-shrink: 0;
 }
 
 /* Global Key Items Section */
 .global-bag-container {
     width: 100%;
-    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
     align-items: center;
     border-top-width: 1px;
     border-top-color: rgba(255, 255, 255, 0.12);
@@ -151,8 +145,11 @@
 }
 
 .global-bag-title-label {
-    color: #3498DB; /* Cool Blue for Key / Global Items */
-    margin-bottom: 6px;
+    color: #3498DB;
+    font-size: 15px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    text-align: center;
 }
 
 .global-bag-grid {
@@ -163,23 +160,24 @@
    RIGHT PANEL: ITEM INFORMATION & DETAILS (30% Width)
    ========================================== */
 .item-info-panel {
-    width: 30%;
+    flex-grow: 30;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
+    max-height: 100%;
     padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
-}
-
-.item-info-panel Label  {
-margin: 0;
-padding: 0;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 }
 
 .item-preview-container {
-    width: 100%;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background-color: #0d131d;
     border-width: 1px;
     border-color: #253347;
@@ -191,8 +189,8 @@ padding: 0;
 
 /* Preview Icon Styling */
 .item-preview-icon {
-    width: 90px;
-    height: 90px;
+    width: 110px;
+    height: 110px;
     background-color: rgba(255, 255, 255, 0.05);
     border-width: 1px;
     border-color: rgba(218, 165, 32, 0.3);
@@ -204,7 +202,7 @@ padding: 0;
 }
 
 .page-items-container .item-name-label {
-    font-size: 18px;
+    font-size: 20px;
     -unity-font-style: bold;
     color: #ffffff;
     text-align: center;
@@ -220,22 +218,30 @@ padding: 0;
 
 .item-meta-row {
     flex-direction: row;
+    width: 100%;
     justify-content: space-between;
     background-color: #121a26;
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 4px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     flex-shrink: 0;
 }
 
 .item-meta-label {
-    font-size: 12px;
+    font-size: 14px;
     color: #aeb6bf;
 }
 
+.item-desc-container {
+    width: 100%;
+    padding: 0 6px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
 .page-items-container .item-desc-label {
-    font-size: 12px;
-    color: #d5dbdb;
+    font-size: 15px;
+    color: #CBD5E1;
     white-space: normal;
     margin-bottom: 6px;
     -unity-text-align: upper-left;
@@ -337,8 +343,8 @@ padding: 0;
    UNIFIED SQUARE SLOT STYLES (65px x 65px)
    ========================================== */
 .slot-box {
-    width: 65px;
-    height: 65px;
+    width: 80px;
+    height: 80px;
     margin: 3px;
     background-color: rgba(20, 26, 38, 0.8);
     border-width: 1px;
@@ -358,7 +364,7 @@ padding: 0;
 .relic-slot {
     border-color: rgba(155, 89, 182, 0.6);
     background-color: rgba(40, 24, 52, 0.8);
-    margin: 0 4px;
+    margin: 0 5px;
 }
 
 .slot-placeholder {
@@ -373,8 +379,8 @@ padding: 0;
 }
 
 .item-icon {
-    width: 80%;
-    height: 80%;
+    width: 90%;
+    height: 90%;
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;

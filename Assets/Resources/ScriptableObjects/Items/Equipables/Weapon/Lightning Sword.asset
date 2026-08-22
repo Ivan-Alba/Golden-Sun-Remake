@@ -40,7 +40,7 @@ MonoBehaviour:
   hitFXType: 1
   customHitVFX: {fileID: 0}
   swingSoundEffect: {fileID: 0}
-  hasUnleash: 0
-  unleashProcRate: 0.35
-  unleashEffect: {fileID: 0}
+  hasUnleash: 1
+  unleashProcRate: 0.2
+  unleashEffect: {fileID: 11400000, guid: 7788fd845d44cc142b7eda6a979792af, type: 2}
   criticalRateBonus: 4

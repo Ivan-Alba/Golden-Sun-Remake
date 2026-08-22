@@ -6,7 +6,7 @@
 .relic-info-root {
     flex-grow: 1;
     justify-content: flex-start;
-    padding: 8px 10px;
+    padding: 10px;
     background-color: rgba(0, 0, 0, 0.35);
     border-radius: 6px;
     border-width: 1px;
@@ -20,7 +20,7 @@
 
 /* --- Section Titles --- */
 .relic-info-root .section-header-title {
-    font-size: 10px;
+    font-size: 12px;
     color: #DAA520; /* Golden Sun Gold */
     -unity-font-style: bold;
     letter-spacing: 1px;
@@ -29,13 +29,13 @@
 
 /* --- Block 1: Granted Psynergy Section & Card --- */
 .granted-psynergy-section {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 /* Adapted Psynergy Card (Matches Page_Psynergy.uss with 100% width) */
 .psynergy-card {
     flex-direction: row;
-    height: 50px;
+    height: 54px;
     width: 100%;
     background-color: #111722;
     border-width: 1px;
@@ -62,8 +62,8 @@
 }
 
 .psynergy-card-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -71,6 +71,19 @@
     flex-grow: 1;
     justify-content: center;
     margin-left: 8px;
+}
+
+.psynergy-name-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.element-mini-icon {
+    width: 11px;
+    height: 11px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .psynergy-card-name {
@@ -85,11 +98,11 @@
 }
 
 .relic-info-root .psynergy-badge {
-    font-size: 9px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 1px;
-    padding-bottom: 1px;
+    font-size: 11px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     border-radius: 3px;
     color: #ffffff;
     -unity-font-style: bold;
@@ -112,15 +125,8 @@
     align-items: center;
 }
 
-.element-mini-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
 .psynergy-card-pp {
-    font-size: 12px;
+    font-size: 13px;
     -unity-font-style: bold;
     color: #5dade2;
 }
@@ -177,7 +183,7 @@
 
 /* --- Block 2: Relic Base Stats --- */
 .stats-box {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .stats-grid {
@@ -192,12 +198,12 @@
 }
 
 .stat-name {
-    font-size: 12px;
+    font-size: 13px;
     color: #CCCCCC;
 }
 
 .stat-value {
-    font-size: 12px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #FFFFFF;
 }
@@ -215,20 +221,19 @@
 }
 
 .quote-mark {
-    width: 10px;
-    height: 1px;
-    background-color: rgba(218, 165, 32, 0.4); /* Gold Accent Lines */
-    margin-top: 1px;
-    margin-bottom: 1px;
+    width: 12px;
+    height: 2px;
+    background-color: rgba(218, 165, 32, 0.5); /* Gold Accent Lines */
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .relic-info-root .lore-text {
-    font-size: 10px;
+    font-size: 12px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
     -unity-text-align: middle-center;
     white-space: normal;
-    line-height: 13px;
-    padding: 2px 0;
-    margin: 0;
+    line-height: 15px;
+    padding: 3px 0;
 }

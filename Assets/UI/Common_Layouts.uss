@@ -1,0 +1,231 @@
+/* =========================================================================
+   Common_Layouts.uss
+   Reusable Layout Structures, 3-Column Chassis, Headings & Custom Scrollbars
+   ========================================================================= */
+
+/* --- 1. Root Container for 3-Column Subpages --- */
+.page-three-columns-container {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: row;
+    padding: 6px;
+    overflow: hidden;
+}
+
+.page-three-columns-container Label {
+    margin: 0;
+    padding: 0;
+}
+
+/* --- 2. Shared Section Titles --- */
+.info-title-label {
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: var(--color-gold-sun);
+    margin-bottom: 14px;
+    margin-top: 6px;
+    -unity-text-align: middle-center;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+/* --- 3. Unified 3-Column Flex System (25% / 45% / 30%) --- */
+
+/* Left Panel (Ratio 25) */
+.panel-column-left {
+    flex-grow: 25;
+    flex-shrink: 0;
+    flex-basis: 0;
+    height: 100%;
+    max-height: 100%;
+    padding: 10px;
+    background-color: var(--color-panel-bg);
+    border-width: 2px;
+    border-color: var(--color-panel-border);
+    border-radius: 6px;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 10px;
+    overflow: hidden;
+}
+
+/* Center Panel (Ratio 45) */
+.panel-column-center {
+    flex-grow: 45;
+    flex-shrink: 0;
+    flex-basis: 0;
+    height: 100%;
+    max-height: 100%;
+    padding: 10px;
+    background-color: var(--color-panel-bg);
+    border-width: 2px;
+    border-color: var(--color-panel-border);
+    border-radius: 6px;
+    margin-right: 10px;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Right Panel (Ratio 30) */
+.panel-column-right {
+    flex-grow: 30;
+    flex-shrink: 0;
+    flex-basis: 0;
+    height: 100%;
+    max-height: 100%;
+    padding: 10px;
+    background-color: var(--color-panel-bg);
+    border-width: 2px;
+    border-color: var(--color-panel-border);
+    border-radius: 6px;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* --- 4. Right Panel Preview Header Layout --- */
+.detail-preview-container {
+    width: 120px;
+    height: 120px;
+    background-color: #0D131D;
+    border-width: 1px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.detail-preview-icon {
+    width: 110px;
+    height: 110px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.3);
+    border-radius: 8px;
+    flex-shrink: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.detail-name-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    -unity-text-align: middle-center;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.detail-type-label {
+    font-size: 14px;
+    color: var(--color-accent-blue);
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.detail-meta-row {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    background-color: #121A26;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.detail-desc-container {
+    width: 100%;
+    padding: 0 6px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.detail-desc-label {
+    font-size: 15px;
+    color: var(--color-text-description);
+    white-space: normal;
+    margin-bottom: 6px;
+    -unity-text-align: upper-left;
+    flex-shrink: 0;
+}
+
+/* --- 5. Extra Info Custom ScrollView & Scroller --- */
+.extra-info-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+    background-color: transparent;
+    border-width: 0;
+    padding: 0;
+}
+
+.extra-info-container .unity-scroll-view__content-container {
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.scroll-inner-card {
+    background-color: var(--color-subbox-bg);
+    border-width: 1px;
+    border-color: var(--color-subbox-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-right: 4px;
+}
+
+/* Scroller Component Overrides */
+.extra-info-container .unity-scroller--vertical,
+.extra-info-container .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.extra-info-container .unity-scroller__low-button,
+.extra-info-container .unity-scroller__high-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.extra-info-container .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
+    background-color: rgba(10, 15, 24, 0.8);
+    border-width: 1px;
+    border-color: rgba(31, 45, 64, 0.6);
+    border-radius: 3px;
+    margin: 0;
+}
+
+.extra-info-container .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.9);
+    border-radius: 3px;
+}
+
+.extra-info-container .unity-base-slider__dragger:hover {
+    background-color: var(--color-gold-bright);
+}
+
+.extra-info-container .unity-base-slider__dragger:active {
+    background-color: #FFA500;
+}

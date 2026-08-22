@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -34,11 +33,18 @@ public class PageDjinnController
     /// </summary>
     public event Action<bool> OnToggleTopHeroesBar;
 
+    /// <summary>
+    /// Event triggered when user clicks to toggle between Vista A and Vista B.
+    /// Delegated to MainMenuController to switch visual containers visibility.
+    /// </summary>
+    public event Action<DjinnViewMode> OnRequestViewChange;
+
     #endregion
 
     #region Private Fields - Containers & Views
 
-    private VisualElement rootElement;
+    private VisualElement rootViewA;
+    private VisualElement rootViewB;
 
     // View Containers
     private VisualElement pageDjinnContainer;
@@ -137,7 +143,6 @@ public class PageDjinnController
     private VisualTreeAsset psynergyCardAsset;
     private VisualTreeAsset djinnSlotCardAAsset;
     private VisualTreeAsset djinnSlotCardBAsset;
-    private VisualTreeAsset pageDjinnGlobalAsset;
 
     // Djinn Selected for Detail Display in Vista A
     private DjinnInstance selectedDjinnForDetails;
@@ -152,9 +157,11 @@ public class PageDjinnController
 
     #region Constructor
 
-    public PageDjinnController(VisualElement root)
+    public PageDjinnController(VisualElement viewA, VisualElement viewB)
     {
-        rootElement = root;
+        rootViewA = viewA;
+        rootViewB = viewB;
+
         BindUIElements();
         BindEvents();
     }
@@ -165,72 +172,84 @@ public class PageDjinnController
 
     private void BindUIElements()
     {
-        if (rootElement == null) return;
-
-        // 1. Root Containers
-        pageDjinnContainer = rootElement.Q<VisualElement>("page_djinn_container");
-        modalOverlayCompare = rootElement.Q<VisualElement>("compare_modal_overlay");
-
-        // 2. Left Panel Elements
-        heroAvatarIcon = rootElement.Q<VisualElement>("hero_avatar_icon");
-        labelHeroName = rootElement.Q<Label>("label_hero_name");
-        labelHeroLevel = rootElement.Q<Label>("label_hero_level");
-        labelHeroClassCurrent = rootElement.Q<Label>("label_hero_class_current");
-        labelHeroClassNext = rootElement.Q<Label>("label_hero_class_next");
-        labelClassArrow = rootElement.Q<Label>("label_class_arrow");
-
-        labelPipVenus = rootElement.Q<Label>("label_pip_venus");
-        labelPipMars = rootElement.Q<Label>("label_pip_mars");
-        labelPipJupiter = rootElement.Q<Label>("label_pip_jupiter");
-        labelPipMercury = rootElement.Q<Label>("label_pip_mercury");
-
-        labelStatMaxHP = rootElement.Q<Label>("label_stat_max_hp");
-        labelStatMaxPP = rootElement.Q<Label>("label_stat_max_pp");
-        labelStatAtq = rootElement.Q<Label>("label_stat_atq");
-        labelStatDef = rootElement.Q<Label>("label_stat_def");
-        labelStatAgi = rootElement.Q<Label>("label_stat_agi");
-        labelStatSue = rootElement.Q<Label>("label_stat_sue");
-
-        labelDeltaAtq = rootElement.Q<Label>("label_delta_atq");
-        labelDeltaDef = rootElement.Q<Label>("label_delta_def");
-        labelDeltaAgi = rootElement.Q<Label>("label_delta_agi");
-        labelDeltaSue = rootElement.Q<Label>("label_delta_sue");
-
-        scrollClassPsynergies = rootElement.Q<ScrollView>("scroll_class_psynergies");
-
-        // 3. Center Panel Elements
-        labelGridHeader = rootElement.Q<Label>("label_grid_header");
-        djinnSlotsGrid = rootElement.Q<VisualElement>("djinn_slots_grid");
-        djinn3dRenderTarget = rootElement.Q<VisualElement>("djinn_3d_render_target");
-        btnSwitchToVistaB = rootElement.Q<Button>("btn_switch_vista_b");
-
-        // 4. Right Panel Elements
-        djinnVideoPreview = rootElement.Q<VisualElement>("djinn_video_preview");
-        labelDjinnName = rootElement.Q<Label>("label_djinn_name");
-        labelDjinnType = rootElement.Q<Label>("label_djinn_type");
-        labelDjinnStatus = rootElement.Q<Label>("label_djinn_status");
-        labelDjinnRecovery = rootElement.Q<Label>("label_djinn_recovery");
-        labelDjinnDesc = rootElement.Q<Label>("label_djinn_desc");
-
-        labelSetBonusMaxHP = rootElement.Q<Label>("label_set_bonus_max_hp");
-        labelSetBonusMaxPP = rootElement.Q<Label>("label_set_bonus_max_pp");
-        labelSetBonusAtq = rootElement.Q<Label>("label_set_bonus_atq");
-        labelSetBonusDef = rootElement.Q<Label>("label_set_bonus_def");
-        labelSetBonusAgi = rootElement.Q<Label>("label_set_bonus_agi");
-        labelSetBonusSue = rootElement.Q<Label>("label_set_bonus_sue");
-
-        boxUnleashInfo = rootElement.Q<VisualElement>("box_unleash_info");
-        labelUnleashName = rootElement.Q<Label>("label_unleash_name");
-        labelUnleashDesc = rootElement.Q<Label>("label_unleash_desc");
-        labelUnleashDamage = rootElement.Q<Label>("label_unleash_damage");
-        labelUnleashEffect = rootElement.Q<Label>("label_unleash_effect");
-
-        labelLeaderPassiveTitle = rootElement.Q<Label>("label_leader_passive_title");
-        labelLeaderPassiveDesc = rootElement.Q<Label>("label_leader_passive_desc");
-
-        if (modalOverlayCompare != null)
+        // 1. Root Containers & Vista A Binding
+        if (rootViewA != null)
         {
-            modalOverlayCompare.style.display = DisplayStyle.None;
+            pageDjinnContainer = rootViewA.Q<VisualElement>("page_djinn_container") ?? rootViewA;
+            modalOverlayCompare = rootViewA.Q<VisualElement>("compare_modal_overlay");
+
+            // Left Panel
+            heroAvatarIcon = rootViewA.Q<VisualElement>("hero_avatar_icon");
+            labelHeroName = rootViewA.Q<Label>("label_hero_name");
+            labelHeroLevel = rootViewA.Q<Label>("label_hero_level");
+            labelHeroClassCurrent = rootViewA.Q<Label>("label_hero_class_current");
+            labelHeroClassNext = rootViewA.Q<Label>("label_hero_class_next");
+            labelClassArrow = rootViewA.Q<Label>("label_class_arrow");
+
+            labelPipVenus = rootViewA.Q<Label>("label_pip_venus");
+            labelPipMars = rootViewA.Q<Label>("label_pip_mars");
+            labelPipJupiter = rootViewA.Q<Label>("label_pip_jupiter");
+            labelPipMercury = rootViewA.Q<Label>("label_pip_mercury");
+
+            labelStatMaxHP = rootViewA.Q<Label>("label_stat_max_hp");
+            labelStatMaxPP = rootViewA.Q<Label>("label_stat_max_pp");
+            labelStatAtq = rootViewA.Q<Label>("label_stat_atq");
+            labelStatDef = rootViewA.Q<Label>("label_stat_def");
+            labelStatAgi = rootViewA.Q<Label>("label_stat_agi");
+            labelStatSue = rootViewA.Q<Label>("label_stat_sue");
+
+            labelDeltaAtq = rootViewA.Q<Label>("label_delta_atq");
+            labelDeltaDef = rootViewA.Q<Label>("label_delta_def");
+            labelDeltaAgi = rootViewA.Q<Label>("label_delta_agi");
+            labelDeltaSue = rootViewA.Q<Label>("label_delta_sue");
+
+            scrollClassPsynergies = rootViewA.Q<ScrollView>("scroll_class_psynergies");
+
+            // Center Panel
+            labelGridHeader = rootViewA.Q<Label>("label_grid_header");
+            djinnSlotsGrid = rootViewA.Q<VisualElement>("djinn_slots_grid");
+            djinn3dRenderTarget = rootViewA.Q<VisualElement>("djinn_3d_render_target");
+            btnSwitchToVistaB = rootViewA.Q<Button>("btn_switch_vista_b");
+
+            // Right Panel
+            djinnVideoPreview = rootViewA.Q<VisualElement>("djinn_video_preview");
+            labelDjinnName = rootViewA.Q<Label>("label_djinn_name");
+            labelDjinnType = rootViewA.Q<Label>("label_djinn_type");
+            labelDjinnStatus = rootViewA.Q<Label>("label_djinn_status");
+            labelDjinnRecovery = rootViewA.Q<Label>("label_djinn_recovery");
+            labelDjinnDesc = rootViewA.Q<Label>("label_djinn_desc");
+
+            labelSetBonusMaxHP = rootViewA.Q<Label>("label_set_bonus_max_hp");
+            labelSetBonusMaxPP = rootViewA.Q<Label>("label_set_bonus_max_pp");
+            labelSetBonusAtq = rootViewA.Q<Label>("label_set_bonus_atq");
+            labelSetBonusDef = rootViewA.Q<Label>("label_set_bonus_def");
+            labelSetBonusAgi = rootViewA.Q<Label>("label_set_bonus_agi");
+            labelSetBonusSue = rootViewA.Q<Label>("label_set_bonus_sue");
+
+            boxUnleashInfo = rootViewA.Q<VisualElement>("box_unleash_info");
+            labelUnleashName = rootViewA.Q<Label>("label_unleash_name");
+            labelUnleashDesc = rootViewA.Q<Label>("label_unleash_desc");
+            labelUnleashDamage = rootViewA.Q<Label>("label_unleash_damage");
+            labelUnleashEffect = rootViewA.Q<Label>("label_unleash_effect");
+
+            labelLeaderPassiveTitle = rootViewA.Q<Label>("label_leader_passive_title");
+            labelLeaderPassiveDesc = rootViewA.Q<Label>("label_leader_passive_desc");
+
+            if (modalOverlayCompare != null)
+            {
+                modalOverlayCompare.style.display = DisplayStyle.None;
+            }
+        }
+
+        // 2. Vista B Binding
+        if (rootViewB != null)
+        {
+            sectionVistaB = rootViewB.Q<VisualElement>("page_djinn_global_container")
+                         ?? rootViewB.Q<VisualElement>("djinn_global_section")
+                         ?? rootViewB;
+
+            partyColumnsContainer = rootViewB.Q<VisualElement>("party_columns_container");
+            btnSwitchToVistaA = rootViewB.Q<Button>("btn_switch_vista_a");
         }
     }
 
@@ -239,6 +258,11 @@ public class PageDjinnController
         if (btnSwitchToVistaB != null)
         {
             btnSwitchToVistaB.clicked += () => SwitchToView(DjinnViewMode.Global);
+        }
+
+        if (btnSwitchToVistaA != null)
+        {
+            btnSwitchToVistaA.clicked += () => SwitchToView(DjinnViewMode.Individual);
         }
     }
 
@@ -252,49 +276,13 @@ public class PageDjinnController
     }
 
     /// <summary>
-    /// Assigns the UXML templates used for dynamic instantiation in the page (Vista A, Vista B, and Psynergy Cards).
+    /// Assigns the UXML cards templates used for dynamic instantiation.
     /// </summary>
-    public void SetTemplates(VisualTreeAsset globalViewTemplate, VisualTreeAsset miniPsynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
+    public void SetTemplates(VisualTreeAsset miniPsynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
     {
-        pageDjinnGlobalAsset = globalViewTemplate;
         psynergyCardAsset = miniPsynergyCard;
         djinnSlotCardAAsset = djinnSlotCardA;
         djinnSlotCardBAsset = djinnSlotCardB;
-
-        InitializeVistaBLayout();
-    }
-
-    /// <summary>
-    /// Instantiates and injects Vista B layout into rootElement if it hasn't been instantiated yet.
-    /// </summary>
-    private void InitializeVistaBLayout()
-    {
-        if (sectionVistaB != null || pageDjinnGlobalAsset == null || rootElement == null) return;
-
-        // English comment: Instantiate Vista B UXML template
-        TemplateContainer globalInstance = pageDjinnGlobalAsset.Instantiate();
-        globalInstance.style.flexGrow = 1;
-        globalInstance.style.width = Length.Percent(100);
-        globalInstance.style.height = Length.Percent(100);
-
-        // English comment: Query root element from template or fallback to the instance itself
-        sectionVistaB = globalInstance.Q<VisualElement>("page_djinn_global_container")
-                     ?? globalInstance.Q<VisualElement>("djinn_global_section")
-                     ?? globalInstance;
-
-        sectionVistaB.style.display = DisplayStyle.None;
-
-        // English comment: Append instantiated layout to page root
-        rootElement.Add(sectionVistaB);
-
-        // English comment: Bind Vista B controls and events
-        partyColumnsContainer = sectionVistaB.Q<VisualElement>("party_columns_container");
-        btnSwitchToVistaA = sectionVistaB.Q<Button>("btn_switch_vista_a");
-
-        if (btnSwitchToVistaA != null)
-        {
-            btnSwitchToVistaA.clicked += () => SwitchToView(DjinnViewMode.Individual);
-        }
     }
 
     /// <summary>
@@ -302,7 +290,6 @@ public class PageDjinnController
     /// </summary>
     public void SetTargetIcons(Sprite singleTarget, Sprite groupTarget)
     {
-        // English comment: Inject target icons provided by MainMenuController
         iconTargetSingle = singleTarget;
         iconTargetGroup = groupTarget;
     }
@@ -315,7 +302,7 @@ public class PageDjinnController
         }
 
         currentHero = hero;
-        selectedDjinnForDetails = null; // Reiniciar selección al cambiar de personaje
+        selectedDjinnForDetails = null;
         currentHeroDjinnController = (hero != null) ? hero.GetComponent<HeroDjinnController>() : null;
 
         if (currentHeroDjinnController != null)
@@ -323,6 +310,8 @@ public class PageDjinnController
             currentHeroDjinnController.OnDjinnSetupUpdated += RefreshAllData;
         }
 
+        // English comment: Ensure view mode is reset to default when populating data
+        currentViewMode = DjinnViewMode.Individual;
         RefreshAllData();
     }
 
@@ -386,7 +375,6 @@ public class PageDjinnController
             labelGridHeader.text = $"DJINNS EQUIPADOS ({count}/8)";
         }
 
-        // Mantener la selección activa o seleccionar el primer Djinn disponible
         if (assignedDjinns != null && assignedDjinns.Count > 0)
         {
             if (selectedDjinnForDetails == null || !assignedDjinns.Contains(selectedDjinnForDetails))
@@ -401,7 +389,7 @@ public class PageDjinnController
 
         RenderVistaASlots(assignedDjinns);
 
-        // 5. Renderizar detalles del Djinn Seleccionado
+        // 5. Render details of selected Djinn
         if (selectedDjinnForDetails != null)
         {
             SelectDjinnInVistaA(selectedDjinnForDetails);
@@ -487,7 +475,6 @@ public class PageDjinnController
             Label emptyLabel = cardRoot.Q<Label>("label_djinn_empty");
             VisualElement elementPip = cardRoot.Q<VisualElement>("djinn_element_pip");
 
-            // 1. Limpiar clases previas en el contenedor raíz
             cardRoot.RemoveFromClassList("djinn-card-empty");
             cardRoot.RemoveFromClassList("djinn-card-selected");
             cardRoot.RemoveFromClassList("djinn-card-leader");
@@ -500,12 +487,10 @@ public class PageDjinnController
             {
                 DjinnSO data = djinnInstance.DjinnData;
 
-                // Mostrar el cuerpo y ocultar el texto de vacio
                 if (cardHeader != null) cardHeader.style.display = DisplayStyle.Flex;
                 if (cardBody != null) cardBody.style.display = DisplayStyle.Flex;
                 if (emptyLabel != null) emptyLabel.style.display = DisplayStyle.None;
 
-                // 2. Asignar elemento
                 cardRoot.AddToClassList($"djinn-card-{data.Element.ToString().ToLower()}");
 
                 if (elementPip != null)
@@ -518,20 +503,17 @@ public class PageDjinnController
                     elementPip.style.display = DisplayStyle.Flex;
                 }
 
-                // 3. Comprobar Líder
                 bool isLeader = (currentHeroDjinnController != null && currentHeroDjinnController.LeaderDjinn == djinnInstance);
                 if (isLeader)
                 {
                     cardRoot.AddToClassList("djinn-card-leader");
                 }
 
-                // 4. Comprobar Selección (Prevalece sobre el borde elemental)
                 if (selectedDjinnForDetails == djinnInstance)
                 {
                     cardRoot.AddToClassList("djinn-card-selected");
                 }
 
-                // 5. Configurar el Chip/Botón de Líder
                 if (btnLeaderTag != null)
                 {
                     btnLeaderTag.RemoveFromClassList("leader-active");
@@ -564,7 +546,6 @@ public class PageDjinnController
 
                 if (nameLabel != null) nameLabel.text = data.DjinnName;
 
-                // 6. Configurar Botón de Estado (Set, Standby, Recovery)
                 if (statusBtn != null)
                 {
                     statusBtn.text = GetStatusButtonText(djinnInstance.CurrentState);
@@ -587,7 +568,6 @@ public class PageDjinnController
                     });
                 }
 
-                // 7. Click en la tarjeta completa para seleccionarla
                 slotInstance.RegisterCallback<ClickEvent>(evt =>
                 {
                     selectedDjinnForDetails = djinnInstance;
@@ -596,7 +576,6 @@ public class PageDjinnController
             }
             else
             {
-                // Estado Vacío
                 cardRoot.AddToClassList("djinn-card-empty");
 
                 if (cardHeader != null) cardHeader.style.display = DisplayStyle.None;
@@ -673,14 +652,12 @@ public class PageDjinnController
 
         boxUnleashInfo.Clear();
 
-        // 1. Badge de TARGET / ALCANCE
         string targetText = GetTargetBadgeText(unleash.TargetsAlly, unleash.IsAreaOfEffect);
         Sprite targetIcon = GetTargetIcon(unleash.TargetsAlly, unleash.IsAreaOfEffect);
 
         VisualElement targetBadge = CreateBadgeContainer("badge-target", targetIcon, targetText);
         boxUnleashInfo.Add(targetBadge);
 
-        // 2. Badge de DAÑO / POTENCIA  
         if (unleash.DamageMultiplier > 1.0f)
         {
             VisualElement damageBadge = CreateBadgeContainer("badge-damage", null, $"Daño: x{unleash.DamageMultiplier:F2}");
@@ -692,7 +669,6 @@ public class PageDjinnController
             boxUnleashInfo.Add(damageBadge);
         }
 
-        // 3. Badges de STATUS EFFECTS (Buffs, Debuffs, Ailments)  
         if (unleash.StatusEffects != null && unleash.StatusEffects.Count > 0)
         {
             foreach (StatusEffectSO status in unleash.StatusEffects)
@@ -734,12 +710,10 @@ public class PageDjinnController
 
     private VisualElement CreateBadgeContainer(string categoryClass, Sprite iconSprite, string text)
     {
-        // English comment: Create parent badge container with flex layout
         VisualElement badgeContainer = new VisualElement();
         badgeContainer.AddToClassList("unleash-badge");
         badgeContainer.AddToClassList(categoryClass);
 
-        // English comment: Create icon element and apply sprite background if provided
         VisualElement iconElem = new VisualElement();
         iconElem.AddToClassList("badge-icon");
 
@@ -763,7 +737,6 @@ public class PageDjinnController
 
     private Sprite GetTargetIcon(bool targetsAlly, bool isAreaOfEffect)
     {
-        // English comment: Return the corresponding target icon based on alliance and AoE status
         if (targetsAlly)
         {
             return isAreaOfEffect ? iconTargetGroup : iconTargetSingle;
@@ -1042,7 +1015,6 @@ public class PageDjinnController
     {
         if (partyColumnsContainer == null || partyHeroes == null || djinnSlotCardBAsset == null) return;
 
-        // English comment: Find all hero columns dynamically in partyColumnsContainer
         List<VisualElement> columns = partyColumnsContainer.Query<VisualElement>(className: "hero-djinn-column").ToList();
 
         for (int i = 0; i < columns.Count; i++)
@@ -1202,20 +1174,8 @@ public class PageDjinnController
     {
         currentViewMode = newMode;
 
-        // Lazy check in case SetTemplates ran prior to layout binding
-        if (newMode == DjinnViewMode.Global && sectionVistaB == null)
-        {
-            InitializeVistaBLayout();
-        }
-
-        if (pageDjinnContainer != null)
-            pageDjinnContainer.style.display = (newMode == DjinnViewMode.Individual) ? DisplayStyle.Flex : DisplayStyle.None;
-
-        if (sectionVistaB != null)
-            sectionVistaB.style.display = (newMode == DjinnViewMode.Global) ? DisplayStyle.Flex : DisplayStyle.None;
-
-        // Notify MainMenuController to hide heroes bar in Vista B (show in Vista A)
-        OnToggleTopHeroesBar?.Invoke(newMode == DjinnViewMode.Individual);
+        // English comment: Notify MainMenuController to update root containers visibility
+        OnRequestViewChange?.Invoke(newMode);
 
         RefreshAllData();
     }

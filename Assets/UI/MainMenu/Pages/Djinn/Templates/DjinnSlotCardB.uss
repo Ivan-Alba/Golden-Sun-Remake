@@ -2,71 +2,74 @@
    GLOBAL ENRICHED DJINN CARD (VISTA B)
    ========================================================================== */
 
-/* 1. NODO RAÍZ DEL COMPONENTE */
 .djinn-card-b-root {
     width: 100%;
-    height: 100%;
-    min-height: 38px;
+    height: 72px; /* Altura estricta para que la tarjeta no se expanda */
+    max-height: 72px;
     background-color: rgba(10, 16, 26, 0.75);
-    border-width: 1px;
+    border-width: 2px;
     border-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     padding: 3px 5px;
+    margin-bottom: 4px;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     box-sizing: border-box;
+    overflow: hidden; /* Garantiza que nada desborde la tarjeta */
 }
 
-/* 2. CONTENEDOR INTERNO DE CONTENIDO (RETRATO + INFO) */
+.djinn-card-b-root Label {
+    margin: 0;
+    padding: 0;
+}
+
+/* 2. CONTENEDOR INTERNO DE CONTENIDO */
 .djinn-card-b-body {
     flex-grow: 1;
     width: 100%;
     height: 100%;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
 }
 
-/* 3. CAJA DEL RETRATO (IZQUIERDA) */
+/* 3. BLOQUE IZQUIERDO: RETRATO */
 .djinn-card-portrait-box {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
     background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.15);
+
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
 }
 
 .djinn-card-icon {
-    width: 100%;
-    height: 100%;
+    width: 95%;
+    height: 95%;
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* 4. BLOQUE PRINCIPAL DE INFORMACIÓN (DERECHA) */
+/* 4. BLOQUE DERECHO: CONTENEDOR PRINCIPAL */
 .djinn-card-main-info {
     flex-grow: 1;
     height: 100%;
     justify-content: space-between;
-    padding-top: 1px;
-    padding-bottom: 1px;
     margin-left: 6px;
     overflow: hidden;
 }
 
-/* 5. FILA SUPERIOR: PIP + NOMBRE | CHIP LÍDER */
+/* 5. FILA 1: PIP + NOMBRE | CHIP LÍDER */
 .djinn-card-title-row {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    height: 14px;
+    margin-bottom: 2px;
+    height: auto;
 }
 
 .djinn-card-name-group {
@@ -93,7 +96,6 @@
     -unity-text-overflow-position: end;
 }
 
-/* CHIP / BOTÓN DE LÍDER */
 .djinn-card-leader-group {
     flex-direction: row;
     align-items: center;
@@ -121,44 +123,50 @@
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 6. FILA INFERIOR: TEXTO LIBERAR | BOTÓN PREPARADO */
+/* 6. FILA 2: CONTENEDOR INFERIOR DUAL */
 .djinn-card-bottom-row {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     width: 100%;
-    height: 14px;
-}
-
-.djinn-card-unleash-row {
-    flex-direction: row;
-    align-items: center;
     flex-grow: 1;
-    flex-shrink: 1;
-    overflow: hidden;
-    margin-right: 4px;
+    margin-top: 2px;
 }
 
-.djinn-unleash-label {
-    font-size: 8px;
-    color: #8C9BA5;
-    margin-right: 3px;
+.djinn-card-unleash-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 70%;
+    height: 100%;
+    max-height: 100%;
+    align-items: center;
+    flex-grow: 0;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .djinn-unleash-val {
     font-size: 8px;
-    color: #5DADE2;
+    color: #FFFFFF;
     -unity-font-style: bold;
-    -unity-text-overflow-position: end;
-    overflow: hidden;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
 }
 
-/* BOTÓN ESTADO COMPACTO */
+/* COLUMNA DERECHA: BOTÓN DERECHO INFERIOR */
+.djinn-card-status-col {
+    justify-content: flex-end;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
 .btn-compact {
-    width: 58px;
-    height: 13px;
-    font-size: 7px;
+    width: 62px;
+    height: 14px;
+    font-size: 8px;
     -unity-font-style: bold;
     padding: 0;
     margin: 0;
@@ -170,6 +178,18 @@
     background-color: rgba(46, 204, 113, 0.2);
     border-color: rgba(46, 204, 113, 0.5);
     color: #2ECC71;
+}
+
+.status-standby {
+    background-color: rgba(241, 196, 15, 0.2);
+    border-color: rgba(241, 196, 15, 0.5);
+    color: #F1C40F;
+}
+
+.status-recovery {
+    background-color: rgba(231, 76, 60, 0.2);
+    border-color: rgba(231, 76, 60, 0.5);
+    color: #E74C3C;
 }
 
 /* ESTADO VACÍO */

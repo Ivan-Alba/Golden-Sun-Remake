@@ -1,0 +1,80 @@
+/* =========================================================================
+   Global_Theme.uss
+   Central Theme Variables, Colors, Elemental Icons, and Text Utilities
+   ========================================================================= */
+
+/* --- Root Theme Variables --- */
+:root {
+    /* Main Accent Colors */
+    --color-gold-sun: #DAA520;
+    --color-gold-bright: #FFD700;
+    --color-text-white: #FFFFFF;
+    --color-text-muted: #8A9BA8;
+    --color-text-description: #CBD5E1;
+    --color-accent-blue: #60A5FA;
+
+    /* Base Containers Backgrounds & Borders */
+    --color-panel-bg: rgba(15, 20, 28, 0.85);
+    --color-panel-border: #2E3A4E;
+    --color-subbox-bg: #101722;
+    --color-subbox-border: #1F2D40;
+
+    /* Elemental Colors */
+    --color-venus: #C88A2E;
+    --color-mars: #E74C3C;
+    --color-jupiter: #9B59B6;
+    --color-mercury: #3498DB;
+    --color-none: #555555;
+}
+
+/* --- Elemental Pips (Standardized) --- */
+.pip-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 4px;
+    border-width: 1px;
+    flex-shrink: 0;
+}
+
+.icon-venus { 
+    background-color: var(--color-venus); 
+    border-color: rgba(255, 255, 255, 0.4); 
+}
+
+.icon-mars { 
+    background-color: var(--color-mars); 
+    border-color: rgba(255, 255, 255, 0.4); 
+}
+
+.icon-jupiter { 
+    background-color: var(--color-jupiter); 
+    border-color: rgba(255, 255, 255, 0.4); 
+}
+
+.icon-mercury { 
+    background-color: var(--color-mercury); 
+    border-color: rgba(255, 255, 255, 0.4); 
+}
+
+.icon-none { 
+    background-color: var(--color-none); 
+    border-color: rgba(255, 255, 255, 0.4); 
+}
+
+/* --- Shared Utility Text Classes --- */
+.text-gold {
+    color: var(--color-gold-sun);
+}
+
+.text-white {
+    color: var(--color-text-white);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.text-accent-blue {
+    color: var(--color-accent-blue);
+}

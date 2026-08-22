@@ -41,7 +41,7 @@ MonoBehaviour:
   - statType: 9
     value: 5
     modifierType: 0
-  element: 0
+  element: 4
   elementalPowerBonus: 0
   useInBattle: 0
   battleUseEffect: {fileID: 0}

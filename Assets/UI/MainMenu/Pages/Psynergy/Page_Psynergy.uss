@@ -1,42 +1,61 @@
 /* ==========================================================================
-   PAGE PSYNERGY MAIN LAYOUT (25% / 50% / 25%)
+   PAGE PSYNERGY MAIN LAYOUT (25% / 45% / 30% - UNIFIED WITH PAGE ITEMS)
    ========================================================================== */
 .page-psynergy-container {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
     flex-grow: 1;
-    flex-direction: row;
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: row; /* Horizontal 3-column distribution */
     padding: 6px;
+    overflow: hidden;
 }
 
-.info-title-label {
-    font-size: 15px;
+/* Reset labels padding/margins to avoid layout shifts in Runtime */
+.page-psynergy-container Label {
+    margin: 0;
+    padding: 0;
+}
+
+/* Unified Golden Section Titles */
+.page-psynergy-container .info-title-label {
+    font-size: 17px;
     -unity-font-style: bold;
     color: #DAA520; /* Golden section title */
-    margin-bottom: 10px;
-    margin-top: 4px;
-    text-align: center;
+    margin-bottom: 14px;
+    margin-top: 6px;
+    -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
 }
 
 /* ==========================================================================
-   LEFT PANEL: HERO PORTRAIT & D-PAD SHORTCUTS (25%)
+   LEFT PANEL: HERO PORTRAIT & D-PAD SHORTCUTS (25% Width)
    ========================================================================== */
 .shortcuts-section {
-    width: 25%;
+    flex-grow: 25;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
+    max-height: 100%;
     padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
+    flex-direction: column;
     align-items: center;
     margin-right: 10px;
+    overflow: hidden;
 }
 
 .hero-portrait-box {
     width: 100%;
     align-items: center;
     margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .hero-portrait-image {
@@ -44,16 +63,16 @@
     height: 72px;
     background-color: #1a2332;
     border-width: 2px;
-    border-color: #d4af37; /* Golden Sun Gold Accent */
+    border-color: #d4af37; /* Golden Accent */
     border-radius: 36px;
     margin-bottom: 6px;
 }
 
 .hero-name-label {
-    font-size: 16px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: #ffffff;
-    text-alignment: middle-center;
+    -unity-text-align: middle-center;
 }
 
 .section-separator {
@@ -62,22 +81,23 @@
     background-color: #2e3a4e;
     margin-top: 5px;
     margin-bottom: 15px;
+    flex-shrink: 0;
 }
 
 .shortcuts-header-label {
     font-size: 13px;
     color: #d4af37;
     margin-bottom: 15px;
-    text-alignment: middle-center;
+    -unity-text-align: middle-center;
+    flex-shrink: 0;
 }
 
 /* --- D-PAD CROSS LAYOUT --- */
 .dpad-shortcuts-container {
     width: 100%;
+    flex-grow: 1;
     align-items: center;
     justify-content: center;
-    margin-top: auto;
-    margin-bottom: auto;
 }
 
 .dpad-row {
@@ -134,34 +154,42 @@
 }
 
 /* ==========================================================================
-   CENTER PANEL: PSYNERGY CARDS LIST (50%)
+   CENTER PANEL: PSYNERGY CARDS LIST (45% Width)
    ========================================================================== */
 .psynergy-list-section {
-    width: 45%;
+    flex-grow: 45;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
+    max-height: 100%;
     padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
     margin-right: 10px;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 }
 
 .filter-tabs-row {
     flex-direction: row;
-    margin-top: 8px;
+    width: 100%;
+    margin-top: 4px;
     margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .tab-btn {
     flex-grow: 1;
-    height: 28px;
+    height: 30px;
     background-color: #141c28;
     border-width: 1px;
     border-color: #2e3a4e;
     border-radius: 4px;
     color: #8c9ba5;
-    font-size: 11px;
+    font-size: 12px;
     -unity-font-style: bold;
     margin-right: 4px;
 }
@@ -179,6 +207,7 @@
 
 .psynergy-cards-scroll {
     flex-grow: 1;
+    width: 100%;
     padding-right: 5px;
 }
 
@@ -310,11 +339,9 @@
 .element-venus .card-element-stripe {
     background-color: #d4ac0d;
 }
-
 .element-venus {
     border-color: #7d6608;
 }
-
 .icon-venus {
     background-color: #C88A2E;
     border-color: rgba(255, 255, 255, 0.4);
@@ -324,11 +351,9 @@
 .element-mars .card-element-stripe {
     background-color: #e74c3c;
 }
-
 .element-mars {
     border-color: #78281f;
 }
-
 .icon-mars {
     background-color: #E74C3C;
     border-color: rgba(255, 255, 255, 0.4);
@@ -338,11 +363,9 @@
 .element-jupiter .card-element-stripe {
     background-color: #af7ac5;
 }
-
 .element-jupiter {
     border-color: #512e5f;
 }
-
 .icon-jupiter {
     background-color: #9B59B6;
     border-color: rgba(255, 255, 255, 0.4);
@@ -352,11 +375,9 @@
 .element-mercury .card-element-stripe {
     background-color: #3498db;
 }
-
 .element-mercury {
     border-color: #1b4f72;
 }
-
 .icon-mercury {
     background-color: #3498DB;
     border-color: rgba(255, 255, 255, 0.4);
@@ -369,21 +390,27 @@
 }
 
 /* ==========================================================================
-   RIGHT PANEL: DETAILED INFORMATION (25%)
+   RIGHT PANEL: DETAILED INFORMATION (30% Width)
    ========================================================================== */
 .psynergy-info-panel {
-    width: 30%;
+    flex-grow: 30;
+    flex-shrink: 0;
+    flex-basis: 0;
     height: 100%;
+    max-height: 100%;
     padding: 10px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
     border-color: #2e3a4e;
     border-radius: 6px;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 }
 
 .psynergy-preview-container {
-    width: 100%;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background-color: #0d131d;
     border-width: 1px;
     border-color: #253347;
@@ -391,12 +418,13 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 /* Preview Icon Styling */
 .psynergy-preview-icon {
-    width: 90px;
-    height: 90px;
+    width: 110px;
+    height: 110px;
     background-color: rgba(255, 255, 255, 0.05);
     border-width: 1px;
     border-color: rgba(218, 165, 32, 0.3);
@@ -407,46 +435,51 @@
     background-repeat: no-repeat;
 }
 
-.psynergy-name-label {
-    font-size: 18px;
+.page-psynergy-container .psynergy-name-label {
+    font-size: 20px;
     -unity-font-style: bold;
     color: #ffffff;
-    text-alignment: middle-center;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+    flex-shrink: 0;
 }
 
-.psynergy-type-label {
+.page-psynergy-container .psynergy-type-label {
     font-size: 14px;
     color: #60A5FA;
-    text-alignment: middle-center;
-    margin-bottom: 6px;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .psynergy-meta-row {
     flex-direction: row;
+    width: 100%;
     justify-content: space-between;
     background-color: #121a26;
-    padding: 6px;
+    padding: 6px 8px;
     border-radius: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .psynergy-meta-label {
-    font-size: 12px;
+    font-size: 14px;
     color: #aeb6bf;
 }
 
-.psynergy-desc-label {
-    font-size: 14px;
-    color: #d5dbdb;
-    white-space: normal;
-    margin-bottom: 6px;
+.psynergy-desc-container {
+    width: 100%;
+    padding: 0 6px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
-.stat-changes-box {
-    flex-grow: 1;
-    background-color: #101722;
-    border-width: 1px;
-    border-color: #1f2d40;
-    border-radius: 4px;
-    padding: 6px;
+.page-psynergy-container .psynergy-desc-label {
+    font-size: 15px;
+    color: #CBD5E1;
+    white-space: normal;
+    margin-bottom: 6px;
+    -unity-text-align: upper-left;
+    flex-shrink: 0;
 }

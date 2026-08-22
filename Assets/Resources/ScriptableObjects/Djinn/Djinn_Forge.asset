@@ -15,7 +15,7 @@ MonoBehaviour:
   djinnName: Forge
   djinnSlug: forge
   element: 2
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b412287db8e3e374da751c63fc800a67, type: 3}
   description: 
   setStatModifiers:
   - statType: 2

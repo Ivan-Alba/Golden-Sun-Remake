@@ -57,6 +57,10 @@ public class MainMenuController : MonoBehaviour
     // Content Area
     private VisualElement pageContent;
 
+    // Djinn Views Containers (Sister Elements in DOM)
+    private VisualElement djinnViewAContainer;
+    private VisualElement djinnViewBContainer;
+
     // Bookmarks (Tabs)
     private Button btnStatus;
     private Button btnItems;
@@ -458,20 +462,59 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadDjinnPage()
     {
-        if (pageDjinnAsset == null) return;
+        if (pageDjinnAsset == null || globalViewAsset == null) return;
 
-        TemplateContainer djinnInstance = pageDjinnAsset.Instantiate();
-        djinnInstance.style.flexGrow = 1;
-        pageContent.Add(djinnInstance);
+        // English comment: Instantiate Vista A and Vista B as sister containers inside pageContent
+        TemplateContainer instanceA = pageDjinnAsset.Instantiate();
+        instanceA.style.flexGrow = 1;
+        instanceA.style.display = DisplayStyle.Flex; // Default Vista A visible
 
-        djinnPageController = new PageDjinnController(djinnInstance);
+        TemplateContainer instanceB = globalViewAsset.Instantiate();
+        instanceB.style.flexGrow = 1;
+        instanceB.style.display = DisplayStyle.None; // Default Vista B hidden
+
+        pageContent.Add(instanceA);
+        pageContent.Add(instanceB);
+
+        djinnViewAContainer = instanceA;
+        djinnViewBContainer = instanceB;
+
+
+        // English comment: Pass both root containers to PageDjinnController
+        djinnPageController = new PageDjinnController(instanceA, instanceB);
         djinnPageController.SetParty(GetPartyHeroStatsList());
-        djinnPageController.SetTemplates(globalViewAsset, miniPsynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
+        djinnPageController.SetTemplates(miniPsynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
         djinnPageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
+
         djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
+        djinnPageController.OnToggleTopHeroesBar += SetHeaderHeroesBarVisibility;
+        djinnPageController.OnRequestViewChange += HandleDjinnViewChange;
 
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
         djinnPageController.PopulateData(selectedHeroStats);
+    }
+
+    private void SetHeaderHeroesBarVisibility(bool visible)
+    {
+        if (headerHeroesBar != null)
+        {
+            headerHeroesBar.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+    }
+
+    private void HandleDjinnViewChange(DjinnViewMode targetMode)
+    {
+        if (djinnViewAContainer != null)
+        {
+            djinnViewAContainer.style.display = (targetMode == DjinnViewMode.Individual) ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        if (djinnViewBContainer != null)
+        {
+            djinnViewBContainer.style.display = (targetMode == DjinnViewMode.Global) ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        SetHeaderHeroesBarVisibility(targetMode == DjinnViewMode.Individual);
     }
 
     private void LoadEncyclopediaPage()

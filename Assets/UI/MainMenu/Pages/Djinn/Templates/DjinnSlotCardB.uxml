@@ -16,11 +16,12 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement class="djinn-card-bottom-row">
-                    <ui:VisualElement class="djinn-card-unleash-row">
-                        <ui:Label text="Liberar:" class="djinn-unleash-label" />
-                        <ui:Label text="Golpe fuerte que puede cortar la roca." name="label_unleash_short_desc" class="djinn-unleash-val" />
+                    <ui:VisualElement class="djinn-card-unleash-col">
+                        <ui:Label text="Ataca con un fuerte golpe que puede cortar la roca." name="label_unleash_short_desc" class="djinn-unleash-val" />
                     </ui:VisualElement>
-                    <ui:Button text="PREPARADO" name="btn_djinn_status" class="djinn-status-btn status-set btn-compact" />
+                    <ui:VisualElement class="djinn-card-status-col">
+                        <ui:Button text="PREPARADO" name="btn_djinn_status" class="djinn-status-btn status-set btn-compact" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

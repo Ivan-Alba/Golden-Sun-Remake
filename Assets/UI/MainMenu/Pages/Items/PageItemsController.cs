@@ -200,7 +200,7 @@ public class PageItemsController
     };
 
     // Slot Dimension Constants for Layout Calculations
-    private const float SLOT_SIZE = 65f;
+    private const float SLOT_SIZE = 80f;
     private const float SLOT_MARGIN_TOTAL = 6f; // 3px left + 3px right (matches .slot-box margin: 3px)
 
     #endregion
@@ -1562,11 +1562,11 @@ public class PageItemsController
         if (labelItemSellPrice != null)
         {
             labelItemSellPrice.text = item.CanSell
-                ? $"Se vende por: {item.SellPrice} monedas"
+                ? $"Se vende por:  {item.SellPrice} monedas"
                 : "No se puede vender";
         }
 
-        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack: {item.MaxStack}";
+        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack:  {item.MaxStack}";
         if (labelItemDesc != null) labelItemDesc.text = item.ItemDescription;
 
         if (itemIconPreview != null && item.Icon != null)
@@ -1631,6 +1631,31 @@ public class PageItemsController
                     if (unleashIcon != null && weapon.UnleashEffect.Icon != null)
                     {
                         unleashIcon.style.backgroundImage = new StyleBackground(weapon.UnleashEffect.Icon);
+                    }
+
+                    // Unleash Elemental Pip
+                    VisualElement unleashElementIcon = instance.Q<VisualElement>("unleash_element_icon");
+                    if (unleashElementIcon != null)
+                    {
+                        switch (weapon.UnleashEffect.Element)
+                        {
+                            case ElementalType.None:
+                                unleashElementIcon.style.display = DisplayStyle.None;
+                                break;
+                            case ElementalType.Venus:
+                                unleashElementIcon.AddToClassList("badge-element-venus");
+                                break;
+                            case ElementalType.Mars:
+                                unleashElementIcon.AddToClassList("badge-element-mars");
+                                break;
+                            case ElementalType.Jupiter:
+                                unleashElementIcon.AddToClassList("badge-element-jupiter");
+                                break;
+                            case ElementalType.Mercury:
+                                unleashElementIcon.AddToClassList("badge-element-mercury");
+                                break;
+                        }
+
                     }
 
                     Label labelUnleashName = instance.Q<Label>("label_unleash_name");
@@ -1919,24 +1944,34 @@ public class PageItemsController
         string elemString = element.ToString().ToLower();
         badgeElement.AddToClassList($"badge-element-{elemString}");
 
+        // ElementIcon
         if (elementIcon != null)
-        { 
+        {
+            elementIcon.RemoveFromClassList("badge-element-none");
+            elementIcon.RemoveFromClassList("badge-element-venus");
+            elementIcon.RemoveFromClassList("badge-element-mars");
+            elementIcon.RemoveFromClassList("badge-element-jupiter");
+            elementIcon.RemoveFromClassList("badge-element-mercury");
+            
             switch (element)
             {
                 case ElementalType.None:
-                    elementIcon.AddToClassList("icon-none");
+                    elementIcon.AddToClassList("badge-element-none");
                     break;
                 case ElementalType.Venus:
-                    elementIcon.AddToClassList("icon-venus");
+                    elementIcon.AddToClassList("badge-element-venus");
                     break;
                 case ElementalType.Mars:
-                    elementIcon.AddToClassList("icon-mars");
+                    elementIcon.AddToClassList("badge-element-mars");
                     break;
                 case ElementalType.Jupiter:
-                    elementIcon.AddToClassList("icon-jupiter");
+                    elementIcon.AddToClassList("badge-element-jupiter");
                     break;
                 case ElementalType.Mercury:
-                    elementIcon.AddToClassList("icon-mercury");
+                    elementIcon.AddToClassList("badge-element-mercury");
+                    break;
+                default:
+                    elementIcon.AddToClassList("badge-element-none");
                     break;
                 }
             }

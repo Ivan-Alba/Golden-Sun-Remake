@@ -36,17 +36,19 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="item_info_panel" class="item-info-panel">
-            <ui:Label text="INFORMACIÓN OBJETO" name="label_info_title" class="info-title-label" style="-unity-text-align: upper-center;" />
+            <ui:Label text="INFORMACIÓN OBJETO" name="label_info_title" class="info-title-label" />
             <ui:VisualElement name="item_preview_container" class="item-preview-container">
                 <ui:VisualElement name="item_icon_preview" class="item-preview-icon" />
             </ui:VisualElement>
-            <ui:Label text="Espada Larga" name="label_item_name" class="item-name-label" style="-unity-text-align: upper-center; height: auto;" />
-            <ui:Label text="Equipable - Arma" name="label_item_type" class="item-type-label" style="-unity-text-align: upper-center;" />
+            <ui:Label text="Espada Larga" name="label_item_name" class="item-name-label" />
+            <ui:Label text="Equipable - Arma" name="label_item_type" class="item-type-label" />
             <ui:VisualElement name="item_meta_row" class="item-meta-row">
                 <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="item-meta-label" />
                 <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="item-meta-label" />
             </ui:VisualElement>
-            <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="item-desc-label" />
+            <ui:VisualElement name="item_desc_container" class="item-desc-container">
+                <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="item-desc-label" />
+            </ui:VisualElement>
             <ui:ScrollView name="extra_info_container" class="extra-info-container" />
         </ui:VisualElement>
         <ui:VisualElement name="split_popup_overlay" class="split-popup-overlay">

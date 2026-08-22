@@ -15,7 +15,7 @@ MonoBehaviour:
   djinnName: Granite
   djinnSlug: granite
   element: 1
-  icon: {fileID: 21300000, guid: 77913dd3bfa37a843aed9ce2335daba9, type: 3}
+  icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
   description: 
   setStatModifiers:
   - statType: 3

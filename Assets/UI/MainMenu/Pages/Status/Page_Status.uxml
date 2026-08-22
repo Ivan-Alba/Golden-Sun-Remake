@@ -8,7 +8,7 @@
                 
                 <!-- 1. HERO TOP SECTION -->
                 <ui:VisualElement name="hero_top_section_0" picking-mode="Ignore" class="hero-top-section">
-                    <ui:VisualElement name="hero_portrait_0" picking-mode="Ignore" class="hero-portrait" style="border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px;" />
+                    <ui:VisualElement name="hero_portrait_0" picking-mode="Ignore" class="hero-portrait" />
                     <ui:VisualElement name="hero_header_info_0" picking-mode="Ignore" class="hero-header-info">
                         <ui:Label text="Hans" name="label_hero_name_0" picking-mode="Ignore" class="hero-name-label" />
                         <ui:VisualElement class="exp-bar-wrapper">

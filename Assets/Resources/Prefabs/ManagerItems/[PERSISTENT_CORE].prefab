@@ -71,8 +71,10 @@ MonoBehaviour:
   templateInfoPsynergyRelic: {fileID: 9197481963319205126, guid: c2e35c2b5f5ab70468b4097b5ff46ad7, type: 3}
   templateInfoKeyItem: {fileID: 9197481963319205126, guid: 476532ed557255148871735c9e937564, type: 3}
   itemSlotAsset: {fileID: 9197481963319205126, guid: 24e92de9bbb31e74fbf4d0e62744abee, type: 3}
+  globalViewAsset: {fileID: 9197481963319205126, guid: 02824ab164aeee74ba18dd7d1a4f1963, type: 3}
   miniPsynergyCardAsset: {fileID: 9197481963319205126, guid: 6b05764d537ecf84a8b45bec223308ae, type: 3}
   djinnSlotCardAAsset: {fileID: 9197481963319205126, guid: cc9232f85f2c8e54dbb2adc55096ecce, type: 3}
+  djinnSlotCardBAsset: {fileID: 9197481963319205126, guid: 5631cea438d859141878c0f7f09d26f9, type: 3}
   targetSingleIcon: {fileID: 21300000, guid: e3173de33f199924bbfabdbee13f46c9, type: 3}
   targetGroupIcon: {fileID: 21300000, guid: dfcb0962f2ee1ca4790a67043d25e3a5, type: 3}
 --- !u!1 &4245145516459992524

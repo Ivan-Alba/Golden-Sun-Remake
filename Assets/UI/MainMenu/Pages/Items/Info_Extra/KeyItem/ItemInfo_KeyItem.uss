@@ -25,23 +25,24 @@
     align-items: center;
     justify-content: center;
     padding: 4px 10px;
-    border-radius: 12px;
+    border-radius: 10px;
     background-color: rgba(255, 215, 0, 0.12);
     border-width: 1px;
     border-color: rgba(255, 215, 0, 0.6);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .key-badge-icon {
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
     background-color: #FFD700;
-    margin-right: 6px;
+    border-width: 1px;
+    margin-right: 4px;
 }
 
 .key-badge-label {
-    font-size: 10px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: #FFD700; /* Golden Sun Gold */
     letter-spacing: 1px;
@@ -60,8 +61,8 @@
     flex-grow: 1;
     justify-content: center;
     align-items: center;
-    padding: 8px 12px;
-    background-color: rgba(15, 15, 20, 0.5);
+    padding: 6px 10px;
+    background-color: rgba(15, 15, 20, 0.4);
     border-radius: 4px;
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.05);
@@ -76,11 +77,11 @@
 }
 
 .key-item-info-root .lore-text {
-    font-size: 11px;
+    font-size: 12px;
     -unity-font-style: italic;
     color: #D3C399; /* Warm Parchment / Golden Tint */
     -unity-text-align: middle-center;
     white-space: normal;
-    line-height: 14px;
-    padding: 4px 0;
+    line-height: 15px;
+    padding: 3px 0;
 }
