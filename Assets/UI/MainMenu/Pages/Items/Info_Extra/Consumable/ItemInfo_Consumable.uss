@@ -1,148 +1,27 @@
 /* =========================================================================
    ItemInfo_Consumable.uss
-   Styles for the modular detail view of Consumable Items
+   Specific Styles for Consumable Items (Dynamic Effect Rows)
    ========================================================================= */
 
-.consumable-info-root {
-    flex-grow: 1;
-    justify-content: flex-start;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.35);
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
-
-.consumable-info-root Label {
-    margin: 0;
-    padding: 0;
-}
-
-/* --- Block 1: Usage Badges (Menu / Battle) --- */
-.usage-badges-container {
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.usage-badge {
-    flex-direction: row;
-    align-items: center;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 4px;
-    padding-bottom: 4px;
-    border-radius: 12px;
-    background-color: rgba(20, 20, 20, 0.7);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.badge-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 3px;
-    margin-right: 6px;
-    background-color: #555555;
-}
-
-.badge-label {
-    font-size: 12px;
-    -unity-font-style: bold;
-    color: #777777;
-}
-
-/* Inactive State (default if useInMenu/useInBattle is false) */
-.badge-inactive {
-    opacity: 0.5;
-}
-
-/* Active State (when useInMenu/useInBattle is true) */
-.badge-active {
-    border-color: rgba(255, 215, 0, 0.8);
-    background-color: rgba(255, 215, 0, 0.12);
-    opacity: 1;
-}
-
-.badge-active .badge-dot {
-    background-color: #00FF88;
-}
-
-.badge-active .badge-label {
-    color: #FFFFFF;
-}
-
-/* --- Visual Separator --- */
-.info-divider {
-    height: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin-top: 2px;
-    margin-bottom: 8px;
-}
-
-/* --- Block 2: Effect Details --- */
+/* --- Block 2 Specifics: Effect Details & Dynamic Rows --- */
 .effect-details-box {
     flex-direction: column;
-    padding: 4px 6px;
-}
-
-.effect-header-row {
-    margin-bottom: 4px;
-}
-
-.effect-header-title {
-    font-size: 12px;
-    color: #DAA520; /* Classic Golden Sun Gold */
-    -unity-font-style: bold;
-    letter-spacing: 1px;
+    padding: 2px 4px;
 }
 
 .effect-value-row {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-top: 2px;
 }
 
 .label-effect-type {
-    font-size: 14px;
-    color: #E0E0E0;
+    font-size: 13px;
+    color: var(--color-text-description);
 }
 
 .label-effect-value {
-    font-size: 15px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #00FF88; /* Bright green for boosts / healing */
-}
-
-/* --- Block 3: Narrative Flavor Text (Lore) --- */
-.lore-box {
-    justify-content: center;
-    align-items: center;
-    padding: 6px 10px;
-    background-color: rgba(15, 15, 20, 0.4);
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.05);
-    margin-top: 2px;
-}
-
-.quote-mark {
-    width: 12px;
-    height: 2px;
-    background-color: rgba(218, 165, 32, 0.5); /* Gold Accent Lines */
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-
-.consumable-info-root .lore-text {
-    font-size: 12px;
-    -unity-font-style: italic;
-    color: #D3C399; /* Warm Parchment / Golden Tint */
-    -unity-text-align: middle-center;
-    white-space: normal;
-    line-height: 15px;
-    padding: 3px 0;
 }

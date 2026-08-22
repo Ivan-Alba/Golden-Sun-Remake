@@ -1,6 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/KeyItem/ItemInfo_KeyItem.uss?fileID=7433441132597879392&amp;guid=bf09765d7abd2b04f98d8a18dbc6614f&amp;type=3#ItemInfo_KeyItem" />
-    <ui:VisualElement name="key_item_info_root" class="key-item-info-root">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <ui:VisualElement name="key_item_info_root" class="extra-info-card-root key-item-root-border">
         <ui:VisualElement name="key_item_badge_container" class="key-item-badge-container">
             <ui:VisualElement class="key-badge-icon" />
             <ui:Label text="OBJETO DE HISTORIA" class="key-badge-label" />

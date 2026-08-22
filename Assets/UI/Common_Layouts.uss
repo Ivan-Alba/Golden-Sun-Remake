@@ -22,12 +22,13 @@
 }
 
 /* --- 2. Shared Section Titles --- */
-.info-title-label {
+.page-three-columns-container .info-title-label,
+.container-book .info-title-label {
     font-size: 17px;
     -unity-font-style: bold;
     color: var(--color-gold-sun);
-    margin-bottom: 14px;
     margin-top: 6px;
+    margin-bottom: 14px;
     -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
@@ -111,24 +112,64 @@
     border-radius: 8px;
     flex-shrink: 0;
     background-size: contain;
-    background-position: center;
+    -unity-background-scale-mode: scale-to-fit;
     background-repeat: no-repeat;
 }
 
-.detail-name-label {
+/* Wide Box for Video / Animated Renders (Psynergy, Djinn) */
+.detail-preview-container-wide { 
+    width: 100%; 
+    height: 160px;                    /* Altura ideal para encajar un aspect ratio 16:9 */
+    padding: 6px;                     /* Margin/Padding interno uniforme */
+    background-color: #0D131D; 
+    border-width: 1px; 
+    border-color: #253347; 
+    border-radius: 6px; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 8px; 
+    flex-shrink: 0; 
+}
+
+.detail-preview-render { 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.4); 
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px; 
+    flex-shrink: 0; 
+    overflow: hidden;                 /* Recorta el vídeo o render si sobresale */
+}
+
+.detail-icon-name-row {
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.detail-icon-name-row .pip-icon {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+}
+
+.page-three-columns-container .detail-name-label,
+.container-book .detail-name-label {
     font-size: 20px;
     -unity-font-style: bold;
     color: var(--color-text-white);
     -unity-text-align: middle-center;
-    margin-bottom: 4px;
     flex-shrink: 0;
 }
 
-.detail-type-label {
+.page-three-columns-container .detail-type-label,
+.container-book .detail-type-label {
     font-size: 14px;
     color: var(--color-accent-blue);
     -unity-text-align: middle-center;
     margin-bottom: 8px;
+    margin-top: 8px;
     flex-shrink: 0;
 }
 
@@ -150,7 +191,8 @@
     flex-shrink: 0;
 }
 
-.detail-desc-label {
+.page-three-columns-container .detail-desc-label,
+.container-book .detail-desc-label {
     font-size: 15px;
     color: var(--color-text-description);
     white-space: normal;
@@ -228,4 +270,329 @@
 
 .extra-info-container .unity-base-slider__dragger:active {
     background-color: #FFA500;
+}
+
+/* =========================================================================
+   6. REUSABLE PSYNERGY CARD COMPONENT (Fluid Width & Optional Interaction)
+   ========================================================================= */
+
+/* Base Component (Passive / Non-Interactive by Default) */
+.psynergy-card {
+    flex-direction: row;
+    height: 52px;
+    width: 100%;                       /* Full width by default for flexible containers */
+    background-color: var(--color-subbox-bg);
+    border-width: 2px;
+    border-color: #253347;
+    border-radius: 6px;
+    align-items: center;
+    padding-right: 10px;
+    margin-bottom: 3px;
+    overflow: hidden;
+}
+
+/* Optional Interactive Modifiers (Use for lists, selection menus or battle) */
+.psynergy-card.interactive:hover {
+    background-color: #1A2538;
+    border-color: var(--color-gold-sun);
+}
+
+.psynergy-card.interactive:active {
+    background-color: #25354E;
+}
+
+.psynergy-card.interactive:focus {
+    background-color: #25354E;
+}
+
+/* Card Internal Layout Elements */
+.card-element-stripe {
+    width: 5px;
+    height: 100%;
+    background-color: var(--color-none);
+}
+
+.card-icon-box {
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.psynergy-card-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.card-text-details {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.card-title-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.psynergy-card-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    margin: 0;
+    padding: 0;
+}
+
+.card-badges-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.card-cost-box {
+    flex-direction: row;
+    align-items: center;
+}
+
+.element-mini-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.psynergy-card-pp {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-accent-blue);
+}
+
+/* --- Psynergy Card Badges (World, Battle, Menu) --- */
+.container-book .psynergy-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    margin-right: 2px;
+    border-radius: 3px;
+    color: var(--color-text-white);
+    -unity-font-style: bold;
+}
+
+.badge-world {
+    background-color: #2874A6;
+}
+
+.badge-battle {
+    background-color: #B03A2E;
+}
+
+.badge-menu {
+    background-color: #1E8449;
+}
+
+/* Elemental Card Stripes & Borders */
+.element-venus .card-element-stripe { background-color: var(--color-venus); }
+.element-venus { border-color: var(--color-venus); }
+
+.element-mars .card-element-stripe { background-color: var(--color-mars); }
+.element-mars { border-color: var(--color-mars); }
+
+.element-jupiter .card-element-stripe { background-color: var(--color-jupiter); }
+.element-jupiter { border-color: var(--color-jupiter); }
+
+.element-mercury .card-element-stripe { background-color: var(--color-mercury); }
+.element-mercury { border-color: var(--color-mercury); }
+
+
+/* =========================================================================
+   7. PAGE ITEMS EXTRA INFO TEMPLATES (SHARED CARDS & STATS)
+   ========================================================================= */
+
+/* --- Card Root Wrapper --- */
+.extra-info-card-root {
+    flex-grow: 1;
+    justify-content: flex-start;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* --- Visual Separator Line --- */
+.info-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+    margin-bottom: 6px;
+}
+
+/* --- Section Subheaders (Gold Accent) --- */
+.extra-info-card-root .section-header-title {
+    font-size: 12px;
+    color: var(--color-gold-sun);
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+/* --- Badges System (Usage & Element Chips) --- */
+.badge-row-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.item-badge {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background-color: rgba(20, 20, 20, 0.7);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    margin-right: 5px;
+    background-color: var(--color-none);
+}
+
+.extra-info-card-root .badge-label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-text-muted);
+}
+
+/* Badge States */
+.badge-active {
+    border-color: rgba(255, 215, 0, 0.8);
+    background-color: rgba(255, 215, 0, 0.12);
+    opacity: 1;
+}
+
+.badge-active .badge-dot {
+    background-color: #00FF88;
+}
+
+.badge-active .badge-label {
+    color: var(--color-text-white);
+}
+
+.badge-inactive {
+    opacity: 0.5;
+}
+
+/* --- Item Compact Base Stat Rows --- */
+.item-stats-box {
+    margin-bottom: 2px;
+}
+
+.item-stats-grid {
+    flex-direction: column;
+}
+
+.item-stat-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.item-stat-name {
+    font-size: 13px;
+}
+
+.item-stat-value {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+}
+
+.item-stat-zero {
+    color: #666666;
+}
+
+/* --- Item Delta Stat Comparison Rows --- */
+.item-comparison-box {
+    margin-top: 2px;
+}
+
+.item-comparison-container {
+    flex-direction: column;
+}
+
+.item-comparison-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.item-delta-container {
+    flex-direction: row;
+    align-items: center;
+}
+
+.item-current-value {
+    font-size: 14px;
+    color: #AAAAAA;
+}
+
+.extra-info-card-root .arrow-separator {
+    font-size: 12px;
+    color: #666666;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.item-new-value {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+}
+
+.extra-info-card-root .item-delta-tag {
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-left: 5px;
+}
+
+/* Delta Value Colors */
+.delta-positive { color: #00FF88; }
+.delta-negative { color: #FF4444; }
+.delta-neutral  { color: #888888; }
+
+
+/* --- Lore & Flavor Narrative Box --- */
+.lore-box {
+    justify-content: center;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: rgba(15, 15, 20, 0.4);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    margin-top: 2px;
+}
+
+.quote-mark {
+    width: 12px;
+    height: 2px;
+    background-color: rgba(218, 165, 32, 0.5);
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.extra-info-card-root .lore-text {
+    font-size: 12px;
+    -unity-font-style: italic;
+    color: #D3C399;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    padding: 3px 0;
 }

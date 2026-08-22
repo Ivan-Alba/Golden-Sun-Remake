@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEditor.Rendering.FilterWindow;
 
 #region Shortcut & Drag Data Structures
 
@@ -86,11 +87,13 @@ public class PagePsynergyController
     // Center Panel: Filter Tabs & Scroll View
     private Button btnTabAll;
     private Button btnTabWorld;
+    private Button btnTabMenu;
     private Button btnTabBattle;
     private ScrollView psynergyCardsScroll;
 
     // Right Panel: Detailed Info
     private VisualElement psynergyIconPreview;
+    private VisualElement detailPsynergyIcon;
     private Label labelPsynergyName;
     private Label labelPsynergyType;
     private Label labelPsynergyCost;
@@ -174,11 +177,13 @@ public class PagePsynergyController
         // Center Panel Elements
         btnTabAll = rootElement.Q<Button>("btn_tab_all");
         btnTabWorld = rootElement.Q<Button>("btn_tab_world");
+        btnTabMenu = rootElement.Q<Button>("btn_tab_menu");
         btnTabBattle = rootElement.Q<Button>("btn_tab_battle");
         psynergyCardsScroll = rootElement.Q<ScrollView>("psynergy_cards_scroll");
 
         // Right Panel Elements
         psynergyIconPreview = rootElement.Q<VisualElement>("psynergy_icon_preview");
+        detailPsynergyIcon = rootElement.Q<VisualElement>("detail_psynergy_icon");
         labelPsynergyName = rootElement.Q<Label>("label_psynergy_name");
         labelPsynergyType = rootElement.Q<Label>("label_psynergy_type");
         labelPsynergyCost = rootElement.Q<Label>("label_psynergy_cost");
@@ -191,7 +196,8 @@ public class PagePsynergyController
     {
         if (btnTabAll != null) btnTabAll.clicked += () => FilterCards(0);
         if (btnTabWorld != null) btnTabWorld.clicked += () => FilterCards(1);
-        if (btnTabBattle != null) btnTabBattle.clicked += () => FilterCards(2);
+        if (btnTabMenu != null) btnTabMenu.clicked += () => FilterCards(2);
+        if (btnTabBattle != null) btnTabBattle.clicked += () => FilterCards(3);
     }
 
     private void BindDPadSlotsInteractions()
@@ -320,6 +326,7 @@ public class PagePsynergyController
     {
         VisualElement card = new VisualElement();
         card.AddToClassList("psynergy-card");
+        card.AddToClassList("interactive");
         card.AddToClassList("item-card-box");
         card.AddToClassList(GetElementCssClass(psynergy.Element));
 
@@ -346,7 +353,7 @@ public class PagePsynergyController
         titleRow.AddToClassList("card-title-row");
 
         VisualElement elementPipIcon = new VisualElement();
-        elementPipIcon.AddToClassList("element-pip-icon");
+        elementPipIcon.AddToClassList("pip-icon");
         elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
         titleRow.Add(elementPipIcon);
 
@@ -1000,6 +1007,7 @@ public class PagePsynergyController
     {
         if (btnTabAll != null) btnTabAll.RemoveFromClassList("active");
         if (btnTabWorld != null) btnTabWorld.RemoveFromClassList("active");
+        if (btnTabMenu != null) btnTabMenu.RemoveFromClassList("active");
         if (btnTabBattle != null) btnTabBattle.RemoveFromClassList("active");
 
         switch (filterIndex)
@@ -1013,8 +1021,11 @@ public class PagePsynergyController
                 btnTabWorld?.AddToClassList("active");
                 BuildPsynergyCardsList(p => p.WorldData.CanBeUsedInWorld);
                 break;
-
-            case 2: // Battle / Attack
+            case 2: // Menu
+                btnTabMenu?.AddToClassList("active");
+                BuildPsynergyCardsList(p => p.MenuData.CanBeUsedInMenu);
+                break;
+            case 3: // Battle
                 btnTabBattle?.AddToClassList("active");
                 BuildPsynergyCardsList(p => p.IsBattlePsynergy);
                 break;
@@ -1027,6 +1038,17 @@ public class PagePsynergyController
         {
             ClearInfoPanel();
             return;
+        }
+
+        if (detailPsynergyIcon != null)
+        {
+            detailPsynergyIcon.RemoveFromClassList("icon-venus");
+            detailPsynergyIcon.RemoveFromClassList("icon-mars");
+            detailPsynergyIcon.RemoveFromClassList("icon-jupiter");
+            detailPsynergyIcon.RemoveFromClassList("icon-mercury");
+            detailPsynergyIcon.style.display = DisplayStyle.Flex;
+
+            detailPsynergyIcon.AddToClassList($"icon-{psynergy.Element.ToString().ToLower()}");
         }
 
         if (labelPsynergyName != null) labelPsynergyName.text = psynergy.PsynergyName;
@@ -1047,6 +1069,7 @@ public class PagePsynergyController
         {
             case PsynergyTargetType.Self: return "Mismo usuario";
             case PsynergyTargetType.SingleAlly: return "1 Aliado";
+            case PsynergyTargetType.MultiEnemyArea: return $"Varios enemigos";
             case PsynergyTargetType.AllAllies: return "Todos los aliados";
             case PsynergyTargetType.SingleEnemy: return "1 Enemigo";
             case PsynergyTargetType.AllEnemies: return "Todos los enemigos";
@@ -1068,6 +1091,7 @@ public class PagePsynergyController
 
     public void ClearInfoPanel()
     {
+        if (detailPsynergyIcon != null) detailPsynergyIcon.style.display = DisplayStyle.None;
         if (labelPsynergyName != null) labelPsynergyName.text = "Seleccionar Psinergía";
         if (labelPsynergyType != null) labelPsynergyType.text = "---";
         if (labelPsynergyCost != null) labelPsynergyCost.text = "Coste: -- PP";

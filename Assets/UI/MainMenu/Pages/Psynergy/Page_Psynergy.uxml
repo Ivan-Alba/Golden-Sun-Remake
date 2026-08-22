@@ -1,11 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
     <Style src="project://database/Assets/UI/MainMenu/Pages/Psynergy/Page_Psynergy.uss?fileID=7433441132597879392&amp;guid=c9d28fb7f5512eb4b95e881dbb350ab3&amp;type=3#Page_Psynergy" />
-    <ui:VisualElement name="page_psynergy_container" class="page-psynergy-container">
-        <ui:VisualElement name="shortcuts_section" class="shortcuts-section">
+    <ui:VisualElement name="page_psynergy_container" class="page-three-columns-container">
+        <ui:VisualElement name="shortcuts_section" class="panel-column-left">
             <ui:Label text="ATAJOS DE EXPLORACIÓN" name="label_shortcuts_header" class="info-title-label" />
             <ui:VisualElement name="hero_portrait_box" class="hero-portrait-box">
                 <ui:VisualElement name="hero_portrait_image" class="hero-portrait-image" style="margin-top: 8px;" />
-                <ui:Label text="HANS" name="label_hero_name" class="info-title-label hero-name-label" />
+                <ui:Label text="HANS" name="label_hero_name" class="hero-name-label" />
             </ui:VisualElement>
             <ui:VisualElement name="section_separator" class="section-separator" />
             <ui:VisualElement name="dpad_shortcuts_container" class="dpad-shortcuts-container">
@@ -34,48 +36,34 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="psynergy_list_section" class="psynergy-list-section">
-            <ui:Label text="PSINERGÍAS DISPONIBLES" name="label_psynergy_title" class="info-title-label" style="-unity-text-align: upper-center;" />
+        <ui:VisualElement name="psynergy_list_section" class="panel-column-center">
+            <ui:Label text="PSINERGÍAS DISPONIBLES" name="label_psynergy_title" class="info-title-label" />
             <ui:VisualElement name="psynergy_filter_tabs" class="filter-tabs-row">
                 <ui:Button text="TODAS" name="btn_tab_all" class="tab-btn active" />
                 <ui:Button text="MUNDO" name="btn_tab_world" class="tab-btn" />
+                <ui:Button text="MENU" name="btn_tab_menu" class="tab-btn" />
                 <ui:Button text="COMBATE" name="btn_tab_battle" class="tab-btn" />
             </ui:VisualElement>
-            <ui:ScrollView name="psynergy_cards_scroll" class="psynergy-cards-scroll">
-                <ui:VisualElement class="psynergy-card item-card-box element-venus">
-                    <ui:VisualElement class="card-element-stripe" />
-                    <ui:VisualElement class="card-icon-box">
-                        <ui:VisualElement class="psynergy-card-icon" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="card-text-details">
-                        <ui:VisualElement class="card-title-row">
-                            <ui:VisualElement class="element-pip-icon icon-venus" />
-                            <ui:Label text="Mover" class="psynergy-card-name" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="card-badges-row">
-                            <ui:Label text="Mundo" class="psynergy-badge badge-world" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="card-cost-box">
-                        <ui:VisualElement class="element-mini-icon" />
-                        <ui:Label text="2 PP" class="psynergy-card-pp" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-            </ui:ScrollView>
+            <ui:ScrollView name="psynergy_cards_scroll" class="psynergy-cards-scroll" />
         </ui:VisualElement>
-        <ui:VisualElement name="psynergy_info_panel" class="psynergy-info-panel" style="-unity-text-align: upper-center;">
+        <ui:VisualElement name="psynergy_info_panel" class="panel-column-right">
             <ui:Label text="INFORMACIÓN PSINERGÍA" name="label_info_title" class="info-title-label" />
-            <ui:VisualElement name="psynergy_preview_container" class="psynergy-preview-container">
-                <ui:VisualElement name="psynergy_icon_preview" class="psynergy-preview-icon" />
+            <ui:VisualElement name="psynergy_preview_container" class="detail-preview-container-wide">
+                <ui:VisualElement name="psynergy_render_preview" class="detail-preview-render" />
             </ui:VisualElement>
-            <ui:Label text="Mover" name="label_psynergy_name" class="psynergy-name-label" />
-            <ui:Label text="Psinergía de Tierra - Venus" name="label_psynergy_type" class="psynergy-type-label" />
-            <ui:VisualElement name="psynergy_meta_row" class="psynergy-meta-row">
-                <ui:Label text="Coste: 2 PP" name="label_psynergy_cost" class="psynergy-meta-label" />
-                <ui:Label text="Alcance: 1 Objetivo" name="label_psynergy_range" class="psynergy-meta-label" />
+            <ui:VisualElement name="detail_icon_name_row" class="detail-icon-name-row">
+                <ui:VisualElement name="detail_psynergy_icon" class="pip-icon icon-venus" />
+                <ui:Label text="Mover" name="label_psynergy_name" class="detail-name-label" />
             </ui:VisualElement>
-            <ui:Label text="Desplaza pilares u objetos pesados a distancia utilizando el poder de la tierra." name="label_psynergy_desc" class="psynergy-desc-label" style="-unity-text-align: upper-left;" />
-            <ui:VisualElement name="psynergy_extra_details_box" class="stat-changes-box" />
+            <ui:Label text="Psinergía de Tierra - Venus" name="label_psynergy_type" class="detail-type-label" />
+            <ui:VisualElement name="psynergy_meta_row" class="detail-meta-row">
+                <ui:Label text="Coste: 2 PP" name="label_psynergy_cost" class="text-muted" />
+                <ui:Label text="Alcance: 1 Objetivo" name="label_psynergy_range" class="text-muted" />
+            </ui:VisualElement>
+            <ui:VisualElement name="psynergy_desc_container" class="detail-desc-container">
+                <ui:Label text="Desplaza pilares u objetos pesados a distancia utilizando el poder de la tierra." name="label_psynergy_desc" class="detail-desc-label" />
+            </ui:VisualElement>
+            <ui:ScrollView name="extra_info_container" class="extra-info-container" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

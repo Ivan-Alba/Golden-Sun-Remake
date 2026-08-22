@@ -1,56 +1,9 @@
 /* ==========================================================================
-   PAGE PSYNERGY MAIN LAYOUT (25% / 45% / 30% - UNIFIED WITH PAGE ITEMS)
+   Page_Psynergy.uss
+   Specific styles for the Psynergy Page (Hero Portrait & D-Pad Shortcuts)
    ========================================================================== */
-.page-psynergy-container {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-height: 0;
-    flex-direction: row; /* Horizontal 3-column distribution */
-    padding: 6px;
-    overflow: hidden;
-}
 
-/* Reset labels padding/margins to avoid layout shifts in Runtime */
-.page-psynergy-container Label {
-    margin: 0;
-    padding: 0;
-}
-
-/* Unified Golden Section Titles */
-.page-psynergy-container .info-title-label {
-    font-size: 17px;
-    -unity-font-style: bold;
-    color: #DAA520; /* Golden section title */
-    margin-bottom: 14px;
-    margin-top: 6px;
-    -unity-text-align: middle-center;
-    letter-spacing: 1px;
-    flex-shrink: 0;
-}
-
-/* ==========================================================================
-   LEFT PANEL: HERO PORTRAIT & D-PAD SHORTCUTS (25% Width)
-   ========================================================================== */
-.shortcuts-section {
-    flex-grow: 25;
-    flex-shrink: 0;
-    flex-basis: 0;
-    height: 100%;
-    max-height: 100%;
-    padding: 10px;
-    background-color: rgba(15, 20, 28, 0.85);
-    border-width: 2px;
-    border-color: #2e3a4e;
-    border-radius: 6px;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 10px;
-    overflow: hidden;
-}
-
+/* --- LEFT PANEL SPECIFICS: HERO PORTRAIT & D-PAD CROSS --- */
 .hero-portrait-box {
     width: 100%;
     align-items: center;
@@ -61,9 +14,9 @@
 .hero-portrait-image {
     width: 72px;
     height: 72px;
-    background-color: #1a2332;
+    background-color: #1A2332;
     border-width: 2px;
-    border-color: #d4af37; /* Golden Accent */
+    border-color: var(--color-gold-sun);
     border-radius: 36px;
     margin-bottom: 6px;
 }
@@ -71,24 +24,16 @@
 .hero-name-label {
     font-size: 18px;
     -unity-font-style: bold;
-    color: #ffffff;
+    color: var(--color-text-white);
     -unity-text-align: middle-center;
 }
 
 .section-separator {
     width: 90%;
     height: 2px;
-    background-color: #2e3a4e;
+    background-color: var(--color-panel-border);
     margin-top: 5px;
     margin-bottom: 15px;
-    flex-shrink: 0;
-}
-
-.shortcuts-header-label {
-    font-size: 13px;
-    color: #d4af37;
-    margin-bottom: 15px;
-    -unity-text-align: middle-center;
     flex-shrink: 0;
 }
 
@@ -117,7 +62,7 @@
     height: 70px;
     background-color: #121924;
     border-width: 2px;
-    border-color: #4a5a73;
+    border-color: #4A5A73;
     border-radius: 8px;
     align-items: center;
     justify-content: center;
@@ -125,8 +70,8 @@
 }
 
 .shortcut-slot:hover {
-    border-color: #d4af37;
-    background-color: #1a2536;
+    border-color: var(--color-gold-sun);
+    background-color: #1A2536;
 }
 
 .dpad-arrow-label {
@@ -134,7 +79,7 @@
     top: 2px;
     left: 4px;
     font-size: 10px;
-    color: #6a7b95;
+    color: #6A7B95;
 }
 
 .shortcut-icon {
@@ -145,34 +90,15 @@
 .dpad-center-decor {
     width: 24px;
     height: 24px;
-    background-color: #1b2636;
+    background-color: #1B2636;
     border-radius: 12px;
     border-width: 1px;
-    border-color: #2e3a4e;
+    border-color: var(--color-panel-border);
     margin-left: 6px;
     margin-right: 6px;
 }
 
-/* ==========================================================================
-   CENTER PANEL: PSYNERGY CARDS LIST (45% Width)
-   ========================================================================== */
-.psynergy-list-section {
-    flex-grow: 45;
-    flex-shrink: 0;
-    flex-basis: 0;
-    height: 100%;
-    max-height: 100%;
-    padding: 10px;
-    background-color: rgba(15, 20, 28, 0.85);
-    border-width: 2px;
-    border-color: #2e3a4e;
-    border-radius: 6px;
-    margin-right: 10px;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-}
-
+/* --- CENTER PANEL SPECIFICS: FILTER TABS & SCROLL CONTAINER --- */
 .filter-tabs-row {
     flex-direction: row;
     width: 100%;
@@ -184,25 +110,25 @@
 .tab-btn {
     flex-grow: 1;
     height: 30px;
-    background-color: #141c28;
+    background-color: #141C28;
     border-width: 1px;
-    border-color: #2e3a4e;
+    border-color: var(--color-panel-border);
     border-radius: 4px;
-    color: #8c9ba5;
+    color: var(--color-text-muted);
     font-size: 12px;
     -unity-font-style: bold;
     margin-right: 4px;
 }
 
 .tab-btn:hover {
-    background-color: #1d2a3d;
-    color: #ffffff;
+    background-color: #1D2A3D;
+    color: var(--color-text-white);
 }
 
 .tab-btn.active {
-    background-color: #2b3d59;
-    border-color: #d4af37;
-    color: #ffffff;
+    background-color: #2B3D59;
+    border-color: var(--color-gold-sun);
+    color: var(--color-text-white);
 }
 
 .psynergy-cards-scroll {
@@ -211,275 +137,13 @@
     padding-right: 5px;
 }
 
+.psynergy-cards-scroll .psynergy-card {
+    width: 49%;
+}
+
 .psynergy-cards-scroll #unity-content-container {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px;
-}
-
-/* --- PSYNERGY CARD (Proportion ~3.5:1) --- */
-.psynergy-card {
-    flex-direction: row;
-    height: 52px;
-    width: 49%;
-    background-color: #111722;
-    border-width: 1px;
-    border-color: #253347;
-    border-radius: 6px;
-    align-items: center;
-    padding-right: 10px;
-    overflow: hidden;
-}
-
-.psynergy-card:hover {
-    background-color: #1a2538;
-    border-color: #d4af37;
-}
-
-.card-element-stripe {
-    width: 5px;
-    height: 100%;
-    background-color: #888888;
-}
-
-.card-icon-box {
-    width: 44px;
-    height: 44px;
-    justify-content: center;
-    align-items: center;
-    margin-left: 8px;
-}
-
-.psynergy-card-icon {
-    width: 36px;
-    height: 36px;
-}
-
-.card-text-details {
-    flex-grow: 1;
-    height: 100%;
-    justify-content: center;
-    margin-left: 8px;
-}
-
-.card-title-row {
-    flex-direction: row;
-    align-items: center;
-}
-
-.element-pip-icon {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    margin-right: 4px;
-    border-width: 1px;
-    flex-shrink: 0;
-}
-
-.psynergy-card-name {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
-}
-
-.card-badges-row {
-    flex-direction: row;
-    align-items: center;
-    margin-top: 3px;
-}
-
-.psynergy-badge {
-    font-size: 8.5px;
-    padding-left: 4px;
-    padding-right: 4px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    margin: 0 3px 0 0;
-    border-radius: 3px;
-    color: #ffffff;
-    -unity-font-style: bold;
-}
-
-.badge-world {
-    background-color: #2874a6;
-}
-
-.badge-battle {
-    background-color: #b03a2e;
-}
-
-.badge-menu {
-    background-color: #1e8449;
-}
-
-.card-cost-box {
-    flex-direction: row;
-    align-items: center;
-}
-
-.element-mini-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-}
-
-.psynergy-card-pp {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: #5dade2;
-}
-
-/* ==========================================================================
-   ELEMENTAL COLOR THEMES FOR CARDS AND PIP ICONS
-   ========================================================================== */
-/* VENUS (EARTH) */
-.element-venus .card-element-stripe {
-    background-color: #d4ac0d;
-}
-.element-venus {
-    border-color: #7d6608;
-}
-.icon-venus {
-    background-color: #C88A2E;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* MARS (FIRE) */
-.element-mars .card-element-stripe {
-    background-color: #e74c3c;
-}
-.element-mars {
-    border-color: #78281f;
-}
-.icon-mars {
-    background-color: #E74C3C;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* JUPITER (WIND) */
-.element-jupiter .card-element-stripe {
-    background-color: #af7ac5;
-}
-.element-jupiter {
-    border-color: #512e5f;
-}
-.icon-jupiter {
-    background-color: #9B59B6;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* MERCURY (WATER) */
-.element-mercury .card-element-stripe {
-    background-color: #3498db;
-}
-.element-mercury {
-    border-color: #1b4f72;
-}
-.icon-mercury {
-    background-color: #3498DB;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* NONE / NEUTRAL */
-.icon-none {
-    background-color: #555555;
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* ==========================================================================
-   RIGHT PANEL: DETAILED INFORMATION (30% Width)
-   ========================================================================== */
-.psynergy-info-panel {
-    flex-grow: 30;
-    flex-shrink: 0;
-    flex-basis: 0;
-    height: 100%;
-    max-height: 100%;
-    padding: 10px;
-    background-color: rgba(15, 20, 28, 0.85);
-    border-width: 2px;
-    border-color: #2e3a4e;
-    border-radius: 6px;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-}
-
-.psynergy-preview-container {
-    width: 120px;
-    height: 120px;
-    background-color: #0d131d;
-    border-width: 1px;
-    border-color: #253347;
-    border-radius: 6px;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-}
-
-/* Preview Icon Styling */
-.psynergy-preview-icon {
-    width: 110px;
-    height: 110px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-width: 1px;
-    border-color: rgba(218, 165, 32, 0.3);
-    border-radius: 8px;
-    flex-shrink: 0;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-.page-psynergy-container .psynergy-name-label {
-    font-size: 20px;
-    -unity-font-style: bold;
-    color: #ffffff;
-    -unity-text-align: middle-center;
-    margin-bottom: 2px;
-    flex-shrink: 0;
-}
-
-.page-psynergy-container .psynergy-type-label {
-    font-size: 14px;
-    color: #60A5FA;
-    -unity-text-align: middle-center;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-}
-
-.psynergy-meta-row {
-    flex-direction: row;
-    width: 100%;
-    justify-content: space-between;
-    background-color: #121a26;
-    padding: 6px 8px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-}
-
-.psynergy-meta-label {
-    font-size: 14px;
-    color: #aeb6bf;
-}
-
-.psynergy-desc-container {
-    width: 100%;
-    padding: 0 6px;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-}
-
-.page-psynergy-container .psynergy-desc-label {
-    font-size: 15px;
-    color: #CBD5E1;
-    white-space: normal;
-    margin-bottom: 6px;
-    -unity-text-align: upper-left;
-    flex-shrink: 0;
 }

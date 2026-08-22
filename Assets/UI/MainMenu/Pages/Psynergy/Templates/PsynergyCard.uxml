@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <ui:VisualElement name="psynergy_card" class="psynergy-card element-venus">
+        <ui:VisualElement name="card_element_stripe" class="card-element-stripe" />
+        <ui:VisualElement name="card_icon_box" class="card-icon-box">
+            <ui:VisualElement name="psynergy_card_icon" class="psynergy-card-icon" />
+        </ui:VisualElement>
+        <ui:VisualElement name="card_text_details" class="card-text-details">
+            <ui:VisualElement name="card_title_row" class="card-title-row">
+                <ui:VisualElement name="element_pip_icon" class="pip-icon icon-venus" />
+                <ui:Label text="Mover" name="label_card_name" class="psynergy-card-name" />
+            </ui:VisualElement>
+            <ui:VisualElement name="card_badges_row" class="card-badges-row">
+                <ui:Label text="Mundo" name="label_card_badge" class="psynergy-badge badge-world" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="card_cost_box" class="card-cost-box">
+            <ui:VisualElement name="element_mini_icon" class="element-mini-icon" />
+            <ui:Label text="2 PP" name="label_card_pp" class="psynergy-card-pp" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

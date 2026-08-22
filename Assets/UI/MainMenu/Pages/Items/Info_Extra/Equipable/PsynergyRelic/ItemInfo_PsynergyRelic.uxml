@@ -1,16 +1,18 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/Equipable/PsynergyRelic/ItemInfo_PsynergyRelic.uss?fileID=7433441132597879392&amp;guid=b00f111c2f966394e82bcf41cd99e243&amp;type=3#ItemInfo_PsynergyRelic" />
-    <ui:VisualElement name="relic_info_root" class="relic-info-root">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <ui:VisualElement name="relic_info_root" class="extra-info-card-root">
         <ui:VisualElement name="granted_psynergy_section" class="granted-psynergy-section">
             <ui:Label text="PSINERGÍA OTORGADA" class="section-header-title" />
-            <ui:VisualElement name="granted_psynergy_card" class="psynergy-card item-card-box element-venus">
+            <ui:VisualElement name="granted_psynergy_card" class="psynergy-card element-venus">
                 <ui:VisualElement name="card_element_stripe" class="card-element-stripe" />
                 <ui:VisualElement class="card-icon-box">
                     <ui:VisualElement name="psynergy_card_icon" class="psynergy-card-icon" />
                 </ui:VisualElement>
                 <ui:VisualElement class="card-text-details">
-                    <ui:VisualElement name="psynergy_name_row" class="psynergy-name-row">
-                        <ui:VisualElement name="element_mini_icon" class="element-mini-icon" />
+                    <ui:VisualElement name="psynergy_name_row" class="card-title-row">
+                        <ui:VisualElement name="element_mini_icon" class="pip-icon icon-venus" />
                         <ui:Label text="---" name="label_psynergy_name" class="psynergy-card-name" />
                     </ui:VisualElement>
                     <ui:VisualElement name="badges_row" class="card-badges-row">
@@ -23,9 +25,9 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="info-divider" />
-        <ui:VisualElement name="item_stats_box" class="stats-box">
+        <ui:VisualElement name="item_stats_box" class="item-stats-box">
             <ui:Label text="ATRIBUTOS DE RELIQUIA" class="section-header-title" />
-            <ui:VisualElement name="stats_grid" class="stats-grid" />
+            <ui:VisualElement name="stats_grid" class="item-stats-grid" />
         </ui:VisualElement>
         <ui:VisualElement class="info-divider" />
         <ui:VisualElement name="lore_box" class="lore-box">

@@ -1643,16 +1643,16 @@ public class PageItemsController
                                 unleashElementIcon.style.display = DisplayStyle.None;
                                 break;
                             case ElementalType.Venus:
-                                unleashElementIcon.AddToClassList("badge-element-venus");
+                                unleashElementIcon.AddToClassList("icon-venus");
                                 break;
                             case ElementalType.Mars:
-                                unleashElementIcon.AddToClassList("badge-element-mars");
+                                unleashElementIcon.AddToClassList("icon-mars");
                                 break;
                             case ElementalType.Jupiter:
-                                unleashElementIcon.AddToClassList("badge-element-jupiter");
+                                unleashElementIcon.AddToClassList("icon-jupiter");
                                 break;
                             case ElementalType.Mercury:
-                                unleashElementIcon.AddToClassList("badge-element-mercury");
+                                unleashElementIcon.AddToClassList("icon-mercury");
                                 break;
                         }
 
@@ -1947,31 +1947,31 @@ public class PageItemsController
         // ElementIcon
         if (elementIcon != null)
         {
-            elementIcon.RemoveFromClassList("badge-element-none");
-            elementIcon.RemoveFromClassList("badge-element-venus");
-            elementIcon.RemoveFromClassList("badge-element-mars");
-            elementIcon.RemoveFromClassList("badge-element-jupiter");
-            elementIcon.RemoveFromClassList("badge-element-mercury");
+            elementIcon.RemoveFromClassList("icon-none");
+            elementIcon.RemoveFromClassList("icon-venus");
+            elementIcon.RemoveFromClassList("icon-mars");
+            elementIcon.RemoveFromClassList("icon-jupiter");
+            elementIcon.RemoveFromClassList("icon-mercury");
             
             switch (element)
             {
                 case ElementalType.None:
-                    elementIcon.AddToClassList("badge-element-none");
+                    elementIcon.AddToClassList("icon-none");
                     break;
                 case ElementalType.Venus:
-                    elementIcon.AddToClassList("badge-element-venus");
+                    elementIcon.AddToClassList("icon-venus");
                     break;
                 case ElementalType.Mars:
-                    elementIcon.AddToClassList("badge-element-mars");
+                    elementIcon.AddToClassList("icon-mars");
                     break;
                 case ElementalType.Jupiter:
-                    elementIcon.AddToClassList("badge-element-jupiter");
+                    elementIcon.AddToClassList("icon-jupiter");
                     break;
                 case ElementalType.Mercury:
-                    elementIcon.AddToClassList("badge-element-mercury");
+                    elementIcon.AddToClassList("icon-mercury");
                     break;
                 default:
-                    elementIcon.AddToClassList("badge-element-none");
+                    elementIcon.AddToClassList("icon-none");
                     break;
                 }
             }
@@ -2004,16 +2004,16 @@ public class PageItemsController
             if (mod.value == 0) continue;
 
             VisualElement row = new VisualElement();
-            row.AddToClassList("stat-row");
+            row.AddToClassList("item-stat-row");
 
             Label nameLabel = new Label(GetStatDisplayName(mod.statType));
-            nameLabel.AddToClassList("stat-name");
+            nameLabel.AddToClassList("item-stat-name");
 
             string percentSuffix = (mod.modifierType != StatModifierType.Flat) ? "%" : string.Empty;
             string valuePrefix = (mod.value > 0) ? "+" : string.Empty;
 
             Label valueLabel = new Label($"{valuePrefix}{mod.value}{percentSuffix}");
-            valueLabel.AddToClassList("stat-value");
+            valueLabel.AddToClassList("item-stat-value");
 
             row.Add(nameLabel);
             row.Add(valueLabel);
@@ -2070,25 +2070,25 @@ public class PageItemsController
             float delta = newTotalStat - currentStatBaseValue;
 
             VisualElement row = new VisualElement();
-            row.AddToClassList("comparison-row");
+            row.AddToClassList("item-comparison-row");
 
             Label nameLabel = new Label(GetStatDisplayName(stat));
             nameLabel.AddToClassList("stat-name");
 
             VisualElement deltaGroup = new VisualElement();
-            deltaGroup.AddToClassList("delta-container");
+            deltaGroup.AddToClassList("item-delta-container");
 
             Label currentValLabel = new Label(Mathf.RoundToInt(currentStatBaseValue).ToString());
-            currentValLabel.AddToClassList("current-value");
+            currentValLabel.AddToClassList("item-current-value");
 
             Label arrowLabel = new Label("→");
             arrowLabel.AddToClassList("arrow-separator");
 
             Label newValLabel = new Label(Mathf.RoundToInt(newTotalStat).ToString());
-            newValLabel.AddToClassList("new-value");
+            newValLabel.AddToClassList("item-new-value");
 
             Label deltaTagLabel = new Label($"({(delta >= 0 ? "+" : "")}{Mathf.RoundToInt(delta)})");
-            deltaTagLabel.AddToClassList("delta-tag");
+            deltaTagLabel.AddToClassList("item-delta-tag");
 
             if (delta > 0) deltaTagLabel.AddToClassList("delta-positive");
             else if (delta < 0) deltaTagLabel.AddToClassList("delta-negative");

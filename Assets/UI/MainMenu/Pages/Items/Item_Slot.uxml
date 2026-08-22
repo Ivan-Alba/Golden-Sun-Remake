@@ -1,14 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Page_Items.uss" />
-    
     <ui:VisualElement name="slot_root" class="slot-box item-slot-box">
-        <!-- Placeholder / Watermark for empty state -->
         <ui:VisualElement name="slot_placeholder" class="slot-placeholder" />
-        
-        <!-- Draggable Icon Container -->
         <ui:VisualElement name="item_icon" class="item-icon" />
-        
-        <!-- Stack Quantity Label -->
-        <ui:Label name="label_quantity" text="" class="item-quantity-label" />
+        <ui:Label name="label_quantity" class="item-quantity-label" />
     </ui:VisualElement>
 </ui:UXML>
