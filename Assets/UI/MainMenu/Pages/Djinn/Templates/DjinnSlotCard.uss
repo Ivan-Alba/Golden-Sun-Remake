@@ -8,19 +8,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   1. Contenedor Raíz (Wrapper de Grid)
-   -------------------------------------------------------------------------- */
-.djinn-slot-card {
-    width: 24%;
-    height: 48%;
-    background-color: transparent;
-    border-width: 0;
-    padding: 0;
-    margin: 0 0 3px 0;
-}
-
-/* --------------------------------------------------------------------------
-   2. Estado Base de la Tarjeta (No seleccionado / No líder)
+   1. Base Card Container (Fills 100% of parent wrapper)
    -------------------------------------------------------------------------- */
 .djinn-card-root {
     width: 100%;
@@ -28,10 +16,10 @@
     flex-grow: 1;
     flex-direction: column;
     background-color: #0d131d;
-    border-width: 1px;
+    border-width: 2px;
     border-color: #253347;
     border-radius: 5px;
-    padding: 3px 5px 4px 5px;
+    padding: 5px;
     position: relative;
     overflow: hidden;
 }
@@ -42,28 +30,21 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. Estructura Interna (Header de Líder + Cuerpo de Contenido)
+   2. Main Horizontal Body Layout
    -------------------------------------------------------------------------- */
-.djinn-card-header {
-    height: 12px;
-    width: 100%;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    margin-bottom: 2px;
-}
-
 .djinn-card-body {
     flex-grow: 1;
     width: 100%;
+    height: 100%;
     flex-direction: row;
     align-items: center;
 }
 
-/* Retrato e Icono */
+/* Left Side Full-Height Portrait Box */
 .djinn-card-portrait-box {
-    width: 44px;
-    height: 44px;
+    flex-basis: 30%;
+    max-width: 80px;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
     border-radius: 3px;
     border-width: 1px;
@@ -72,6 +53,7 @@
     align-items: center;
     margin-right: 5px;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .djinn-card-icon {
@@ -80,7 +62,9 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* Columna de Información */
+/* --------------------------------------------------------------------------
+   3. Right Side Info Column & Rows
+   -------------------------------------------------------------------------- */
 .djinn-card-info-col {
     flex-grow: 1;
     height: 100%;
@@ -89,6 +73,16 @@
     overflow: hidden;
 }
 
+/* Row 1: Header with Leader Tag */
+.djinn-card-header {
+    height: 12px;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Row 2: Title & Pip Icon */
 .djinn-card-title-row {
     flex-direction: row;
     align-items: center;
@@ -98,7 +92,7 @@
 }
 
 .djinn-card-name {
-    font-size: 10px;
+    font-size: 11px;
     -unity-font-style: bold;
     color: #ffffff;
     -unity-text-align: middle-left;
@@ -106,10 +100,10 @@
     flex-shrink: 1;
 }
 
-/* Pips Elementales */
+/* Elemental Pips */
 .element-pip-icon {
-    width: 9px;
-    height: 9px;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
     margin-right: 4px;
     border-width: 1px;
@@ -122,10 +116,10 @@
 .icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
 .icon-none    { background-color: #555555; border-color: rgba(255, 255, 255, 0.4); }
 
-/* Botones de Estado */
+/* Row 3: Status Button */
 .djinn-status-btn {
-    height: 15px;
-    font-size: 7px;
+    height: 16px;
+    font-size: 8px;
     -unity-font-style: bold;
     border-radius: 2px;
     padding: 0;
@@ -153,20 +147,20 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. Botón / Chip de Líder (Interactive Leader Tag)
+   4. Leader Tag Styles
    -------------------------------------------------------------------------- */
 .btn-leader-tag {
-    height: 11px;
-    font-size: 6.5px;
+    height: 12px;
+    font-size: 8px;
     -unity-font-style: bold;
     border-radius: 2px;
-    padding: 0 4px;
+    padding: 2px 3px;
     margin: 0;
     border-width: 1px;
     background-color: transparent;
 }
 
-/* Estado Deshabilitado (No es líder) */
+/* Disabled State (Not Leader) */
 .btn-leader-tag.leader-disabled {
     color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.08);
@@ -178,7 +172,7 @@
     border-color: rgba(255, 215, 0, 0.3);
 }
 
-/* Estado Activo (Es el Líder) */
+/* Active State (Is Leader) */
 .btn-leader-tag.leader-active {
     color: #FFD700;
     background-color: rgba(255, 215, 0, 0.15);
@@ -186,7 +180,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   5. Modificadores por Elemento (Bordes base y tintes)
+   5. Element Modifiers (Base Borders & Tints)
    -------------------------------------------------------------------------- */
 .djinn-card-root.djinn-card-venus {
     border-color: rgba(212, 172, 13, 0.5);
@@ -205,7 +199,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   6. Modificador LÍDER (Refuerza el elemento con un tinte y borde ligeramente mayor)
+   6. Leader Modifier
    -------------------------------------------------------------------------- */
 .djinn-card-root.djinn-card-leader {
     border-width: 1.5px;
@@ -232,7 +226,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   7. Modificador SELECCIONADO (Gana jerarquía máxima)
+   7. Selected Modifier
    -------------------------------------------------------------------------- */
 .djinn-card-root.djinn-card-selected,
 .djinn-card-root.djinn-card-leader.djinn-card-selected {
@@ -242,7 +236,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   8. Estado Vacío
+   8. Empty State Overlay
    -------------------------------------------------------------------------- */
 .djinn-card-root.djinn-card-empty {
     border-style: dashed;

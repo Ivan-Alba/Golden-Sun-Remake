@@ -1,180 +1,187 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Page_Djinn.uss?fileID=7433441132597879392&amp;guid=7a1279321ab063d4db434976e80f0555&amp;type=3#Page_Djinn" />
-    <ui:VisualElement name="page_djinn_container" class="page-djinn-container">
-        <ui:VisualElement name="djinn_summary_section" class="djinn-summary-section">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <ui:VisualElement name="page_djinn_container" class="page-three-columns-container">
+        <ui:VisualElement name="djinn_summary_section" class="panel-column-left djinn-summary-panel">
             <ui:Label text="ESTADO DE CLASE" name="label_summary_header" class="info-title-label" />
-            <ui:VisualElement name="class_pips_box" class="summary-box hero-column-header">
-                <ui:VisualElement name="hero_avatar_box" class="hero-avatar-box">
-                    <ui:VisualElement name="hero_avatar_icon" class="hero-avatar-icon" />
+            <ui:VisualElement name="class_pips_box" class="summary-hero-box">
+                <ui:VisualElement name="hero_avatar_box" class="summary-hero-avatar-box">
+                    <ui:VisualElement name="hero_avatar_icon" class="summary-hero-avatar-icon" />
                 </ui:VisualElement>
-                <ui:VisualElement class="hero-info-box">
-                    <ui:VisualElement class="hero-title-row">
+                <ui:VisualElement class="summary-hero-info-box">
+                    <ui:VisualElement class="hero-title-row summary-hero-title-row">
                         <ui:Label text="Hans" name="label_hero_name" class="summary-hero-name" />
-                        <ui:Label text="Nv. 4" name="label_hero_level" class="hero-column-level" />
+                        <ui:Label text="Nv. 4" name="label_hero_level" class="summary-hero-column-level" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="class_name_container" class="class-name-container">
+                    <ui:VisualElement name="class_name_container" class="summary-class-name-container">
                         <ui:Label text="Escudero" name="label_hero_class_current" class="summary-class-title" />
                         <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
                         <ui:Label text="Bestia" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
                     </ui:VisualElement>
                     <ui:VisualElement name="pips_row" class="summary-pips-row">
-                        <ui:VisualElement class="pip-element-group" style="margin-left: 0;">
+                        <ui:VisualElement class="summary-pip-element-group">
                             <ui:VisualElement class="pip-icon icon-venus" />
                             <ui:Label text="1/2" name="label_pip_venus" class="pip-count" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="pip-element-group">
+                        <ui:VisualElement class="summary-pip-element-group">
                             <ui:VisualElement class="pip-icon icon-mars" />
                             <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="pip-element-group">
+                        <ui:VisualElement class="summary-pip-element-group">
                             <ui:VisualElement class="pip-icon icon-jupiter" />
                             <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="pip-element-group">
+                        <ui:VisualElement class="summary-pip-element-group">
                             <ui:VisualElement class="pip-icon icon-mercury" />
                             <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="stats_summary_grid" class="summary-stats-grid">
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-max-hp" />
-                        <ui:Label text="MAX HP" class="stat-name" />
+            <ui:VisualElement name="summary_stats_container" class="summary-stats-container">
+                <ui:Label text="ATRIBUTOS" class="subpanel-header-label" />
+                <ui:VisualElement name="stats_summary_grid" class="stats-grid">
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-max-hp" />
+                            <ui:Label text="MAX HP" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="230" name="label_stat_max_hp" class="stat-val" />
+                            <ui:Label text="+12" name="label_delta_max_hp" class="stat-delta delta-positive" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="230" name="label_stat_max_hp" class="stat-val" />
-                        <ui:Label text="+12" name="label_delta_max_hp" class="stat-delta delta-positive" style="display: none;" />
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-max-pp" />
+                            <ui:Label text="MAX PP" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="230" name="label_stat_max_pp" class="stat-val" />
+                            <ui:Label text="+12" name="label_delta_max_pp" class="stat-delta delta-positive" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-max-pp" />
-                        <ui:Label text="MAX PP" class="stat-name" />
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-attack" />
+                            <ui:Label text="ATQ" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="145" name="label_stat_atq" class="stat-val" />
+                            <ui:Label text="+12" name="label_delta_atq" class="stat-delta delta-positive" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="230" name="label_stat_max_pp" class="stat-val" />
-                        <ui:Label text="+12" name="label_delta_max_pp" class="stat-delta delta-positive" style="display: none;" />
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-defense" />
+                            <ui:Label text="DEF" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="98" name="label_stat_def" class="stat-val" />
+                            <ui:Label text="-5" name="label_delta_def" class="stat-delta delta-negative" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-attack" />
-                        <ui:Label text="ATQ" class="stat-name" />
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-agility" />
+                            <ui:Label text="AGI" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="64" name="label_stat_agi" class="stat-val" />
+                            <ui:Label text="0" name="label_delta_agi" class="stat-delta" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="145" name="label_stat_atq" class="stat-val" />
-                        <ui:Label text="+12" name="label_delta_atq" class="stat-delta delta-positive" style="display: none;" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-defense" />
-                        <ui:Label text="DEF" class="stat-name" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="98" name="label_stat_def" class="stat-val" />
-                        <ui:Label text="-5" name="label_delta_def" class="stat-delta delta-negative" style="display: none;" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-agility" />
-                        <ui:Label text="AGI" class="stat-name" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="64" name="label_stat_agi" class="stat-val" />
-                        <ui:Label text="0" name="label_delta_agi" class="stat-delta" style="display: none;" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="summary-stat-item">
-                    <ui:VisualElement class="stat-label-group">
-                        <ui:VisualElement class="stat-icon icon-luck" />
-                        <ui:Label text="SUE" class="stat-name" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="stat-value-group">
-                        <ui:Label text="12" name="label_stat_sue" class="stat-val" />
-                        <ui:Label text="0" name="label_delta_sue" class="stat-delta" style="display: none;" />
+                    <ui:VisualElement class="stat-item">
+                        <ui:VisualElement class="stat-label-group">
+                            <ui:VisualElement class="stat-icon icon-luck" />
+                            <ui:Label text="SUE" class="stat-name" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stat-value-group">
+                            <ui:Label text="12" name="label_stat_sue" class="stat-val" />
+                            <ui:Label text="0" name="label_delta_sue" class="stat-delta" style="display: none;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="section-separator" />
-            <ui:VisualElement name="psynergy_projection_container" class="psynergy-view-container">
+            <ui:VisualElement name="separator" class="section-separator" />
+            <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
                 <ui:Label text="PSINERGÍAS DE CLASE" class="subpanel-header-label" />
-                <ui:VisualElement name="psynergy_compare_tabs" class="psynergy-filter-tabs" style="display: none;">
+                <ui:VisualElement name="psynergy_compare_tabs" class="summary-psynergy-filter-tabs" style="display: none;">
                     <ui:Button text="TODAS" name="btn_filter_all" class="mini-tab-btn active" />
                     <ui:Button text="GANADAS" name="btn_filter_gained" class="mini-tab-btn tab-gained" />
                     <ui:Button text="PERDIDAS" name="btn_filter_lost" class="mini-tab-btn tab-lost" />
                 </ui:VisualElement>
-                <ui:ScrollView name="scroll_class_psynergies" class="psynergy-list-scroll" />
+                <ui:ScrollView name="scroll_class_psynergies" class="summary-psynergy-list-scroll" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="djinn_list_section" class="djinn-list-section">
+        <ui:VisualElement name="djinn_list_section" class="panel-column-center djinn-central-panel">
             <ui:Label text="SANTUARIO ELEMENTAL" name="label_djinn_title" class="info-title-label" />
             <ui:VisualElement name="djinn_viewport_container" class="djinn-viewport-container">
                 <ui:VisualElement name="djinn_3d_render_target" class="djinn-render-target" />
             </ui:VisualElement>
             <ui:VisualElement name="djinn_grid_section" class="djinn-grid-section">
-                <ui:Label text="DJINNS EQUIPADOS (0/8)" name="label_grid_header" class="grid-header-label" />
+                <ui:Label text="DJINNS EQUIPADOS (0/8)" name="label_grid_header" class="subpanel-header-label" />
                 <ui:VisualElement name="djinn_slots_grid" class="djinn-slots-grid" />
             </ui:VisualElement>
             <ui:VisualElement name="djinn_action_bar" class="djinn-action-bar">
                 <ui:Button text="[ SELECT ] ORGANIZACIÓN GLOBAL DE PARTY" name="btn_switch_vista_b" class="action-switch-btn" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="djinn_info_panel" class="djinn-info-panel">
+        <ui:VisualElement name="djinn_info_panel" class="panel-column-right">
             <ui:Label text="INFORMACIÓN DJINN" name="label_info_title" class="info-title-label" />
-            <ui:VisualElement name="djinn_preview_container" class="djinn-preview-container">
-                <ui:VisualElement name="djinn_video_preview" class="djinn-video-preview" />
+            <ui:VisualElement name="djinn_preview_container" class="detail-preview-container-wide">
+                <ui:VisualElement name="djinn_video_preview" class="detail-preview-render" />
             </ui:VisualElement>
-            <ui:Label text="Flint" name="label_djinn_name" class="djinn-name-label" />
-            <ui:Label text="Djinn de Tierra - Venus" name="label_djinn_type" class="djinn-type-label" />
-            <ui:VisualElement name="djinn_meta_row" class="djinn-meta-row">
+            <ui:Label text="Flint" name="label_djinn_name" class="detail-name-label" />
+            <ui:Label text="Djinn de Tierra - Venus" name="label_djinn_type" class="detail-type-label" />
+            <ui:VisualElement name="djinn_meta_row" class="detail-meta-row">
                 <ui:Label text="Estado: PREPARADO" name="label_djinn_status" class="djinn-meta-label" />
                 <ui:Label text="Recuperación: 2 Turnos" name="label_djinn_recovery" class="djinn-meta-label" />
             </ui:VisualElement>
-            <ui:Label text="Desencadena un ataque terrestre impregnado de la fuerza telúrica de Venus." name="label_djinn_desc" class="djinn-desc-label" />
+            <ui:VisualElement name="djinn_desc_container" class="detail-desc-container">
+                <ui:Label text="Desencadena un ataque terrestre impregnado de la fuerza telúrica de Venus." name="label_djinn_desc" class="detail-desc-label" />
+            </ui:VisualElement>
             <ui:ScrollView name="djinn_extra_details_box" class="extra-info-container">
                 <ui:VisualElement class="scroll-inner-card">
                     <ui:Label text="BONOS DE ATRIBUTO (SET)" class="detail-section-title" />
-                    <ui:VisualElement name="box_set_stats_grid" class="summary-stats-grid">
-                        <ui:VisualElement class="summary-stat-item">
+                    <ui:VisualElement name="box_set_stats_grid" class="stats-grid">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-max-hp" />
                                 <ui:Label text="MAX HP" class="stat-name" />
                             </ui:VisualElement>
                             <ui:Label text="+8" name="label_set_bonus_max_hp" class="stat-val" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="summary-stat-item">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-max-pp" />
                                 <ui:Label text="MAX PP" class="stat-name" />
                             </ui:VisualElement>
                             <ui:Label text="+8" name="label_set_bonus_max_pp" class="stat-val" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="summary-stat-item">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-attack" />
                                 <ui:Label text="ATQ" class="stat-name" />
                             </ui:VisualElement>
                             <ui:Label text="+8" name="label_set_bonus_atq" class="stat-val" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="summary-stat-item">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-defense" />
                                 <ui:Label text="DEF" class="stat-name" />
                             </ui:VisualElement>
                             <ui:Label text="+3" name="label_set_bonus_def" class="stat-val" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="summary-stat-item">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-agility" />
                                 <ui:Label text="AGI" class="stat-name" />
                             </ui:VisualElement>
                             <ui:Label text="+2" name="label_set_bonus_agi" class="stat-val" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="summary-stat-item">
+                        <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
                                 <ui:VisualElement class="stat-icon icon-luck" />
                                 <ui:Label text="SUE" class="stat-name" />
@@ -186,10 +193,7 @@
                     <ui:Label text="EFECTO DE LIBERACIÓN" class="detail-section-title" />
                     <ui:Label text="Golpe Demoledor" name="label_unleash_name" class="unleash-name-label" />
                     <ui:Label text="Ataca al enemigo con un potente golpe telúrico que puede causar aturdimiento." name="label_unleash_desc" class="unleash-desc-label" />
-                    
-                    <!-- CONTENEDOR DINÁMICO DE BADGES DE LIBERACIÓN -->
                     <ui:VisualElement name="box_unleash_info" class="detail-unleash-row" />
-                    
                     <ui:VisualElement class="detail-separator" />
                     <ui:Label text="PASIVA DE LÍDER" class="detail-section-title" />
                     <ui:Label text="Romperocas" name="label_leader_passive_title" class="passive-name-label" />

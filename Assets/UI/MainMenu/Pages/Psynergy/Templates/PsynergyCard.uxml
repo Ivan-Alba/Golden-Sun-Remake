@@ -4,7 +4,7 @@
     <ui:VisualElement name="psynergy_card" class="psynergy-card element-venus">
         <ui:VisualElement name="card_element_stripe" class="card-element-stripe" />
         <ui:VisualElement name="card_icon_box" class="card-icon-box">
-            <ui:VisualElement name="psynergy_card_icon" class="psynergy-card-icon" />
+            <ui:VisualElement name="psynergy_card_icon" class="psynergy-card-icon" style="display: flex;" />
         </ui:VisualElement>
         <ui:VisualElement name="card_text_details" class="card-text-details">
             <ui:VisualElement name="card_title_row" class="card-title-row">
@@ -15,9 +15,22 @@
                 <ui:Label text="Mundo" name="label_card_badge" class="psynergy-badge badge-world" />
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="mini_psy_status_box" class="card-status-box">
+            <ui:Label text="+ GANADA" name="label_psy_status" class="badge-psy-status" style="display: none;" />
+        </ui:VisualElement>
         <ui:VisualElement name="card_cost_box" class="card-cost-box">
             <ui:VisualElement name="element_mini_icon" class="element-mini-icon" />
             <ui:Label text="2 PP" name="label_card_pp" class="psynergy-card-pp" />
+        </ui:VisualElement>
+        <ui:VisualElement name="mini_psy_lock_overlay" class="lock-overlay" style="display: none;">
+            <ui:VisualElement class="stripe-lock-overlay" />
+            <ui:VisualElement class="card-icon-box">
+                <ui:VisualElement class="icon-lock-symbol" />
+            </ui:VisualElement>
+            <ui:VisualElement class="lock-text-details">
+                <ui:Label text="DESBLOQUEA A" name="label_lock_subtitle" class="lock-subtitle" />
+                <ui:Label text="NIVEL 12" name="label_lock_level" class="lock-level-text" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

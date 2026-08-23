@@ -146,9 +146,13 @@
     align-items: center;
     flex-direction: row;
     justify-content: center;
+    width: 100%;
+    height: auto;
+
 }
 
-.detail-icon-name-row .pip-icon {
+.detail-icon-name-row .pip-icon,
+.summary-hero-box .pip-icon {
     width: 15px;
     height: 15px;
     margin-right: 5px;
@@ -404,6 +408,114 @@
 .element-mercury { border-color: var(--color-mercury); }
 
 
+/* Gained / Lost Psynergies */
+.card-status-box {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.badge-psy-status {
+    font-size: 8px;
+    -unity-font-style: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.badge-gained {
+    color: #00FF88;
+    background-color: rgba(0, 255, 136, 0.2);
+    border-width: 1px;
+    border-color: rgba(0, 255, 136, 0.4);
+}
+
+.badge-lost {
+    color: #FF6B6B;
+    background-color: rgba(255, 107, 107, 0.2);
+    border-width: 1px;
+    border-color: rgba(255, 107, 107, 0.4);
+}
+
+.psy-card-new {
+    border-color: rgba(0, 255, 136, 0.5);
+    background-color: rgba(0, 255, 136, 0.05);
+}
+
+.psy-card-lost {
+    background-color: rgba(255, 68, 68, 0.05);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.stripe-lost { background-color: #FF4444; }
+.text-lost { color: #FF8888; }
+
+/* ==========================================================================
+   LOCKED OVERLAY LAYER (Tapa todo el contenido en tonos grises)
+   ========================================================================== */
+.lock-overlay {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background-color: #141921;
+    border-color: #4A5668;
+    border-width: 2px;
+    border-radius: 6px;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden; /* Fuerza a que la franja respete el border-radius de 6px */
+    display: none; /* Oculto por defecto */
+}
+
+/* Franja izquierda neutra gris alineada al milímetro */
+.stripe-lock-overlay {
+    width: 5px;
+    height: 100%;
+    background-color: #4A5668;
+    flex-shrink: 0;
+}
+
+/* Icono de Candado en la posición equivalente al icono original */
+.icon-lock-symbol {
+    width: 36px;
+    height: 36px;
+    background-color: #6C7A8E;
+    border-radius: 3px;
+}
+
+/* Detalles del texto de bloqueo */
+.lock-text-details {
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 6px;
+    flex-grow: 1;
+}
+
+.lock-subtitle {
+    font-size: 7.5px;
+    -unity-font-style: bold;
+    color: #6C7A8E;
+    letter-spacing: 0.5px;
+}
+
+.lock-level-text {
+    font-size: 10.5px;
+    -unity-font-style: bold;
+    color: #94A3B8;
+}
+
+.psy-card-locked {
+    background-color: rgba(12, 16, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.stripe-locked { background-color: #4A5A73; }
+.text-locked { color: #6A7B95; }
+.icon-lock { background-color: rgba(0, 0, 0, 0.4); }
+
+
 /* =========================================================================
    7. PAGE ITEMS EXTRA INFO TEMPLATES (SHARED CARDS & STATS)
    ========================================================================= */
@@ -595,4 +707,223 @@
     -unity-text-align: middle-center;
     white-space: normal;
     padding: 3px 0;
+}
+
+/* =========================================================================
+   8. REUSABLE HERO SUMMARY & STATS GRID COMPONENT
+   ========================================================================= */
+
+/* --- Hero Summary Box (Header / Avatar / Pips) --- */
+.summary-hero-box {
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    background-color: rgba(20, 29, 44, 0.9);
+    border-radius: 4px;
+    padding: 6px;
+    margin-bottom: 8px;
+    border-width: 1px;
+    border-color: #2e3a4e;
+}
+
+.summary-hero-avatar-box {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    align-items: center;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.summary-hero-avatar-icon {
+    width: 95%;
+    height: 95%;
+}
+
+.summary-hero-info-box {
+    flex-grow: 1;
+    height: 100%;
+    justify-content: space-between;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    overflow: hidden;
+}
+
+.summary-hero-title-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.summary-hero-name {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+}
+
+.summary-hero-column-level {
+    font-size: 14px;
+    color: #94A3B8;
+}
+
+.summary-class-name-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 2px;
+    margin-bottom: 6px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.summary-hero-box .summary-class-title {
+    font-size: 15px;
+    width: auto;
+    -unity-font-style: bold;
+    color: #00FF88;
+    letter-spacing: 0.5px;
+    background-color: rgba(10, 16, 26, 0.75);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.4);
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+.summary-hero-box .summary-class-arrow {
+    font-size: 15px;
+    width: auto;
+    color: var(--color-text-muted);
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.summary-pips-row {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.summary-pip-element-group {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.pip-count {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #E0E0E0;
+    width: 25px;
+}
+
+/* --- Reusable Stats Grid System (2 Columns x 3 Rows) --- */
+.summary-stats-container {
+    width: 100%;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.stats-grid {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+    flex-shrink: 0;
+}
+
+.stat-item {
+    flex: 0 0 48%;
+    height: 22px;
+    min-height: 22px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(25, 25, 35, 0.6);
+    border-radius: 3px;
+    padding: 0 6px;
+    margin-bottom: 3px;
+}
+
+.stat-label-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.stat-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border-radius: 2px;
+}
+
+.stat-name {
+    font-size: 13px;
+    color: #CCCCCC;
+    flex-grow: 1;
+    -unity-font-style: bold;
+}
+
+.stat-val {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+}
+
+.stat-delta {
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin-left: 3px;
+}
+
+.delta-positive { color: #00FF88; }
+.delta-negative { color: #FF4444; }
+
+.icon-max-hp { background-color: #2ECC71; }
+.icon-max-pp { background-color: #3498DB; }
+.icon-attack { background-color: #E74C3C; }
+.icon-defense { background-color: #574725; }
+.icon-agility { background-color: #A32BBA; }
+.icon-luck { background-color: #F1C40F; }
+
+/* --- Summary Psynergies Scroll Container --- */
+.summary-psynergy-view-container {
+    width: 100%;
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.summary-psynergy-filter-tabs {
+    flex-direction: row;
+    width: 100%;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.summary-psynergy-list-scroll {
+    width: 100%;
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    padding-right: 2px;
+    padding-top: 2px;
+}
+
+.summary-psynergy-list-scroll .unity-scroll-view__content-container {
+    flex-direction: column;
+    width: 100%;
 }

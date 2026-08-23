@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static UnityEditor.Rendering.FilterWindow;
 
 #region Shortcut & Drag Data Structures
 
@@ -75,6 +74,9 @@ public class PagePsynergyController
     #region Private Fields
 
     private VisualElement rootElement;
+
+    // Psynergy Card Template
+    private VisualTreeAsset psynergyCardTemplate;
 
     // Left Panel: Hero Portrait & D-Pad Shortcuts
     private VisualElement heroPortraitImage;
@@ -252,10 +254,11 @@ public class PagePsynergyController
 
     #region Data Population & Initialization
 
-    public void PopulateData(HeroStats heroStats, GameObject heroObj)
+    public void PopulateData(HeroStats heroStats, GameObject heroObj, VisualTreeAsset psynergyCard)
     {
         currentHeroStats = heroStats;
         currentHeroObj = heroObj;
+        psynergyCardTemplate = psynergyCard;
 
         UpdateLeftPanelHeroInfo();
         FetchHeroPsynergies();
@@ -324,88 +327,85 @@ public class PagePsynergyController
 
     private VisualElement CreatePsynergyCard(PsynergySO psynergy, int index)
     {
-        VisualElement card = new VisualElement();
-        card.AddToClassList("psynergy-card");
-        card.AddToClassList("interactive");
-        card.AddToClassList("item-card-box");
+        if (psynergyCardTemplate == null)
+        {
+            Debug.LogError("[PagePsynergy] psynergyCardTemplate is null. Cannot instantiate card.");
+            return new VisualElement();
+        }
+
+        // 1. Instantiate the UXML template asset
+        TemplateContainer cardInstance = psynergyCardTemplate.Instantiate();
+        VisualElement card = cardInstance.Q<VisualElement>("psynergy_card") ?? cardInstance;
+        card.AddToClassList("interactive)");
+
+        // 2. Apply dynamic elemental theme class
         card.AddToClassList(GetElementCssClass(psynergy.Element));
 
-        // Stripe
-        VisualElement stripe = new VisualElement();
-        stripe.AddToClassList("card-element-stripe");
-        card.Add(stripe);
-
-        // Icon Box
-        VisualElement iconBox = new VisualElement();
-        iconBox.AddToClassList("card-icon-box");
-        VisualElement cardIcon = new VisualElement();
-        cardIcon.AddToClassList("psynergy-card-icon");
-        if (psynergy.Icon != null) cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
-        iconBox.Add(cardIcon);
-        card.Add(iconBox);
-
-        // Text Details
-        VisualElement textDetails = new VisualElement();
-        textDetails.AddToClassList("card-text-details");
-
-        // Title Row (Pip Icon + Name)
-        VisualElement titleRow = new VisualElement();
-        titleRow.AddToClassList("card-title-row");
-
-        VisualElement elementPipIcon = new VisualElement();
-        elementPipIcon.AddToClassList("pip-icon");
-        elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
-        titleRow.Add(elementPipIcon);
-
-        Label nameLabel = new Label(psynergy.PsynergyName);
-        nameLabel.AddToClassList("psynergy-card-name");
-        titleRow.Add(nameLabel);
-
-        textDetails.Add(titleRow);
-
-        // Badges Row
-        VisualElement badgesRow = new VisualElement();
-        badgesRow.AddToClassList("card-badges-row");
-
-        if (psynergy.WorldData.CanBeUsedInWorld)
+        // 3. Bind Icon
+        VisualElement cardIcon = card.Q<VisualElement>("psynergy_card_icon");
+        if (cardIcon != null && psynergy.Icon != null)
         {
-            Label worldBadge = new Label("Mundo");
-            worldBadge.AddToClassList("psynergy-badge");
-            worldBadge.AddToClassList("badge-world");
-            badgesRow.Add(worldBadge);
+            cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
         }
-        if (psynergy.MenuData.CanBeUsedInMenu)
-        {
-            Label menuBadge = new Label("Menú");
-            menuBadge.AddToClassList("psynergy-badge");
-            menuBadge.AddToClassList("badge-menu");
-            badgesRow.Add(menuBadge);
-        }
-        if (psynergy.IsBattlePsynergy)
-        {
-            Label battleBadge = new Label("Combate");
-            battleBadge.AddToClassList("psynergy-badge");
-            battleBadge.AddToClassList("badge-battle");
-            badgesRow.Add(battleBadge);
-        }
-        textDetails.Add(badgesRow);
-        card.Add(textDetails);
 
-        // PP Cost Box
-        VisualElement costBox = new VisualElement();
-        costBox.AddToClassList("card-cost-box");
-        Label ppLabel = new Label($"{psynergy.PpCost} PP");
-        ppLabel.AddToClassList("psynergy-card-pp");
+        // 4. Bind Element Pip Icon & Name
+        VisualElement elementPipIcon = card.Q<VisualElement>("element_pip_icon");
+        if (elementPipIcon != null)
+        {
+            elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
+        }
+
+        Label nameLabel = card.Q<Label>("label_psynergy_name");
+        if (nameLabel != null)
+        {
+            nameLabel.text = psynergy.PsynergyName;
+        }
+
+        // 5. Dynamically instantiate Badges into card_badges_row
+        VisualElement badgesRow = card.Q<VisualElement>("card_badges_row");
+        if (badgesRow != null)
+        {
+            badgesRow.Clear();
+
+            if (psynergy.WorldData.CanBeUsedInWorld)
+            {
+                Label worldBadge = new Label("Mundo");
+                worldBadge.AddToClassList("psynergy-badge");
+                worldBadge.AddToClassList("badge-world");
+                badgesRow.Add(worldBadge);
+            }
+
+            if (psynergy.MenuData.CanBeUsedInMenu)
+            {
+                Label menuBadge = new Label("Menú");
+                menuBadge.AddToClassList("psynergy-badge");
+                menuBadge.AddToClassList("badge-menu");
+                badgesRow.Add(menuBadge);
+            }
+
+            if (psynergy.IsBattlePsynergy)
+            {
+                Label battleBadge = new Label("Combate");
+                battleBadge.AddToClassList("psynergy-badge");
+                battleBadge.AddToClassList("badge-battle");
+                badgesRow.Add(battleBadge);
+            }
+        }
+
+        // 6. Bind PP Cost & Low PP Warning Style
+        Label ppLabel = card.Q<Label>("label_psynergy_pp");
+        if (ppLabel != null)
+        {
+            ppLabel.text = $"{psynergy.PpCost} PP";
+        }
 
         if (currentHeroStats != null && currentHeroStats.CurrPp < psynergy.PpCost)
         {
-            ppLabel.style.color = new StyleColor(new Color(0.8f, 0.3f, 0.3f));
+            if (ppLabel != null) ppLabel.style.color = new StyleColor(new Color(0.8f, 0.3f, 0.3f));
             card.style.opacity = 0.6f;
         }
 
-        costBox.Add(ppLabel);
-        card.Add(costBox);
-
+        // 7. Register Drag & Click Callbacks
         RegisterPointerCallbacks(card, psynergy, index);
 
         return card;

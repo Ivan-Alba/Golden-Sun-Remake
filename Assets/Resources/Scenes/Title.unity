@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.01181069, g: 0.046095353, b: 0.10028669, a: 1}
+  m_IndirectSpecularColor: {r: 0.10650658, g: 0.23473553, b: 0.3944957, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1345,6 +1345,10 @@ PrefabInstance:
       propertyPath: templateInfoKeyItem
       value: 
       objectReference: {fileID: 9197481963319205126, guid: 476532ed557255148871735c9e937564, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: miniPsynergyCardAsset
+      value: 
+      objectReference: {fileID: 9197481963319205126, guid: d0857cca93cf2e346a53b707de93fe8c, type: 3}
     - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: templateInfoEquipable
       value: 

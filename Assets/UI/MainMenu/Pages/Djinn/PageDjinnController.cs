@@ -278,9 +278,9 @@ public class PageDjinnController
     /// <summary>
     /// Assigns the UXML cards templates used for dynamic instantiation.
     /// </summary>
-    public void SetTemplates(VisualTreeAsset miniPsynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
+    public void SetTemplates(VisualTreeAsset psynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
     {
-        psynergyCardAsset = miniPsynergyCard;
+        psynergyCardAsset = psynergyCard;
         djinnSlotCardAAsset = djinnSlotCardA;
         djinnSlotCardBAsset = djinnSlotCardB;
     }
@@ -847,104 +847,159 @@ public class PageDjinnController
 
     #region Modular Psynergy Card Instantiation
 
-    private TemplateContainer CreatePsynergyCardInstance(PsynergySO psynergy, PsynergyCardState state, int requiredLevel = 0)
+    private VisualElement CreatePsynergyCard(PsynergySO psynergy, PsynergyCardState cardState, int requiredLevel = 0)
     {
-        if (psynergyCardAsset == null) return null;
-
-        TemplateContainer cardInstance = psynergyCardAsset.Instantiate();
-        VisualElement cardRoot = cardInstance.Q<VisualElement>("mini_psy_card_root");
-        if (cardRoot == null) return cardInstance;
-
-        cardRoot.RemoveFromClassList("element-venus");
-        cardRoot.RemoveFromClassList("element-mars");
-        cardRoot.RemoveFromClassList("element-jupiter");
-        cardRoot.RemoveFromClassList("element-mercury");
-
-        if (psynergy != null && state != PsynergyCardState.Locked)
+        if (psynergyCardAsset == null)
         {
-            cardRoot.AddToClassList($"element-{psynergy.Element.ToString().ToLower()}");
+            Debug.LogError("[PageDjinn] psynergyCardTemplate is null. Cannot instantiate card.");
+            return new VisualElement();
+        }
 
-            VisualElement elementPip = cardRoot.Q<VisualElement>("mini_psy_element_pip");
-            if (elementPip != null)
+        // 1. Instantiate UXML Template & retrieve root
+        TemplateContainer cardInstance = psynergyCardAsset.Instantiate();
+        VisualElement card = cardInstance.Q<VisualElement>("psynergy_card") ?? cardInstance;
+
+        // 2. Base Elemental Theme
+        card.AddToClassList(GetElementCssClass(psynergy.Element));
+
+        // 3. Icon
+        VisualElement cardIcon = card.Q<VisualElement>("psynergy_card_icon");
+        if (cardIcon != null && psynergy.Icon != null)
+        {
+            cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
+        }
+
+        // 4. Element Pip Icon & Name
+        VisualElement elementPipIcon = card.Q<VisualElement>("element_pip_icon");
+        if (elementPipIcon != null)
+        {
+            elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
+        }
+
+        Label nameLabel = card.Q<Label>("label_card_name") ?? card.Q<Label>("label_psynergy_name");
+        if (nameLabel != null)
+        {
+            nameLabel.text = psynergy.PsynergyName;
+        }
+
+        // 5. Dynamic Usage Badges
+        VisualElement badgesRow = card.Q<VisualElement>("card_badges_row");
+        if (badgesRow != null)
+        {
+            badgesRow.Clear();
+
+            if (psynergy.WorldData.CanBeUsedInWorld)
             {
-                elementPip.RemoveFromClassList("icon-venus");
-                elementPip.RemoveFromClassList("icon-mars");
-                elementPip.RemoveFromClassList("icon-jupiter");
-                elementPip.RemoveFromClassList("icon-mercury");
-                elementPip.AddToClassList($"icon-{psynergy.Element.ToString().ToLower()}");
+                Label worldBadge = new Label("Mundo");
+                worldBadge.AddToClassList("psynergy-badge");
+                worldBadge.AddToClassList("badge-world");
+                badgesRow.Add(worldBadge);
             }
 
-            VisualElement iconElem = cardRoot.Q<VisualElement>("mini_psy_icon");
-            if (iconElem != null && psynergy.Icon != null)
+            if (psynergy.MenuData.CanBeUsedInMenu)
             {
-                iconElem.style.backgroundImage = new StyleBackground(psynergy.Icon);
+                Label menuBadge = new Label("Menú");
+                menuBadge.AddToClassList("psynergy-badge");
+                menuBadge.AddToClassList("badge-menu");
+                badgesRow.Add(menuBadge);
             }
 
-            Label nameLabel = cardRoot.Q<Label>("mini_psy_name");
-            if (nameLabel != null) nameLabel.text = psynergy.PsynergyName;
-
-            Label ppLabel = cardRoot.Q<Label>("mini_psy_pp");
-            if (ppLabel != null) ppLabel.text = $"{psynergy.PpCost} PP";
-
-            Label badgeMenu = cardRoot.Q<Label>("badge_menu");
-            if (badgeMenu != null)
+            if (psynergy.IsBattlePsynergy)
             {
-                badgeMenu.style.display = psynergy.MenuData.CanBeUsedInMenu ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-
-            Label badgeBattle = cardRoot.Q<Label>("badge_battle");
-            if (badgeBattle != null)
-            {
-                badgeBattle.style.display = psynergy.IsBattlePsynergy ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-
-            Label badgeWorld = cardRoot.Q<Label>("badge_world");
-            if (badgeWorld != null)
-            {
-                badgeWorld.style.display = psynergy.WorldData.CanBeUsedInWorld ? DisplayStyle.Flex : DisplayStyle.None;
+                Label battleBadge = new Label("Combate");
+                battleBadge.AddToClassList("psynergy-badge");
+                battleBadge.AddToClassList("badge-battle");
+                badgesRow.Add(battleBadge);
             }
         }
 
-        VisualElement statusBox = cardRoot.Q<VisualElement>("mini_psy_status_box");
-        Label labelStatus = cardRoot.Q<Label>("label_psy_status");
-
-        switch (state)
+        // 6. PP Cost
+        Label ppLabel = card.Q<Label>("label_card_pp") ?? card.Q<Label>("label_psynergy_pp");
+        if (ppLabel != null)
         {
-            case PsynergyCardState.Normal:
-                if (statusBox != null) statusBox.style.display = DisplayStyle.None;
+            ppLabel.text = $"{psynergy.PpCost} PP";
+        }
+
+        // 7. State Handling (Normal, Locked, Gained, Lost)
+        VisualElement lockOverlay = card.Q<VisualElement>("mini_psy_lock_overlay");
+        Label statusLabel = card.Q<Label>("label_psy_status");
+
+        // Ensure status elements are hidden by default
+        if (lockOverlay != null) lockOverlay.style.display = DisplayStyle.None;
+        if (statusLabel != null) statusLabel.style.display = DisplayStyle.None;
+
+        switch (cardState)
+        {
+            case PsynergyCardState.Locked:
+                card.AddToClassList("psy-card-locked");
+                if (lockOverlay != null)
+                {
+                    lockOverlay.style.display = DisplayStyle.Flex;
+
+                    Label levelLabel = lockOverlay.Q<Label>("label_lock_level");
+                    if (levelLabel != null)
+                    {
+                        levelLabel.text = $"NIVEL {requiredLevel}";
+                    }
+                }
                 break;
 
             case PsynergyCardState.Gained:
-                if (statusBox != null) statusBox.style.display = DisplayStyle.Flex;
-                if (labelStatus != null)
+                card.AddToClassList("psy-card-new");
+                if (statusLabel != null)
                 {
-                    labelStatus.text = "+ GANADA";
-                    labelStatus.RemoveFromClassList("badge-lost");
-                    labelStatus.AddToClassList("badge-gained");
-                    labelStatus.style.display = DisplayStyle.Flex;
+                    statusLabel.text = "+ GANADA";
+                    statusLabel.RemoveFromClassList("badge-lost");
+                    statusLabel.RemoveFromClassList("text-lost");
+                    statusLabel.AddToClassList("badge-gained");
+                    statusLabel.style.display = DisplayStyle.Flex;
                 }
                 break;
 
             case PsynergyCardState.Lost:
-                if (statusBox != null) statusBox.style.display = DisplayStyle.Flex;
-                if (labelStatus != null)
+                card.AddToClassList("psy-card-lost");
+                if (statusLabel != null)
                 {
-                    labelStatus.text = "- PERDIDA";
-                    labelStatus.RemoveFromClassList("badge-gained");
-                    labelStatus.AddToClassList("badge-lost");
-                    labelStatus.style.display = DisplayStyle.Flex;
+                    statusLabel.text = "- PERDIDA";
+                    statusLabel.RemoveFromClassList("badge-gained");
+                    statusLabel.AddToClassList("badge-lost");
+                    statusLabel.AddToClassList("text-lost");
+                    statusLabel.style.display = DisplayStyle.Flex;
                 }
                 break;
 
-            case PsynergyCardState.Locked:
-                VisualElement lockOverlay = cardRoot.Q<VisualElement>("mini_psy_lock_overlay");
-                Label lockLevelLabel = cardRoot.Q<Label>("label_lock_level");
-                if (lockOverlay != null) lockOverlay.style.display = DisplayStyle.Flex;
-                if (lockLevelLabel != null) lockLevelLabel.text = $"Nv. {requiredLevel}";
+            case PsynergyCardState.Normal:
+            default:
+                // Keeps clean default visuals
                 break;
         }
 
-        return cardInstance;
+        return card;
+    }
+
+    // Helper method to resolve the element pip CSS class
+    private string GetElementPipCssClass(ElementalType element)
+    {
+        return element switch
+        {
+            ElementalType.Venus => "icon-venus",
+            ElementalType.Mars => "icon-mars",
+            ElementalType.Jupiter => "icon-jupiter",
+            ElementalType.Mercury => "icon-mercury",
+            _ => "icon-none"
+        };
+    }
+
+    private string GetElementCssClass(ElementalType element)
+    {
+        switch (element)
+        {
+            case ElementalType.Venus: return "element-venus";
+            case ElementalType.Mars: return "element-mars";
+            case ElementalType.Jupiter: return "element-jupiter";
+            case ElementalType.Mercury: return "element-mercury";
+            default: return "element-venus";
+        }
     }
 
     private void RefreshClassPsynergies()
@@ -961,7 +1016,7 @@ public class PageDjinnController
             foreach (PsynergySO psynergy in heroPsynergies)
             {
                 if (psynergy == null) continue;
-                TemplateContainer card = CreatePsynergyCardInstance(psynergy, PsynergyCardState.Normal);
+                var card = CreatePsynergyCard(psynergy, PsynergyCardState.Normal);
                 if (card != null) scrollClassPsynergies.Add(card);
             }
         }
@@ -969,7 +1024,7 @@ public class PageDjinnController
         List<ClassPsynergyEntry> futurePsynergies = currentHeroDjinnController.CurrentClass.GetFuturePsynergies(currentHero.Level);
         foreach (var entry in futurePsynergies)
         {
-            TemplateContainer card = CreatePsynergyCardInstance(entry.psynergy, PsynergyCardState.Locked, entry.requiredLevel);
+            var card = CreatePsynergyCard(entry.psynergy, PsynergyCardState.Locked, entry.requiredLevel);
             if (card != null) scrollClassPsynergies.Add(card);
         }
     }
@@ -983,7 +1038,7 @@ public class PageDjinnController
         {
             foreach (var psy in gained)
             {
-                var card = CreatePsynergyCardInstance(psy, PsynergyCardState.Gained);
+                var card = CreatePsynergyCard(psy, PsynergyCardState.Gained);
                 if (card != null) container.Add(card);
             }
         }
@@ -992,7 +1047,7 @@ public class PageDjinnController
         {
             foreach (var psy in lost)
             {
-                var card = CreatePsynergyCardInstance(psy, PsynergyCardState.Lost);
+                var card = CreatePsynergyCard(psy, PsynergyCardState.Lost);
                 if (card != null) container.Add(card);
             }
         }
@@ -1001,7 +1056,7 @@ public class PageDjinnController
         {
             foreach (var psy in kept)
             {
-                var card = CreatePsynergyCardInstance(psy, PsynergyCardState.Normal);
+                var card = CreatePsynergyCard(psy, PsynergyCardState.Normal);
                 if (card != null) container.Add(card);
             }
         }

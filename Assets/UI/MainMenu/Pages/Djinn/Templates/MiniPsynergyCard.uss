@@ -160,14 +160,7 @@
 .stripe-lost { background-color: #FF4444; }
 .text-lost { color: #FF8888; }
 
-.psy-card-locked {
-    background-color: rgba(12, 16, 23, 0.5);
-    border-color: rgba(255, 255, 255, 0.05);
-}
 
-.stripe-locked { background-color: #4A5A73; }
-.text-locked { color: #6A7B95; }
-.icon-lock { background-color: rgba(0, 0, 0, 0.4); }
 
 .element-venus .card-element-stripe { background-color: #d4ac0d; }
 .element-venus { border-color: #7d6608; }
@@ -197,7 +190,7 @@
     right: -1px;
     bottom: -1px;
     background-color: #141921;
-    border-width: 1px;
+    border-width: 2px;
     border-color: #2A3342;
     border-radius: 6px;
     flex-direction: row;
@@ -241,3 +234,12 @@
     -unity-font-style: bold;
     color: #94A3B8;
 }
+
+.psy-card-locked {
+    background-color: rgba(12, 16, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.stripe-locked { background-color: #4A5A73; }
+.text-locked { color: #6A7B95; }
+.icon-lock { background-color: rgba(0, 0, 0, 0.4); }

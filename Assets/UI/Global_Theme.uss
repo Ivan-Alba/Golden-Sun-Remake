@@ -37,6 +37,13 @@
     flex-shrink: 0;
 }
 
+.pip-count {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #E0E0E0;
+    width: 25px;
+}
+
 .icon-venus { 
     /* background-color: var(--color-venus); */
     background-image: url('project://database/Assets/Resources/Images/Icons/Venus_Star.gif');

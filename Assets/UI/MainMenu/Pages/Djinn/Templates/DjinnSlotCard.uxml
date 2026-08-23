@@ -2,26 +2,35 @@
     <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Templates/DjinnSlotCard.uss?fileID=7433441132597879392&amp;guid=c23bfffca5a5fda42b0c9a1dd7246e30&amp;type=3#DjinnSlotCard" />
     <ui:VisualElement name="djinn_slot_card_root" class="djinn-card-root">
         
-        <!-- Fila Superior: Badge / Chip Clicable de Líder -->
-        <ui:VisualElement name="djinn_card_header" class="djinn-card-header">
-            <ui:Button text="★ LÍDER" name="btn_leader_tag" class="btn-leader-tag leader-disabled" />
-        </ui:VisualElement>
-
-        <!-- Fila Principal: Retrato + Columna Info -->
+        <!-- Main Content Layout (Left Portrait + Right Info Column) -->
         <ui:VisualElement name="djinn_card_body" class="djinn-card-body">
+            
+            <!-- Full Height Portrait Box on Left Side -->
             <ui:VisualElement name="djinn_portrait_box" class="djinn-card-portrait-box">
                 <ui:VisualElement name="djinn_card_icon" class="djinn-card-icon" />
             </ui:VisualElement>
+
+            <!-- Right Info Column (Leader Tag + Title Row + Status Button) -->
             <ui:VisualElement name="djinn_info_col" class="djinn-card-info-col">
+                
+                <!-- Row 1: Top Leader Tag -->
+                <ui:VisualElement name="djinn_card_header" class="djinn-card-header">
+                    <ui:Button text="★ LÍDER" name="btn_leader_tag" class="btn-leader-tag leader-disabled" />
+                </ui:VisualElement>
+
+                <!-- Row 2: Elemental Pip + Name -->
                 <ui:VisualElement name="djinn_name_row" class="djinn-card-title-row">
                     <ui:VisualElement name="djinn_element_pip" class="element-pip-icon icon-venus" />
                     <ui:Label text="Flint" name="label_djinn_card_name" class="djinn-card-name" />
                 </ui:VisualElement>
+
+                <!-- Row 3: Status Button -->
                 <ui:Button text="PREPARADO" name="btn_djinn_status" class="djinn-status-btn status-set" />
+            
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <!-- Estado Vacío -->
+        <!-- Empty State Layer -->
         <ui:Label text="Vacío" name="label_djinn_empty" class="djinn-empty-label" style="display: none;" />
     </ui:VisualElement>
 </ui:UXML>

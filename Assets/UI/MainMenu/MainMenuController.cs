@@ -41,11 +41,13 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Djinn Page Templates")]
     [SerializeField] private VisualTreeAsset globalViewAsset;
-    [SerializeField] private VisualTreeAsset miniPsynergyCardAsset;
     [SerializeField] private VisualTreeAsset djinnSlotCardAAsset;
     [SerializeField] private VisualTreeAsset djinnSlotCardBAsset;
     [SerializeField] private Sprite targetSingleIcon;
     [SerializeField] private Sprite targetGroupIcon;
+
+    [Header("Common Templates")]
+    [SerializeField] private VisualTreeAsset psynergyCardAsset;
 
     // Header Elements
     private VisualElement headerHeroesBar;
@@ -457,7 +459,7 @@ public class MainMenuController : MonoBehaviour
         HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
         GameObject selectedHeroObj = GetPartyMemberGameObject(selectedHeroIndex);
 
-        psynergyPageController.PopulateData(selectedHeroStats, selectedHeroObj);
+        psynergyPageController.PopulateData(selectedHeroStats, selectedHeroObj, psynergyCardAsset);
     }
 
     private void LoadDjinnPage()
@@ -483,7 +485,7 @@ public class MainMenuController : MonoBehaviour
         // English comment: Pass both root containers to PageDjinnController
         djinnPageController = new PageDjinnController(instanceA, instanceB);
         djinnPageController.SetParty(GetPartyHeroStatsList());
-        djinnPageController.SetTemplates(miniPsynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
+        djinnPageController.SetTemplates(psynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
         djinnPageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
 
         djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
