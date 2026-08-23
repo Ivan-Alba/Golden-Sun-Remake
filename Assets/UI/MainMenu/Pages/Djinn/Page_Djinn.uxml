@@ -104,7 +104,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="separator" class="section-separator" />
+            <ui:VisualElement name="separator" class="info-divider" />
             <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
                 <ui:Label text="PSINERGÍAS DE CLASE" class="subpanel-header-label" />
                 <ui:VisualElement name="psynergy_compare_tabs" class="summary-psynergy-filter-tabs" style="display: none;">
@@ -133,18 +133,21 @@
             <ui:VisualElement name="djinn_preview_container" class="detail-preview-container-wide">
                 <ui:VisualElement name="djinn_video_preview" class="detail-preview-render" />
             </ui:VisualElement>
-            <ui:Label text="Flint" name="label_djinn_name" class="detail-name-label" />
+            <ui:VisualElement name="detail_icon_name_row" class="detail-icon-name-row">
+                <ui:VisualElement name="detail_djinn_icon" class="pip-icon icon-venus" />
+                <ui:Label text="Flint" name="label_djinn_name" class="detail-name-label" />
+            </ui:VisualElement>
             <ui:Label text="Djinn de Tierra - Venus" name="label_djinn_type" class="detail-type-label" />
             <ui:VisualElement name="djinn_meta_row" class="detail-meta-row">
-                <ui:Label text="Estado: PREPARADO" name="label_djinn_status" class="djinn-meta-label" />
-                <ui:Label text="Recuperación: 2 Turnos" name="label_djinn_recovery" class="djinn-meta-label" />
+                <ui:Label text="Estado: PREPARADO" name="label_djinn_status" class="detail-meta-label text-muted" />
+                <ui:Label text="Recuperación: 2 Turnos" name="label_djinn_recovery" class="djinn-meta-label detail-meta-label text-muted" />
             </ui:VisualElement>
             <ui:VisualElement name="djinn_desc_container" class="detail-desc-container">
                 <ui:Label text="Desencadena un ataque terrestre impregnado de la fuerza telúrica de Venus." name="label_djinn_desc" class="detail-desc-label" />
             </ui:VisualElement>
             <ui:ScrollView name="djinn_extra_details_box" class="extra-info-container">
-                <ui:VisualElement class="scroll-inner-card">
-                    <ui:Label text="BONOS DE ATRIBUTO (SET)" class="detail-section-title" />
+                <ui:VisualElement name="extra_info_card_root" class="extra-info-card-root">
+                    <ui:Label text="BONOS DE ATRIBUTO" class="section-header-title" />
                     <ui:VisualElement name="box_set_stats_grid" class="stats-grid">
                         <ui:VisualElement class="stat-item">
                             <ui:VisualElement class="stat-label-group">
@@ -189,15 +192,15 @@
                             <ui:Label text="+0" name="label_set_bonus_sue" class="stat-val" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement class="detail-separator" />
-                    <ui:Label text="EFECTO DE LIBERACIÓN" class="detail-section-title" />
+                    <ui:VisualElement class="info-divider" />
+                    <ui:Label text="EFECTO DE LIBERACIÓN" class="section-header-title" />
                     <ui:Label text="Golpe Demoledor" name="label_unleash_name" class="unleash-name-label" />
                     <ui:Label text="Ataca al enemigo con un potente golpe telúrico que puede causar aturdimiento." name="label_unleash_desc" class="unleash-desc-label" />
-                    <ui:VisualElement name="box_unleash_info" class="detail-unleash-row" />
-                    <ui:VisualElement class="detail-separator" />
-                    <ui:Label text="PASIVA DE LÍDER" class="detail-section-title" />
-                    <ui:Label text="Romperocas" name="label_leader_passive_title" class="passive-name-label" />
-                    <ui:Label text="Aumenta el daño crítico físico un 15% mientras esté en estado Preparado." name="label_leader_passive_desc" class="passive-desc-label" />
+                    <ui:VisualElement name="box_unleash_status_effect_info" class="detail-unleash-status-effect-row" />
+                    <ui:VisualElement class="info-divider" />
+                    <ui:Label text="PASIVA DE LÍDER" class="section-header-title" />
+                    <ui:Label text="Romperocas" name="label_leader_passive_title" class="unleash-name-label" />
+                    <ui:Label text="Aumenta el daño crítico físico un 15% mientras esté en estado Preparado." name="label_leader_passive_desc" class="unleash-desc-label" />
                 </ui:VisualElement>
             </ui:ScrollView>
         </ui:VisualElement>

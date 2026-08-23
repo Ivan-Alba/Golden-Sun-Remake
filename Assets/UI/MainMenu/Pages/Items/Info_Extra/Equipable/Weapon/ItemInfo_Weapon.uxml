@@ -26,9 +26,9 @@
                 <ui:VisualElement class="unleash-text-container">
                     <ui:VisualElement name="unleash_name_row" class="unleash-name-row">
                         <ui:VisualElement name="unleash_element_icon" class="pip-icon icon-mars" />
-                        <ui:Label text="---" name="label_unleash_name" class="unleash-name" />
+                        <ui:Label text="---" name="label_unleash_name" class="unleash-name-label" />
                     </ui:VisualElement>
-                    <ui:Label text="---" name="label_unleash_desc" class="unleash-desc" />
+                    <ui:Label text="---" name="label_unleash_desc" class="unleash-desc-label" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

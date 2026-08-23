@@ -45,8 +45,8 @@
             <ui:Label text="Espada Larga" name="label_item_name" class="detail-name-label" />
             <ui:Label text="Equipable - Arma" name="label_item_type" class="detail-type-label" />
             <ui:VisualElement name="item_meta_row" class="detail-meta-row">
-                <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="text-muted" />
-                <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="text-muted" />
+                <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="text-muted detail-meta-label" />
+                <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="text-muted detail-meta-label" />
             </ui:VisualElement>
             <ui:VisualElement name="item_desc_container" class="detail-desc-container">
                 <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="detail-desc-label" />

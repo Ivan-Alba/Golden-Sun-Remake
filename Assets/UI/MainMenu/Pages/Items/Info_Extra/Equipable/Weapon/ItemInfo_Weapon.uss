@@ -79,15 +79,3 @@
     align-items: center;
     margin-bottom: 2px;
 }
-
-.unleash-name {
-    font-size: 13px;
-    color: var(--color-text-white);
-    -unity-font-style: bold;
-}
-
-.unleash-desc {
-    font-size: 12px;
-    color: var(--color-text-description);
-    white-space: normal;
-}

@@ -188,6 +188,10 @@
     flex-shrink: 0;
 }
 
+.panel-column-right .detail-meta-label {
+    font-size: 13px;
+}
+
 .detail-desc-container {
     width: 100%;
     padding: 0 6px;
@@ -209,6 +213,7 @@
 .extra-info-container {
     flex-grow: 1;
     flex-shrink: 1;
+    width: 100%;
     height: 0;
     min-height: 0;
     overflow: hidden;
@@ -217,7 +222,16 @@
     padding: 0;
 }
 
+/* Forzar al viewport interno de Unity a usar el 100% del ancho */
+.extra-info-container .unity-scroll-view__content-viewport {
+    width: 100%;
+    align-items: stretch;
+}
+
+/* Forzar al contenedor interno del ScrollView a expandirse al 100% */
 .extra-info-container .unity-scroll-view__content-container {
+    width: 100%;
+    align-items: stretch;
     flex-direction: column;
     flex-grow: 1;
     justify-content: center;
@@ -274,6 +288,22 @@
 
 .extra-info-container .unity-base-slider__dragger:active {
     background-color: #FFA500;
+}
+
+
+.container-book .unleash-name-label {
+    font-size: 14px;
+    color: var(--color-accent-blue);
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.container-book .unleash-desc-label {
+    font-size: 13px;
+    color: var(--color-text-description);
+    white-space: normal;
+    margin-bottom: 2px;
+
 }
 
 /* =========================================================================
@@ -522,7 +552,11 @@
 
 /* --- Card Root Wrapper --- */
 .extra-info-card-root {
-    flex-grow: 1;
+    width: 100%;                  /* Fuerza a ocupar el 100% del ancho */
+    height: auto;
+    align-self: stretch;
+    flex-grow: 0;
+    flex-shrink: 0;
     justify-content: flex-start;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.35);
@@ -534,17 +568,20 @@
 /* --- Visual Separator Line --- */
 .info-divider {
     height: 1px;
+    width: 100%;
     background-color: rgba(255, 255, 255, 0.1);
-    margin-top: 4px;
-    margin-bottom: 6px;
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
 /* --- Section Subheaders (Gold Accent) --- */
 .extra-info-card-root .section-header-title {
-    font-size: 12px;
+    font-size: 11.5px;
+    flex-shrink: 0;
     color: var(--color-gold-sun);
     -unity-font-style: bold;
     letter-spacing: 1px;
+    margin-top: 2px;
     margin-bottom: 4px;
 }
 
@@ -842,12 +879,13 @@
     align-items: flex-start;
     align-content: flex-start;
     flex-shrink: 0;
+    margin-bottom: 2px;
 }
 
 .stat-item {
     flex: 0 0 48%;
-    height: 22px;
-    min-height: 22px;
+    height: 19px;
+    min-height: 19px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -872,7 +910,6 @@
 .stat-name {
     font-size: 13px;
     color: #CCCCCC;
-    flex-grow: 1;
     -unity-font-style: bold;
 }
 

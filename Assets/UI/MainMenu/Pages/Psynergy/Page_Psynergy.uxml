@@ -57,8 +57,8 @@
             </ui:VisualElement>
             <ui:Label text="Psinergía de Tierra - Venus" name="label_psynergy_type" class="detail-type-label" />
             <ui:VisualElement name="psynergy_meta_row" class="detail-meta-row">
-                <ui:Label text="Coste: 2 PP" name="label_psynergy_cost" class="text-muted" />
-                <ui:Label text="Alcance: 1 Objetivo" name="label_psynergy_range" class="text-muted" />
+                <ui:Label text="Coste: 2 PP" name="label_psynergy_cost" class="text-muted detail-meta-label" />
+                <ui:Label text="Alcance: 1 Objetivo" name="label_psynergy_range" class="text-muted detail-meta-label" />
             </ui:VisualElement>
             <ui:VisualElement name="psynergy_desc_container" class="detail-desc-container">
                 <ui:Label text="Desplaza pilares u objetos pesados a distancia utilizando el poder de la tierra." name="label_psynergy_desc" class="detail-desc-label" />

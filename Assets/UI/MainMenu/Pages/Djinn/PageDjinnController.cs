@@ -102,6 +102,7 @@ public class PageDjinnController
     #region Private Fields - Right Panel Elements (Djinn Info)
 
     private VisualElement djinnVideoPreview;
+    private VisualElement djinnElementalIcon;
     private Label labelDjinnName;
     private Label labelDjinnType;
     private Label labelDjinnStatus;
@@ -117,7 +118,7 @@ public class PageDjinnController
     private Label labelSetBonusSue;
 
     // Unleash Labels
-    private VisualElement boxUnleashInfo;
+    private VisualElement boxUnleashStatusEffectInfo;
     private Label labelUnleashName;
     private Label labelUnleashDesc;
     private Label labelUnleashDamage;
@@ -213,9 +214,10 @@ public class PageDjinnController
 
             // Right Panel
             djinnVideoPreview = rootViewA.Q<VisualElement>("djinn_video_preview");
+            djinnElementalIcon = rootViewA.Q<VisualElement>("detail_djinn_icon");
             labelDjinnName = rootViewA.Q<Label>("label_djinn_name");
             labelDjinnType = rootViewA.Q<Label>("label_djinn_type");
-            labelDjinnStatus = rootViewA.Q<Label>("label_djinn_status");
+            labelDjinnStatus = rootViewA.Q<Label>("label_djinn_status"); 
             labelDjinnRecovery = rootViewA.Q<Label>("label_djinn_recovery");
             labelDjinnDesc = rootViewA.Q<Label>("label_djinn_desc");
 
@@ -226,7 +228,7 @@ public class PageDjinnController
             labelSetBonusAgi = rootViewA.Q<Label>("label_set_bonus_agi");
             labelSetBonusSue = rootViewA.Q<Label>("label_set_bonus_sue");
 
-            boxUnleashInfo = rootViewA.Q<VisualElement>("box_unleash_info");
+            boxUnleashStatusEffectInfo = rootViewA.Q<VisualElement>("box_unleash_status_effect_info");
             labelUnleashName = rootViewA.Q<Label>("label_unleash_name");
             labelUnleashDesc = rootViewA.Q<Label>("label_unleash_desc");
             labelUnleashDamage = rootViewA.Q<Label>("label_unleash_damage");
@@ -599,6 +601,16 @@ public class PageDjinnController
         selectedDjinnForDetails = djinnInstance;
         DjinnSO data = djinnInstance.DjinnData;
 
+        if (djinnElementalIcon != null)
+        {
+            djinnElementalIcon.RemoveFromClassList("icon-venus");
+            djinnElementalIcon.RemoveFromClassList("icon-mars");
+            djinnElementalIcon.RemoveFromClassList("icon-jupiter");
+            djinnElementalIcon.RemoveFromClassList("icon-mercury");
+
+            djinnElementalIcon.AddToClassList($"icon-{data.Element.ToString().ToLower()}");
+            djinnElementalIcon.style.display = DisplayStyle.Flex;
+        }
         if (labelDjinnName != null) labelDjinnName.text = data.DjinnName;
         if (labelDjinnType != null) labelDjinnType.text = $"Djinn de {GetElementDisplayName(data.Element)} - {data.Element}";
         if (labelDjinnStatus != null) labelDjinnStatus.text = $"Estado: {GetStatusButtonText(djinnInstance.CurrentState)}";
@@ -621,13 +633,13 @@ public class PageDjinnController
             if (labelUnleashName != null) labelUnleashName.text = "Ninguno";
             if (labelUnleashDesc != null) labelUnleashDesc.text = "Sin efecto de desatado.";
 
-            if (boxUnleashInfo != null)
+            if (boxUnleashStatusEffectInfo != null)
             {
-                boxUnleashInfo.Clear();
+                boxUnleashStatusEffectInfo.Clear();
                 Label emptyBadge = new Label("Sin Efecto");
                 emptyBadge.AddToClassList("unleash-badge");
                 emptyBadge.AddToClassList("badge-target");
-                boxUnleashInfo.Add(emptyBadge);
+                boxUnleashStatusEffectInfo.Add(emptyBadge);
             }
         }
 
@@ -648,25 +660,25 @@ public class PageDjinnController
 
     private void RenderUnleashBadges(DjinnUnleashSO unleash)
     {
-        if (boxUnleashInfo == null) return;
+        if (boxUnleashStatusEffectInfo == null) return;
 
-        boxUnleashInfo.Clear();
+        boxUnleashStatusEffectInfo.Clear();
 
         string targetText = GetTargetBadgeText(unleash.TargetsAlly, unleash.IsAreaOfEffect);
         Sprite targetIcon = GetTargetIcon(unleash.TargetsAlly, unleash.IsAreaOfEffect);
 
         VisualElement targetBadge = CreateBadgeContainer("badge-target", targetIcon, targetText);
-        boxUnleashInfo.Add(targetBadge);
+        boxUnleashStatusEffectInfo.Add(targetBadge);
 
         if (unleash.DamageMultiplier > 1.0f)
         {
             VisualElement damageBadge = CreateBadgeContainer("badge-damage", null, $"Daño: x{unleash.DamageMultiplier:F2}");
-            boxUnleashInfo.Add(damageBadge);
+            boxUnleashStatusEffectInfo.Add(damageBadge);
         }
         else if (unleash.FlatBonusDamage > 0)
         {
             VisualElement damageBadge = CreateBadgeContainer("badge-damage", null, $"Daño: +{unleash.FlatBonusDamage}");
-            boxUnleashInfo.Add(damageBadge);
+            boxUnleashStatusEffectInfo.Add(damageBadge);
         }
 
         if (unleash.StatusEffects != null && unleash.StatusEffects.Count > 0)
@@ -703,7 +715,7 @@ public class PageDjinnController
                 string fullText = $"{categoryPrefix}{status.EffectName}{chancePrefix}";
                 VisualElement effectBadge = CreateBadgeContainer(categoryClass, effectIcon, fullText);
 
-                boxUnleashInfo.Add(effectBadge);
+                boxUnleashStatusEffectInfo.Add(effectBadge);
             }
         }
     }
@@ -821,6 +833,7 @@ public class PageDjinnController
     {
         selectedDjinnForDetails = null;
 
+        if (djinnElementalIcon != null) djinnElementalIcon.style.display = DisplayStyle.None;
         if (labelDjinnName != null) labelDjinnName.text = "---";
         if (labelDjinnType != null) labelDjinnType.text = "---";
         if (labelDjinnStatus != null) labelDjinnStatus.text = "Estado: ---";
