@@ -196,7 +196,7 @@
                     <ui:Label text="EFECTO DE LIBERACIÓN" class="section-header-title" />
                     <ui:Label text="Golpe Demoledor" name="label_unleash_name" class="unleash-name-label" />
                     <ui:Label text="Ataca al enemigo con un potente golpe telúrico que puede causar aturdimiento." name="label_unleash_desc" class="unleash-desc-label" />
-                    <ui:VisualElement name="box_unleash_status_effect_info" class="detail-unleash-status-effect-row" />
+                    <ui:VisualElement name="box_unleash_status_effect_info" class="unleash-status-effect-row" />
                     <ui:VisualElement class="info-divider" />
                     <ui:Label text="PASIVA DE LÍDER" class="section-header-title" />
                     <ui:Label text="Romperocas" name="label_leader_passive_title" class="unleash-name-label" />

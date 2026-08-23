@@ -23,7 +23,8 @@
 
 /* --- 2. Shared Section Titles --- */
 .page-three-columns-container .info-title-label,
-.container-book .info-title-label {
+.container-book .info-title-label,
+.page-djinn-container .info-title-label {
     font-size: 17px;
     -unity-font-style: bold;
     color: var(--color-gold-sun);
@@ -111,9 +112,7 @@
     border-color: rgba(218, 165, 32, 0.3);
     border-radius: 8px;
     flex-shrink: 0;
-    background-size: contain;
     -unity-background-scale-mode: scale-to-fit;
-    background-repeat: no-repeat;
 }
 
 /* Wide Box for Video / Animated Renders (Psynergy, Djinn) */
@@ -450,7 +449,7 @@
     -unity-font-style: bold;
     padding: 2px 4px;
     border-radius: 3px;
-    text-align: center;
+    -unity-text-align: middle-center;
 }
 
 .badge-gained {
@@ -758,9 +757,10 @@
     background-color: rgba(20, 29, 44, 0.9);
     border-radius: 4px;
     padding: 6px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     border-width: 1px;
     border-color: #2e3a4e;
+    flex-shrink: 0;
 }
 
 .summary-hero-avatar-box {
@@ -801,6 +801,8 @@
     font-size: 18px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
 }
 
 .summary-hero-column-level {
@@ -919,7 +921,14 @@
     color: var(--color-text-white);
 }
 
-.stat-delta {
+.stat-value-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.page-djinn-container .stat-delta,
+.container-book .stat-delta {
     font-size: 12px;
     -unity-font-style: bold;
     margin-left: 3px;
@@ -963,4 +972,80 @@
 .summary-psynergy-list-scroll .unity-scroll-view__content-container {
     flex-direction: column;
     width: 100%;
+}
+
+/* BADGES EFFECTS UNLEASH / PSYNERGY */
+
+.unleash-status-effect-row {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+/* Badge container */
+.unleash-badge {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    flex-shrink: 0;
+    height: 21px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-width: 1px;
+}
+
+.unleash-badge Label {
+    font-size: 11.5px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.badge-target {
+    color: #A0B0C0;
+    background-color: rgba(160, 176, 192, 0.15);
+    border-color: rgba(160, 176, 192, 0.3);
+}
+
+.badge-damage {
+    color: #5DADE2;
+    background-color: rgba(93, 173, 226, 0.15);
+    border-color: rgba(93, 173, 226, 0.35);
+}
+
+.badge-buff {
+    color: #2ECC71;
+    background-color: rgba(46, 204, 113, 0.15);
+    border-color: rgba(46, 204, 113, 0.35);
+}
+
+.badge-debuff {
+    color: #E67E22;
+    background-color: rgba(230, 126, 34, 0.15);
+    border-color: rgba(230, 126, 34, 0.35);
+}
+
+.badge-ailment {
+    color: #A569BD;
+    background-color: rgba(165, 105, 189, 0.18);
+    border-color: rgba(165, 105, 189, 0.4);
+}
+
+.badge-icon {
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+    min-height: 13px;
+    max-width: 13px;
+    max-height: 13px;
+    margin-right: 4px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
 }

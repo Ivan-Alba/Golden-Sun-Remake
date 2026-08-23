@@ -6,7 +6,8 @@
     align-items: stretch;
 }
 
-.djinn-summary-panel .subpanel-header-label {
+.djinn-summary-panel .subpanel-header-label,
+.panel-column-center .subpanel-header-label{
     font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: upper-left;
@@ -116,80 +117,6 @@
     margin-bottom: 6px;
 }
 
-.detail-unleash-status-effect-row {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: 4px;
-    margin-bottom: 4px;
-}
-
-/* Badge container */
-.unleash-badge {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    align-self: flex-start;
-    flex-shrink: 0;
-    height: 21px;
-    padding: 2px 8px;
-    border-radius: 3px;
-    margin-right: 4px;
-    margin-bottom: 4px;
-    border-width: 1px;
-}
-
-.unleash-badge Label {
-    font-size: 11.5px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-}
-
-.badge-target {
-    color: #A0B0C0;
-    background-color: rgba(160, 176, 192, 0.15);
-    border-color: rgba(160, 176, 192, 0.3);
-}
-
-.badge-damage {
-    color: #5DADE2;
-    background-color: rgba(93, 173, 226, 0.15);
-    border-color: rgba(93, 173, 226, 0.35);
-}
-
-.badge-buff {
-    color: #2ECC71;
-    background-color: rgba(46, 204, 113, 0.15);
-    border-color: rgba(46, 204, 113, 0.35);
-}
-
-.badge-debuff {
-    color: #E67E22;
-    background-color: rgba(230, 126, 34, 0.15);
-    border-color: rgba(230, 126, 34, 0.35);
-}
-
-.badge-ailment {
-    color: #A569BD;
-    background-color: rgba(165, 105, 189, 0.18);
-    border-color: rgba(165, 105, 189, 0.4);
-}
-
-.badge-icon {
-    width: 13px;
-    height: 13px;
-    min-width: 13px;
-    min-height: 13px;
-    max-width: 13px;
-    max-height: 13px;
-    margin-right: 4px;
-    flex-grow: 0;
-    flex-shrink: 0;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
 
 /* ==========================================================================
    GLOBAL PARTY ORGANIZER & MODAL OVERLAY (VISTA B)
@@ -233,22 +160,189 @@
     color: var(--color-gold-bright);
 }
 
+/* ==========================================================================
+   MODAL OVERLAY & COMPARISON SYSTEM (COMPACT JRPG EDITION)
+   ========================================================================== */
+
+/* Overlay oscuro de fondo que cubre toda la pantalla */
 .modal-overlay-container {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(5, 8, 12, 0.88);
-    justify-content: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.82);
     align-items: center;
-    padding: 12px;
+    justify-content: center;
+    z-index: 1000;
 }
 
+/* Caja principal del Modal: Reducida y centrada */
 .compare-modal-box {
-    width: 920px;
-    height: 540px;
-    background-color: #0b1017;
+    width: 1150px;
+    height: 100%;
+    background-color: var(--theme-bg-dark, #0d1117);
     border-width: 2px;
-    border-color: var(--color-gold-sun);
+    border-color: var(--theme-border-gold, rgba(212, 175, 55, 0.6));
     border-radius: 8px;
+    padding: 16px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.compare-modal-title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--theme-text-gold, #ffd700);
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+/* Contenedor Flex de 3 Columnas */
+.compare-modal-content {
+    flex-direction: row;
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: stretch;
+}
+
+/* Paneles Laterales de Héroes (Izquierda / Derecha): Ancho fijo y compacto */
+.modal-hero-panel {
+    width: 430px;
+    flex-shrink: 0;
+    height: 100%;
+    background-color: var(--theme-bg-panel, rgba(20, 25, 35, 0.95));
+    border-width: 1px;
+    border-color: var(--theme-border-muted, rgba(255, 255, 255, 0.15));
+    border-radius: 6px;
     padding: 12px;
     flex-direction: column;
+}
+
+/* Panel Central de Acciones e Intercambio */
+.compare-center-action-box {
+    width: 200px;
+    flex-shrink: 0;
+    align-self: center; /* Evita que se estire al 100% de altura y lo centra verticalmente */
+    margin-left: 14px;
+    margin-right: 14px;
+    background-color: var(--theme-bg-subpanel, rgba(15, 18, 26, 0.8));
+    border-width: 1px;
+    border-color: var(--theme-border-muted, rgba(255, 255, 255, 0.1));
+    border-radius: 6px;
+    padding: 14px 12px;
+    align-items: center;
+    justify-content: space-between; /* Mantiene título arriba, botones abajo y centro libre */
+}
+
+.compare-exchange-visual {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center; /* Centra las píldoras justo en la mitad vertical */
+    width: 100%;
+}
+
+.compare-action-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--theme-text-gold, #ffd700);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.compare-djinn-pill {
+    width: 100%;
+    height: 36px;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.compare-djinn-pill-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #ffffff;
+}
+
+.compare-exchange-arrow {
+    font-size: 22px;
+    color: var(--theme-text-gold, #ffd700);
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+/* Fila de Botones Confirmar / Cancelar */
+.modal-actions-row {
+    width: 100%;
+    flex-direction: column;
+}
+
+.modal-btn {
+    height: 36px;
+    margin-top: 6px;
+    border-radius: 4px;
+    -unity-font-style: bold;
+    font-size: 12px;
+}
+
+.btn-confirm {
+    background-color: rgba(46, 125, 50, 0.8);
+    border-color: #4caf50;
+    color: #ffffff;
+}
+
+.btn-confirm:hover {
+    background-color: rgba(76, 175, 80, 0.9);
+}
+
+.btn-cancel {
+    background-color: rgba(198, 40, 40, 0.8);
+    border-color: #f44336;
+    color: #ffffff;
+}
+
+.btn-cancel:hover {
+    background-color: rgba(239, 83, 80, 0.9);
+}
+
+/* ==========================================================================
+   DRAG & DROP SYSTEM (VISTA B)
+   ========================================================================== */
+
+/* Slot Origen: Estado deshabilitado / atenuado mientras se arrastra */
+.djinn-card-disabled {
+    opacity: 0.35;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Elemento Ghost flotante que sigue al cursor */
+.djinn-drag-ghost {
+    position: absolute;
+    pointer-events: none;
+    picking-mode: Ignore;
+    opacity: 0.9;
+    border-width: 2px;
+    border-color: var(--color-gold-bright);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+/* Casillas/Slots destino VÁLIDOS (Highlight de Intercambio o Donación) */
+.djinn-slot-drop-valid {
+    border-width: 2px !important;
+    border-color: #2ECC71 !important;
+    background-color: rgba(46, 204, 113, 0.15) !important;
+}
+
+/* Casillas/Slots destino INVÁLIDOS (Bloqueados por regla de recuento) */
+.djinn-slot-drop-invalid {
+    opacity: 0.5;
+    border-color: rgba(231, 76, 60, 0.4) !important;
 }

@@ -18,25 +18,44 @@ public enum PsynergyCardState
     Locked      // Placeholder locked with level requirement
 }
 
+#region Drag & Drop Data Structures (Vista B)
+
+public class DjinnDragContext
+{
+    public HeroStats SourceHero { get; private set; }
+    public DjinnInstance SourceDjinn { get; private set; }
+    public VisualElement SourceCardUI { get; private set; }
+
+    public DjinnDragContext(HeroStats sourceHero, DjinnInstance sourceDjinn, VisualElement sourceCardUI)
+    {
+        SourceHero = sourceHero;
+        SourceDjinn = sourceDjinn;
+        SourceCardUI = sourceCardUI;
+    }
+}
+
+public struct DjinnDropTargetInfo
+{
+    public HeroStats TargetHero;
+    public DjinnInstance TargetDjinn;
+    public VisualElement SlotUI;
+
+    public DjinnDropTargetInfo(HeroStats hero, DjinnInstance djinn, VisualElement slotUI)
+    {
+        TargetHero = hero;
+        TargetDjinn = djinn;
+        SlotUI = slotUI;
+    }
+}
+
+#endregion
+
 public class PageDjinnController
 {
     #region Events
 
-    /// <summary>
-    /// Event triggered whenever a Djinn's state changes or an exchange is completed.
-    /// Used by MainMenuController to refresh top header hero cards, stats, or class titles.
-    /// </summary>
     public event Action OnDjinnStateChanged;
-
-    /// <summary>
-    /// Event triggered when switching between Vista A and Vista B to toggle the top heroes bar visibility in MainMenuController.
-    /// </summary>
     public event Action<bool> OnToggleTopHeroesBar;
-
-    /// <summary>
-    /// Event triggered when user clicks to toggle between Vista A and Vista B.
-    /// Delegated to MainMenuController to switch visual containers visibility.
-    /// </summary>
     public event Action<DjinnViewMode> OnRequestViewChange;
 
     #endregion
@@ -46,21 +65,18 @@ public class PageDjinnController
     private VisualElement rootViewA;
     private VisualElement rootViewB;
 
-    // View Containers
     private VisualElement pageDjinnContainer;
     private VisualElement sectionVistaB;
     private VisualElement modalOverlayCompare;
 
-    // Vista B Elements
     private VisualElement partyColumnsContainer;
     private Button btnSwitchToVistaA;
 
-    // Current View State
     private DjinnViewMode currentViewMode = DjinnViewMode.Individual;
 
     #endregion
 
-    #region Private Fields - Left Panel Elements (Hero Summary & Stats)
+    #region Private Fields - Left Panel Elements
 
     private VisualElement heroAvatarIcon;
     private Label labelHeroName;
@@ -90,7 +106,7 @@ public class PageDjinnController
 
     #endregion
 
-    #region Private Fields - Center Panel Elements (Djinn Grid)
+    #region Private Fields - Center Panel Elements
 
     private Label labelGridHeader;
     private VisualElement djinnSlotsGrid;
@@ -99,7 +115,7 @@ public class PageDjinnController
 
     #endregion
 
-    #region Private Fields - Right Panel Elements (Djinn Info)
+    #region Private Fields - Right Panel Elements
 
     private VisualElement djinnVideoPreview;
     private VisualElement djinnElementalIcon;
@@ -109,7 +125,6 @@ public class PageDjinnController
     private Label labelDjinnRecovery;
     private Label labelDjinnDesc;
 
-    // Set Bonus Labels
     private Label labelSetBonusMaxHP;
     private Label labelSetBonusMaxPP;
     private Label labelSetBonusAtq;
@@ -117,18 +132,15 @@ public class PageDjinnController
     private Label labelSetBonusAgi;
     private Label labelSetBonusSue;
 
-    // Unleash Labels
     private VisualElement boxUnleashStatusEffectInfo;
     private Label labelUnleashName;
     private Label labelUnleashDesc;
     private Label labelUnleashDamage;
     private Label labelUnleashEffect;
 
-    // Unleash Status Effect Target icons
     private Sprite iconTargetSingle;
     private Sprite iconTargetGroup;
 
-    // Leader Passive Labels
     private Label labelLeaderPassiveTitle;
     private Label labelLeaderPassiveDesc;
 
@@ -140,19 +152,30 @@ public class PageDjinnController
     private HeroStats currentHero;
     private HeroDjinnController currentHeroDjinnController;
 
-    // Templates UXML
     private VisualTreeAsset psynergyCardAsset;
     private VisualTreeAsset djinnSlotCardAAsset;
     private VisualTreeAsset djinnSlotCardBAsset;
 
-    // Djinn Selected for Detail Display in Vista A
     private DjinnInstance selectedDjinnForDetails;
 
-    // Djinn Swap Context (for Vista B & Modal)
     private DjinnInstance swapSourceDjinn;
     private HeroStats swapSourceHero;
     private DjinnInstance swapTargetDjinn;
     private HeroStats swapTargetHero;
+
+    #endregion
+
+    #region Private Fields - Drag & Drop System (Vista B - Pattern Items)
+
+    private DjinnDragContext currentDragContext;
+    private VisualElement ghostElement;
+    private bool isDragging = false;
+    private Vector2 pointerStartPosition;
+    private int activePointerId = -1;
+    private const float DRAG_THRESHOLD = 5f;
+
+    private List<(VisualElement element, HeroStats ownerHero, DjinnInstance djinnInstance)> dragTargetSlots
+        = new List<(VisualElement, HeroStats, DjinnInstance)>();
 
     #endregion
 
@@ -169,17 +192,24 @@ public class PageDjinnController
 
     #endregion
 
+    #region Helpers for Top Root Level
+
+    private VisualElement GetTopRootElement()
+    {
+        VisualElement root = rootViewB ?? rootViewA;
+        return root?.panel?.visualTree ?? root;
+    }
+
+    #endregion
+
     #region UI Binding
 
     private void BindUIElements()
     {
-        // 1. Root Containers & Vista A Binding
         if (rootViewA != null)
         {
             pageDjinnContainer = rootViewA.Q<VisualElement>("page_djinn_container") ?? rootViewA;
-            modalOverlayCompare = rootViewA.Q<VisualElement>("compare_modal_overlay");
 
-            // Left Panel
             heroAvatarIcon = rootViewA.Q<VisualElement>("hero_avatar_icon");
             labelHeroName = rootViewA.Q<Label>("label_hero_name");
             labelHeroLevel = rootViewA.Q<Label>("label_hero_level");
@@ -206,18 +236,16 @@ public class PageDjinnController
 
             scrollClassPsynergies = rootViewA.Q<ScrollView>("scroll_class_psynergies");
 
-            // Center Panel
             labelGridHeader = rootViewA.Q<Label>("label_grid_header");
             djinnSlotsGrid = rootViewA.Q<VisualElement>("djinn_slots_grid");
             djinn3dRenderTarget = rootViewA.Q<VisualElement>("djinn_3d_render_target");
             btnSwitchToVistaB = rootViewA.Q<Button>("btn_switch_vista_b");
 
-            // Right Panel
             djinnVideoPreview = rootViewA.Q<VisualElement>("djinn_video_preview");
             djinnElementalIcon = rootViewA.Q<VisualElement>("detail_djinn_icon");
             labelDjinnName = rootViewA.Q<Label>("label_djinn_name");
             labelDjinnType = rootViewA.Q<Label>("label_djinn_type");
-            labelDjinnStatus = rootViewA.Q<Label>("label_djinn_status"); 
+            labelDjinnStatus = rootViewA.Q<Label>("label_djinn_status");
             labelDjinnRecovery = rootViewA.Q<Label>("label_djinn_recovery");
             labelDjinnDesc = rootViewA.Q<Label>("label_djinn_desc");
 
@@ -243,7 +271,6 @@ public class PageDjinnController
             }
         }
 
-        // 2. Vista B Binding
         if (rootViewB != null)
         {
             sectionVistaB = rootViewB.Q<VisualElement>("page_djinn_global_container")
@@ -251,6 +278,7 @@ public class PageDjinnController
                          ?? rootViewB;
 
             partyColumnsContainer = rootViewB.Q<VisualElement>("party_columns_container");
+            modalOverlayCompare = rootViewB.Q<VisualElement>("compare_modal_overlay");
             btnSwitchToVistaA = rootViewB.Q<Button>("btn_switch_vista_a");
         }
     }
@@ -277,9 +305,6 @@ public class PageDjinnController
         partyHeroes = party ?? new List<HeroStats>();
     }
 
-    /// <summary>
-    /// Assigns the UXML cards templates used for dynamic instantiation.
-    /// </summary>
     public void SetTemplates(VisualTreeAsset psynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
     {
         psynergyCardAsset = psynergyCard;
@@ -287,9 +312,6 @@ public class PageDjinnController
         djinnSlotCardBAsset = djinnSlotCardB;
     }
 
-    /// <summary>
-    /// Assigns the target icons used for dynamic unleash badge instantiation.
-    /// </summary>
     public void SetTargetIcons(Sprite singleTarget, Sprite groupTarget)
     {
         iconTargetSingle = singleTarget;
@@ -312,7 +334,6 @@ public class PageDjinnController
             currentHeroDjinnController.OnDjinnSetupUpdated += RefreshAllData;
         }
 
-        // English comment: Ensure view mode is reset to default when populating data
         currentViewMode = DjinnViewMode.Individual;
         RefreshAllData();
     }
@@ -341,7 +362,6 @@ public class PageDjinnController
     {
         if (currentHero == null || currentHeroDjinnController == null) return;
 
-        // 1. Update Hero Class
         if (heroAvatarIcon != null) heroAvatarIcon.style.backgroundImage = new StyleBackground(currentHero.TurnBarImage);
         if (labelHeroName != null) labelHeroName.text = currentHero.Name;
         if (labelHeroLevel != null) labelHeroLevel.text = $"Nv. {currentHero.Level}";
@@ -355,10 +375,8 @@ public class PageDjinnController
         if (labelHeroClassNext != null) labelHeroClassNext.style.display = DisplayStyle.None;
         if (labelClassArrow != null) labelClassArrow.style.display = DisplayStyle.None;
 
-        // 2. Update Elemental Pips
         UpdateElementalPips(currentHeroDjinnController, labelPipVenus, labelPipMars, labelPipJupiter, labelPipMercury);
 
-        // 3. Update Base Stats
         if (labelStatAtq != null) labelStatAtq.text = Mathf.RoundToInt(currentHero.Attack).ToString();
         if (labelStatDef != null) labelStatDef.text = Mathf.RoundToInt(currentHero.Defense).ToString();
         if (labelStatAgi != null) labelStatAgi.text = Mathf.RoundToInt(currentHero.Agility).ToString();
@@ -368,7 +386,6 @@ public class PageDjinnController
 
         HideStatDeltas();
 
-        // 4. Update Grid Title and Slots
         IReadOnlyList<DjinnInstance> assignedDjinns = currentHeroDjinnController.AssignedDjinns;
         int count = (assignedDjinns != null) ? assignedDjinns.Count : 0;
 
@@ -391,7 +408,6 @@ public class PageDjinnController
 
         RenderVistaASlots(assignedDjinns);
 
-        // 5. Render details of selected Djinn
         if (selectedDjinnForDetails != null)
         {
             SelectDjinnInVistaA(selectedDjinnForDetails);
@@ -401,9 +417,7 @@ public class PageDjinnController
             ClearRightDetailPanel();
         }
 
-        // 6. Refresh Psynergies List
         RefreshClassPsynergies();
-
         UpdateSanctuaryUI();
     }
 
@@ -749,14 +763,7 @@ public class PageDjinnController
 
     private Sprite GetTargetIcon(bool targetsAlly, bool isAreaOfEffect)
     {
-        if (targetsAlly)
-        {
-            return isAreaOfEffect ? iconTargetGroup : iconTargetSingle;
-        }
-        else
-        {
-            return isAreaOfEffect ? iconTargetGroup : iconTargetSingle;
-        }
+        return isAreaOfEffect ? iconTargetGroup : iconTargetSingle;
     }
 
     private string GetTargetBadgeText(bool targetsAlly, bool isAreaOfEffect)
@@ -868,21 +875,17 @@ public class PageDjinnController
             return new VisualElement();
         }
 
-        // 1. Instantiate UXML Template & retrieve root
         TemplateContainer cardInstance = psynergyCardAsset.Instantiate();
         VisualElement card = cardInstance.Q<VisualElement>("psynergy_card") ?? cardInstance;
 
-        // 2. Base Elemental Theme
         card.AddToClassList(GetElementCssClass(psynergy.Element));
 
-        // 3. Icon
         VisualElement cardIcon = card.Q<VisualElement>("psynergy_card_icon");
         if (cardIcon != null && psynergy.Icon != null)
         {
             cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
         }
 
-        // 4. Element Pip Icon & Name
         VisualElement elementPipIcon = card.Q<VisualElement>("element_pip_icon");
         if (elementPipIcon != null)
         {
@@ -895,7 +898,6 @@ public class PageDjinnController
             nameLabel.text = psynergy.PsynergyName;
         }
 
-        // 5. Dynamic Usage Badges
         VisualElement badgesRow = card.Q<VisualElement>("card_badges_row");
         if (badgesRow != null)
         {
@@ -926,18 +928,15 @@ public class PageDjinnController
             }
         }
 
-        // 6. PP Cost
         Label ppLabel = card.Q<Label>("label_card_pp") ?? card.Q<Label>("label_psynergy_pp");
         if (ppLabel != null)
         {
             ppLabel.text = $"{psynergy.PpCost} PP";
         }
 
-        // 7. State Handling (Normal, Locked, Gained, Lost)
         VisualElement lockOverlay = card.Q<VisualElement>("mini_psy_lock_overlay");
         Label statusLabel = card.Q<Label>("label_psy_status");
 
-        // Ensure status elements are hidden by default
         if (lockOverlay != null) lockOverlay.style.display = DisplayStyle.None;
         if (statusLabel != null) statusLabel.style.display = DisplayStyle.None;
 
@@ -983,14 +982,12 @@ public class PageDjinnController
 
             case PsynergyCardState.Normal:
             default:
-                // Keeps clean default visuals
                 break;
         }
 
         return card;
     }
 
-    // Helper method to resolve the element pip CSS class
     private string GetElementPipCssClass(ElementalType element)
     {
         return element switch
@@ -1083,6 +1080,7 @@ public class PageDjinnController
     {
         if (partyColumnsContainer == null || partyHeroes == null || djinnSlotCardBAsset == null) return;
 
+        dragTargetSlots.Clear();
         List<VisualElement> columns = partyColumnsContainer.Query<VisualElement>(className: "hero-djinn-column").ToList();
 
         for (int i = 0; i < columns.Count; i++)
@@ -1098,7 +1096,7 @@ public class PageDjinnController
 
             columnElem.style.display = DisplayStyle.Flex;
 
-            // 1. Populate Header Data
+            // 1. Header
             VisualElement avatarIcon = columnElem.Q<VisualElement>("hero_avatar_icon");
             Label nameLabel = columnElem.Q<Label>("label_hero_name");
             Label levelLabel = columnElem.Q<Label>("label_hero_level");
@@ -1121,7 +1119,7 @@ public class PageDjinnController
 
             UpdateElementalPips(djinnCtrl, pipVenus, pipMars, pipJupiter, pipMercury);
 
-            // 2. Populate Djinn Slot Cards
+            // 2. Djinn Slots
             VisualElement slotsContainer = columnElem.Q<VisualElement>(className: "column-slots-container");
             if (slotsContainer == null) continue;
 
@@ -1137,6 +1135,12 @@ public class PageDjinnController
 
                 DjinnInstance djinn = (assignedDjinns != null && slotIndex < assignedDjinns.Count) ? assignedDjinns[slotIndex] : null;
 
+                // Force pickingMode = Position for raycast drop detection
+                cardRoot.pickingMode = PickingMode.Position;
+
+                // Cache reference for Drag & Drop hit testing
+                dragTargetSlots.Add((cardRoot, hero, djinn));
+
                 VisualElement cardBody = cardRoot.Q<VisualElement>("djinn_card_body");
                 VisualElement iconElem = cardRoot.Q<VisualElement>("djinn_card_icon");
                 Label cardNameLabel = cardRoot.Q<Label>("label_djinn_card_name");
@@ -1146,10 +1150,20 @@ public class PageDjinnController
                 Label emptyLabel = cardRoot.Q<Label>("label_djinn_empty");
                 VisualElement elementPip = cardRoot.Q<VisualElement>("djinn_element_pip");
 
-                cardRoot.RemoveFromClassList("djinn-card-venus");
-                cardRoot.RemoveFromClassList("djinn-card-mars");
-                cardRoot.RemoveFromClassList("djinn-card-jupiter");
-                cardRoot.RemoveFromClassList("djinn-card-mercury");
+                if (cardBody != null) cardBody.pickingMode = PickingMode.Ignore;
+                if (iconElem != null) iconElem.pickingMode = PickingMode.Ignore;
+                if (cardNameLabel != null) cardNameLabel.pickingMode = PickingMode.Ignore;
+                if (unleashValLabel != null) unleashValLabel.pickingMode = PickingMode.Ignore;
+                if (emptyLabel != null) emptyLabel.pickingMode = PickingMode.Ignore;
+                if (elementPip != null) elementPip.pickingMode = PickingMode.Ignore;
+
+                cardRoot.RemoveFromClassList("element-venus");
+                cardRoot.RemoveFromClassList("element-mars");
+                cardRoot.RemoveFromClassList("element-jupiter");
+                cardRoot.RemoveFromClassList("element-mercury");
+                cardRoot.RemoveFromClassList("djinn-card-disabled");
+                cardRoot.RemoveFromClassList("djinn-slot-drop-valid");
+                cardRoot.RemoveFromClassList("djinn-slot-drop-invalid");
 
                 if (djinn != null && djinn.DjinnData != null)
                 {
@@ -1158,7 +1172,7 @@ public class PageDjinnController
                     if (cardBody != null) cardBody.style.display = DisplayStyle.Flex;
                     if (emptyLabel != null) emptyLabel.style.display = DisplayStyle.None;
 
-                    cardRoot.AddToClassList($"djinn-card-{data.Element.ToString().ToLower()}");
+                    cardRoot.AddToClassList($"element-{data.Element.ToString().ToLower()}");
 
                     if (elementPip != null)
                     {
@@ -1176,7 +1190,6 @@ public class PageDjinnController
 
                     if (cardNameLabel != null) cardNameLabel.text = data.DjinnName;
 
-                    // Leader Tag Status
                     bool isLeader = (djinnCtrl != null && djinnCtrl.LeaderDjinn == djinn);
                     if (btnLeaderTag != null)
                     {
@@ -1191,17 +1204,15 @@ public class PageDjinnController
                         else
                         {
                             btnLeaderTag.AddToClassList("leader-inactive");
-                            btnLeaderTag.text = "LÍDER";
+                            btnLeaderTag.text = "★ LÍDER";
                         }
                     }
 
-                    // Unleash short description
                     if (unleashValLabel != null)
                     {
                         unleashValLabel.text = (data.UnleashEffect != null) ? data.UnleashEffect.Description : "Sin efecto";
                     }
 
-                    // Status Button
                     if (statusBtn != null)
                     {
                         statusBtn.text = GetStatusButtonText(djinn.CurrentState);
@@ -1222,6 +1233,8 @@ public class PageDjinnController
                             ToggleDjinnStatus(djinn);
                         });
                     }
+
+                    RegisterPointerCallbacks(cardRoot, hero, djinn);
                 }
                 else
                 {
@@ -1241,9 +1254,430 @@ public class PageDjinnController
     private void SwitchToView(DjinnViewMode newMode)
     {
         currentViewMode = newMode;
-
-        // English comment: Notify MainMenuController to update root containers visibility
         OnRequestViewChange?.Invoke(newMode);
+        RefreshAllData();
+    }
+
+    #endregion
+
+    #region Pointer & Drag Events (Vista B - Pattern Items)
+
+    private void RegisterPointerCallbacks(VisualElement slotUI, HeroStats hero, DjinnInstance djinn)
+    {
+        slotUI.RegisterCallback<PointerDownEvent>(evt => OnSlotPointerDown(evt, hero, djinn, slotUI));
+        slotUI.RegisterCallback<PointerMoveEvent>(OnSlotPointerMove);
+        slotUI.RegisterCallback<PointerUpEvent>(OnSlotPointerUp);
+        slotUI.RegisterCallback<PointerCaptureOutEvent>(OnSlotPointerCancel);
+    }
+
+    private void OnSlotPointerDown(PointerDownEvent evt, HeroStats hero, DjinnInstance djinn, VisualElement slotUI)
+    {
+        if (evt.button != 0 || djinn == null || hero == null) return;
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot == null) return;
+
+        // Guardamos la posición inicial siempre proyectada en el espacio local del topRoot
+        pointerStartPosition = topRoot.WorldToLocal(evt.position);
+        activePointerId = evt.pointerId;
+
+        currentDragContext = new DjinnDragContext(hero, djinn, slotUI);
+        isDragging = false;
+    }
+
+    private void OnSlotPointerMove(PointerMoveEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot == null) return;
+
+        // Convertimos la posición global del puntero al espacio Panel estandarizado
+        Vector2 currentPanelPos = topRoot.WorldToLocal(evt.position);
+
+        if (!isDragging)
+        {
+            float distance = Vector2.Distance(pointerStartPosition, currentPanelPos);
+            if (distance >= DRAG_THRESHOLD)
+            {
+                isDragging = true;
+
+                if (currentDragContext.SourceCardUI != null)
+                {
+                    currentDragContext.SourceCardUI.AddToClassList("djinn-card-disabled");
+                }
+
+                swapSourceHero = currentDragContext.SourceHero;
+                swapSourceDjinn = currentDragContext.SourceDjinn;
+
+                HighlightDropTargets();
+                CreateGhostElement(currentDragContext.SourceDjinn.DjinnData?.Icon, currentPanelPos);
+                currentDragContext.SourceCardUI.CapturePointer(activePointerId);
+            }
+        }
+        else
+        {
+            UpdateGhostPosition(currentPanelPos);
+        }
+    }
+
+    private void OnSlotPointerUp(PointerUpEvent evt)
+    {
+        if (currentDragContext == null || evt.pointerId != activePointerId) return;
+
+        VisualElement topRoot = GetTopRootElement();
+        Vector2 panelPointerPos = topRoot != null ? topRoot.WorldToLocal(evt.position) : evt.position;
+
+        if (currentDragContext.SourceCardUI != null && currentDragContext.SourceCardUI.HasPointerCapture(activePointerId))
+        {
+            currentDragContext.SourceCardUI.ReleasePointer(activePointerId);
+        }
+
+        if (isDragging)
+        {
+            ProcessDrop(panelPointerPos);
+            RemoveGhostElement();
+        }
+        else
+        {
+            currentDragContext = null;
+            activePointerId = -1;
+        }
+    }
+
+    private void OnSlotPointerCancel(PointerCaptureOutEvent evt)
+    {
+        if (isDragging)
+        {
+            RemoveGhostElement();
+        }
+    }
+
+    #endregion
+
+    #region Drop Processing & Transactions
+
+    private void ProcessDrop(Vector2 panelPointerPosition)
+    {
+        if (currentDragContext == null) return;
+
+        if (TryGetDropTarget(panelPointerPosition, out DjinnDropTargetInfo targetInfo))
+        {
+            Debug.Log($"<color=cyan>✨ [TINKLE TINKLE] ✨ Slot Detectado:</color> Heroe = {targetInfo.TargetHero?.Name}, Djinn = {targetInfo.TargetDjinn?.DjinnData?.DjinnName ?? "Vacío"}");
+
+            bool validDrop = CanDropOnTarget(currentDragContext.SourceHero, targetInfo.TargetHero, targetInfo.TargetDjinn);
+
+            if (validDrop)
+            {
+                swapSourceHero = currentDragContext.SourceHero;
+                swapSourceDjinn = currentDragContext.SourceDjinn;
+                swapTargetHero = targetInfo.TargetHero;
+                swapTargetDjinn = targetInfo.TargetDjinn;
+
+                OpenSwapConfirmationModal();
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ [PageDjinn] Drop rechazado: No cumple las reglas de intercambio/mínimos.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("❌ [PageDjinn] Drop fallido: No se detectó ninguna casilla válida bajo el cursor.");
+        }
+    }
+
+    private bool TryGetDropTarget(Vector2 panelPointerPosition, out DjinnDropTargetInfo targetInfo)
+    {
+        targetInfo = new DjinnDropTargetInfo(null, null, null);
+        VisualElement topRoot = GetTopRootElement();
+
+        foreach (var target in dragTargetSlots)
+        {
+            if (target.element != null)
+            {
+                // Convertimos el rectángulo worldBound de la tarjeta objetivo al espacio Panel
+                Rect cardPanelBounds = topRoot != null
+                    ? topRoot.WorldToLocal(target.element.worldBound)
+                    : target.element.worldBound;
+
+                if (cardPanelBounds.Contains(panelPointerPosition))
+                {
+                    Debug.Log($"<color=green>🎯 [DROP DETECTADO CON ÉXITO]:</color> Target Hero = {target.ownerHero.Name}, Djinn = {target.djinnInstance?.DjinnData?.DjinnName ?? "Vacío"}");
+
+                    targetInfo = new DjinnDropTargetInfo(target.ownerHero, target.djinnInstance, target.element);
+                    return true;
+                }
+            }
+        }
+
+        Debug.LogWarning($"<color=red>❌ [DROP FALLIDO]:</color> El puntero en espacio Panel {panelPointerPosition} no colisionó con ninguna casilla. (Tarjetas evaluadas: {dragTargetSlots.Count})");
+        return false;
+    }
+
+    private bool IsElementOrChildOf(VisualElement child, VisualElement parent)
+    {
+        VisualElement current = child;
+        while (current != null)
+        {
+            if (current == parent) return true;
+            current = current.parent;
+        }
+        return false;
+    }
+
+    private bool CanDropOnTarget(HeroStats sourceHero, HeroStats targetHero, DjinnInstance targetDjinn)
+    {
+        if (sourceHero == null || targetHero == null || sourceHero == targetHero) return false;
+
+        if (targetDjinn != null)
+        {
+            return true;
+        }
+        else
+        {
+            int minPartyCount = GetPartyMinDjinnCount();
+            int sourceCount = GetHeroDjinnCount(sourceHero);
+            return sourceCount > minPartyCount;
+        }
+    }
+
+    private void HighlightDropTargets()
+    {
+        int minPartyCount = GetPartyMinDjinnCount();
+        int sourceHeroCount = GetHeroDjinnCount(swapSourceHero);
+
+        foreach (var target in dragTargetSlots)
+        {
+            if (currentDragContext != null && target.element == currentDragContext.SourceCardUI) continue;
+
+            bool isValid = false;
+
+            if (target.djinnInstance != null)
+            {
+                isValid = (target.ownerHero != swapSourceHero);
+            }
+            else
+            {
+                isValid = (target.ownerHero != swapSourceHero) && (sourceHeroCount > minPartyCount);
+            }
+
+            if (isValid)
+            {
+                target.element.AddToClassList("djinn-slot-drop-valid");
+            }
+            else
+            {
+                target.element.AddToClassList("djinn-slot-drop-invalid");
+            }
+        }
+    }
+
+    private void ClearDropHighlights()
+    {
+        foreach (var target in dragTargetSlots)
+        {
+            if (target.element != null)
+            {
+                target.element.RemoveFromClassList("djinn-slot-drop-valid");
+                target.element.RemoveFromClassList("djinn-slot-drop-invalid");
+            }
+        }
+    }
+
+    private int GetHeroDjinnCount(HeroStats hero)
+    {
+        if (hero == null) return 0;
+        HeroDjinnController ctrl = hero.GetComponent<HeroDjinnController>();
+        return (ctrl != null && ctrl.AssignedDjinns != null) ? ctrl.AssignedDjinns.Count : 0;
+    }
+
+    private int GetPartyMinDjinnCount()
+    {
+        if (partyHeroes == null || partyHeroes.Count == 0) return 0;
+        int min = int.MaxValue;
+        foreach (var h in partyHeroes)
+        {
+            int c = GetHeroDjinnCount(h);
+            if (c < min) min = c;
+        }
+        return min;
+    }
+
+    #endregion
+
+    #region Ghost Element Management
+
+    private void CreateGhostElement(Sprite icon, Vector2 initialPanelPosition)
+    {
+        DestroyGhostVisual();
+
+        float width = 200f;
+        float height = 48f;
+
+        if (currentDragContext?.SourceCardUI != null && currentDragContext.SourceCardUI.resolvedStyle.width > 0)
+        {
+            width = currentDragContext.SourceCardUI.resolvedStyle.width;
+            height = currentDragContext.SourceCardUI.resolvedStyle.height;
+        }
+
+        ghostElement = djinnSlotCardBAsset.Instantiate();
+        ghostElement.name = "djinn_drag_ghost_element";
+        ghostElement.AddToClassList("djinn-drag-ghost");
+        ghostElement.pickingMode = PickingMode.Ignore;
+        ghostElement.Query<VisualElement>().ForEach(elem => elem.pickingMode = PickingMode.Ignore);
+
+        ghostElement.style.position = Position.Absolute;
+        ghostElement.style.width = width;
+        ghostElement.style.height = height;
+
+        VisualElement ghostRoot = ghostElement.Q<VisualElement>("djinn_slot_card_b_root");
+        if (ghostRoot != null)
+        {
+            ghostRoot.pickingMode = PickingMode.Ignore;
+            if (currentDragContext?.SourceDjinn?.DjinnData != null)
+            {
+                ghostRoot.AddToClassList($"element-{currentDragContext.SourceDjinn.DjinnData.Element.ToString().ToLower()}");
+                VisualElement iconElem = ghostRoot.Q<VisualElement>("djinn_card_icon");
+                Label cardNameLabel = ghostRoot.Q<Label>("label_djinn_card_name");
+
+                if (iconElem != null)
+                {
+                    iconElem.pickingMode = PickingMode.Ignore;
+                    if (icon != null) iconElem.style.backgroundImage = new StyleBackground(icon);
+                }
+                if (cardNameLabel != null)
+                {
+                    cardNameLabel.pickingMode = PickingMode.Ignore;
+                    cardNameLabel.text = currentDragContext.SourceDjinn.DjinnData.DjinnName;
+                }
+            }
+        }
+
+        VisualElement topRoot = GetTopRootElement();
+        if (topRoot != null)
+        {
+            topRoot.Add(ghostElement);
+
+            /*Debug.Log($"<color=orange>📐 [GHOST INIT DIAGNOSTIC]:</color>\n" +
+                      $"• TopRoot Name: '{topRoot.name}'\n" +
+                      $"• TopRoot WorldBounds: {topRoot.worldBound}\n" +
+                      $"• Initial PanelPos: {initialPanelPosition}");*/
+
+            UpdateGhostPosition(initialPanelPosition);
+        }
+    }
+
+    private void UpdateGhostPosition(Vector2 panelPosition)
+    {
+        if (ghostElement == null) return;
+
+        float width = ghostElement.resolvedStyle.width > 0 ? ghostElement.resolvedStyle.width : 200f;
+        float height = ghostElement.resolvedStyle.height > 0 ? ghostElement.resolvedStyle.height : 48f;
+
+        // Fijamos estilos base limpios sin desfasar el Layout nativo
+        ghostElement.style.left = 0;
+        ghostElement.style.top = 0;
+
+        // Posicionamiento absoluto sobre la matriz con transform.position
+        Vector3 targetPos = new Vector3(panelPosition.x - (width / 2f), panelPosition.y - (height / 2f), 0f);
+        ghostElement.transform.position = targetPos;
+
+        /* DIAGNÓSTICO EN TIEMPO REAL:
+        Debug.Log($"<color=yellow>🧪 [GHOST LIVE TRACKING]:</color> " +
+                  $"PanelPointer={panelPosition} | GhostTransform={targetPos}");*/
+    }
+
+    private void DestroyGhostVisual()
+    {
+        if (ghostElement != null)
+        {
+            ghostElement.RemoveFromHierarchy();
+            ghostElement = null;
+        }
+    }
+
+    private void RemoveGhostElement()
+    {
+        ClearDropHighlights();
+        DestroyGhostVisual();
+
+        if (currentDragContext?.SourceCardUI != null)
+        {
+            currentDragContext.SourceCardUI.RemoveFromClassList("djinn-card-disabled");
+        }
+
+        isDragging = false;
+        currentDragContext = null;
+        activePointerId = -1;
+    }
+
+    #endregion
+
+    #region Modal Confirmation & Data Exchange Logic
+
+    private void OpenSwapConfirmationModal()
+    {
+        Debug.Log("ENTER OpenSwapConfirmationModal");
+        if (modalOverlayCompare == null)
+        {
+            ConfirmDjinnExchange();
+            return;
+        }
+
+        modalOverlayCompare.style.display = DisplayStyle.Flex;
+
+        Button btnConfirm = modalOverlayCompare.Q<Button>("btn_modal_confirm");
+        Button btnCancel = modalOverlayCompare.Q<Button>("btn_modal_cancel");
+
+        if (btnConfirm != null)
+        {
+            btnConfirm.clicked -= OnModalConfirmClicked;
+            btnConfirm.clicked += OnModalConfirmClicked;
+        }
+
+        if (btnCancel != null)
+        {
+            btnCancel.clicked -= OnModalCancelClicked;
+            btnCancel.clicked += OnModalCancelClicked;
+        }
+
+        PopulateModalComparisonData();
+    }
+
+    private void OnModalConfirmClicked()
+    {
+        ConfirmDjinnExchange();
+        CloseSwapConfirmationModal();
+    }
+
+    private void OnModalCancelClicked()
+    {
+        CloseSwapConfirmationModal();
+    }
+
+    private void CloseSwapConfirmationModal()
+    {
+        if (modalOverlayCompare != null)
+        {
+            modalOverlayCompare.style.display = DisplayStyle.None;
+        }
+
+        swapSourceDjinn = null;
+        swapSourceHero = null;
+        swapTargetDjinn = null;
+        swapTargetHero = null;
+    }
+
+    private void PopulateModalComparisonData()
+    {
+        // TODO: Proyecciones en modal
+    }
+
+    private void ConfirmDjinnExchange()
+    {
+        Debug.Log("Djinn Exchange Confirmed");
+        // TODO: Intercambio definitivo en HeroDjinnController
 
         RefreshAllData();
     }
@@ -1282,7 +1716,7 @@ public class PageDjinnController
 
     private void UpdateSanctuaryUI()
     {
-        // TODO: Actualizar estado 3D del santuario
+        // TODO: Actualizar santuario 3D
     }
 
     #endregion

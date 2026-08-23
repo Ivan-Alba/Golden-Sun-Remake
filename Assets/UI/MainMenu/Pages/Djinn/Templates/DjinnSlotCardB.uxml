@@ -1,6 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Templates/DjinnSlotCardB.uss?fileID=7433441132597879392&amp;guid=f9bda8d369eb7874ab51378c440e1076&amp;type=3#DjinnSlotCardB" />
-    <ui:VisualElement name="djinn_slot_card_b_root" class="djinn-card-b-root djinn-card-venus">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <ui:VisualElement name="djinn_slot_card_b_root" class="djinn-card-b-root">
         <ui:VisualElement name="djinn_card_body" class="djinn-card-b-body">
             <ui:VisualElement name="djinn_portrait_box" class="djinn-card-portrait-box">
                 <ui:VisualElement name="djinn_card_icon" class="djinn-card-icon" />
