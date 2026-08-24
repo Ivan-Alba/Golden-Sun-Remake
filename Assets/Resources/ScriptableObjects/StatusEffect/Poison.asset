@@ -29,8 +29,10 @@ MonoBehaviour:
   incapacitateType: 0
   damageMitigationPercentage: 0
   doomTurnCount: 0
-  statModifiers: []
-  elementalModifiers: []
+  statModifiers:
+  - statType: 0
+    modifierType: 2
+    value: 0
   resourceRegens: []
   damagesOverTime:
   - element: 0

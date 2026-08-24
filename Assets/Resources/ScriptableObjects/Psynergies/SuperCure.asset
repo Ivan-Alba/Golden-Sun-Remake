@@ -12,16 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 605ee74b50a21bd43a8054b9555a2c40, type: 3}
   m_Name: SuperCure
   m_EditorClassIdentifier: 
-  psynergyName: Cura
-  slugName: cure
-  description: Recupera 70 PV.
+  psynergyName: Supercura
+  slugName: supercure
+  description: Recupera 120 PV.
   icon: {fileID: 21300000, guid: aefdfe340a4743a48a53f8559e89007b, type: 3}
-  ppCost: 3
+  ppCost: 6
   element: 1
   isBattlePsynergy: 1
   targetType: 4
   vfxPrefab: {fileID: 1492667978523942, guid: b7c2244e4118e4e4594d87d81a413efd, type: 3}
   soundEffect: {fileID: 0}
+  hitFXType: 0
+  customHitVFX: {fileID: 0}
   areaRange: 0
   hasDiminishingSpread: 0
   worldData:
@@ -34,10 +36,13 @@ MonoBehaviour:
     menuSoundEffect: {fileID: 8300000, guid: 906adc1e66317fa4095e5af893ebd582, type: 3}
     menuVfxPrefab: {fileID: 0}
   restoresHp: 1
-  healValue: 70
+  healValue: 120
   isPercentage: 0
   restoresPp: 0
   ppHealValue: 10
+  isPpPercentage: 0
   canRevive: 0
-  curesStatusEffects: 0
-  removesStatDebuffs: 0
+  statusEffectsToApply: []
+  cureAllStatusEffects: 0
+  categoriesToCure: 
+  specificStatusToCure: []

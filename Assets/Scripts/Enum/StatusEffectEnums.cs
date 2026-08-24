@@ -62,55 +62,39 @@ public enum IncapacitateType
 #region Serializable Feature Structures
 
 /// <summary>
-/// Modular feature configuration block used inside StatusEffectSO.
-/// Allows a single status effect to combine multiple behaviors (e.g., Poison dealing DoT AND dropping ATK).
+/// Configuración para regeneración o drenaje de recursos (HP/PP) por turno.
 /// </summary>
-
-[Serializable]
-public class StatusStatBonus
-{
-    [Tooltip("Stat to modify.")]
-    public StatType statType = StatType.Attack;
-
-    [Tooltip("Calculation method: Flat value or Percentage bonus/malus.")]
-    public StatusValueType valueType = StatusValueType.Percentage;
-
-    [Tooltip("Amount to modify. Positive for Buffs (+20%), negative for Debuffs (-15%).")]
-    public float value = 10f;
-}
-
-[Serializable]
-public class StatusElementalBonus
-{
-    [Tooltip("Elemental affinity to modify.")]
-    public ElementalType element = ElementalType.Venus;
-
-    [Tooltip("Amount of elemental power or resistance bonus/penalty.")]
-    public float value = 20f;
-}
-
 [Serializable]
 public class StatusResourceRegen
 {
-    [Tooltip("Target resource (HP or PP).")]
+    [Tooltip("Recurso objetivo (HP o PP).")]
     public ResourceTarget targetResource = ResourceTarget.HP;
 
-    [Tooltip("Flat amount or Percentage of Max HP/PP to restore (positive) or drain (negative) per turn.")]
-    public StatusValueType valueType = StatusValueType.Flat;
+    [Tooltip("Tipo de cálculo: Flat (puntos fijos) o PercentTotal (% de MaxHP/MaxPP).")]
+    public StatModifierType valueType = StatModifierType.Flat;
 
+    [Tooltip("Cantidad por turno (positivo para regenerar, negativo para drenar).")]
     public float amountPerTurn = 10f;
+
+    public float NormalizedAmount => (valueType == StatModifierType.Flat) ? amountPerTurn : (amountPerTurn / 100f);
 }
 
+/// <summary>
+/// Configuración para daño periódico por turno (Poison, Haunt, etc.).
+/// </summary>
 [Serializable]
 public class StatusDamageOverTime
 {
-    [Tooltip("Elemental alignment of the damage over time.")]
+    [Tooltip("Alineación elemental del daño por turno.")]
     public ElementalType element = ElementalType.None;
 
-    [Tooltip("Flat damage or Percentage of Max HP dealt each turn.")]
-    public StatusValueType damageType = StatusValueType.Percentage;
+    [Tooltip("Tipo de cálculo: Flat (puntos fijos) o PercentTotal (% de MaxHP).")]
+    public StatModifierType damageType = StatModifierType.PercentTotal;
 
+    [Tooltip("Cantidad de daño recibido por turno.")]
     public float damagePerTurn = 10f;
+
+    public float NormalizedDamage => (damageType == StatModifierType.Flat) ? damagePerTurn : (damagePerTurn / 100f);
 }
 
 #endregion

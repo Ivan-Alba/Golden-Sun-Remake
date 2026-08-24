@@ -1,12 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Status/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
     <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 100%;">
-        
-        <!-- CARD HERO 0 -->
         <ui:VisualElement name="hero_card_0" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_0" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
-                
-                <!-- 1. HERO TOP SECTION -->
                 <ui:VisualElement name="hero_top_section_0" picking-mode="Ignore" class="hero-top-section">
                     <ui:VisualElement name="hero_portrait_0" picking-mode="Ignore" class="hero-portrait" />
                     <ui:VisualElement name="hero_header_info_0" picking-mode="Ignore" class="hero-header-info">
@@ -18,8 +14,6 @@
                         <ui:Label text="Nv. 15" name="label_hero_level_0" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <!-- 2. BARS CONTAINER -->
                 <ui:VisualElement name="bars_container_0" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_0" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 240/240" name="label_hp_text_0" picking-mode="Ignore" class="bar-label-text" />
@@ -30,8 +24,6 @@
                         <ui:ProgressBar value="100" name="bar_pp_0" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <!-- 3. STATS SECTION -->
                 <ui:VisualElement name="stats_section_0" picking-mode="Ignore" class="section-box">
                     <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_0" class="stats-grid">
@@ -43,7 +35,7 @@
                         <ui:VisualElement name="stat_row_1_0" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-defense" />
                             <ui:Label text="DEF" class="stat-grid-name" />
-                            <ui:Label text="98" name="label_stat_value_0_0" class="stat-grid-val" />
+                            <ui:Label text="98" name="label_stat_value_1_0" class="stat-grid-val" />
                         </ui:VisualElement>
                         <ui:VisualElement name="stat_row_2_0" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-agility" />
@@ -57,8 +49,6 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <!-- 4. ELEMENTAL AFFINITY -->
                 <ui:VisualElement name="element_section_0" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
                         <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;" />
@@ -92,8 +82,6 @@
                         <ui:Label text="85" name="elem_resistance_3_0" class="element-val" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <!-- 5. UNIFIED CONTAINER (NEUTRAL BORDER) WITH INNER DJINN CARD -->
                 <ui:VisualElement name="main_djinn_card_0" picking-mode="Ignore" class="main-djinn-card">
                     <ui:VisualElement name="class_djinn_bar_0" picking-mode="Ignore" class="class-djinn-bar">
                         <ui:Label text="Escudero" name="label_hero_class_0" picking-mode="Ignore" class="hero-class-label" />
@@ -116,17 +104,13 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-
                     <ui:VisualElement name="djinn_card_divider_0" class="djinn-card-divider" />
-
                     <ui:VisualElement name="djinn_header_row_0" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
                         <ui:VisualElement name="badge_status_0" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_0" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-
-                    <!-- INNER DJINN CARD ENVELOP -->
                     <ui:VisualElement name="main_djinn_body_0" class="main-djinn-body djinn-venus-border djinn-venus-bg">
                         <ui:VisualElement name="main_djinn_icon_0" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_0" picking-mode="Ignore" class="main-djinn-details">
@@ -138,11 +122,8 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- CARD HERO 1 -->
         <ui:VisualElement name="hero_card_1" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_1" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
                 <ui:VisualElement name="hero_top_section_1" picking-mode="Ignore" class="hero-top-section">
@@ -156,7 +137,6 @@
                         <ui:Label text="Nv. 15" name="label_hero_level_1" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="bars_container_1" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_1" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 260/260" name="label_hp_text_1" picking-mode="Ignore" class="bar-label-text" />
@@ -167,7 +147,6 @@
                         <ui:ProgressBar value="100" name="bar_pp_1" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="stats_section_1" picking-mode="Ignore" class="section-box">
                     <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_1" class="stats-grid">
@@ -193,7 +172,6 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="element_section_1" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
                         <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
@@ -227,7 +205,6 @@
                         <ui:Label text="75" name="elem_resistance_3_1" class="element-val" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="main_djinn_card_1" picking-mode="Ignore" class="main-djinn-card">
                     <ui:VisualElement name="class_djinn_bar_1" picking-mode="Ignore" class="class-djinn-bar">
                         <ui:Label text="Soldado" name="label_hero_class_1" picking-mode="Ignore" class="hero-class-label" />
@@ -250,17 +227,13 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-
                     <ui:VisualElement name="djinn_card_divider_1" class="djinn-card-divider" />
-
                     <ui:VisualElement name="djinn_header_row_1" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
                         <ui:VisualElement name="badge_status_1" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_1" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-
-                    <!-- INNER DJINN CARD ENVELOP -->
                     <ui:VisualElement name="main_djinn_body_1" class="main-djinn-body djinn-mars-border djinn-mars-bg">
                         <ui:VisualElement name="main_djinn_icon_1" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_1" picking-mode="Ignore" class="main-djinn-details">
@@ -272,11 +245,8 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- CARD HERO 2 -->
         <ui:VisualElement name="hero_card_2" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_2" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
                 <ui:VisualElement name="hero_top_section_2" picking-mode="Ignore" class="hero-top-section">
@@ -290,7 +260,6 @@
                         <ui:Label text="Nv. 15" name="label_hero_level_2" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="bars_container_2" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_2" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 190/190" name="label_hp_text_2" picking-mode="Ignore" class="bar-label-text" />
@@ -301,7 +270,6 @@
                         <ui:ProgressBar value="100" name="bar_pp_2" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="stats_section_2" picking-mode="Ignore" class="section-box">
                     <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_2" class="stats-grid">
@@ -327,7 +295,6 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="element_section_2" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
                         <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
@@ -361,7 +328,6 @@
                         <ui:Label text="90" name="elem_resistance_3_2" class="element-val" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="main_djinn_card_2" picking-mode="Ignore" class="main-djinn-card">
                     <ui:VisualElement name="class_djinn_bar_2" picking-mode="Ignore" class="class-djinn-bar">
                         <ui:Label text="Mago Viento" name="label_hero_class_2" picking-mode="Ignore" class="hero-class-label" />
@@ -384,17 +350,13 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-
                     <ui:VisualElement name="djinn_card_divider_2" class="djinn-card-divider" />
-
                     <ui:VisualElement name="djinn_header_row_2" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
                         <ui:VisualElement name="badge_status_2" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_2" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-
-                    <!-- INNER DJINN CARD ENVELOP -->
                     <ui:VisualElement name="main_djinn_body_2" class="main-djinn-body djinn-jupiter-border djinn-jupiter-bg">
                         <ui:VisualElement name="main_djinn_icon_2" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_2" picking-mode="Ignore" class="main-djinn-details">
@@ -406,11 +368,8 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- CARD HERO 3 -->
         <ui:VisualElement name="hero_card_3" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_3" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
                 <ui:VisualElement name="hero_top_section_3" picking-mode="Ignore" class="hero-top-section">
@@ -424,7 +383,6 @@
                         <ui:Label text="Nv. 15" name="label_hero_level_3" picking-mode="Ignore" class="hero-level-label" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="bars_container_3" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_3" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 210/210" name="label_hp_text_3" picking-mode="Ignore" class="bar-label-text" />
@@ -435,7 +393,6 @@
                         <ui:ProgressBar value="100" name="bar_pp_3" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="stats_section_3" picking-mode="Ignore" class="section-box">
                     <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_3" class="stats-grid">
@@ -461,7 +418,6 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="element_section_3" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
                         <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
@@ -495,7 +451,6 @@
                         <ui:Label text="120" name="elem_resistance_3_3" class="element-val" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
                 <ui:VisualElement name="main_djinn_card_3" picking-mode="Ignore" class="main-djinn-card">
                     <ui:VisualElement name="class_djinn_bar_3" picking-mode="Ignore" class="class-djinn-bar">
                         <ui:Label text="Boticaria" name="label_hero_class_3" picking-mode="Ignore" class="hero-class-label" />
@@ -518,17 +473,13 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-
                     <ui:VisualElement name="djinn_card_divider_3" class="djinn-card-divider" />
-
                     <ui:VisualElement name="djinn_header_row_3" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
                         <ui:VisualElement name="badge_status_3" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_3" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-
-                    <!-- INNER DJINN CARD ENVELOP -->
                     <ui:VisualElement name="main_djinn_body_3" class="main-djinn-body djinn-mercury-border djinn-mercury-bg">
                         <ui:VisualElement name="main_djinn_icon_3" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_3" picking-mode="Ignore" class="main-djinn-details">
@@ -540,9 +491,7 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:VisualElement>
         </ui:VisualElement>
-
     </ui:VisualElement>
 </ui:UXML>

@@ -6,11 +6,9 @@ public class FighterStats : MonoBehaviour
 {
     #region Events
 
-    // Events for UI and system updates (passes current value and max value)
     public event Action<int, int> OnHpChanged;
     public event Action<int, int> OnPpChanged;
 
-    // Events for Status Effects HUD & combat feedback
     public event Action<ActiveStatusEffect> OnStatusEffectAdded;
     public event Action<ActiveStatusEffect> OnStatusEffectRemoved;
     public event Action OnStatusEffectsCleared;
@@ -95,26 +93,24 @@ public class FighterStats : MonoBehaviour
 
     #endregion
 
-    #region Properties - Core Stats Accessors
+    #region Properties - Core & Elemental Stats Accessors (Virtual for Polymorphic Overrides)
 
-    public int MaxHp => GetStatValue(StatType.MaxHP);
-    public int MaxPp => GetStatValue(StatType.MaxPP);
-    public int Attack => GetStatValue(StatType.Attack);
-    public int Defense => GetStatValue(StatType.Defense);
-    public int Agility => GetStatValue(StatType.Agility);
-    public int Luck => GetStatValue(StatType.Luck);
+    public virtual int MaxHp => GetStatValue(StatType.MaxHP);
+    public virtual int MaxPp => GetStatValue(StatType.MaxPP);
+    public virtual int Attack => GetStatValue(StatType.Attack);
+    public virtual int Defense => GetStatValue(StatType.Defense);
+    public virtual int Agility => GetStatValue(StatType.Agility);
+    public virtual int Luck => GetStatValue(StatType.Luck);
 
-    // Elemental Power Accessors
-    public int PowerVenus => GetStatValue(StatType.PowerVenus);
-    public int PowerMars => GetStatValue(StatType.PowerMars);
-    public int PowerJupiter => GetStatValue(StatType.PowerJupiter);
-    public int PowerMercury => GetStatValue(StatType.PowerMercury);
+    public virtual int PowerVenus => GetStatValue(StatType.PowerVenus);
+    public virtual int PowerMars => GetStatValue(StatType.PowerMars);
+    public virtual int PowerJupiter => GetStatValue(StatType.PowerJupiter);
+    public virtual int PowerMercury => GetStatValue(StatType.PowerMercury);
 
-    // Elemental Resistance Accessors
-    public int ResistVenus => GetStatValue(StatType.ResistVenus);
-    public int ResistMars => GetStatValue(StatType.ResistMars);
-    public int ResistJupiter => GetStatValue(StatType.ResistJupiter);
-    public int ResistMercury => GetStatValue(StatType.ResistMercury);
+    public virtual int ResistVenus => GetStatValue(StatType.ResistVenus);
+    public virtual int ResistMars => GetStatValue(StatType.ResistMars);
+    public virtual int ResistJupiter => GetStatValue(StatType.ResistJupiter);
+    public virtual int ResistMercury => GetStatValue(StatType.ResistMercury);
 
     #endregion
 
@@ -127,11 +123,9 @@ public class FighterStats : MonoBehaviour
 
     protected virtual void Start()
     {
-        // Set current resources to max on start
         currHp = MaxHp;
         currPp = MaxPp;
 
-        // Force UI initial notification
         OnHpChanged?.Invoke(currHp, MaxHp);
         OnPpChanged?.Invoke(currPp, MaxPp);
     }
@@ -144,7 +138,6 @@ public class FighterStats : MonoBehaviour
     {
         statsMap.Clear();
 
-        // Core Stats
         statsMap.Add(StatType.MaxHP, new Stat(StatType.MaxHP, baseMaxHp));
         statsMap.Add(StatType.MaxPP, new Stat(StatType.MaxPP, baseMaxPp));
         statsMap.Add(StatType.Attack, new Stat(StatType.Attack, baseAttack));
@@ -152,13 +145,11 @@ public class FighterStats : MonoBehaviour
         statsMap.Add(StatType.Agility, new Stat(StatType.Agility, baseAgility));
         statsMap.Add(StatType.Luck, new Stat(StatType.Luck, baseLuck));
 
-        // Elemental Powers
         statsMap.Add(StatType.PowerVenus, new Stat(StatType.PowerVenus, basePowerVenus));
         statsMap.Add(StatType.PowerMars, new Stat(StatType.PowerMars, basePowerMars));
         statsMap.Add(StatType.PowerJupiter, new Stat(StatType.PowerJupiter, basePowerJupiter));
         statsMap.Add(StatType.PowerMercury, new Stat(StatType.PowerMercury, basePowerMercury));
 
-        // Elemental Resistances
         statsMap.Add(StatType.ResistVenus, new Stat(StatType.ResistVenus, baseResistVenus));
         statsMap.Add(StatType.ResistMars, new Stat(StatType.ResistMars, baseResistMars));
         statsMap.Add(StatType.ResistJupiter, new Stat(StatType.ResistJupiter, baseResistJupiter));
@@ -182,9 +173,6 @@ public class FighterStats : MonoBehaviour
         return stat != null ? stat.Value : 0;
     }
 
-    /// <summary>
-    /// Changes the base value of a stat and automatically updates resources/UI if necessary.
-    /// </summary>
     public void SetStatBaseValue(StatType type, int newBaseValue)
     {
         var stat = GetStat(type);
@@ -209,9 +197,6 @@ public class FighterStats : MonoBehaviour
 
     #region Health & Resource Operations
 
-    /// <summary>
-    /// Restores HP to the fighter if alive and not already at max HP.
-    /// </summary>
     public bool RestoreHP(int amount)
     {
         if (IsDead || amount <= 0 || CurrHp >= MaxHp) return false;
@@ -220,9 +205,6 @@ public class FighterStats : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Restores PP to the fighter if alive and not already at max PP.
-    /// </summary>
     public bool RestorePP(int amount)
     {
         if (IsDead || amount <= 0 || CurrPp >= MaxPp) return false;
@@ -231,44 +213,28 @@ public class FighterStats : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Consumes the specified amount of PP from the fighter.
-    /// </summary>
     public void ConsumePP(int amount)
     {
         if (IsDead || amount <= 0) return;
         CurrPp -= amount;
     }
 
-    /// <summary>
-    /// Checks if the fighter is alive and has at least the specified amount of PP.
-    /// </summary>
     public bool HasEnoughPP(int amount)
     {
         return !IsDead && CurrPp >= amount;
     }
 
-    /// <summary>
-    /// Applies damage to the fighter, taking active damage mitigation shields into account.
-    /// Also checks for physical damage breaking active status effects (e.g. Sleep).
-    /// </summary>
     public void TakeDamage(int rawAmount)
     {
         if (IsDead || rawAmount <= 0) return;
 
-        // Apply mitigation percentage (e.g., Granite, Protection shields)
         float mitigationPct = GetDamageMitigationPercentage();
-        int finalDamage = Mathf.Max(1, Mathf.RoundToInt(rawAmount * (1f - (mitigationPct / 100f))));
+        int finalDamage = Mathf.Max(1, Mathf.FloorToInt(rawAmount * (1f - (mitigationPct / 100f))));
 
         CurrHp -= finalDamage;
-
-        // Check if physical damage breaks effects like Sleep
         CheckDamageBreakStatusEffects();
     }
 
-    /// <summary>
-    /// Revives a defeated fighter with the specified health amount.
-    /// </summary>
     public bool Revive(int healthAmount)
     {
         if (!IsDead) return false;
@@ -293,9 +259,6 @@ public class FighterStats : MonoBehaviour
 
     #region Status Effect Management API
 
-    /// <summary>
-    /// Applies a status effect template to this fighter. Handles stacking and duration refreshing.
-    /// </summary>
     public bool ApplyStatusEffect(StatusEffectSO effectSO, FighterStats caster = null, int overrideDuration = -2)
     {
         if (effectSO == null || IsDead) return false;
@@ -307,7 +270,7 @@ public class FighterStats : MonoBehaviour
             if (effectSO.IsStackable)
             {
                 bool stacked = existingEffect.AddStack();
-                ApplyStatusStatModifiers(existingEffect); // Re-apply modifiers with new stack count if necessary
+                ApplyStatusStatModifiers(existingEffect);
                 Debug.Log($"[FighterStats] {fighterName} increased stack count for status: {effectSO.EffectName} (Stacks: {existingEffect.CurrentStacks}).");
                 return stacked;
             }
@@ -328,9 +291,6 @@ public class FighterStats : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Removes a specific active status effect instance from this fighter.
-    /// </summary>
     public bool RemoveStatusEffect(StatusEffectSO effectSO)
     {
         if (effectSO == null) return false;
@@ -348,9 +308,6 @@ public class FighterStats : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Removes all active status effects belonging to a specific category (e.g. Ailments, Buffs, Debuffs).
-    /// </summary>
     public int PurgeCategory(StatusEffectCategory category)
     {
         List<ActiveStatusEffect> toRemove = activeStatusEffects.FindAll(e => e.Data != null && e.Data.Category == category);
@@ -367,9 +324,6 @@ public class FighterStats : MonoBehaviour
         return count;
     }
 
-    /// <summary>
-    /// Clears status effects that are marked as combat-only (!PersistsAfterBattle) at the end of combat.
-    /// </summary>
     public void ClearCombatOnlyStatusEffects()
     {
         List<ActiveStatusEffect> toRemove = activeStatusEffects.FindAll(e => e.Data != null && !e.Data.PersistsAfterBattle);
@@ -384,9 +338,6 @@ public class FighterStats : MonoBehaviour
         Debug.Log($"[FighterStats] Cleared {toRemove.Count} combat-only status effects on {fighterName}.");
     }
 
-    /// <summary>
-    /// Clears all active status effects unconditionally.
-    /// </summary>
     public void ClearAllStatusEffects()
     {
         foreach (var effect in activeStatusEffects)
@@ -398,20 +349,13 @@ public class FighterStats : MonoBehaviour
         OnStatusEffectsCleared?.Invoke();
     }
 
-    /// <summary>
-    /// Checks if a specific status effect is currently active on this fighter.
-    /// </summary>
     public bool HasStatusEffect(StatusEffectSO effectSO)
     {
         return GetActiveStatusEffect(effectSO) != null;
     }
 
-    /// <summary>
-    /// Gets the active status effect instance associated with a ScriptableObject template if present.
-    /// </summary>
     public ActiveStatusEffect GetActiveStatusEffect(StatusEffectSO effectSO)
     {
-
         return activeStatusEffects.Find(e => e.Data == effectSO || (e.Data != null && e.Data.EffectSlug == effectSO.EffectSlug));
     }
 
@@ -419,10 +363,6 @@ public class FighterStats : MonoBehaviour
 
     #region Turn & Overworld Step Execution
 
-    /// <summary>
-    /// Executes turn start ticks for all active status effects: DoT damage, resource regeneration, auto-cure checks, and duration countdowns.
-    /// Called at the beginning of this fighter's turn in combat.
-    /// </summary>
     public void ProcessTurnStartStatusEffects()
     {
         if (IsDead) return;
@@ -434,19 +374,16 @@ public class FighterStats : MonoBehaviour
             ActiveStatusEffect effect = activeStatusEffects[i];
             if (effect.Data == null) continue;
 
-            // 1. Process Resource Regens (HP/PP HoT)
             foreach (var regen in effect.Data.ResourceRegens)
             {
                 ApplyResourceRegen(regen, effect.CurrentStacks);
             }
 
-            // 2. Process Damage Over Time (DoT)
             foreach (var dot in effect.Data.DamagesOverTime)
             {
                 ApplyDamageOverTime(dot, effect.CurrentStacks);
             }
 
-            // 3. Tick duration / Auto-cure check
             bool isExpired = effect.TickTurn();
             if (isExpired)
             {
@@ -454,17 +391,12 @@ public class FighterStats : MonoBehaviour
             }
         }
 
-        // Clean up expired effects
         foreach (var exp in expired)
         {
             RemoveStatusEffect(exp.Data);
         }
     }
 
-    /// <summary>
-    /// Processes overworld step ticks for persisting status effects (e.g. Poison taking damage every X steps).
-    /// Called by Overworld Player Controller upon taking a step.
-    /// </summary>
     public void ProcessOverworldStep()
     {
         if (IsDead) return;
@@ -494,9 +426,6 @@ public class FighterStats : MonoBehaviour
 
     #region Crowd Control & Defense Queries
 
-    /// <summary>
-    /// Returns true if the fighter is currently restricted from taking turn actions due to crowd control (Stun, Sleep, Freeze).
-    /// </summary>
     public bool IsIncapacitated()
     {
         if (IsDead) return true;
@@ -516,9 +445,6 @@ public class FighterStats : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Returns the specific crowd control type currently restricting this fighter.
-    /// </summary>
     public IncapacitateType GetIncapacitateType()
     {
         foreach (var effect in activeStatusEffects)
@@ -532,9 +458,6 @@ public class FighterStats : MonoBehaviour
         return IncapacitateType.None;
     }
 
-    /// <summary>
-    /// Calculates cumulative percentage of damage mitigation provided by active status shields (e.g. Granite).
-    /// </summary>
     public float GetDamageMitigationPercentage()
     {
         float totalMitigation = 0f;
@@ -558,25 +481,20 @@ public class FighterStats : MonoBehaviour
     {
         if (activeEffect?.Data == null) return;
 
-        // Remove old modifiers from this source first to prevent stacking duplicates on duration refresh
         RemoveModifiersFromSource(activeEffect);
 
-        foreach (var bonus in activeEffect.Data.StatModifiers)
+        foreach (StatBonus bonus in activeEffect.Data.StatModifiers)
         {
-            StatModifierType modType = (bonus.valueType == StatusValueType.Percentage)
-                ? StatModifierType.PercentBase
-                : StatModifierType.Flat;
+            if (bonus == null) continue;
 
-            float calculatedValue = bonus.value * activeEffect.CurrentStacks;
+            StatBonus scaledBonus = new StatBonus
+            {
+                statType = bonus.statType,
+                modifierType = bonus.modifierType,
+                value = bonus.value * activeEffect.CurrentStacks
+            };
 
-            StatModifier modifier = new StatModifier(
-                value: calculatedValue,
-                type: modType,
-                source: activeEffect,
-                isTemporary: true
-            );
-
-            AddStatModifier(bonus.statType, modifier);
+            AddStatModifier(bonus.statType, scaledBonus.ToStatModifier(activeEffect, isTemporary: true));
         }
     }
 
@@ -595,18 +513,18 @@ public class FighterStats : MonoBehaviour
         int amount = 0;
         if (regen.targetResource == ResourceTarget.HP)
         {
-            amount = (regen.valueType == StatusValueType.Percentage)
-                ? Mathf.RoundToInt((MaxHp * (regen.amountPerTurn / 100f)) * stacks)
-                : Mathf.RoundToInt(regen.amountPerTurn * stacks);
+            amount = (regen.valueType == StatModifierType.PercentTotal)
+                ? Mathf.FloorToInt((MaxHp * regen.NormalizedAmount) * stacks)
+                : Mathf.FloorToInt(regen.amountPerTurn * stacks);
 
             if (amount > 0) RestoreHP(amount);
             else if (amount < 0) TakeDamage(Mathf.Abs(amount));
         }
         else if (regen.targetResource == ResourceTarget.PP)
         {
-            amount = (regen.valueType == StatusValueType.Percentage)
-                ? Mathf.RoundToInt((MaxPp * (regen.amountPerTurn / 100f)) * stacks)
-                : Mathf.RoundToInt(regen.amountPerTurn * stacks);
+            amount = (regen.valueType == StatModifierType.PercentTotal)
+                ? Mathf.FloorToInt((MaxPp * regen.NormalizedAmount) * stacks)
+                : Mathf.FloorToInt(regen.amountPerTurn * stacks);
 
             if (amount > 0) RestorePP(amount);
             else if (amount < 0) ConsumePP(Mathf.Abs(amount));
@@ -617,9 +535,9 @@ public class FighterStats : MonoBehaviour
     {
         if (dot == null) return;
 
-        int damage = (dot.damageType == StatusValueType.Percentage)
-            ? Mathf.RoundToInt((MaxHp * (dot.damagePerTurn / 100f)) * stacks)
-            : Mathf.RoundToInt(dot.damagePerTurn * stacks);
+        int damage = (dot.damageType == StatModifierType.PercentTotal)
+            ? Mathf.FloorToInt((MaxHp * dot.NormalizedDamage) * stacks)
+            : Mathf.FloorToInt(dot.damagePerTurn * stacks);
 
         if (damage > 0)
         {

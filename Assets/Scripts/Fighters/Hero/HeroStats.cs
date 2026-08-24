@@ -6,10 +6,6 @@ public class HeroStats : FighterStats
 {
     #region Events
 
-    /// <summary>
-    /// Event fired whenever a psynergy is completely lost from all active sources 
-    /// (Innate/Story, Equipment, Class). Heard by PsynergyWorldController to clear shortcuts.
-    /// </summary>
     public event Action<PsynergySO> OnPsynergyLost;
 
     #endregion
@@ -17,11 +13,9 @@ public class HeroStats : FighterStats
     #region Serialized Fields
 
     [Header("Hero Base Element")]
-    [Tooltip("Base element of the hero (e.g., Venus for Isaac, Mars for Garet). Used for class calculation.")]
     [SerializeField] private ElementalType baseElement = ElementalType.Venus;
 
     [Header("Hero Progression Assets")]
-    [Tooltip("Base progression tree defining innate psynergies learned by level.")]
     [SerializeField] private HeroBaseProgressionSO baseProgression;
 
     [Header("Hero Progression Data")]
@@ -29,7 +23,6 @@ public class HeroStats : FighterStats
     [SerializeField] private int currentXp = 0;
 
     [Header("Story Unlocked Psynergies")]
-    [Tooltip("Psynergies granted permanently to this hero via story events (e.g., Mind Read, Reveal).")]
     [SerializeField] private List<PsynergySO> unlockedStoryPsynergies = new List<PsynergySO>();
 
     #endregion
@@ -38,7 +31,6 @@ public class HeroStats : FighterStats
 
     private int nextLevelXp;
     private HeroDjinnController djinnController;
-    private readonly object classStatSourceTag = new object();
 
     #endregion
 
@@ -50,6 +42,114 @@ public class HeroStats : FighterStats
     public int NextLevelXp { get => nextLevelXp; private set => nextLevelXp = value; }
     public HeroBaseProgressionSO BaseProgression => baseProgression;
     public IReadOnlyList<PsynergySO> UnlockedStoryPsynergies => unlockedStoryPsynergies;
+
+    public HeroDjinnController DjinnController => djinnController;
+    public CharacterClassSO CurrentClass => djinnController?.CurrentClass;
+
+    #endregion
+
+    #region Live Calculated Stats Overrides (StatCalculator Brain)
+
+    /// <summary>
+    /// Builds a live evaluation context for this hero including base stats, class multipliers,
+    /// Djinn flat modifiers, Leader Passive modifiers, and equipment modifiers across all Core and Elemental stats,
+    /// then evaluates them via StatCalculator.
+    /// </summary>
+    public StatBlock GetCalculatedStats()
+    {
+        StatEvaluationContext context = new StatEvaluationContext();
+
+        // 1. Set Base Stats (Core & Elemental)
+        foreach (StatType statType in Enum.GetValues(typeof(StatType)))
+        {
+            context.SetBaseStat(statType, GetStat(statType)?.BaseValue ?? 0);
+        }
+
+        // 2. Set Class Multipliers
+        CharacterClassSO activeClass = CurrentClass;
+        if (activeClass != null)
+        {
+            foreach (StatType statType in Enum.GetValues(typeof(StatType)))
+            {
+                context.SetClassMultiplier(statType, activeClass.GetStatMultiplier(statType));
+            }
+        }
+
+        // 3. Set Djinn Modifiers & Active Leader Passive Modifiers
+        if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
+
+        if (djinnController != null)
+        {
+            if (djinnController.AssignedDjinns != null)
+            {
+                foreach (var djinn in djinnController.AssignedDjinns)
+                {
+                    if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.SetStatModifiers != null)
+                    {
+                        foreach (var mod in djinn.DjinnData.SetStatModifiers)
+                        {
+                            if (mod == null) continue;
+                            context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, djinn));
+                        }
+                    }
+                }
+            }
+
+            // Active Leader Passive Modifiers
+            DjinnInstance leader = djinnController.LeaderDjinn;
+            if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffect != null)
+            {
+                var leaderModifiers = leader.DjinnData.LeaderPassiveEffect.StatModifiers;
+                if (leaderModifiers != null)
+                {
+                    foreach (var bonus in leaderModifiers)
+                    {
+                        if (bonus == null) continue;
+                        context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType, leader));
+                    }
+                }
+            }
+        }
+
+        // 4. Set Equipment Modifiers
+        HeroEquipment equipment = GetComponent<HeroEquipment>();
+        if (equipment != null && equipment.EquippedItems != null)
+        {
+            foreach (var item in equipment.EquippedItems.Values)
+            {
+                if (item != null && item.StatModifiers != null)
+                {
+                    foreach (var mod in item.StatModifiers)
+                    {
+                        if (mod == null) continue;
+                        context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, item));
+                    }
+                }
+            }
+        }
+
+        // 5. Delegate to StatCalculator Core Engine
+        return StatCalculator.Evaluate(context);
+    }
+
+    // Public Core Stat Properties Redirecting to Live Evaluated StatBlock
+    public override int MaxHp => GetCalculatedStats().MaxHP;
+    public override int MaxPp => GetCalculatedStats().MaxPP;
+    public override int Attack => GetCalculatedStats().Attack;
+    public override int Defense => GetCalculatedStats().Defense;
+    public override int Agility => GetCalculatedStats().Agility;
+    public override int Luck => GetCalculatedStats().Luck;
+
+    // Public Elemental Stat Properties Redirecting to Live Evaluated StatBlock
+    public override int PowerVenus => GetCalculatedStats().PowerVenus;
+    public override int PowerMars => GetCalculatedStats().PowerMars;
+    public override int PowerJupiter => GetCalculatedStats().PowerJupiter;
+    public override int PowerMercury => GetCalculatedStats().PowerMercury;
+
+    public override int ResistVenus => GetCalculatedStats().ResistVenus;
+    public override int ResistMars => GetCalculatedStats().ResistMars;
+    public override int ResistJupiter => GetCalculatedStats().ResistJupiter;
+    public override int ResistMercury => GetCalculatedStats().ResistMercury;
 
     #endregion
 
@@ -239,69 +339,48 @@ public class HeroStats : FighterStats
 
     /// <summary>
     /// Master refresh method triggered whenever equipment, Djinns, or classes change.
-    /// Updates class multipliers and consolidates active psynergies.
+    /// Updates class multipliers directly on Stat.cs instances and consolidates active psynergies.
     /// </summary>
     public void RecalculateStatsAndPsynergies()
     {
-        UpdateClassStatModifiers();
+        UpdateClassMultipliers();
         ReevaluatePsynergies();
     }
 
     /// <summary>
-    /// Applies Class Percentage Multipliers as PercentTotal StatModifiers to statsMap.
-    /// Formula executed inside Stat.cs: (Base + Flat Equipment + Flat Djinn) * ClassMultiplier
+    /// Inject canonical Class Percentage Multipliers directly into each Stat.cs ClassMultiplier property.
+    /// Formula executed inside Stat.cs: Floor((Base + Flat Equipment + Flat Djinn) * ClassMultiplier * (1 + SumPercentTotal))
     /// </summary>
-    private void UpdateClassStatModifiers()
+    private void UpdateClassMultipliers()
     {
         if (statsMap == null) return;
 
-        // 1. Clear previous class modifiers
-        RemoveModifiersFromSource(classStatSourceTag);
-
-        // 2. Apply active Class Percentage Multipliers
         if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
         CharacterClassSO activeClass = (djinnController != null) ? djinnController.CurrentClass : null;
 
-        if (activeClass != null)
+        foreach (var kvp in statsMap)
         {
-            foreach (var kvp in statsMap)
-            {
-                StatType statType = kvp.Key;
-                float multiplier = activeClass.GetStatMultiplier(statType);
+            StatType statType = kvp.Key;
+            Stat statInstance = kvp.Value;
 
-                // In StatModifierType.PercentTotal, 1.10 = +0.10f modifier
-                float percentTotalMod = multiplier - 1.0f;
-
-                if (Mathf.Abs(percentTotalMod) > 0.001f)
-                {
-                    StatModifier mod = new StatModifier(percentTotalMod, StatModifierType.PercentTotal, classStatSourceTag);
-                    AddStatModifier(statType, mod);
-                }
-            }
+            float multiplier = (activeClass != null) ? activeClass.GetStatMultiplier(statType) : 1f;
+            statInstance.ClassMultiplier = multiplier;
         }
 
         ClampCurrentHp();
         ClampCurrentPp();
     }
 
-    /// <summary>
-    /// Recalculates all available psynergies from active sources:
-    /// 1. Innate Level Progression + Story Granted
-    /// 2. Equipped Relics
-    /// 3. Current Class Psynergies
-    /// </summary>
     public void ReevaluatePsynergies()
     {
         HashSet<PsynergySO> newConsolidatedSet = new HashSet<PsynergySO>();
 
-        // Source A: Innate + Story
         List<PsynergySO> innateAndStory = GetInnateAndStoryPsynergies();
         foreach (var p in innateAndStory)
         {
             if (p != null) newConsolidatedSet.Add(p);
         }
 
-        // Source B: Equipped Relics
         HeroEquipment equipment = GetComponent<HeroEquipment>();
         if (equipment != null)
         {
@@ -312,7 +391,6 @@ public class HeroStats : FighterStats
             }
         }
 
-        // Source C: Active Class Psynergies
         if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
         if (djinnController != null && djinnController.CurrentClass != null)
         {
@@ -326,7 +404,6 @@ public class HeroStats : FighterStats
             }
         }
 
-        // Identify lost psynergies
         List<PsynergySO> lostPsynergies = new List<PsynergySO>();
         foreach (var oldPsynergy in psynergies)
         {
@@ -336,11 +413,9 @@ public class HeroStats : FighterStats
             }
         }
 
-        // Update active list in FighterStats
         psynergies.Clear();
         psynergies.AddRange(newConsolidatedSet);
 
-        // Fire events for cleanup
         foreach (var lost in lostPsynergies)
         {
             Debug.Log($"[HeroStats] {fighterName} lost access to psynergy: '{lost.PsynergyName}'.");

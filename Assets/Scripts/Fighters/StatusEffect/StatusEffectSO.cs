@@ -90,11 +90,9 @@ public class StatusEffectSO : ScriptableObject
 
     #region Modular Feature Lists
 
-    [Header("Stat Modifiers")]
-    [SerializeField] private List<StatusStatBonus> statModifiers = new List<StatusStatBonus>();
-
-    [Header("Elemental Power & Resistance Modifiers")]
-    [SerializeField] private List<StatusElementalBonus> elementalModifiers = new List<StatusElementalBonus>();
+    [Header("Stat & Elemental Modifiers")]
+    [Tooltip("Lista unificada de modificadores de atributos y resistencias/potencias elementales.")]
+    [SerializeField] private List<StatBonus> statModifiers = new List<StatBonus>();
 
     [Header("Resource Regeneration / Drain Over Time")]
     [SerializeField] private List<StatusResourceRegen> resourceRegens = new List<StatusResourceRegen>();
@@ -128,8 +126,7 @@ public class StatusEffectSO : ScriptableObject
     public float DamageMitigationPercentage => damageMitigationPercentage;
     public int DoomTurnCount => doomTurnCount;
 
-    public IReadOnlyList<StatusStatBonus> StatModifiers => statModifiers;
-    public IReadOnlyList<StatusElementalBonus> ElementalModifiers => elementalModifiers;
+    public IReadOnlyList<StatBonus> StatModifiers => statModifiers;
     public IReadOnlyList<StatusResourceRegen> ResourceRegens => resourceRegens;
     public IReadOnlyList<StatusDamageOverTime> DamagesOverTime => damagesOverTime;
 

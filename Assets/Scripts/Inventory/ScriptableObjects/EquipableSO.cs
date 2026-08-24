@@ -1,20 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct EquipmentStatBonus
-{
-    public StatType statType;
-    public float value;
-    public StatModifierType modifierType; // Flat, PercentBase, PercentTotal
-}
-
 [CreateAssetMenu(fileName = "New_Equipable", menuName = "Inventory/Items/Equipable Standard")]
 public class EquipableSO : ItemSO
 {
     [Header("Equipment Slot & Stats")]
     [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.Armor;
-    [SerializeField] private List<EquipmentStatBonus> statModifiers = new List<EquipmentStatBonus>();
+
+    [Tooltip("Lista unificada de modificadores de estadísticas (fijos o porcentuales).")]
+    [SerializeField] private List<StatBonus> statModifiers = new List<StatBonus>();
 
     [Header("Elemental & Combat Modifiers")]
     [SerializeField] private ElementalType element = ElementalType.None;
@@ -27,12 +21,34 @@ public class EquipableSO : ItemSO
     #region Public Properties
 
     public EquipmentSlot EquipmentSlot => equipmentSlot;
-    public IReadOnlyList<EquipmentStatBonus> StatModifiers => statModifiers;
+    public IReadOnlyList<StatBonus> StatModifiers => statModifiers;
     public ElementalType Element => element;
     public int ElementalPowerBonus => elementalPowerBonus;
 
     public bool UseInBattle => useInBattle;
     public ItemBattleEffectSO BattleUseEffect => battleUseEffect;
+
+    #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Devuelve los StatModifiers generados por esta pieza de equipo, listos para inyectar en Stat.cs o StatCalculator.
+    /// </summary>
+    public List<(StatType statType, StatModifier modifier)> GetStatModifiers()
+    {
+        var result = new List<(StatType, StatModifier)>();
+        if (statModifiers == null) return result;
+
+        for (int i = 0; i < statModifiers.Count; i++)
+        {
+            if (statModifiers[i] != null)
+            {
+                result.Add((statModifiers[i].statType, statModifiers[i].ToStatModifier(this, isTemporary: false)));
+            }
+        }
+        return result;
+    }
 
     #endregion
 }

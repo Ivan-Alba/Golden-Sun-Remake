@@ -2,6 +2,54 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Definición modular de un bono de estadística para inspeccionadores y ScriptableObjects.
+/// Mapea de forma limpia a un StatModifier del motor de stats.
+/// </summary>
+[Serializable]
+public class StatBonus
+{
+    [Tooltip("Estadística o resistencia/poder elemental a modificar.")]
+    public StatType statType = StatType.Attack;
+
+    [Tooltip("Tipo de cálculo canónico: Flat, PercentBase o PercentTotal.")]
+    public StatModifierType modifierType = StatModifierType.Flat;
+
+    [Tooltip("Valor numérico. Para porcentajes, introduce el valor directo (ej: 20 para +20%, -15 para -15%).")]
+    public float value = 10f;
+
+    /// <summary>
+    /// Devuelve el valor numérico ajustado a la matemática de punto flotante.
+    /// Si es un porcentaje, convierte 20 en 0.20f.
+    /// </summary>
+    public float NormalizedValue
+    {
+        get
+        {
+            if (modifierType == StatModifierType.Flat)
+            {
+                return value;
+            }
+            // Convierte valores de inspector (ej. 20%) a multiplicadores flotantes (0.20f)
+            return value / 100f;
+        }
+    }
+
+    /// <summary>
+    /// Instancia un StatModifier válido para inyectar en Stat.cs o StatCalculator.
+    /// </summary>
+    public StatModifier ToStatModifier(object source = null, bool isTemporary = false, int durationInTurns = -1)
+    {
+        return new StatModifier(
+            NormalizedValue,
+            modifierType,
+            source,
+            isTemporary,
+            durationInTurns
+        );
+    }
+}
+
 [Serializable]
 public class Stat
 {
@@ -10,8 +58,11 @@ public class Stat
 
     private readonly List<StatModifier> statModifiers = new List<StatModifier>();
 
+    private float classMultiplier = 1f;
     private bool isDirty = true;
     private int cachedValue;
+
+    public event Action OnValueChanged;
 
     public StatType StatType => statType;
 
@@ -28,10 +79,23 @@ public class Stat
         }
     }
 
-    // Añadir este evento a la clase Stat
-    public event Action OnValueChanged;
+    /// <summary>
+    /// Multiplicador de clase activo para este stat (1.0 = 100%).
+    /// </summary>
+    public float ClassMultiplier
+    {
+        get => classMultiplier;
+        set
+        {
+            float clampedValue = Mathf.Max(0.01f, value);
+            if (!Mathf.Approximately(classMultiplier, clampedValue))
+            {
+                classMultiplier = clampedValue;
+                isDirty = true;
+            }
+        }
+    }
 
-    // Modificar la propiedad Value para notificar el cambio cuando recalcule
     public int Value
     {
         get
@@ -51,14 +115,16 @@ public class Stat
         }
     }
 
-    public Stat(StatType statType, int baseValue)
+    public Stat(StatType statType, int baseValue, float initialClassMultiplier = 1f)
     {
         this.statType = statType;
         this.baseValue = baseValue;
+        this.classMultiplier = Mathf.Max(0.01f, initialClassMultiplier);
     }
 
     public void AddModifier(StatModifier mod)
     {
+        if (mod == null) return;
         statModifiers.Add(mod);
         isDirty = true;
     }
@@ -73,9 +139,6 @@ public class Stat
         return false;
     }
 
-    /// <summary>
-    /// Removes all modifiers originating from a specific source object (e.g., equipped weapon, specific status effect).
-    /// </summary>
     public bool RemoveAllModifiersFromSource(object source)
     {
         if (source == null) return false;
@@ -98,9 +161,6 @@ public class Stat
         return removedAny;
     }
 
-    /// <summary>
-    /// Decrements the turn counter for temporary modifiers and removes expired ones.
-    /// </summary>
     public void TickTurnModifiers()
     {
         bool removedAny = false;
@@ -119,9 +179,6 @@ public class Stat
         }
     }
 
-    /// <summary>
-    /// Clears all temporary battle-related modifiers when a combat ends.
-    /// </summary>
     public void RemoveAllTemporaryModifiers()
     {
         bool removedAny = false;
@@ -140,14 +197,18 @@ public class Stat
         }
     }
 
+    /// <summary>
+    /// Pipeline canónico de cálculo de 5 niveles (Golden Sun Spec).
+    /// </summary>
     private int CalculateFinalValue()
     {
         float sumFlat = 0f;
         float sumPercentBase = 0f;
         float sumPercentTotal = 0f;
 
-        foreach (StatModifier mod in statModifiers)
+        for (int i = 0; i < statModifiers.Count; i++)
         {
+            StatModifier mod = statModifiers[i];
             switch (mod.Type)
             {
                 case StatModifierType.Flat:
@@ -162,13 +223,19 @@ public class Stat
             }
         }
 
-        // Subtotal = Base + (Base * % Base Modifiers) + Flat Modifiers
-        float subtotal = BaseValue + (BaseValue * sumPercentBase) + sumFlat;
+        // 1. Nivel Base Modificada (% Base sobre BaseValue puro)
+        float baseModificada = BaseValue + (BaseValue * sumPercentBase);
 
-        // Final Value = Subtotal * (1 + % Total Modifiers)
-        float finalValue = subtotal * (1f + sumPercentTotal);
+        // 2. Nivel Suma Plana (BaseMod + Equipos/Djinns/Pasivas planas)
+        float subtotalPlano = baseModificada + sumFlat;
 
-        // Prevent stats from going below 0
-        return Mathf.Max(0, Mathf.RoundToInt(finalValue));
+        // 3. Nivel Multiplicador de Clase (Escalado canónico GS)
+        float subtotalClase = subtotalPlano * classMultiplier;
+
+        // 4. Nivel % Total (Bufos/Debuffs globales de combate o pasivas de % total)
+        float valorFlotanteFinal = subtotalClase * (1f + sumPercentTotal);
+
+        // 5. Truncamiento único con FloorToInt (Evita Banker's Rounding)
+        return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal));
     }
 }

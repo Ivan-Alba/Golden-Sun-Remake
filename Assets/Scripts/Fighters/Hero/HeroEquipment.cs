@@ -235,32 +235,13 @@ public class HeroEquipment : MonoBehaviour
     {
         if (fighterStats == null || item == null) return;
 
-        if (item is PsynergyRelicSO relic)
+        // Tanto EquipableSO como PsynergyRelicSO heredan de EquipableSO
+        if (item is EquipableSO equipable)
         {
-            foreach (var bonus in relic.StatModifiers)
+            var modifiers = equipable.GetStatModifiers();
+            for (int i = 0; i < modifiers.Count; i++)
             {
-                StatModifier modifier = new StatModifier(
-                    value: bonus.value,
-                    type: bonus.modifierType,
-                    source: relic,
-                    isTemporary: false
-                );
-
-                fighterStats.AddStatModifier(bonus.statType, modifier);
-            }
-        }
-        else if (item is EquipableSO equipable)
-        {
-            foreach (var bonus in equipable.StatModifiers)
-            {
-                StatModifier modifier = new StatModifier(
-                    value: bonus.value,
-                    type: bonus.modifierType,
-                    source: equipable,
-                    isTemporary: false
-                );
-
-                fighterStats.AddStatModifier(bonus.statType, modifier);
+                fighterStats.AddStatModifier(modifiers[i].statType, modifiers[i].modifier);
             }
         }
     }
@@ -269,7 +250,7 @@ public class HeroEquipment : MonoBehaviour
     {
         if (fighterStats == null || item == null) return;
 
-        // Remove stat modifiers associated with this ScriptableObject instance as source
+        // Remueve todos los modificadores que tengan este ScriptableObject como Source
         fighterStats.RemoveModifiersFromSource(item);
     }
 

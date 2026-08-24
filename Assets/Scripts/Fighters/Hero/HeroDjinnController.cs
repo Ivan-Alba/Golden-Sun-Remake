@@ -304,17 +304,10 @@ public class HeroDjinnController : MonoBehaviour
             DjinnInstance djinn = assignedDjinns[i];
             if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null)
             {
-                IReadOnlyList<EquipmentStatBonus> modifiers = djinn.DjinnData.SetStatModifiers;
+                var modifiers = djinn.DjinnData.GetStatModifiers();
                 for (int j = 0; j < modifiers.Count; j++)
                 {
-                    StatModifier mod = new StatModifier(
-                        value: modifiers[j].value,
-                        type: modifiers[j].modifierType,
-                        source: djinn.DjinnData,
-                        isTemporary: false
-                    );
-
-                    heroStats.AddStatModifier(modifiers[j].statType, mod);
+                    heroStats.AddStatModifier(modifiers[j].statType, modifiers[j].modifier);
                 }
             }
         }

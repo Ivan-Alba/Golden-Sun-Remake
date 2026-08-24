@@ -516,12 +516,13 @@ public class PageDjinnController
 
         UpdateElementalPips(currentHeroDjinnController, labelPipVenus, labelPipMars, labelPipJupiter, labelPipMercury);
 
-        if (labelStatAtq != null) labelStatAtq.text = Mathf.FloorToInt(currentHero.Attack).ToString();
-        if (labelStatDef != null) labelStatDef.text = Mathf.FloorToInt(currentHero.Defense).ToString();
-        if (labelStatAgi != null) labelStatAgi.text = Mathf.FloorToInt(currentHero.Agility).ToString();
-        if (labelStatSue != null) labelStatSue.text = Mathf.FloorToInt(currentHero.Luck).ToString();
-        if (labelStatMaxHP != null) labelStatMaxHP.text = Mathf.FloorToInt(currentHero.MaxHp).ToString();
-        if (labelStatMaxPP != null) labelStatMaxPP.text = Mathf.FloorToInt(currentHero.MaxPp).ToString();
+        // English comment: Directly query live calculated core stats from HeroStats overrides.
+        if (labelStatAtq != null) labelStatAtq.text = currentHero.Attack.ToString();
+        if (labelStatDef != null) labelStatDef.text = currentHero.Defense.ToString();
+        if (labelStatAgi != null) labelStatAgi.text = currentHero.Agility.ToString();
+        if (labelStatSue != null) labelStatSue.text = currentHero.Luck.ToString();
+        if (labelStatMaxHP != null) labelStatMaxHP.text = currentHero.MaxHp.ToString();
+        if (labelStatMaxPP != null) labelStatMaxPP.text = currentHero.MaxPp.ToString();
 
         HideStatDeltas();
 
@@ -1783,26 +1784,21 @@ public class PageDjinnController
 
         bool isSwap = (swapTargetDjinn != null);
 
-        // Guardamos los estados e información antes del desasignado
         DjinnSO sourceData = swapSourceDjinn.DjinnData;
         DjinnState sourceState = swapSourceDjinn.CurrentState;
 
         DjinnSO targetData = isSwap ? swapTargetDjinn.DjinnData : null;
         DjinnState targetState = isSwap ? swapTargetDjinn.CurrentState : DjinnState.Set;
 
-        // 1. Retirar Djinn de Origen
         if (sourceCtrl.UnassignDjinn(swapSourceDjinn))
         {
-            // 2. Si es Intercambio, retirar Djinn de Destino
             if (isSwap)
             {
                 targetCtrl.UnassignDjinn(swapTargetDjinn);
             }
 
-            // 3. Asignar Djinn de Origen al Héroe Destino (preservando el estado del Djinn)
             targetCtrl.AssignDjinn(sourceData, sourceState);
 
-            // 4. Si es Intercambio, asignar Djinn de Destino al Héroe Origen
             if (isSwap && targetData != null)
             {
                 sourceCtrl.AssignDjinn(targetData, targetState);
@@ -1820,33 +1816,6 @@ public class PageDjinnController
 
     #endregion
 
-    #region Data Structs - Projection Data Container
-
-    public struct ProjectedHeroStats
-    {
-        // Core Stats
-        public float MaxHp;
-        public float MaxPp;
-        public float Attack;
-        public float Defense;
-        public float Agility;
-        public float Luck;
-
-        // Elemental Power Stats
-        public float PowerVenus;
-        public float PowerMars;
-        public float PowerJupiter;
-        public float PowerMercury;
-
-        // Elemental Resistance Stats
-        public float ResistVenus;
-        public float ResistMars;
-        public float ResistJupiter;
-        public float ResistMercury;
-    }
-
-    #endregion
-
     #region Modal Comparison Data Population
 
     private void PopulateModalComparisonData()
@@ -1855,15 +1824,12 @@ public class PageDjinnController
 
         bool isSwap = (swapTargetDjinn != null);
 
-        // ==========================================
-        // 1. PANEL CENTRAL (INTERCAMBIO / TRANSFERENCIA)
-        // ==========================================
+        // 1. CENTER PANEL
         if (labelCompareTitle != null)
         {
             labelCompareTitle.text = isSwap ? "INTERCAMBIO" : "TRANSFERENCIA";
         }
 
-        // Djinn Origen (Siempre presente)
         if (pillSourceDjinn != null && swapSourceDjinn?.DjinnData != null)
         {
             pillSourceDjinn.style.display = DisplayStyle.Flex;
@@ -1879,7 +1845,6 @@ public class PageDjinnController
             }
         }
 
-        // Djinn Destino (Presente en Intercambio, Oculto en Transferencia)
         if (pillTargetDjinn != null)
         {
             if (isSwap && swapTargetDjinn?.DjinnData != null)
@@ -1907,19 +1872,12 @@ public class PageDjinnController
             labelExchangeArrow.text = isSwap ? "⇄" : "➔";
         }
 
-        // ==========================================
-        // 2. DATOS BASE (HEROES ORIGEN Y DESTINO)
-        // ==========================================
+        // 2. BASE DATA (SOURCE AND TARGET HEROES)
         PopulateModalHeroBaseData(swapSourceHero, modalLeftUI);
         PopulateModalHeroBaseData(swapTargetHero, modalRightUI);
 
-        // ==========================================
-        // 3. CALCULAR Y PROYECTAR DELTAS Y PSINERGÍAS
-        // ==========================================
-        // Panel Izquierdo (Origen): Sale swapSourceDjinn, Entra swapTargetDjinn
+        // 3. CALCULATE AND PROJECT DELTAS AND PSYNERGIES
         ApplyHeroProjection(swapSourceHero, swapSourceDjinn, swapTargetDjinn, modalLeftUI);
-
-        // Panel Derecho (Destino): Sale swapTargetDjinn, Entra swapSourceDjinn
         ApplyHeroProjection(swapTargetHero, swapTargetDjinn, swapSourceDjinn, modalRightUI);
     }
 
@@ -1927,32 +1885,28 @@ public class PageDjinnController
     {
         if (hero == null || ui.PanelRoot == null) return;
 
-        // Header & Avatar
         if (ui.AvatarIcon != null) ui.AvatarIcon.style.backgroundImage = new StyleBackground(hero.TurnBarImage);
         if (ui.LabelName != null) ui.LabelName.text = hero.Name;
         if (ui.LabelLevel != null) ui.LabelLevel.text = $"Nv. {hero.Level}";
 
-        // Clase Actual
         HeroDjinnController djinnCtrl = hero.GetComponent<HeroDjinnController>();
         if (ui.LabelClassCurrent != null && djinnCtrl != null && djinnCtrl.CurrentClass != null)
         {
             ui.LabelClassCurrent.text = djinnCtrl.CurrentClass.ClassName;
         }
 
-        // Ocultar cambio de clase por defecto hasta proyectar
         if (ui.LabelClassNext != null) ui.LabelClassNext.style.display = DisplayStyle.None;
         if (ui.LabelClassArrow != null) ui.LabelClassArrow.style.display = DisplayStyle.None;
 
-        // Pips Elementales Actuales
         UpdateElementalPips(djinnCtrl, ui.LabelPipVenus, ui.LabelPipMars, ui.LabelPipJupiter, ui.LabelPipMercury);
 
-        // Atributos Actuales
-        if (ui.LabelStatMaxHP != null) ui.LabelStatMaxHP.text = Mathf.FloorToInt(hero.MaxHp).ToString();
-        if (ui.LabelStatMaxPP != null) ui.LabelStatMaxPP.text = Mathf.FloorToInt(hero.MaxPp).ToString();
-        if (ui.LabelStatAtq != null) ui.LabelStatAtq.text = Mathf.FloorToInt(hero.Attack).ToString();
-        if (ui.LabelStatDef != null) ui.LabelStatDef.text = Mathf.FloorToInt(hero.Defense).ToString();
-        if (ui.LabelStatAgi != null) ui.LabelStatAgi.text = Mathf.FloorToInt(hero.Agility).ToString();
-        if (ui.LabelStatSue != null) ui.LabelStatSue.text = Mathf.FloorToInt(hero.Luck).ToString();
+        // English comment: Query live calculated core stats from HeroStats overrides.
+        if (ui.LabelStatMaxHP != null) ui.LabelStatMaxHP.text = hero.MaxHp.ToString();
+        if (ui.LabelStatMaxPP != null) ui.LabelStatMaxPP.text = hero.MaxPp.ToString();
+        if (ui.LabelStatAtq != null) ui.LabelStatAtq.text = hero.Attack.ToString();
+        if (ui.LabelStatDef != null) ui.LabelStatDef.text = hero.Defense.ToString();
+        if (ui.LabelStatAgi != null) ui.LabelStatAgi.text = hero.Agility.ToString();
+        if (ui.LabelStatSue != null) ui.LabelStatSue.text = hero.Luck.ToString();
 
         HideModalDeltas(ui);
     }
@@ -1977,7 +1931,7 @@ public class PageDjinnController
         bool removeIsSet = (djinnToRemove != null && djinnToRemove.CurrentState == DjinnState.Set);
         bool addIsSet = (djinnToAdd != null && djinnToAdd.CurrentState == DjinnState.Set);
 
-        // 1. Proyectar nueva clase
+        // 1. Project new class
         CharacterClassSO currentClassSO = djinnCtrl.CurrentClass;
         CharacterClassSO projectedClassSO = GetProjectedClass(djinnCtrl, djinnToRemove, removeIsSet, djinnToAdd, addIsSet);
 
@@ -1999,7 +1953,7 @@ public class PageDjinnController
             if (ui.LabelClassArrow != null) ui.LabelClassArrow.style.display = DisplayStyle.None;
         }
 
-        // 2. Proyectar Pips Elementales (Deltas para Set y Total)
+        // 2. Project Elemental Pips
         int dSetVenus = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Venus ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Venus ? 1 : 0);
         int dSetMars = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Mars ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Mars ? 1 : 0);
         int dSetJup = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Jupiter ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Jupiter ? 1 : 0);
@@ -2017,17 +1971,17 @@ public class PageDjinnController
             dTotalVenus, dTotalMars, dTotalJup, dTotalMerc
         );
 
-        // 3. Proyectar Atributos Estadísticos (Incluyendo re-evaluación exacta de Líder)
-        ProjectedHeroStats projectedStats = CalculateProjectedStats(hero, djinnCtrl, projectedClassSO, djinnToRemove, removeIsSet, djinnToAdd, addIsSet);
+        // 3. Project Statistical Attributes via StatCalculator API
+        StatBlock projectedStats = CalculateProjectedStatsViaCalculator(hero, djinnCtrl, projectedClassSO, djinnToRemove, djinnToAdd);
 
-        ApplyStatProjection(ui.LabelStatMaxHP, ui.LabelDeltaMaxHP, hero.MaxHp, projectedStats.MaxHp);
-        ApplyStatProjection(ui.LabelStatMaxPP, ui.LabelDeltaMaxPP, hero.MaxPp, projectedStats.MaxPp);
+        ApplyStatProjection(ui.LabelStatMaxHP, ui.LabelDeltaMaxHP, hero.MaxHp, projectedStats.MaxHP);
+        ApplyStatProjection(ui.LabelStatMaxPP, ui.LabelDeltaMaxPP, hero.MaxPp, projectedStats.MaxPP);
         ApplyStatProjection(ui.LabelStatAtq, ui.LabelDeltaAtq, hero.Attack, projectedStats.Attack);
         ApplyStatProjection(ui.LabelStatDef, ui.LabelDeltaDef, hero.Defense, projectedStats.Defense);
         ApplyStatProjection(ui.LabelStatAgi, ui.LabelDeltaAgi, hero.Agility, projectedStats.Agility);
         ApplyStatProjection(ui.LabelStatSue, ui.LabelDeltaSue, hero.Luck, projectedStats.Luck);
 
-        // 4. Proyectar Psinergías
+        // 4. Project Psynergies
         List<PsynergySO> currentPsynergies = hero.Psynergies != null ? new List<PsynergySO>(hero.Psynergies) : new List<PsynergySO>();
         List<PsynergySO> projectedPsynergies = GetProjectedConsolidatedPsynergies(hero, projectedClassSO);
 
@@ -2099,187 +2053,128 @@ public class PageDjinnController
             : djinnCtrl.CurrentClass;
     }
 
-    private ProjectedHeroStats CalculateProjectedStats(HeroStats hero, HeroDjinnController djinnCtrl, CharacterClassSO projectedClass, DjinnInstance removeDjinn, bool removeIsSet, DjinnInstance addDjinn, bool addIsSet)
+    /// <summary>
+    /// Builds a StatEvaluationContext with base stats, class multipliers, and simulated Djinn/Equipment/Leader modifiers,
+    /// then passes it to StatCalculator.Evaluate to produce a projected StatBlock.
+    /// </summary>
+    private StatBlock CalculateProjectedStatsViaCalculator(
+        HeroStats hero,
+        HeroDjinnController djinnCtrl,
+        CharacterClassSO projectedClass,
+        DjinnInstance djinnToRemove,
+        DjinnInstance djinnToAdd)
     {
-        ProjectedHeroStats stats = new ProjectedHeroStats();
-        if (hero == null) return stats;
+        StatEvaluationContext context = new StatEvaluationContext();
 
-        CharacterClassSO currentClass = djinnCtrl != null ? djinnCtrl.CurrentClass : null;
+        if (hero == null) return StatCalculator.Evaluate(context);
 
-        float curHpMult = (currentClass != null && currentClass.HpMultiplier > 0) ? currentClass.HpMultiplier : 1f;
-        float curPpMult = (currentClass != null && currentClass.PpMultiplier > 0) ? currentClass.PpMultiplier : 1f;
-        float curAtkMult = (currentClass != null && currentClass.AtkMultiplier > 0) ? currentClass.AtkMultiplier : 1f;
-        float curDefMult = (currentClass != null && currentClass.DefMultiplier > 0) ? currentClass.DefMultiplier : 1f;
-        float curAgiMult = (currentClass != null && currentClass.AgiMultiplier > 0) ? currentClass.AgiMultiplier : 1f;
-        float curLckMult = (currentClass != null && currentClass.LckMultiplier > 0) ? currentClass.LckMultiplier : 1f;
-
-        float unscaledHp = hero.MaxHp / curHpMult;
-        float unscaledPp = hero.MaxPp / curPpMult;
-        float unscaledAtk = hero.Attack / curAtkMult;
-        float unscaledDef = hero.Defense / curDefMult;
-        float unscaledAgi = hero.Agility / curAgiMult;
-        float unscaledLck = hero.Luck / curLckMult;
-
-        float unscaledPowVenus = hero.PowerVenus;
-        float unscaledPowMars = hero.PowerMars;
-        float unscaledPowJup = hero.PowerJupiter;
-        float unscaledPowMerc = hero.PowerMercury;
-
-        float unscaledResVenus = hero.ResistVenus;
-        float unscaledResMars = hero.ResistMars;
-        float unscaledResJup = hero.ResistJupiter;
-        float unscaledResMerc = hero.ResistMercury;
-
-        // =========================================================================
-        // A. QUITAR O SUMAR ATRIBUTOS PLANOS DE DJINNS (MODIFICADORES DE DJINN)
-        // =========================================================================
-        if (removeIsSet && removeDjinn?.DjinnData != null)
+        // 1. Assign Base Stats (pure character base stats without modifiers across all Core & Elemental stats)
+        foreach (StatType statType in Enum.GetValues(typeof(StatType)))
         {
-            ApplyDjinnFlatBonus(ref unscaledHp, ref unscaledPp, ref unscaledAtk, ref unscaledDef, ref unscaledAgi, ref unscaledLck,
-                                ref unscaledPowVenus, ref unscaledPowMars, ref unscaledPowJup, ref unscaledPowMerc,
-                                ref unscaledResVenus, ref unscaledResMars, ref unscaledResJup, ref unscaledResMerc,
-                                removeDjinn.DjinnData, add: false);
+            context.SetBaseStat(statType, hero.GetStat(statType)?.BaseValue ?? 0);
         }
 
-        if (addIsSet && addDjinn?.DjinnData != null)
+        // 2. Assign Class Multipliers from projected class across all stats
+        if (projectedClass != null)
         {
-            ApplyDjinnFlatBonus(ref unscaledHp, ref unscaledPp, ref unscaledAtk, ref unscaledDef, ref unscaledAgi, ref unscaledLck,
-                                ref unscaledPowVenus, ref unscaledPowMars, ref unscaledPowJup, ref unscaledPowMerc,
-                                ref unscaledResVenus, ref unscaledResMars, ref unscaledResJup, ref unscaledResMerc,
-                                addDjinn.DjinnData, add: true);
-        }
-
-        // =========================================================================
-        // B. EVALUACIÓN Y PROYECTADO DEL PASIVO DE LÍDER (Leader Djinn)
-        // =========================================================================
-        DjinnInstance currentLeader = djinnCtrl != null ? djinnCtrl.LeaderDjinn : null;
-        IReadOnlyList<DjinnInstance> currentList = djinnCtrl != null ? djinnCtrl.AssignedDjinns : new List<DjinnInstance>();
-
-        // 1. Descontar pasiva del líder actual si estuvo activa
-        if (currentLeader != null && currentLeader.CurrentState == DjinnState.Set && currentLeader.DjinnData?.LeaderPassiveEffect != null)
-        {
-            ApplyStatusEffectFlatBonus(ref unscaledHp, ref unscaledPp, ref unscaledAtk, ref unscaledDef, ref unscaledAgi, ref unscaledLck,
-                                       currentLeader.DjinnData.LeaderPassiveEffect, add: false);
-        }
-
-        // 2. Simular la nueva lista de Djinns proyectada
-        List<(DjinnSO data, DjinnState state)> projectedDjinnList = new List<(DjinnSO, DjinnState)>();
-        foreach (var inst in currentList)
-        {
-            if (inst != removeDjinn)
+            foreach (StatType statType in Enum.GetValues(typeof(StatType)))
             {
-                projectedDjinnList.Add((inst.DjinnData, inst.CurrentState));
+                context.SetClassMultiplier(statType, projectedClass.GetStatMultiplier(statType));
             }
         }
-        if (addDjinn != null)
+
+        // 3. Build simulated list of assigned Djinns after transaction
+        List<DjinnInstance> simulatedDjinns = new List<DjinnInstance>();
+        if (djinnCtrl != null && djinnCtrl.AssignedDjinns != null)
         {
-            projectedDjinnList.Add((addDjinn.DjinnData, addDjinn.CurrentState));
+            foreach (var inst in djinnCtrl.AssignedDjinns)
+            {
+                if (inst != djinnToRemove)
+                {
+                    simulatedDjinns.Add(inst);
+                }
+            }
         }
 
-        // 3. Determinar el nuevo Líder Proyectado
-        // Si el líder actual sobrevive al cambio (no fue removido), se mantiene. Si fue removido, pasa al índice 0.
+        if (djinnToAdd != null)
+        {
+            simulatedDjinns.Add(djinnToAdd);
+        }
+
+        // 4. Collect Modifiers from Djinns in Set state
+        foreach (var djinn in simulatedDjinns)
+        {
+            if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.SetStatModifiers != null)
+            {
+                foreach (var mod in djinn.DjinnData.SetStatModifiers)
+                {
+                    if (mod == null) continue;
+                    context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, djinn));
+                }
+            }
+        }
+
+        // 5. Collect Modifiers from Leader Passive Effect
+        IReadOnlyList<StatBonus> simulatedLeaderModifiers = SimulateLeaderPassiveModifier(djinnCtrl, djinnToRemove, simulatedDjinns);
+        if (simulatedLeaderModifiers != null)
+        {
+            foreach (var bonus in simulatedLeaderModifiers)
+            {
+                if (bonus == null) continue;
+                context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType));
+            }
+        }
+
+        // 6. Collect Equipment Modifiers
+        HeroEquipment equipment = hero.GetComponent<HeroEquipment>();
+        if (equipment != null && equipment.EquippedItems != null)
+        {
+            foreach (var item in equipment.EquippedItems.Values)
+            {
+                if (item != null && item.StatModifiers != null)
+                {
+                    foreach (var mod in item.StatModifiers)
+                    {
+                        if (mod == null) continue;
+                        context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, item));
+                    }
+                }
+            }
+        }
+
+        // Delegate to StatCalculator engine
+        return StatCalculator.Evaluate(context);
+    }
+
+    /// <summary>
+    /// Evaluates which Leader Djinn passive modifier will be active in the projected state.
+    /// </summary>
+    private IReadOnlyList<StatBonus> SimulateLeaderPassiveModifier(
+        HeroDjinnController djinnCtrl,
+        DjinnInstance djinnToRemove,
+        List<DjinnInstance> simulatedDjinns)
+    {
+        DjinnInstance currentLeader = djinnCtrl != null ? djinnCtrl.LeaderDjinn : null;
         DjinnSO projectedLeaderData = null;
         DjinnState projectedLeaderState = DjinnState.Set;
 
-        if (currentLeader != null && currentLeader != removeDjinn)
+        if (currentLeader != null && currentLeader != djinnToRemove)
         {
             projectedLeaderData = currentLeader.DjinnData;
             projectedLeaderState = currentLeader.CurrentState;
         }
-        else if (projectedDjinnList.Count > 0)
+        else if (simulatedDjinns.Count > 0)
         {
-            projectedLeaderData = projectedDjinnList[0].data;
-            projectedLeaderState = projectedDjinnList[0].state;
+            projectedLeaderData = simulatedDjinns[0].DjinnData;
+            projectedLeaderState = simulatedDjinns[0].CurrentState;
         }
 
-        // 4. Aplicar pasiva del nuevo líder proyectado (sólo si está en estado SET)
         if (projectedLeaderData != null && projectedLeaderState == DjinnState.Set && projectedLeaderData.LeaderPassiveEffect != null)
         {
-            ApplyStatusEffectFlatBonus(ref unscaledHp, ref unscaledPp, ref unscaledAtk, ref unscaledDef, ref unscaledAgi, ref unscaledLck,
-                                       projectedLeaderData.LeaderPassiveEffect, add: true);
+            return projectedLeaderData.LeaderPassiveEffect.StatModifiers;
         }
 
-        // =========================================================================
-        // C. APLICAR MULTIPLICADORES DE LA NUEVA CLASE PROYECTADA
-        // =========================================================================
-        float projHpMult = projectedClass != null ? projectedClass.HpMultiplier : 1f;
-        float projPpMult = projectedClass != null ? projectedClass.PpMultiplier : 1f;
-        float projAtkMult = projectedClass != null ? projectedClass.AtkMultiplier : 1f;
-        float projDefMult = projectedClass != null ? projectedClass.DefMultiplier : 1f;
-        float projAgiMult = projectedClass != null ? projectedClass.AgiMultiplier : 1f;
-        float projLckMult = projectedClass != null ? projectedClass.LckMultiplier : 1f;
-
-        stats.MaxHp = unscaledHp * projHpMult;
-        stats.MaxPp = unscaledPp * projPpMult;
-        stats.Attack = unscaledAtk * projAtkMult;
-        stats.Defense = unscaledDef * projDefMult;
-        stats.Agility = unscaledAgi * projAgiMult;
-        stats.Luck = unscaledLck * projLckMult;
-
-        stats.PowerVenus = unscaledPowVenus;
-        stats.PowerMars = unscaledPowMars;
-        stats.PowerJupiter = unscaledPowJup;
-        stats.PowerMercury = unscaledPowMerc;
-
-        stats.ResistVenus = unscaledResVenus;
-        stats.ResistMars = unscaledResMars;
-        stats.ResistJupiter = unscaledResJup;
-        stats.ResistMercury = unscaledResMerc;
-
-        return stats;
-    }
-
-    private void ApplyStatusEffectFlatBonus(ref float hp, ref float pp, ref float atk, ref float def, ref float agi, ref float lck, StatusEffectSO effect, bool add)
-    {
-        if (effect == null || effect.StatModifiers == null) return;
-
-        float factor = add ? 1f : -1f;
-
-        foreach (var mod in effect.StatModifiers)
-        {
-            switch (mod.statType)
-            {
-                case StatType.MaxHP: hp += mod.value * factor; break;
-                case StatType.MaxPP: pp += mod.value * factor; break;
-                case StatType.Attack: atk += mod.value * factor; break;
-                case StatType.Defense: def += mod.value * factor; break;
-                case StatType.Agility: agi += mod.value * factor; break;
-                case StatType.Luck: lck += mod.value * factor; break;
-            }
-        }
-    }
-
-    private void ApplyDjinnFlatBonus(ref float hp, ref float pp, ref float atk, ref float def, ref float agi, ref float lck,
-                                    ref float powVenus, ref float powMars, ref float powJup, ref float powMerc,
-                                    ref float resVenus, ref float resMars, ref float resJup, ref float resMerc,
-                                    DjinnSO djinnData, bool add)
-    {
-        if (djinnData == null || djinnData.SetStatModifiers == null) return;
-
-        float factor = add ? 1f : -1f;
-
-        foreach (var mod in djinnData.SetStatModifiers)
-        {
-            switch (mod.statType)
-            {
-                case StatType.MaxHP: hp += mod.value * factor; break;
-                case StatType.MaxPP: pp += mod.value * factor; break;
-                case StatType.Attack: atk += mod.value * factor; break;
-                case StatType.Defense: def += mod.value * factor; break;
-                case StatType.Agility: agi += mod.value * factor; break;
-                case StatType.Luck: lck += mod.value * factor; break;
-
-                case StatType.PowerVenus: powVenus += mod.value * factor; break;
-                case StatType.PowerMars: powMars += mod.value * factor; break;
-                case StatType.PowerJupiter: powJup += mod.value * factor; break;
-                case StatType.PowerMercury: powMerc += mod.value * factor; break;
-
-                case StatType.ResistVenus: resVenus += mod.value * factor; break;
-                case StatType.ResistMars: resMars += mod.value * factor; break;
-                case StatType.ResistJupiter: resJup += mod.value * factor; break;
-                case StatType.ResistMercury: resMerc += mod.value * factor; break;
-            }
-        }
+        return null;
     }
 
     private List<PsynergySO> GetProjectedConsolidatedPsynergies(HeroStats hero, CharacterClassSO projectedClass)
@@ -2377,12 +2272,12 @@ public class PageDjinnController
 
     private void RenderDjinnVideo(DjinnInstance djinnInstance)
     {
-        // TODO: Cargar RenderTarget/VideoPlayer
+        // TODO: Load RenderTarget/VideoPlayer
     }
 
     private void UpdateSanctuaryUI()
     {
-        // TODO: Actualizar santuario 3D
+        // TODO: Update 3D sanctuary
     }
 
     #endregion

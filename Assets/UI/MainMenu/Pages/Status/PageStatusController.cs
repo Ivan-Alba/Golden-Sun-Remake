@@ -25,6 +25,7 @@ public class PageStatusController
 
     /// <summary>
     /// Populates party status cards with actual data from active hero party members.
+    /// Uses live calculated properties provided by HeroStats via StatCalculator.
     /// </summary>
     /// <param name="partyMembers">List of party member HeroStats.</param>
     public void PopulateData(List<HeroStats> partyMembers)
@@ -37,13 +38,11 @@ public class PageStatusController
 
             if (i < partyCount)
             {
-                // Activate card if hero exists in party
                 heroCards[i].style.display = DisplayStyle.Flex;
                 FillCardData(i, partyMembers[i]);
             }
             else
             {
-                // Hide slot if no hero present
                 heroCards[i].style.display = DisplayStyle.None;
             }
         }
@@ -74,7 +73,7 @@ public class PageStatusController
 
         if (expBar != null && stats.NextLevelXp > 0)
         {
-            expBar.value = ((float)stats.CurrentXp / stats.NextLevelXp) * 100f;
+            expBar.value = Mathf.Clamp01((float)stats.CurrentXp / stats.NextLevelXp) * 100f;
         }
 
         if (expLabel != null)
@@ -87,21 +86,29 @@ public class PageStatusController
         if (labelHp != null) labelHp.text = $"PV {stats.CurrHp} / {stats.MaxHp}";
 
         var hpBar = card.Q<ProgressBar>($"bar_hp_{index}") ?? card.Q<ProgressBar>("bar_hp");
-        if (hpBar != null && stats.MaxHp > 0) hpBar.value = ((float)stats.CurrHp / stats.MaxHp) * 100f;
+        if (hpBar != null && stats.MaxHp > 0)
+        {
+            hpBar.value = Mathf.Clamp01((float)stats.CurrHp / stats.MaxHp) * 100f;
+        }
 
         var labelPp = card.Q<Label>($"label_pp_text_{index}") ?? card.Q<Label>("label_pp_text");
         if (labelPp != null) labelPp.text = $"PP {stats.CurrPp} / {stats.MaxPp}";
 
         var ppBar = card.Q<ProgressBar>($"bar_pp_{index}") ?? card.Q<ProgressBar>("bar_pp");
-        if (ppBar != null && stats.MaxPp > 0) ppBar.value = ((float)stats.CurrPp / stats.MaxPp) * 100f;
+        if (ppBar != null && stats.MaxPp > 0)
+        {
+            ppBar.value = Mathf.Clamp01((float)stats.CurrPp / stats.MaxPp) * 100f;
+        }
 
         // --- 3. MAIN STATS GRID (2x2) ---
+        // English comment: Reads live calculated core stats from HeroStats overrides.
         SetStatGridValue(card, $"label_stat_value_0_{index}", "label_stat_value_0", stats.Attack.ToString());
         SetStatGridValue(card, $"label_stat_value_1_{index}", "label_stat_value_1", stats.Defense.ToString());
         SetStatGridValue(card, $"label_stat_value_2_{index}", "label_stat_value_2", stats.Agility.ToString());
         SetStatGridValue(card, $"label_stat_value_3_{index}", "label_stat_value_3", stats.Luck.ToString());
 
         // --- 4. ELEMENTAL AFFINITY TABLE ---
+        // English comment: Reads live calculated elemental powers and resistances from HeroStats overrides.
         SetElementRowValue(card, index, 0, stats.PowerVenus, stats.ResistVenus);
         SetElementRowValue(card, index, 1, stats.PowerMars, stats.ResistMars);
         SetElementRowValue(card, index, 2, stats.PowerJupiter, stats.ResistJupiter);
@@ -132,33 +139,18 @@ public class PageStatusController
 
         if (djinnController != null)
         {
-            foreach (var djinn in djinnController.AssignedDjinns)
-            {
-                if (djinn != null && djinn.DjinnData != null)
-                {
-                    bool isSet = djinn.CurrentState == DjinnState.Set;
+            // English comment: Query counts directly using HeroDjinnController API helpers.
+            venusSet = djinnController.GetSetCountByElement(ElementalType.Venus);
+            venusTotal = djinnController.GetTotalCountByElement(ElementalType.Venus);
 
-                    switch (djinn.DjinnData.Element)
-                    {
-                        case ElementalType.Venus:
-                            venusTotal++;
-                            if (isSet) venusSet++;
-                            break;
-                        case ElementalType.Mars:
-                            marsTotal++;
-                            if (isSet) marsSet++;
-                            break;
-                        case ElementalType.Jupiter:
-                            jupiterTotal++;
-                            if (isSet) jupiterSet++;
-                            break;
-                        case ElementalType.Mercury:
-                            mercuryTotal++;
-                            if (isSet) mercurySet++;
-                            break;
-                    }
-                }
-            }
+            marsSet = djinnController.GetSetCountByElement(ElementalType.Mars);
+            marsTotal = djinnController.GetTotalCountByElement(ElementalType.Mars);
+
+            jupiterSet = djinnController.GetSetCountByElement(ElementalType.Jupiter);
+            jupiterTotal = djinnController.GetTotalCountByElement(ElementalType.Jupiter);
+
+            mercurySet = djinnController.GetSetCountByElement(ElementalType.Mercury);
+            mercuryTotal = djinnController.GetTotalCountByElement(ElementalType.Mercury);
         }
 
         var pipLabels = pipsRow.Query<Label>(className: "pip-count").ToList();
@@ -194,10 +186,8 @@ public class PageStatusController
             if (nameLabel != null) nameLabel.text = data.DjinnName;
             if (abilityLabel != null) abilityLabel.text = data.Description;
 
-            // Apply elemental border and background tint directly to the inner Djinn body card
             UpdateDjinnElementStyles(djinnBody, djinnIcon, data.Element);
 
-            // Populate passive effect details
             StatusEffectSO passiveEffect = data.LeaderPassiveEffect;
             if (passiveEffect != null)
             {
@@ -220,7 +210,6 @@ public class PageStatusController
                 if (passiveDescLabel != null) passiveDescLabel.style.display = DisplayStyle.None;
             }
 
-            // Apply Status Badge & Outer Card Opacity by State
             if (djinnCard != null)
             {
                 djinnCard.RemoveFromClassList("card-djinn-standby");
@@ -257,7 +246,6 @@ public class PageStatusController
         }
         else
         {
-            // Discreet style for Unassigned Leader State
             if (nameLabel != null) nameLabel.text = "Sin Asignar";
             if (abilityLabel != null) abilityLabel.text = "No hay un Djinn Principal seleccionado.";
             if (passiveDivider != null) passiveDivider.style.display = DisplayStyle.None;

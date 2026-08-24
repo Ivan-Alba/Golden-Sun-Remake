@@ -1655,7 +1655,6 @@ public class PageItemsController
                                 unleashElementIcon.AddToClassList("icon-mercury");
                                 break;
                         }
-
                     }
 
                     Label labelUnleashName = instance.Q<Label>("label_unleash_name");
@@ -1688,7 +1687,6 @@ public class PageItemsController
             TemplateContainer instance = templateInfoPsynergyRelic.Instantiate();
             extraInfoContainer.Add(instance);
 
-            VisualElement cardStripe = instance.Q<VisualElement>("card_element_stripe");
             VisualElement cardIcon = instance.Q<VisualElement>("psynergy_card_icon");
             Label labelPsynergyName = instance.Q<Label>("label_psynergy_name");
             Label badgeUsageType = instance.Q<Label>("badge_usage_type");
@@ -1952,7 +1950,7 @@ public class PageItemsController
             elementIcon.RemoveFromClassList("icon-mars");
             elementIcon.RemoveFromClassList("icon-jupiter");
             elementIcon.RemoveFromClassList("icon-mercury");
-            
+
             switch (element)
             {
                 case ElementalType.None:
@@ -1973,8 +1971,8 @@ public class PageItemsController
                 default:
                     elementIcon.AddToClassList("icon-none");
                     break;
-                }
             }
+        }
 
         if (labelElementName != null)
         {
@@ -1994,7 +1992,7 @@ public class PageItemsController
                                        rootInstance.Q<VisualElement>("stats_list_container") ??
                                        rootInstance.Q<VisualElement>("stat_modifiers_box");
 
-        IReadOnlyList<EquipmentStatBonus> modifiers = equipable.StatModifiers;
+        IReadOnlyList<StatBonus> modifiers = equipable.StatModifiers;
         if (modifiers == null || modifiers.Count == 0 || statsContainer == null) return;
 
         statsContainer.Clear();
@@ -2023,51 +2021,164 @@ public class PageItemsController
     }
 
     /// <summary>
-    /// Calculates current vs new stat comparison delta values for ALL stats present in either new item or currently equipped item.
+    /// Calculates current vs new stat comparison delta values using the centralized StatCalculator engine.
+    /// Evaluates exact predicted stats if newEquipable is equipped, replacing current gear in the same slot.
     /// </summary>
     private void PopulateStatDeltaComparison(VisualElement rootInstance, EquipableSO newEquipable)
     {
         if (currentHero == null || currentEquipment == null || newEquipable == null) return;
 
-        EquipableSO currentlyEquipped = currentEquipment.GetEquippedItem(newEquipable.EquipmentSlot);
-
         // Query generic comparison containers across UXML views
         VisualElement deltaContainer = rootInstance.Q<VisualElement>("comparison_rows_container") ??
-                                        rootInstance.Q<VisualElement>("delta_comparison_container") ??
-                                        rootInstance.Q<VisualElement>("stat_delta_box");
+                                       rootInstance.Q<VisualElement>("delta_comparison_container") ??
+                                       rootInstance.Q<VisualElement>("stat_delta_box");
 
         if (deltaContainer == null) return;
 
         deltaContainer.Clear();
 
-        // Collect union of all stats modified by new or equipped items
+        // 1. Build Base Context Shared Setup (Base Stats + Class Multipliers + Djinns + Leader Passives)
+        CharacterClassSO currentClass = currentHero.CurrentClass;
+        HeroDjinnController djinnCtrl = currentHero.DjinnController;
+
+        // Helper action to populate base parameters onto any context instance
+        void PopulateBaseContextData(StatEvaluationContext context)
+        {
+            // A. Assign Base Stats
+            context.SetBaseStat(StatType.MaxHP, currentHero.GetStat(StatType.MaxHP)?.BaseValue ?? 0);
+            context.SetBaseStat(StatType.MaxPP, currentHero.GetStat(StatType.MaxPP)?.BaseValue ?? 0);
+            context.SetBaseStat(StatType.Attack, currentHero.GetStat(StatType.Attack)?.BaseValue ?? 0);
+            context.SetBaseStat(StatType.Defense, currentHero.GetStat(StatType.Defense)?.BaseValue ?? 0);
+            context.SetBaseStat(StatType.Agility, currentHero.GetStat(StatType.Agility)?.BaseValue ?? 0);
+            context.SetBaseStat(StatType.Luck, currentHero.GetStat(StatType.Luck)?.BaseValue ?? 0);
+
+            // B. Assign Class Multipliers
+            if (currentClass != null)
+            {
+                context.SetClassMultiplier(StatType.MaxHP, currentClass.GetStatMultiplier(StatType.MaxHP));
+                context.SetClassMultiplier(StatType.MaxPP, currentClass.GetStatMultiplier(StatType.MaxPP));
+                context.SetClassMultiplier(StatType.Attack, currentClass.GetStatMultiplier(StatType.Attack));
+                context.SetClassMultiplier(StatType.Defense, currentClass.GetStatMultiplier(StatType.Defense));
+                context.SetClassMultiplier(StatType.Agility, currentClass.GetStatMultiplier(StatType.Agility));
+                context.SetClassMultiplier(StatType.Luck, currentClass.GetStatMultiplier(StatType.Luck));
+            }
+
+            // C. Assign Djinn Set Modifiers
+            if (djinnCtrl != null && djinnCtrl.AssignedDjinns != null)
+            {
+                foreach (var djinn in djinnCtrl.AssignedDjinns)
+                {
+                    if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.SetStatModifiers != null)
+                    {
+                        foreach (var mod in djinn.DjinnData.SetStatModifiers)
+                        {
+                            if (mod == null) continue;
+                            context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, djinn));
+                        }
+                    }
+                }
+
+                // D. Assign Leader Passive Modifiers directly from active leader
+                DjinnInstance leader = djinnCtrl.LeaderDjinn;
+                if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffect != null)
+                {
+                    var leaderModifiers = leader.DjinnData.LeaderPassiveEffect.StatModifiers;
+                    if (leaderModifiers != null)
+                    {
+                        foreach (var bonus in leaderModifiers)
+                        {
+                            if (bonus == null) continue;
+                            context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType));
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Build CURRENT Context (with currently equipped gear)
+        StatEvaluationContext currentContext = new StatEvaluationContext();
+        PopulateBaseContextData(currentContext);
+
+        if (currentEquipment.EquippedItems != null)
+        {
+            foreach (var item in currentEquipment.EquippedItems.Values)
+            {
+                if (item != null && item.StatModifiers != null)
+                {
+                    foreach (var mod in item.StatModifiers)
+                    {
+                        if (mod == null) continue;
+                        currentContext.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, item));
+                    }
+                }
+            }
+        }
+
+        // 3. Build HYPOTHETICAL Context (replacing item in target equipment slot)
+        StatEvaluationContext hypotheticalContext = new StatEvaluationContext();
+        PopulateBaseContextData(hypotheticalContext);
+
+        if (currentEquipment.EquippedItems != null)
+        {
+            foreach (var kvp in currentEquipment.EquippedItems)
+            {
+                EquipmentSlot slot = kvp.Key;
+                EquipableSO item = kvp.Value;
+
+                // Exclude currently equipped item if it occupies the exact same slot as newEquipable
+                if (slot == newEquipable.EquipmentSlot) continue;
+
+                if (item != null && item.StatModifiers != null)
+                {
+                    foreach (var mod in item.StatModifiers)
+                    {
+                        if (mod == null) continue;
+                        hypotheticalContext.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, item));
+                    }
+                }
+            }
+        }
+
+        // Add target newEquipable modifiers to hypothetical context
+        if (newEquipable.StatModifiers != null)
+        {
+            foreach (var mod in newEquipable.StatModifiers)
+            {
+                if (mod == null) continue;
+                hypotheticalContext.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, newEquipable));
+            }
+        }
+
+        // 4. Evaluate both contexts via StatCalculator engine
+        StatBlock currentEvaluatedStats = StatCalculator.Evaluate(currentContext);
+        StatBlock hypotheticalEvaluatedStats = StatCalculator.Evaluate(hypotheticalContext);
+
+        // 5. Identify relevant stats modified by either current slot item or new item
+        EquipableSO currentlyEquippedInSlot = currentEquipment.GetEquippedItem(newEquipable.EquipmentSlot);
         HashSet<StatType> relevantStats = new HashSet<StatType>();
 
         if (newEquipable.StatModifiers != null)
         {
             foreach (var mod in newEquipable.StatModifiers)
             {
-                if (mod.value != 0) relevantStats.Add(mod.statType);
+                if (mod != null && mod.value != 0) relevantStats.Add(mod.statType);
             }
         }
 
-        if (currentlyEquipped != null && currentlyEquipped.StatModifiers != null)
+        if (currentlyEquippedInSlot != null && currentlyEquippedInSlot.StatModifiers != null)
         {
-            foreach (var mod in currentlyEquipped.StatModifiers)
+            foreach (var mod in currentlyEquippedInSlot.StatModifiers)
             {
-                if (mod.value != 0) relevantStats.Add(mod.statType);
+                if (mod != null && mod.value != 0) relevantStats.Add(mod.statType);
             }
         }
 
+        // 6. Render UI Rows for Delta Comparisons
         foreach (StatType stat in relevantStats)
         {
-            float currentStatBaseValue = GetHeroBaseStatValue(currentHero, stat);
-
-            float currentlyEquippedBonus = (currentlyEquipped != null) ? CalculateStatBonusTotal(currentlyEquipped, stat, currentStatBaseValue) : 0f;
-            float newBonus = CalculateStatBonusTotal(newEquipable, stat, currentStatBaseValue);
-
-            float newTotalStat = currentStatBaseValue - currentlyEquippedBonus + newBonus;
-            float delta = newTotalStat - currentStatBaseValue;
+            float currentStatVal = currentEvaluatedStats.Get(stat);
+            float newStatVal = hypotheticalEvaluatedStats.Get(stat);
+            float delta = newStatVal - currentStatVal;
 
             VisualElement row = new VisualElement();
             row.AddToClassList("item-comparison-row");
@@ -2078,13 +2189,13 @@ public class PageItemsController
             VisualElement deltaGroup = new VisualElement();
             deltaGroup.AddToClassList("item-delta-container");
 
-            Label currentValLabel = new Label(Mathf.RoundToInt(currentStatBaseValue).ToString());
+            Label currentValLabel = new Label(Mathf.RoundToInt(currentStatVal).ToString());
             currentValLabel.AddToClassList("item-current-value");
 
             Label arrowLabel = new Label("→");
             arrowLabel.AddToClassList("arrow-separator");
 
-            Label newValLabel = new Label(Mathf.RoundToInt(newTotalStat).ToString());
+            Label newValLabel = new Label(Mathf.RoundToInt(newStatVal).ToString());
             newValLabel.AddToClassList("item-new-value");
 
             Label deltaTagLabel = new Label($"({(delta >= 0 ? "+" : "")}{Mathf.RoundToInt(delta)})");
@@ -2105,54 +2216,6 @@ public class PageItemsController
             deltaContainer.Add(row);
         }
     }
-
-    /// <summary>
-    /// Calculates the bonus value given flat or percent modifiers.
-    /// </summary>
-    private float CalculateStatBonusTotal(EquipableSO equipable, StatType statType, float baseStatValue)
-    {
-        if (equipable?.StatModifiers == null) return 0f;
-
-        float totalFlat = 0f;
-        float totalPercent = 0f;
-
-        foreach (var mod in equipable.StatModifiers)
-        {
-            if (mod.statType == statType)
-            {
-                if (mod.modifierType == StatModifierType.Flat)
-                {
-                    totalFlat += mod.value;
-                }
-                else
-                {
-                    totalPercent += mod.value;
-                }
-            }
-        }
-
-        return totalFlat + (baseStatValue * (totalPercent / 100f));
-    }
-
-    /// <summary>
-    /// Helper method to retrieve current base stat value from HeroStats.
-    /// </summary>
-    private float GetHeroBaseStatValue(HeroStats hero, StatType statType)
-    {
-        if (hero == null) return 0f;
-
-        switch (statType)
-        {
-            case StatType.MaxHP: return hero.MaxHp;
-            case StatType.MaxPP: return hero.MaxPp;
-            case StatType.Attack: return hero.Attack;
-            case StatType.Defense: return hero.Defense;
-            case StatType.Agility: return hero.Agility;
-            case StatType.Luck: return hero.Luck;
-            default: return 0f;
-        }
-    }
-
     /// <summary>
     /// Friendly name resolver for StatType enums.
     /// </summary>
