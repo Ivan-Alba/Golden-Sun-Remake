@@ -228,6 +228,10 @@ public class GameManager : MonoBehaviour
                 {
                     stats.LevelUp();
                     stats.LevelUp();
+                    stats.LevelUp();
+                    stats.LevelUp();
+                    stats.LevelUp();
+                    stats.LevelUp();
                     stats.LevelUp(); 
                 } 
             }

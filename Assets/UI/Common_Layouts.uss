@@ -444,12 +444,12 @@
     align-items: center;
 }
 
-.badge-psy-status {
-    font-size: 8px;
+.page-djinn-container .badge-psy-status {
+    font-size: 10px;
     -unity-font-style: bold;
-    padding: 2px 4px;
+    padding: 3px 5px;
     border-radius: 3px;
-    -unity-text-align: middle-center;
+    -unity-text-align: middle-right;
 }
 
 .badge-gained {
@@ -953,13 +953,67 @@
     flex-direction: column;
 }
 
+/* ==========================================
+   PSYNERGY COMPARISON FILTER TABS
+   ========================================== */
+
 .summary-psynergy-filter-tabs {
     flex-direction: row;
-    width: 100%;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 6px;
-    flex-shrink: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+    width: 100%;
 }
 
+.mini-tab-btn {
+    flex-grow: 1;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: #A0A0A0;
+    background-color: rgba(20, 20, 25, 0.6);
+    border-width: 1px;
+    border-color: #444444;
+    border-radius: 3px;
+    -unity-text-align: middle-center;
+    transition-duration: 0.15s;
+}
+
+.mini-tab-btn:hover {
+    background-color: rgba(40, 40, 50, 0.8);
+    border-color: #777777;
+    color: #FFFFFF;
+}
+
+.mini-tab-btn:active,
+.mini-tab-btn.active {
+    background-color: #2D3A45;
+    border-color: #E6B800;
+    color: #FFD700;
+}
+
+/* Modificadores específicos por categoría */
+
+.mini-tab-btn.tab-gained:hover,
+.mini-tab-btn.tab-gained.active {
+    border-color: #2ECC71;
+    color: #2ECC71;
+    background-color: rgba(46, 204, 113, 0.15);
+}
+
+.mini-tab-btn.tab-lost:hover,
+.mini-tab-btn.tab-lost.active {
+    border-color: #E74C3C;
+    color: #E74C3C;
+    background-color: rgba(231, 76, 60, 0.15);
+}
 .summary-psynergy-list-scroll {
     width: 100%;
     flex-grow: 1;

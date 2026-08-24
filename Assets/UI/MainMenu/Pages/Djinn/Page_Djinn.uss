@@ -7,7 +7,7 @@
 }
 
 .djinn-summary-panel .subpanel-header-label,
-.panel-column-center .subpanel-header-label{
+.modal-overlay-container .subpanel-header-label{
     font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: upper-left;

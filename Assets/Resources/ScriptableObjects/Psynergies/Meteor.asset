@@ -35,7 +35,7 @@ MonoBehaviour:
     canBeUsedInMenu: 0
     menuSoundEffect: {fileID: 0}
     menuVfxPrefab: {fileID: 0}
-  basePower: 20
+  basePower: 50
   scalingType: 0
   damageMultiplier: 1
   drainsHp: 0

@@ -355,7 +355,7 @@ public class PagePsynergyController
             elementPipIcon.AddToClassList(GetElementPipCssClass(psynergy.Element));
         }
 
-        Label nameLabel = card.Q<Label>("label_psynergy_name");
+        Label nameLabel = card.Q<Label>("label_card_name");
         if (nameLabel != null)
         {
             nameLabel.text = psynergy.PsynergyName;
@@ -393,7 +393,7 @@ public class PagePsynergyController
         }
 
         // 6. Bind PP Cost & Low PP Warning Style
-        Label ppLabel = card.Q<Label>("label_psynergy_pp");
+        Label ppLabel = card.Q<Label>("label_card_pp");
         if (ppLabel != null)
         {
             ppLabel.text = $"{psynergy.PpCost} PP";

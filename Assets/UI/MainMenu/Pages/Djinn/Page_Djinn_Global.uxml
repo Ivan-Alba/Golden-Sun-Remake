@@ -265,8 +265,8 @@
                         </ui:VisualElement>
                         <ui:VisualElement name="separator" class="info-divider" />
                         <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
-                            <ui:Label text="PSINERGÍAS AFECTADAS" class="subpanel-header-label" />
-                            <ui:VisualElement name="psynergy_compare_tabs_left" class="summary-psynergy-filter-tabs" style="display: none;">
+                            <ui:Label text="PSINERGÍAS RESULTANTES" class="subpanel-header-label" />
+                            <ui:VisualElement name="psynergy_compare_tabs_left" class="summary-psynergy-filter-tabs" style="display: flex;">
                                 <ui:Button text="TODAS" name="btn_filter_all_left" class="mini-tab-btn active" />
                                 <ui:Button text="GANADAS" name="btn_filter_gained_left" class="mini-tab-btn tab-gained" />
                                 <ui:Button text="PERDIDAS" name="btn_filter_lost_left" class="mini-tab-btn tab-lost" />
@@ -393,7 +393,7 @@
                         <ui:VisualElement name="separator" class="info-divider" />
                         <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
                             <ui:Label text="PSINERGÍAS AFECTADAS" class="subpanel-header-label" />
-                            <ui:VisualElement name="psynergy_compare_tabs_right" class="summary-psynergy-filter-tabs" style="display: none;">
+                            <ui:VisualElement name="psynergy_compare_tabs_right" class="summary-psynergy-filter-tabs" style="display: flex;">
                                 <ui:Button text="TODAS" name="btn_filter_all_right" class="mini-tab-btn active" />
                                 <ui:Button text="GANADAS" name="btn_filter_gained_right" class="mini-tab-btn tab-gained" />
                                 <ui:Button text="PERDIDAS" name="btn_filter_lost_right" class="mini-tab-btn tab-lost" />

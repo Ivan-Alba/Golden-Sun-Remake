@@ -56,6 +56,8 @@ public class HeroDjinnController : MonoBehaviour
     public DjinnInstance LeaderDjinn => leaderDjinn;
     public CharacterClassSO CurrentClass => currentClass;
 
+    public ClassDatabaseSO ClassDatabase => classDatabase;
+
     #endregion
 
     #region Unity Lifecycle
@@ -112,6 +114,40 @@ public class HeroDjinnController : MonoBehaviour
     #endregion
 
     #region Djinn Management API
+
+    /// <summary>
+    /// Returns the total number of assigned Djinns of a specific element that are currently in SET state.
+    /// </summary>
+    public int GetSetCountByElement(ElementalType element)
+    {
+        int count = 0;
+        for (int i = 0; i < assignedDjinns.Count; i++)
+        {
+            DjinnInstance djinn = assignedDjinns[i];
+            if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.Element == element)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// Returns the total number of assigned Djinns of a specific element that are currently in SET state.
+    /// </summary>
+    public int GetTotalCountByElement(ElementalType element)
+    {
+        int count = 0;
+        for (int i = 0; i < assignedDjinns.Count; i++)
+        {
+            DjinnInstance djinn = assignedDjinns[i];
+            if (djinn != null && djinn.DjinnData != null && djinn.DjinnData.Element == element)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
 
     /// <summary>
     /// Designates a new Leader Djinn from the hero's assigned list (Out of combat feature).
@@ -214,26 +250,11 @@ public class HeroDjinnController : MonoBehaviour
     /// </summary>
     public void EvaluateClassAndStats(bool forceRefresh = false)
     {
-        int venusSet = 0;
-        int marsSet = 0;
-        int jupiterSet = 0;
-        int mercurySet = 0;
-
-        // Count ONLY Djinns currently in SET state
-        for (int i = 0; i < assignedDjinns.Count; i++)
-        {
-            DjinnInstance djinn = assignedDjinns[i];
-            if (djinn != null && djinn.CurrentState == DjinnState.Set)
-            {
-                switch (djinn.DjinnData.Element)
-                {
-                    case ElementalType.Venus: venusSet++; break;
-                    case ElementalType.Mars: marsSet++; break;
-                    case ElementalType.Jupiter: jupiterSet++; break;
-                    case ElementalType.Mercury: mercurySet++; break;
-                }
-            }
-        }
+        // Uso del nuevo helper para mantener el código limpio y conciso
+        int venusSet = GetSetCountByElement(ElementalType.Venus);
+        int marsSet = GetSetCountByElement(ElementalType.Mars);
+        int jupiterSet = GetSetCountByElement(ElementalType.Jupiter);
+        int mercurySet = GetSetCountByElement(ElementalType.Mercury);
 
         ElementalType heroBaseElement = (heroStats != null) ? heroStats.BaseElement : ElementalType.Venus;
 
@@ -244,10 +265,7 @@ public class HeroDjinnController : MonoBehaviour
         bool classHasChanged = (newClass != currentClass) || forceRefresh;
         currentClass = newClass;
 
-        // Synchronize active StatModifiers for all Djinns in SET state
         UpdateDjinnStatModifiers();
-
-        // Update Leader Djinn Passive Perk
         UpdateLeaderPassivePerk();
 
         if (classHasChanged)
@@ -257,7 +275,6 @@ public class HeroDjinnController : MonoBehaviour
 
         OnDjinnSetupUpdated?.Invoke();
 
-        // Trigger comprehensive stat and psynergy recalculation on HeroStats
         if (heroStats != null)
         {
             heroStats.RecalculateStatsAndPsynergies();
