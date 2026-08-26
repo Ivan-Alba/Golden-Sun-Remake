@@ -386,16 +386,28 @@
     background-repeat: no-repeat;
 }
 
-.item-quantity-label {
+.quantity-box {
+    height: 20px;
+    width: 20px;
     position: absolute;
     right: 4px;
     bottom: 2px;
-    font-size: 13px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-width: 1px;
+    padding: 3px;
+}
+
+.slot-box .item-quantity-label {
+    font-size: 14px;
     -unity-font-style: bold;
     color: #FFFFFF;
     -unity-text-outline-width: 1px;
     -unity-text-outline-color: #000000;
+    -unity-text-align: middle-center;
 }
+
 
 /* ==========================================
    STACK SPLITTER POPUP MODAL

@@ -25,6 +25,12 @@
     --color-jupiter: #9B59B6;
     --color-mercury: #3498DB;
     --color-none: #555555;
+
+    --color-venus-bg: rgba(200, 138, 46, 0.12);
+    --color-mars-bg: rgba(231, 76, 60, 0.12);
+    --color-jupiter-bg: rgba(155, 89, 182, 0.12);
+    --color-mercury-bg: rgba(52, 152, 219, 0.12);
+
 }
 
 /* --- Elemental Pips (Standardized) --- */

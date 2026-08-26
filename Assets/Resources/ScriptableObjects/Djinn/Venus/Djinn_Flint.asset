@@ -16,14 +16,16 @@ MonoBehaviour:
   djinnSlug: flint
   element: 1
   icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
-  description: Este djinn de caracter jocoso es el primero en unirse a la aventura.
+  description: "Impulsado a la acci\xF3n tras el despertar del Templo Sonne en Tale.
+    Es el primer esp\xEDritu de la tierra que decide prestar su fuerza a la causa
+    de los Adeptos."
   setStatModifiers:
   - statType: 0
-    value: 10
     modifierType: 0
+    value: 11
   - statType: 2
-    value: 4
     modifierType: 0
+    value: 4
   unleashEffect: {fileID: 11400000, guid: be8e5aa35b4e24941b7341d35842d4c9, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 11400000, guid: c8643129b21db7e4bbeebad50f45edb3, type: 2}

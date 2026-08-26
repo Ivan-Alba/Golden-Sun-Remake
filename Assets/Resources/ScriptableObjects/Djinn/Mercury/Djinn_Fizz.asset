@@ -10,24 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
-  m_Name: Djinn_Granite
+  m_Name: Djinn_Fizz
   m_EditorClassIdentifier: 
-  djinnName: Granite
-  djinnSlug: granite
-  element: 1
-  icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
-  description: 
+  djinnName: Burbuja
+  djinnSlug: fizz
+  element: 4
+  icon: {fileID: 21300000, guid: e45c3409db645454eb9516f68cb8ed31, type: 3}
+  description: "Fiel compa\xF1ero vinculado al linaje protector del Faro de Mercurio.
+    Su esencia mana como una fuente curativa capaz de aliviar las heridas m\xE1s
+    profundas."
   setStatModifiers:
+  - statType: 0
+    modifierType: 0
+    value: 11
+  - statType: 1
+    modifierType: 0
+    value: 4
   - statType: 3
-    value: 3
     modifierType: 0
-  - statType: 1
-    value: 3
-    modifierType: 0
-  - statType: 1
-    value: 3
-    modifierType: 0
-  unleashEffect: {fileID: 11400000, guid: 52c6a1aabc59aba4384b72df889520fe, type: 2}
+    value: 1
+  unleashEffect: {fileID: 11400000, guid: 1868c6ffa177d47418ed979881fe0c0a, type: 2}
   baseRecoveryTurns: 2
-  leaderPassiveEffect: {fileID: 11400000, guid: 4157abea7d062b543a5de5153186dd23, type: 2}
+  leaderPassiveEffect: {fileID: 0}
   leaderPassiveDescription: 

@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Flint_Passive
+  m_Name: Fever_Passive
   m_EditorClassIdentifier: 
-  effectSlug: flint_passive
-  effectName: Romperocas
+  effectSlug: fever_passive
+  effectName: Chispa Delirante
   icon: {fileID: 0}
-  description: Aumenta el ataque un 2%.
+  description: "Otorga un 10% de Poder Elemental de Marte y le da a todos los ataques
+    f\xEDsicos del personaje un 10% de probabilidad de infligir Desorientaci\xF3n."
   category: 0
   effectType: 0
   persistsAfterBattle: 1
@@ -30,9 +31,8 @@ MonoBehaviour:
   damageMitigationPercentage: 0
   doomTurnCount: 3
   statModifiers:
-  - statType: 2
-    valueType: 1
-    value: 0.2
-  elementalModifiers: []
+  - statType: 7
+    modifierType: 2
+    value: 0.1
   resourceRegens: []
   damagesOverTime: []

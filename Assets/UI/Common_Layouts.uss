@@ -426,16 +426,19 @@
 /* Elemental Card Stripes & Borders */
 .element-venus .card-element-stripe { background-color: var(--color-venus); }
 .element-venus { border-color: var(--color-venus); }
+.element-venus-bg { background-color: var(--color-venus-bg); }
 
 .element-mars .card-element-stripe { background-color: var(--color-mars); }
 .element-mars { border-color: var(--color-mars); }
+.element-mars-bg { background-color: var(--color-mars-bg); }
 
 .element-jupiter .card-element-stripe { background-color: var(--color-jupiter); }
 .element-jupiter { border-color: var(--color-jupiter); }
+.element-jupiter-bg { background-color: var(--color-jupiter-bg); }
 
 .element-mercury .card-element-stripe { background-color: var(--color-mercury); }
 .element-mercury { border-color: var(--color-mercury); }
-
+.element-mercury-bg { background-color: var(--color-mercury-bg); }
 
 /* Gained / Lost Psynergies */
 .card-status-box {
@@ -574,7 +577,8 @@
 }
 
 /* --- Section Subheaders (Gold Accent) --- */
-.extra-info-card-root .section-header-title {
+.extra-info-card-root .section-header-title,
+.page-status-container .section-header-title {
     font-size: 11.5px;
     flex-shrink: 0;
     color: var(--color-gold-sun);
@@ -749,10 +753,19 @@
    8. REUSABLE HERO SUMMARY & STATS GRID COMPONENT
    ========================================================================= */
 
+.hero-header-instance {
+    width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
 /* --- Hero Summary Box (Header / Avatar / Pips) --- */
 .summary-hero-box {
     flex-direction: row;
     width: 100%;
+    height: auto;
+    flex-grow: 0;
+    align-self: stretch;
     align-items: center;
     background-color: rgba(20, 29, 44, 0.9);
     border-radius: 4px;

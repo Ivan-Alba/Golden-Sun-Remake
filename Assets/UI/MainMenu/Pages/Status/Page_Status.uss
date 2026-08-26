@@ -235,13 +235,6 @@
     margin-bottom: 6px;
 }
 
-.page-status-container .section-header-label {
-    font-size: 10px;
-    -unity-font-style: bold;
-    color: #DAA520;
-    margin-bottom: 6px;
-}
-
 /* ==========================================
    4. MAIN STATS GRID (2x2)
    ========================================== */
@@ -301,7 +294,7 @@
 }
 
 .elem-col-title {
-    font-size: 9px;
+    font-size: 10px;
     -unity-font-style: bold;
     color: #AAAAAA;
     width: 28px;
@@ -318,23 +311,18 @@
 }
 
 .element-name {
-    font-size: 11px;
+    font-size: 12px;
     color: #E0E0E0;
     flex-grow: 1;
     margin-left: 6px;
 }
 
 .element-val {
-    font-size: 11px;
+    font-size: 12px;
     color: #FFFFFF;
     width: 28px;
     text-align: center;
 }
-
-.icon-venus { background-color: #C88A2E; border-color: rgba(255, 255, 255, 0.4); }
-.icon-mars { background-color: #E74C3C; border-color: rgba(255, 255, 255, 0.4); }
-.icon-jupiter { background-color: #9B59B6; border-color: rgba(255, 255, 255, 0.4); }
-.icon-mercury { background-color: #3498DB; border-color: rgba(255, 255, 255, 0.4); }
 
 /* ==========================================
    6. BOTTOM UNIFIED CONTAINER (NEUTRAL OUTER BOX)
@@ -360,7 +348,7 @@
 }
 
 .page-status-container .hero-class-label {
-    font-size: 14px;
+    font-size: 15px;
     -unity-font-style: bold;
     color: #00FF88;
     letter-spacing: 0.5px;
@@ -370,7 +358,7 @@
     border-width: 1px;
     border-color: rgba(218, 165, 32, 0.4);
     border-radius: 4px;
-    padding: 1px 8px;
+    padding: 2px 8px;
 }
 
 .equipped-pips-row {
@@ -393,10 +381,10 @@
 }
 
 .page-status-container .pip-count {
-    font-size: 11px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #E0E0E0;
-    width: 20px;
+    width: 25px;
     margin-right: 2px;
 }
 
@@ -466,21 +454,18 @@
     border-radius: 4px;
     border-width: 1px;
     /* Altura fija para garantizar alineación exacta en las 4 hero cards */
-    height: 78px;
-    min-height: 78px;
+    height: 95px;
+    min-height: 95px;
     box-sizing: border-box;
 }
 
-/* Elemental Borders & Card Backgrounds for main-djinn-body */
-.djinn-venus-border { border-color: rgba(200, 138, 46, 0.7); }
-.djinn-mars-border { border-color: rgba(231, 76, 60, 0.7); }
-.djinn-jupiter-border { border-color: rgba(155, 89, 182, 0.7); }
-.djinn-mercury-border { border-color: rgba(52, 152, 219, 0.7); }
-
-.djinn-venus-bg { background-color: rgba(200, 138, 46, 0.12); }
-.djinn-mars-bg { background-color: rgba(231, 76, 60, 0.12); }
-.djinn-jupiter-bg { background-color: rgba(155, 89, 182, 0.12); }
-.djinn-mercury-bg { background-color: rgba(52, 152, 219, 0.12); }
+.main-djinn-name-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    overflow: hidden;
+}
 
 /* ESTILO DISCRETO Y OSCURO PARA DJINN SIN ASIGNAR */
 .djinn-none-border { 
@@ -492,8 +477,8 @@
 }
 
 .main-djinn-full-icon {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     border-radius: 4px;
     margin-right: 8px;
     border-width: 1px;
@@ -530,15 +515,15 @@
     margin-bottom: 3px;
 }
 
-.passive-title-label {
-    font-size: 10.5px;
+.main-djinn-body .passive-title-label {
+    font-size: 12px;
     -unity-font-style: bold;
-    color: #60A5FA;
+    color: var(--color-accent-blue);
     margin-bottom: 1px;
 }
 
 .passive-desc-label {
-    font-size: 9px;
+    font-size: 10px;
     color: #AAAAAA;
     white-space: normal;
 }

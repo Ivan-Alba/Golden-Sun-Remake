@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/Pages/Status/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
     <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 100%;">
         <ui:VisualElement name="hero_card_0" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_0" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
@@ -25,7 +27,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="stats_section_0" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_0" class="stats-grid">
                         <ui:VisualElement name="stat_row_0_0" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-attack" />
@@ -51,7 +53,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="element_section_0" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;" />
+                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;" />
                         <ui:VisualElement class="element-col-titles">
                             <ui:Label text="POD" class="elem-col-title" />
                             <ui:Label text="RES" class="elem-col-title" />
@@ -106,17 +108,19 @@
                     </ui:VisualElement>
                     <ui:VisualElement name="djinn_card_divider_0" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_0" class="djinn-header-row">
-                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
+                        <ui:Label text="DJINN PRINCIPAL" class="section-header-title" />
                         <ui:VisualElement name="badge_status_0" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_0" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="main_djinn_body_0" class="main-djinn-body djinn-venus-border djinn-venus-bg">
+                    <ui:VisualElement name="main_djinn_body_0" class="main-djinn-body element-venus element-venus-bg">
                         <ui:VisualElement name="main_djinn_icon_0" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_0" picking-mode="Ignore" class="main-djinn-details">
-                            <ui:Label text="Flint" name="label_main_djinn_name_0" picking-mode="Ignore" class="main-djinn-name-label" />
-                            <ui:Label text="Ataque terrestre con potestad telúrica." name="label_main_djinn_ability_0" picking-mode="Ignore" class="main-djinn-ability-label" />
-                            <ui:VisualElement picking-mode="Ignore" class="passive-divider" />
+                            <ui:VisualElement name="main_djinn_name_row_0" class="main-djinn-name-row">
+                                <ui:VisualElement name="main_djinn_element_icon_0" class="pip-icon icon-venus" />
+                                <ui:Label text="Flint" name="label_main_djinn_name_0" picking-mode="Ignore" class="main-djinn-name-label" />
+                            </ui:VisualElement>
+                            <ui:VisualElement picking-mode="Ignore" class="info-divider" />
                             <ui:Label text="PASIVA: Resonancia Terrestre" name="label_passive_title_0" picking-mode="Ignore" class="passive-title-label" />
                             <ui:Label text="Aumenta 15% daño de Venus y defensa física." name="label_passive_desc_0" picking-mode="Ignore" class="passive-desc-label" />
                         </ui:VisualElement>
@@ -148,7 +152,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="stats_section_1" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_1" class="stats-grid">
                         <ui:VisualElement name="stat_row_0_1" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-attack" />
@@ -174,7 +178,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="element_section_1" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
+                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label section-header-title" style="margin-bottom: 0;" />
                         <ui:VisualElement class="element-col-titles">
                             <ui:Label text="POD" class="elem-col-title" />
                             <ui:Label text="RES" class="elem-col-title" />
@@ -229,17 +233,19 @@
                     </ui:VisualElement>
                     <ui:VisualElement name="djinn_card_divider_1" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_1" class="djinn-header-row">
-                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
+                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
                         <ui:VisualElement name="badge_status_1" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_1" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="main_djinn_body_1" class="main-djinn-body djinn-mars-border djinn-mars-bg">
+                    <ui:VisualElement name="main_djinn_body_1" class="main-djinn-body element-mars element-mars-bg">
                         <ui:VisualElement name="main_djinn_icon_1" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_1" picking-mode="Ignore" class="main-djinn-details">
-                            <ui:Label text="Forge" name="label_main_djinn_name_1" picking-mode="Ignore" class="main-djinn-name-label" />
-                            <ui:Label text="Llama ardiente que erosiona defensas." name="label_main_djinn_ability_1" picking-mode="Ignore" class="main-djinn-ability-label" />
-                            <ui:VisualElement picking-mode="Ignore" class="passive-divider" />
+                            <ui:VisualElement name="main_djinn_name_row_1" class="main-djinn-name-row">
+                                <ui:VisualElement name="main_djinn_element_icon_1" class="pip-icon icon-mars" />
+                                <ui:Label text="Forge" name="label_main_djinn_name_1" picking-mode="Ignore" class="main-djinn-name-label" />
+                            </ui:VisualElement>
+                            <ui:VisualElement picking-mode="Ignore" class="passive-divider info-divider" />
                             <ui:Label text="PASIVA: Furia Ígnea" name="label_passive_title_1" picking-mode="Ignore" class="passive-title-label" />
                             <ui:Label text="Incrementa el crítico físico un 10% y poder Marte." name="label_passive_desc_1" picking-mode="Ignore" class="passive-desc-label" />
                         </ui:VisualElement>
@@ -271,7 +277,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="stats_section_2" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_2" class="stats-grid">
                         <ui:VisualElement name="stat_row_0_2" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-attack" />
@@ -297,7 +303,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="element_section_2" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
+                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0;" />
                         <ui:VisualElement class="element-col-titles">
                             <ui:Label text="POD" class="elem-col-title" />
                             <ui:Label text="RES" class="elem-col-title" />
@@ -352,17 +358,19 @@
                     </ui:VisualElement>
                     <ui:VisualElement name="djinn_card_divider_2" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_2" class="djinn-header-row">
-                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
+                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
                         <ui:VisualElement name="badge_status_2" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_2" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="main_djinn_body_2" class="main-djinn-body djinn-jupiter-border djinn-jupiter-bg">
+                    <ui:VisualElement name="main_djinn_body_2" class="main-djinn-body element-jupiter element-jupiter-bg">
                         <ui:VisualElement name="main_djinn_icon_2" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_2" picking-mode="Ignore" class="main-djinn-details">
-                            <ui:Label text="Gust" name="label_main_djinn_name_2" picking-mode="Ignore" class="main-djinn-name-label" />
-                            <ui:Label text="Ráfaga eólica que disipa barreras." name="label_main_djinn_ability_2" picking-mode="Ignore" class="main-djinn-ability-label" />
-                            <ui:VisualElement picking-mode="Ignore" class="passive-divider" />
+                            <ui:VisualElement name="main_djinn_name_row_2" class="main-djinn-name-row">
+                                <ui:VisualElement name="main_djinn_element_icon_2" class="pip-icon icon-jupiter" />
+                                <ui:Label text="Gust" name="label_main_djinn_name_2" picking-mode="Ignore" enable-rich-text="true" class="main-djinn-name-label" />
+                            </ui:VisualElement>
+                            <ui:VisualElement picking-mode="Ignore" class="info-divider" />
                             <ui:Label text="PASIVA: Agilidad Celeste" name="label_passive_title_2" picking-mode="Ignore" class="passive-title-label" />
                             <ui:Label text="Aumenta 20% agilidad y regeneración de PP." name="label_passive_desc_2" picking-mode="Ignore" class="passive-desc-label" />
                         </ui:VisualElement>
@@ -394,7 +402,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="stats_section_3" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-label" style="margin-bottom: 0;" />
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
                     <ui:VisualElement name="stats_grid_3" class="stats-grid">
                         <ui:VisualElement name="stat_row_0_3" class="stat-grid-item">
                             <ui:VisualElement class="stat-icon icon-attack" />
@@ -420,7 +428,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="element_section_3" picking-mode="Ignore" class="section-box">
                     <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label" style="margin-bottom: 0;" />
+                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0;" />
                         <ui:VisualElement class="element-col-titles">
                             <ui:Label text="POD" class="elem-col-title" />
                             <ui:Label text="RES" class="elem-col-title" />
@@ -475,17 +483,19 @@
                     </ui:VisualElement>
                     <ui:VisualElement name="djinn_card_divider_3" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_3" class="djinn-header-row">
-                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label" />
+                        <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
                         <ui:VisualElement name="badge_status_3" class="status-badge badge-active">
                             <ui:Label text="PASIVA ACTIVA" name="label_badge_status_3" class="status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="main_djinn_body_3" class="main-djinn-body djinn-mercury-border djinn-mercury-bg">
+                    <ui:VisualElement name="main_djinn_body_3" class="main-djinn-body element-mercury element-mercury-bg">
                         <ui:VisualElement name="main_djinn_icon_3" picking-mode="Ignore" class="main-djinn-full-icon" />
                         <ui:VisualElement name="main_djinn_details_3" picking-mode="Ignore" class="main-djinn-details">
-                            <ui:Label text="Fizz" name="label_main_djinn_name_3" picking-mode="Ignore" class="main-djinn-name-label" />
-                            <ui:Label text="Oleada curativa que restablece PV." name="label_main_djinn_ability_3" picking-mode="Ignore" class="main-djinn-ability-label" />
-                            <ui:VisualElement picking-mode="Ignore" class="passive-divider" />
+                            <ui:VisualElement name="main_djinn_name_row_3" class="main-djinn-name-row">
+                                <ui:VisualElement name="main_djinn_element_icon_3" class="pip-icon icon-mercury" />
+                                <ui:Label text="Bubble" name="label_main_djinn_name_3" picking-mode="Ignore" class="main-djinn-name-label" />
+                            </ui:VisualElement>
+                            <ui:VisualElement picking-mode="Ignore" class="info-divider" />
                             <ui:Label text="PASIVA: Gracia Fluvial" name="label_passive_title_3" picking-mode="Ignore" class="passive-title-label" />
                             <ui:Label text="Aumenta 15% curación y defensa elemental." name="label_passive_desc_3" picking-mode="Ignore" class="passive-desc-label" />
                         </ui:VisualElement>

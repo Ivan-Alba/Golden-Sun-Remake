@@ -464,11 +464,13 @@ public class PageItemsController
             if (slotUI == null) continue;
 
             VisualElement iconElem = slotUI.Q<VisualElement>("item_icon");
+            VisualElement quantityBox = slotUI.Q<VisualElement>("quantity_box");
             Label quantityLabel = slotUI.Q<Label>("label_quantity");
             VisualElement placeholderElem = slotUI.Q<VisualElement>("slot_placeholder");
             VisualElement equippedBadge = slotUI.Q<VisualElement>("badge_equipped");
 
             if (iconElem != null) iconElem.pickingMode = PickingMode.Ignore;
+            if (quantityBox != null) quantityBox.pickingMode = PickingMode.Ignore;
             if (quantityLabel != null) quantityLabel.pickingMode = PickingMode.Ignore;
             if (placeholderElem != null) placeholderElem.pickingMode = PickingMode.Ignore;
             if (equippedBadge != null) equippedBadge.pickingMode = PickingMode.Ignore;
@@ -488,7 +490,7 @@ public class PageItemsController
                 if (quantityLabel != null)
                 {
                     quantityLabel.text = (slot.Item.MaxStack > 1 && slot.Quantity > 1) ? slot.Quantity.ToString() : string.Empty;
-                    quantityLabel.style.display = (slot.Quantity > 1) ? DisplayStyle.Flex : DisplayStyle.None;
+                    quantityBox.style.display = (slot.Quantity > 1) ? DisplayStyle.Flex : DisplayStyle.None;
                 }
 
                 if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.None;
@@ -504,10 +506,10 @@ public class PageItemsController
                     iconElem.style.display = DisplayStyle.None;
                 }
 
-                if (quantityLabel != null)
+                if (quantityBox != null)
                 {
                     quantityLabel.text = string.Empty;
-                    quantityLabel.style.display = DisplayStyle.None;
+                    quantityBox.style.display = DisplayStyle.None;
                 }
 
                 if (placeholderElem != null) placeholderElem.style.display = DisplayStyle.Flex;

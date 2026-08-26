@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" path="Assets/UI/Components/HeroSummaryHeader.uxml" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <ui:VisualElement name="class_pips_box" class="summary-hero-box">
+        <ui:VisualElement name="hero_avatar_box" class="summary-hero-avatar-box">
+            <ui:VisualElement name="hero_avatar_icon" class="summary-hero-avatar-icon" />
+        </ui:VisualElement>
+        <ui:VisualElement class="summary-hero-info-box">
+            <ui:VisualElement class="hero-title-row summary-hero-title-row">
+                <ui:Label text="Hans" name="label_hero_name" class="summary-hero-name" />
+                <ui:Label text="Nv. 1" name="label_hero_level" class="summary-hero-column-level" />
+            </ui:VisualElement>
+            <ui:VisualElement name="class_name_container" class="summary-class-name-container">
+                <ui:Label text="Sin Clase" name="label_hero_class_current" class="summary-class-title" />
+                <ui:Label text="➔" name="label_class_arrow" class="summary-class-arrow" style="display: none;" />
+                <ui:Label text="Clase Proyectada" name="label_hero_class_next" class="summary-class-title" style="display: none;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="pips_row" class="summary-pips-row">
+                <ui:VisualElement class="summary-pip-element-group">
+                    <ui:VisualElement class="pip-icon icon-venus" />
+                    <ui:Label text="0/0" name="label_pip_venus" class="pip-count" />
+                </ui:VisualElement>
+                <ui:VisualElement class="summary-pip-element-group">
+                    <ui:VisualElement class="pip-icon icon-mars" />
+                    <ui:Label text="0/0" name="label_pip_mars" class="pip-count" />
+                </ui:VisualElement>
+                <ui:VisualElement class="summary-pip-element-group">
+                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                    <ui:Label text="0/0" name="label_pip_jupiter" class="pip-count" />
+                </ui:VisualElement>
+                <ui:VisualElement class="summary-pip-element-group">
+                    <ui:VisualElement class="pip-icon icon-mercury" />
+                    <ui:Label text="0/0" name="label_pip_mercury" class="pip-count" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

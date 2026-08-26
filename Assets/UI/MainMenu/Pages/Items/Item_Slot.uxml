@@ -2,6 +2,8 @@
     <ui:VisualElement name="slot_root" class="slot-box item-slot-box">
         <ui:VisualElement name="slot_placeholder" class="slot-placeholder" />
         <ui:VisualElement name="item_icon" class="item-icon" />
-        <ui:Label name="label_quantity" class="item-quantity-label" />
+        <ui:VisualElement name="quantity_box" class="quantity-box" style="display: none;">
+            <ui:Label name="label_quantity" class="item-quantity-label" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

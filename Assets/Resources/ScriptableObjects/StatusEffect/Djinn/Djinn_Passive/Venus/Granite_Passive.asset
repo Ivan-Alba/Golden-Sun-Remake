@@ -10,26 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Damage_Mitigation_10
+  m_Name: Granite_Passive
   m_EditorClassIdentifier: 
-  effectSlug: damage_mitigation_10
-  effectName: "Da\xF1o reducido 10%"
+  effectSlug: granite_passive
+  effectName: Baluarte de Piedra
   icon: {fileID: 0}
-  description: "Crea una barrera que protege del da\xF1o."
+  description: "Otorga un +10% de Defensa y reduce un 5% el da\xF1o total recibido."
   category: 0
-  effectType: 5
-  persistsAfterBattle: 0
+  effectType: 0
+  persistsAfterBattle: 1
   ticksInOverworld: 0
   stepsPerOverworldTick: 4
-  baseDurationTurns: 3
+  baseDurationTurns: -1
   isStackable: 0
   maxStacks: 1
   autoCureChancePerTurn: 0
   cureOnPhysicalDamage: 0
   incapacitateType: 0
-  damageMitigationPercentage: 10
+  damageMitigationPercentage: 5
   doomTurnCount: 3
-  statModifiers: []
-  elementalModifiers: []
+  statModifiers:
+  - statType: 3
+    modifierType: 2
+    value: 0.1
   resourceRegens: []
   damagesOverTime: []

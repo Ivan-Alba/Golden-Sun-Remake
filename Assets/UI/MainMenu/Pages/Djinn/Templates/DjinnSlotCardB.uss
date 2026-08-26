@@ -4,14 +4,14 @@
 
 .djinn-card-b-root {
     width: 100%;
-    height: 70px; /* Altura estricta para que la tarjeta no se expanda */
-    max-height: 70px;
+    height: 68px;
+    max-height: 68px;
     background-color: rgba(10, 16, 26, 0.75);
     border-width: 2px;
     border-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     padding: 3px 5px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     flex-direction: row;
     align-items: center;
     justify-content: center;

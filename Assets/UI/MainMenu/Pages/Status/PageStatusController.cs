@@ -168,6 +168,7 @@ public class PageStatusController
         VisualElement djinnCard = card.Q<VisualElement>($"main_djinn_card_{cardIndex}") ?? card.Q<VisualElement>("main_djinn_card");
         VisualElement djinnBody = card.Q<VisualElement>($"main_djinn_body_{cardIndex}") ?? card.Q<VisualElement>("main_djinn_body");
         VisualElement djinnIcon = card.Q<VisualElement>($"main_djinn_icon_{cardIndex}") ?? card.Q<VisualElement>("main_djinn_icon");
+        VisualElement djinnElementIcon = card.Q<VisualElement>($"main_djinn_element_icon_{cardIndex}");
         VisualElement badgeStatus = card.Q<VisualElement>($"badge_status_{cardIndex}") ?? card.Q<VisualElement>("badge_status");
         Label badgeLabel = card.Q<Label>($"label_badge_status_{cardIndex}") ?? card.Q<Label>("label_badge_status");
 
@@ -184,9 +185,10 @@ public class PageStatusController
             DjinnSO data = leader.DjinnData;
 
             if (nameLabel != null) nameLabel.text = data.DjinnName;
-            if (abilityLabel != null) abilityLabel.text = data.Description;
+            if (abilityLabel != null) abilityLabel.text = data.UnleashEffect.Description;
+            if (djinnIcon != null) djinnIcon.style.backgroundImage = new StyleBackground(data.Icon);
 
-            UpdateDjinnElementStyles(djinnBody, djinnIcon, data.Element);
+            UpdateDjinnElementStyles(djinnBody, djinnElementIcon, data.Element);
 
             StatusEffectSO passiveEffect = data.LeaderPassiveEffect;
             if (passiveEffect != null)
@@ -195,7 +197,7 @@ public class PageStatusController
                 if (passiveTitleLabel != null)
                 {
                     passiveTitleLabel.style.display = DisplayStyle.Flex;
-                    passiveTitleLabel.text = $"PASIVA: {passiveEffect.EffectName}";
+                    passiveTitleLabel.text = passiveEffect.EffectName;
                 }
                 if (passiveDescLabel != null)
                 {
@@ -253,7 +255,7 @@ public class PageStatusController
             if (passiveDescLabel != null) passiveDescLabel.style.display = DisplayStyle.None;
             if (badgeStatus != null) badgeStatus.style.display = DisplayStyle.None;
 
-            ResetDjinnElementStyles(djinnBody, djinnIcon);
+            ResetDjinnElementStyles(djinnBody, djinnElementIcon);
             if (djinnBody != null)
             {
                 djinnBody.AddToClassList("djinn-none-border");
@@ -262,41 +264,56 @@ public class PageStatusController
         }
     }
 
-    private void UpdateDjinnElementStyles(VisualElement djinnBody, VisualElement icon, ElementalType element)
+    private void UpdateDjinnElementStyles(VisualElement djinnBody, VisualElement elementIcon, ElementalType element)
     {
         if (djinnBody == null) return;
 
-        ResetDjinnElementStyles(djinnBody, icon);
+        ResetDjinnElementStyles(djinnBody, elementIcon);
 
-        string elemLower = element.ToString().ToLower();
-        djinnBody.AddToClassList($"djinn-{elemLower}-border");
-        djinnBody.AddToClassList($"djinn-{elemLower}-bg");
+        djinnBody.AddToClassList($"element-{element.ToString().ToLower()}");
+        djinnBody.AddToClassList($"element-{element.ToString().ToLower()}-bg");
+
+        if (elementIcon != null)
+        {
+            switch (element)
+            {
+                case ElementalType.Venus:
+                    elementIcon.AddToClassList("icon-venus");
+                    break;
+                case ElementalType.Mars:
+                    elementIcon.AddToClassList("icon-mars");
+                    break;
+                case ElementalType.Jupiter:
+                    elementIcon.AddToClassList("icon-jupiter");
+                    break;
+                case ElementalType.Mercury:
+                    elementIcon.AddToClassList("icon-mercury");
+                    break;
+            }
+        }
     }
 
-    private void ResetDjinnElementStyles(VisualElement djinnBody, VisualElement icon)
+    private void ResetDjinnElementStyles(VisualElement djinnBody, VisualElement elementIcon)
     {
         if (djinnBody != null)
         {
-            djinnBody.RemoveFromClassList("djinn-venus-border");
-            djinnBody.RemoveFromClassList("djinn-mars-border");
-            djinnBody.RemoveFromClassList("djinn-jupiter-border");
-            djinnBody.RemoveFromClassList("djinn-mercury-border");
-            djinnBody.RemoveFromClassList("djinn-none-border");
-
-            djinnBody.RemoveFromClassList("djinn-venus-bg");
-            djinnBody.RemoveFromClassList("djinn-mars-bg");
-            djinnBody.RemoveFromClassList("djinn-jupiter-bg");
-            djinnBody.RemoveFromClassList("djinn-mercury-bg");
-            djinnBody.RemoveFromClassList("djinn-none-bg");
+            djinnBody.RemoveFromClassList("element-venus");
+            djinnBody.RemoveFromClassList("element-venus-bg");
+            djinnBody.RemoveFromClassList("element-mars");
+            djinnBody.RemoveFromClassList("element-mars-bg");
+            djinnBody.RemoveFromClassList("element-jupiter");
+            djinnBody.RemoveFromClassList("element-jupiter-bg");
+            djinnBody.RemoveFromClassList("element-mercury");
+            djinnBody.RemoveFromClassList("element-mercury-bg");
+            djinnBody.RemoveFromClassList("element-none");
         }
 
-        if (icon != null)
+        if (elementIcon != null)
         {
-            icon.RemoveFromClassList("djinn-venus-bg");
-            icon.RemoveFromClassList("djinn-mars-bg");
-            icon.RemoveFromClassList("djinn-jupiter-bg");
-            icon.RemoveFromClassList("djinn-mercury-bg");
-            icon.RemoveFromClassList("djinn-none-bg");
+            elementIcon.RemoveFromClassList("icon-venus");
+            elementIcon.RemoveFromClassList("icon-mars");
+            elementIcon.RemoveFromClassList("icon-jupiter");
+            elementIcon.RemoveFromClassList("icon-mercury");
         }
     }
 

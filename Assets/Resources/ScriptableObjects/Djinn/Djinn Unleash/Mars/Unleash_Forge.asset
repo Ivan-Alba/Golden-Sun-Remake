@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cb274ac509a3049813737a782853fa, type: 3}
   m_Name: Unleash_Forge
   m_EditorClassIdentifier: 
-  unleashName: Forjado a fuego
-  slugName: forge
-  description: Aumenta temporalmente el ataque del grupo.
+  unleashName: Aliento Abrasador
+  slugName: forge_unleash
+  description: Aumenta el Ataque de todo el grupo usando la furia de las llamas.
   icon: {fileID: 0}
   element: 2
   targetsAlly: 1

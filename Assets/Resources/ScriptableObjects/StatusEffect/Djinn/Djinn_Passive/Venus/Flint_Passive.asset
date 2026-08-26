@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Granite_passive
+  m_Name: Flint_Passive
   m_EditorClassIdentifier: 
-  effectSlug: granite_passive
-  effectName: "Protecci\xF3n elemental"
+  effectSlug: flint_passive
+  effectName: Veta de Poder
   icon: {fileID: 0}
-  description: Aumenta la resistencia a todos los elementos un 10%.
+  description: "Otorga un 10% de Poder Elemental de Venus y aumenta un 5% la probabilidad
+    de asestar golpes cr\xEDticos con ataques f\xEDsicos."
   category: 0
   effectType: 0
   persistsAfterBattle: 1
@@ -30,18 +31,8 @@ MonoBehaviour:
   damageMitigationPercentage: 0
   doomTurnCount: 3
   statModifiers:
-  - statType: 10
-    valueType: 1
+  - statType: 6
+    modifierType: 2
     value: 0.1
-  - statType: 11
-    valueType: 1
-    value: 0.1
-  - statType: 12
-    valueType: 1
-    value: 0.1
-  - statType: 13
-    valueType: 1
-    value: 0.1
-  elementalModifiers: []
   resourceRegens: []
   damagesOverTime: []

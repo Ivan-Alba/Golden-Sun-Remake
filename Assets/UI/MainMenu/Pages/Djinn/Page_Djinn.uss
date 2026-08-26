@@ -150,7 +150,7 @@
     border-width: 1px;
     border-color: #1f2d40;
     border-radius: 5px;
-    padding: 5px;
+    padding: 3px 5px;
     flex-direction: column;
 }
 

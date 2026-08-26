@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6cb274ac509a3049813737a782853fa, type: 3}
-  m_Name: Unleash_Flint
+  m_Name: Unleash_Granite
   m_EditorClassIdentifier: 
-  unleashName: Golpe Demoledor
-  slugName: flint_unleash
-  description: Ataca con un fuerte golpe que puede cortar la roca.
+  unleashName: Escudo Terrestre
+  slugName: granite_unleash
+  description: "Despliega una barrera de tierra que reduce a la mitad todo el da\xF1o
+    recibido por el grupo durante ese turno."
   icon: {fileID: 0}
   element: 1
-  targetsAlly: 0
-  isAreaOfEffect: 0
-  damageMultiplier: 1.25
+  targetsAlly: 1
+  isAreaOfEffect: 1
+  damageMultiplier: 1
   flatBonusDamage: 0
   statusEffects:
-  - {fileID: 11400000, guid: 05fb25099c9fc6b4dbf0f9e66929e5ae, type: 2}
-  statusChance: 0.5
+  - {fileID: 11400000, guid: 9e115259d0b10f444b83bed24e045801, type: 2}
+  statusChance: 1
   hitFXType: 0
   customHitVFX: {fileID: 0}
   casterAuraVFX: {fileID: 0}

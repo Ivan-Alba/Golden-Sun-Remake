@@ -153,15 +153,15 @@ public static class StatCalculator
 
         if (context.Modifiers.TryGetValue(StatType.Attack, out var attackMods))
         {
-            Debug.Log($"[StatCalculator Test] Attack Modifiers Count: {attackMods.Count}");
+            //Debug.Log($"[StatCalculator Test] Attack Modifiers Count: {attackMods.Count}");
             foreach (var mod in attackMods)
             {
-                Debug.Log($"[StatCalculator Test] Source: {mod.Source}, Value: {mod.Value}, Type: {mod.Type}");
+                //Debug.Log($"[StatCalculator Test] Source: {mod.Source}, Value: {mod.Value}, Type: {mod.Type}");
             }
         }
         else
         {
-            Debug.LogWarning("[StatCalculator Test] No Attack Modifiers found in context!");
+            //Debug.LogWarning("[StatCalculator Test] No Attack Modifiers found in context!");
         }
 
 
