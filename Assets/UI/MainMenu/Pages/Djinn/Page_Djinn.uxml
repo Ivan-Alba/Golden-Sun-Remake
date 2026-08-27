@@ -1,93 +1,31 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    
-<ui:Template name="HeroSummaryHeader" src="project://database/Assets/UI/Components/HeroSummaryHeader.uxml" />
-
-<Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Page_Djinn.uss?fileID=7433441132597879392&amp;guid=7a1279321ab063d4db434976e80f0555&amp;type=3#Page_Djinn" />
+    <ui:Template name="HeroSummaryHeader" src="project://database/Assets/UI/Components/HeroSummaryHeader.uxml?fileID=9197481963319205126&amp;guid=dd9c1beaf6716f1448ed73c9e8292334&amp;type=3#HeroSummaryHeader" />
+    <ui:Template name="CharacterStatsGrid" src="project://database/Assets/UI/Components/CharacterStatsGrid.uxml?fileID=9197481963319205126&amp;guid=3af735e5c0a48f642822636f051f6c3c&amp;type=3#CharacterStatsGrid" />
+    <ui:Template name="ElementalAffinityGrid" src="project://database/Assets/UI/Components/ElementalAffinityGrid.uxml?fileID=9197481963319205126&amp;guid=68abfa5848718a444971ab998d35f6d9&amp;type=3#ElementalAffinityGrid" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Page_Djinn.uss?fileID=7433441132597879392&amp;guid=7a1279321ab063d4db434976e80f0555&amp;type=3#Page_Djinn" />
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
     <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
     <ui:VisualElement name="page_djinn_container" class="page-three-columns-container">
-<ui:VisualElement name="djinn_summary_section" class="panel-column-left djinn-summary-panel">
-    <ui:Label text="ESTADO DE CLASE" name="label_summary_header" class="info-title-label" />
-    
-    <!-- Instancia del componente reutilizable HeroSummaryHeader -->
-    <ui:Instance template="HeroSummaryHeader" name="hero_summary_header" class="hero-header-instance"/>
-
-    <ui:VisualElement name="summary_stats_container" class="summary-stats-container">
-        <ui:Label text="ATRIBUTOS" class="subpanel-header-label" />
-        <ui:VisualElement name="stats_summary_grid" class="stats-grid">
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-max-hp" />
-                    <ui:Label text="MAX HP" class="stat-name" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="230" name="label_stat_max_hp" class="stat-val" />
-                    <ui:Label text="+12" name="label_delta_max_hp" class="stat-delta delta-positive" style="display: none;" />
-                </ui:VisualElement>
+        <ui:VisualElement name="djinn_summary_section" class="panel-column-left djinn-summary-panel">
+            <ui:Label text="ESTADO DE CLASE" name="label_summary_header" class="info-title-label" />
+            <ui:Instance template="HeroSummaryHeader" name="hero_summary_header" class="hero-header-instance" />
+            <ui:VisualElement name="summary_stats_container" class="summary-stats-container">
+                <ui:Label text="ATRIBUTOS" class="section-header-title" />
+                <ui:Instance template="CharacterStatsGrid" name="character_stats_grid" class="character-stats-instance" />
+                <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid" class="elemental-affinity-instance" />
             </ui:VisualElement>
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-max-pp" />
-                    <ui:Label text="MAX PP" class="stat-name" />
+            <ui:VisualElement name="separator" class="info-divider" />
+            <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
+                <ui:Label text="PSINERGÍAS DE CLASE" class="subpanel-header-label" />
+                <ui:VisualElement name="psynergy_compare_tabs" class="summary-psynergy-filter-tabs" style="display: none;">
+                    <ui:Button text="TODAS" name="btn_filter_all" class="mini-tab-btn active" />
+                    <ui:Button text="GANADAS" name="btn_filter_gained" class="mini-tab-btn tab-gained" />
+                    <ui:Button text="PERDIDAS" name="btn_filter_lost" class="mini-tab-btn tab-lost" />
                 </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="230" name="label_stat_max_pp" class="stat-val" />
-                    <ui:Label text="+12" name="label_delta_max_pp" class="stat-delta delta-positive" style="display: none;" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-attack" />
-                    <ui:Label text="ATQ" class="stat-name" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="145" name="label_stat_atq" class="stat-val" />
-                    <ui:Label text="+12" name="label_delta_atq" class="stat-delta delta-positive" style="display: none;" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-defense" />
-                    <ui:Label text="DEF" class="stat-name" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="98" name="label_stat_def" class="stat-val" />
-                    <ui:Label text="-5" name="label_delta_def" class="stat-delta delta-negative" style="display: none;" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-agility" />
-                    <ui:Label text="AGI" class="stat-name" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="64" name="label_stat_agi" class="stat-val" />
-                    <ui:Label text="0" name="label_delta_agi" class="stat-delta" style="display: none;" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-            <ui:VisualElement class="stat-item">
-                <ui:VisualElement class="stat-label-group">
-                    <ui:VisualElement class="stat-icon icon-luck" />
-                    <ui:Label text="SUE" class="stat-name" />
-                </ui:VisualElement>
-                <ui:VisualElement class="stat-value-group">
-                    <ui:Label text="12" name="label_stat_sue" class="stat-val" />
-                    <ui:Label text="0" name="label_delta_sue" class="stat-delta" style="display: none;" />
-                </ui:VisualElement>
+                <ui:ScrollView name="scroll_class_psynergies" class="summary-psynergy-list-scroll" />
             </ui:VisualElement>
         </ui:VisualElement>
-    </ui:VisualElement>
-    <ui:VisualElement name="separator" class="info-divider" />
-    <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
-        <ui:Label text="PSINERGÍAS DE CLASE" class="subpanel-header-label" />
-        <ui:VisualElement name="psynergy_compare_tabs" class="summary-psynergy-filter-tabs" style="display: none;">
-            <ui:Button text="TODAS" name="btn_filter_all" class="mini-tab-btn active" />
-            <ui:Button text="GANADAS" name="btn_filter_gained" class="mini-tab-btn tab-gained" />
-            <ui:Button text="PERDIDAS" name="btn_filter_lost" class="mini-tab-btn tab-lost" />
-        </ui:VisualElement>
-        <ui:ScrollView name="scroll_class_psynergies" class="summary-psynergy-list-scroll" />
-    </ui:VisualElement>
-</ui:VisualElement>
         <ui:VisualElement name="djinn_list_section" class="panel-column-center djinn-central-panel">
             <ui:Label text="SANTUARIO ELEMENTAL" name="label_djinn_title" class="info-title-label" />
             <ui:VisualElement name="djinn_viewport_container" class="djinn-viewport-container">
@@ -121,50 +59,9 @@
             <ui:ScrollView name="djinn_extra_details_box" class="extra-info-container">
                 <ui:VisualElement name="extra_info_card_root" class="extra-info-card-root">
                     <ui:Label text="BONOS DE ATRIBUTO" class="section-header-title" />
-                    <ui:VisualElement name="box_set_stats_grid" class="stats-grid">
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-max-hp" />
-                                <ui:Label text="MAX HP" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+8" name="label_set_bonus_max_hp" class="stat-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-max-pp" />
-                                <ui:Label text="MAX PP" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+8" name="label_set_bonus_max_pp" class="stat-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-attack" />
-                                <ui:Label text="ATQ" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+8" name="label_set_bonus_atq" class="stat-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-defense" />
-                                <ui:Label text="DEF" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+3" name="label_set_bonus_def" class="stat-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-agility" />
-                                <ui:Label text="AGI" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+2" name="label_set_bonus_agi" class="stat-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stat-item">
-                            <ui:VisualElement class="stat-label-group">
-                                <ui:VisualElement class="stat-icon icon-luck" />
-                                <ui:Label text="SUE" class="stat-name" />
-                            </ui:VisualElement>
-                            <ui:Label text="+0" name="label_set_bonus_sue" class="stat-val" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:Instance template="CharacterStatsGrid" name="character_stats_grid" class="character-stats-instance" />
+                    <ui:Label text="BONO ELEMENTAL" class="section-header-title" />
+                    <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid" class="elemental-affinity-instance" />
                     <ui:VisualElement class="info-divider" />
                     <ui:Label text="EFECTO DE LIBERACIÓN" class="section-header-title" />
                     <ui:Label text="Golpe Demoledor" name="label_unleash_name" class="unleash-name-label" />

@@ -55,20 +55,21 @@ public class PageStatusController
 
         HeroDjinnController djinnController = stats.GetComponent<HeroDjinnController>();
 
-        // --- 1. HEADER SECTION ---
-        var portrait = card.Q<VisualElement>($"hero_portrait_{index}") ?? card.Q<VisualElement>("hero_portrait");
+        // --- 1. HEADER SECTION (Instanced HeroSummaryHeader) ---
+        // English comment: Direct queries targeting the elements inside the HeroSummaryHeader component template instance.
+        var portrait = card.Q<VisualElement>("hero_avatar_icon");
         if (portrait != null && stats.TurnBarImage != null)
         {
             portrait.style.backgroundImage = new StyleBackground(stats.TurnBarImage);
         }
 
-        var labelName = card.Q<Label>($"label_hero_name_{index}") ?? card.Q<Label>("label_hero_name");
+        var labelName = card.Q<Label>("label_hero_name");
         if (labelName != null) labelName.text = stats.Name;
 
-        var labelLevel = card.Q<Label>($"label_hero_level_{index}") ?? card.Q<Label>("label_hero_level");
+        var labelLevel = card.Q<Label>("label_hero_level");
         if (labelLevel != null) labelLevel.text = $"Nv. {stats.Level}";
 
-        var expBar = card.Q<ProgressBar>($"bar_exp_{index}") ?? card.Q<ProgressBar>("bar_exp");
+        var expBar = card.Q<ProgressBar>($"bar_exp");
         var expLabel = card.Q<Label>($"label_exp_text_{index}") ?? card.Q<Label>("label_exp_text");
 
         if (expBar != null && stats.NextLevelXp > 0)
@@ -81,7 +82,21 @@ public class PageStatusController
             expLabel.text = $"EXP {stats.CurrentXp}/{stats.NextLevelXp}";
         }
 
-        // --- 2. HEALTH & PSYNERGY BARS ---
+        var labelClass = card.Q<Label>("label_hero_class_current");
+        if (labelClass != null)
+        {
+            labelClass.text = (djinnController != null && djinnController.CurrentClass != null)
+                ? djinnController.CurrentClass.ClassName
+                : "Sin Clase";
+        }
+
+
+
+        PopulateElementPips(card, djinnController);
+
+        // --- 2. EXP & HEALTH BARS ---
+        
+
         var labelHp = card.Q<Label>($"label_hp_text_{index}") ?? card.Q<Label>("label_hp_text");
         if (labelHp != null) labelHp.text = $"PV {stats.CurrHp} / {stats.MaxHp}";
 
@@ -102,35 +117,23 @@ public class PageStatusController
 
         // --- 3. MAIN STATS GRID (2x2) ---
         // English comment: Reads live calculated core stats from HeroStats overrides.
-        SetStatGridValue(card, $"label_stat_value_0_{index}", "label_stat_value_0", stats.Attack.ToString());
-        SetStatGridValue(card, $"label_stat_value_1_{index}", "label_stat_value_1", stats.Defense.ToString());
-        SetStatGridValue(card, $"label_stat_value_2_{index}", "label_stat_value_2", stats.Agility.ToString());
-        SetStatGridValue(card, $"label_stat_value_3_{index}", "label_stat_value_3", stats.Luck.ToString());
+        SetStatGridValue(card, stats);
 
         // --- 4. ELEMENTAL AFFINITY TABLE ---
         // English comment: Reads live calculated elemental powers and resistances from HeroStats overrides.
-        SetElementRowValue(card, index, 0, stats.PowerVenus, stats.ResistVenus);
-        SetElementRowValue(card, index, 1, stats.PowerMars, stats.ResistMars);
-        SetElementRowValue(card, index, 2, stats.PowerJupiter, stats.ResistJupiter);
-        SetElementRowValue(card, index, 3, stats.PowerMercury, stats.ResistMercury);
+        SetElementGridValue(card, stats);
 
-        // --- 5. UNIFIED CLASS & DJINN SECTION ---
-        var labelClass = card.Q<Label>($"label_hero_class_{index}") ?? card.Q<Label>("label_hero_class");
-        if (labelClass != null)
-        {
-            labelClass.text = (djinnController != null && djinnController.CurrentClass != null)
-                ? djinnController.CurrentClass.ClassName
-                : "Sin Clase";
-        }
-
-        PopulateElementPips(card, index, djinnController);
+        // --- 5. MAIN DJINN SECTION ---
         PopulateMainDjinnSection(card, index, djinnController);
     }
 
-    private void PopulateElementPips(VisualElement card, int cardIndex, HeroDjinnController djinnController)
+    private void PopulateElementPips(VisualElement card, HeroDjinnController djinnController)
     {
-        VisualElement pipsRow = card.Q<VisualElement>($"equipped_pips_row_{cardIndex}") ?? card.Q<VisualElement>("equipped_pips_row");
-        if (pipsRow == null) return;
+        // English comment: Direct queries targeting the pip count labels inside the template instance.
+        var labelVenus = card.Q<Label>("label_pip_venus");
+        var labelMars = card.Q<Label>("label_pip_mars");
+        var labelJupiter = card.Q<Label>("label_pip_jupiter");
+        var labelMercury = card.Q<Label>("label_pip_mercury");
 
         int venusSet = 0, venusTotal = 0;
         int marsSet = 0, marsTotal = 0;
@@ -153,14 +156,10 @@ public class PageStatusController
             mercuryTotal = djinnController.GetTotalCountByElement(ElementalType.Mercury);
         }
 
-        var pipLabels = pipsRow.Query<Label>(className: "pip-count").ToList();
-        if (pipLabels.Count >= 4)
-        {
-            pipLabels[0].text = $"{venusSet}/{venusTotal}";
-            pipLabels[1].text = $"{marsSet}/{marsTotal}";
-            pipLabels[2].text = $"{jupiterSet}/{jupiterTotal}";
-            pipLabels[3].text = $"{mercurySet}/{mercuryTotal}";
-        }
+        if (labelVenus != null) labelVenus.text = $"{venusSet}/{venusTotal}";
+        if (labelMars != null) labelMars.text = $"{marsSet}/{marsTotal}";
+        if (labelJupiter != null) labelJupiter.text = $"{jupiterSet}/{jupiterTotal}";
+        if (labelMercury != null) labelMercury.text = $"{mercurySet}/{mercuryTotal}";
     }
 
     private void PopulateMainDjinnSection(VisualElement card, int cardIndex, HeroDjinnController djinnController)
@@ -220,26 +219,26 @@ public class PageStatusController
 
             if (badgeStatus != null)
             {
-                badgeStatus.RemoveFromClassList("badge-active");
-                badgeStatus.RemoveFromClassList("badge-standby");
-                badgeStatus.RemoveFromClassList("badge-recovery");
+                badgeStatus.RemoveFromClassList("djinn-badge-active");
+                badgeStatus.RemoveFromClassList("djinn-badge-standby");
+                badgeStatus.RemoveFromClassList("djinn-badge-recovery");
                 badgeStatus.style.display = DisplayStyle.Flex;
 
                 switch (leader.CurrentState)
                 {
                     case DjinnState.Set:
-                        badgeStatus.AddToClassList("badge-active");
+                        badgeStatus.AddToClassList("djinn-badge-active");
                         if (badgeLabel != null) badgeLabel.text = "PASIVA ACTIVA";
                         break;
 
                     case DjinnState.Standby:
-                        badgeStatus.AddToClassList("badge-standby");
+                        badgeStatus.AddToClassList("djinn-badge-standby");
                         if (badgeLabel != null) badgeLabel.text = "EN ESPERA";
                         if (djinnCard != null) djinnCard.AddToClassList("card-djinn-standby");
                         break;
 
                     case DjinnState.Recovery:
-                        badgeStatus.AddToClassList("badge-recovery");
+                        badgeStatus.AddToClassList("djinn-badge-recovery");
                         if (badgeLabel != null) badgeLabel.text = $"RECUP. ({leader.CurrentRecoveryTurns}T)";
                         if (djinnCard != null) djinnCard.AddToClassList("card-djinn-recovery");
                         break;
@@ -317,22 +316,47 @@ public class PageStatusController
         }
     }
 
-    private void SetStatGridValue(VisualElement card, string primaryLabelName, string fallbackLabelName, string value)
+    private void SetStatGridValue(VisualElement card, HeroStats stats)
     {
-        var valLabel = card.Q<Label>(primaryLabelName) ?? card.Q<Label>(fallbackLabelName);
-        if (valLabel != null)
-        {
-            valLabel.text = value;
-        }
+        var maxHpLabel = card.Q<Label>("label_stat_max_hp");
+        if (maxHpLabel != null) maxHpLabel.text = stats.MaxHp.ToString();
+        var maxPpLabel = card.Q<Label>("label_stat_max_pp");
+        if (maxPpLabel != null) maxPpLabel.text = stats.MaxPp.ToString();
+        var attackLabel = card.Q<Label>("label_stat_atq");
+        if (attackLabel != null) attackLabel.text = stats.Attack.ToString();
+        var defenseLabel = card.Q<Label>("label_stat_def");
+        if (defenseLabel != null) defenseLabel.text = stats.Defense.ToString();
+        var agilityLabel = card.Q<Label>("label_stat_agi");
+        if (agilityLabel != null) agilityLabel.text = stats.Agility.ToString();
+        var luckLabel = card.Q<Label>("label_stat_sue");
+        if (luckLabel != null) luckLabel.text = stats.Luck.ToString();
     }
 
-    private void SetElementRowValue(VisualElement card, int cardIndex, int rowIndex, int power, int resist)
+    private void SetElementGridValue(VisualElement card, HeroStats stats)
     {
-        var pwrLabel = card.Q<Label>($"elem_power_{rowIndex}_{cardIndex}") ?? card.Q<Label>($"elem_power_{rowIndex}");
-        var resLabel = card.Q<Label>($"elem_resistance_{rowIndex}_{cardIndex}") ?? card.Q<Label>($"elem_resistance_{rowIndex}");
+        var pwrVenus = card.Q<Label>($"elem_power_venus");
+        var resVenus = card.Q<Label>($"elem_resistance_venus");
 
-        if (pwrLabel != null) pwrLabel.text = power.ToString();
-        if (resLabel != null) resLabel.text = resist.ToString();
+        var pwrMars = card.Q<Label>($"elem_power_mars");
+        var resMars = card.Q<Label>($"elem_resistance_mars");
+
+        var pwrJupiter = card.Q<Label>($"elem_power_jupiter");
+        var resJupiter = card.Q<Label>($"elem_resistance_jupiter");
+
+        var pwrMercury = card.Q<Label>($"elem_power_mercury");
+        var resMercury = card.Q<Label>($"elem_resistance_mercury");
+
+        if (pwrVenus != null) pwrVenus.text = stats.PowerVenus.ToString();
+        if (resVenus != null) resVenus.text = stats.ResistVenus.ToString();
+
+        if (pwrMars != null) pwrMars.text = stats.PowerMars.ToString();
+        if (resMars != null) resMars.text = stats.ResistMars.ToString();
+
+        if (pwrJupiter != null) pwrJupiter.text = stats.PowerJupiter.ToString();
+        if (resJupiter != null) resJupiter.text = stats.ResistJupiter.ToString();
+
+        if (pwrMercury != null) pwrMercury.text = stats.PowerMercury.ToString();
+        if (resMercury != null) resMercury.text = stats.ResistMercury.ToString();
     }
 
     #endregion

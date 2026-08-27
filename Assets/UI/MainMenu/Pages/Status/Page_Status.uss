@@ -1,14 +1,11 @@
-/* ==========================================
-   PAGE STATUS CONTAINER & CARDS
-   ========================================== */
 .page-status-container {
     flex-direction: row;
     justify-content: center;
-    align-items: center; /* Centra las tarjetas recortadas verticalmente */
+    align-items: center;
     flex-grow: 1;
     height: 100%;
     padding: 10px;
-    color: #FFFFFF;
+    color: rgb(255, 255, 255);
 }
 
 .hero-card {
@@ -16,18 +13,17 @@
     margin: 0 6px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
-    border-color: #2e3a4e;
+    border-color: rgb(46, 58, 78);
     border-radius: 6px;
     padding: 10px;
     position: relative;
     overflow: hidden;
-    color: #FFFFFF;
-    /* Elimina el estiramiento vertical forzado */
+    color: rgb(255, 255, 255);
     height: auto;
 }
 
 .card-face {
-    position: relative; /* Cambiado de absolute a relative para colapsar alto exacto */
+    position: relative;
     width: 100%;
     height: auto;
     padding: 0;
@@ -36,12 +32,10 @@
 }
 
 .page-status-container Label {
-    color: #FFFFFF;
     margin: 0;
     padding: 0;
 }
 
-/* CENTRADO Y DISTRIBUCIÓN UNIFORME */
 .card-front {
     display: flex;
     flex-direction: column;
@@ -49,123 +43,27 @@
     height: auto;
 }
 
-/* ==========================================
-   1. HERO TOP SECTION (PORTRAIT & HEADER)
-   ========================================== */
-.hero-top-section {
-    width: 100%;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-    border-radius: 5px;
-    overflow: hidden;
-    background-color: rgba(15, 15, 20, 0.6);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.08);
-    padding: 6px 4px 4px 4px;
-    margin-bottom: 6px;
+.page-status-container .summary-hero-box {
+    padding: 10px 12px;
 }
 
-.hero-portrait {
-    width: 140px;
-    height: 140px;
-    aspect-ratio: 1;
-    background-color: rgba(40, 40, 50, 0.9);
-    border-radius: 4px;
-    border-width: 3px;
-    border-color: rgba(218, 165, 32, 0.4);
-    margin-bottom: 6px;
+.page-status-container .summary-hero-avatar-box {
+    width: 100px;
+    height: 100px;
 }
 
-.hero-header-info {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 6px;
-    background-color: rgba(10, 10, 15, 0.7);
-    border-top-width: 1px;
-    border-top-color: rgba(255, 255, 255, 0.12);
+.page-status-container .summary-hero-name {
+    font-size: 18px;
 }
 
-.hero-name-label {
-    width: 45px;
-    font-size: 15px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-left;
-    color: #FFFFFF;
-    flex-shrink: 0;
+.page-status-container .summary-class-title {
+    font-size: 14px;
 }
 
-.hero-level-label {
-    width: 45px;
-    font-size: 11px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-right;
-    color: #DAA520;
-    flex-shrink: 0;
+.page-status-container .pip-count {
+    font-size: 13px;
 }
 
-/* BARRA DE EXP CENTRADA Y EXPANDIBLE EN LA MISMA FILA */
-.exp-bar-wrapper {
-    width: 50%;
-    position: relative;
-    margin: 0 8px;
-    height: 14px;
-    justify-content: center;
-    align-items: center;
-}
-
-.exp-bar-header {
-    width: 100%;
-    height: 14px;
-    border-radius: 3px;
-    margin: 0;
-    padding: 0;
-    background-color: rgba(10, 20, 35, 0.9);
-    border-width: 1px;
-    border-color: rgba(66, 165, 245, 0.5);
-    overflow: hidden;
-}
-
-.exp-bar-header .unity-progress-bar__container {
-    height: 100%;
-    min-height: 12px;
-    max-height: 12px;
-    background-color: transparent;
-    margin: 0;
-    padding: 0;
-}
-
-.exp-bar-header .unity-progress-bar__background {
-    background-color: rgba(12, 25, 45, 0.85);
-    border-radius: 0;
-    border-width: 0;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.exp-bar-header .unity-progress-bar__progress {
-    background-color: #1E88E5;
-    border-radius: 0;
-    margin: 0;
-    padding: 0;
-    height: 100%;
-}
-
-.exp-bar-text {
-    position: absolute;
-    font-size: 8px;
-    -unity-font-style: bold;
-    color: #FFFFFF;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
-    -unity-text-align: middle-center;
-}
-
-/* ==========================================
-   2. STAT BARS CONTAINER (PV & PP)
-   ========================================== */
 .bars-container {
     width: 100%;
     flex-direction: column;
@@ -176,23 +74,23 @@
     width: 100%;
     flex-direction: column;
     align-items: stretch;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     flex-shrink: 0;
 }
 
-.bar-label-text {
+.page-status-container .bar-label-text {
     font-size: 12px;
     -unity-font-style: bold;
-    text-align: center;
+    -unity-text-align: center;
     -unity-text-align: upper-center;
-    color: #E0E0E0;
-    margin-bottom: 3px;
+    color: rgb(224, 224, 224);
+    margin-bottom: 1px;
     width: 100%;
     display: flex;
 }
 
 .custom-bar {
-    height: 14px;
+    height: 12px;
     border-radius: 3px;
     margin: 0;
     padding: 0;
@@ -213,18 +111,15 @@
 }
 
 .hp-bar .unity-progress-bar__progress {
-    background-color: #2ECC71;
+    background-color: rgb(46, 204, 113);
     border-radius: 3px;
 }
 
 .pp-bar .unity-progress-bar__progress {
-    background-color: #3498DB;
+    background-color: rgb(52, 152, 219);
     border-radius: 3px;
 }
 
-/* ==========================================
-   3. SECTION BOX & HEADERS
-   ========================================== */
 .section-box {
     width: 100%;
     background-color: rgba(15, 15, 20, 0.6);
@@ -235,98 +130,6 @@
     margin-bottom: 6px;
 }
 
-/* ==========================================
-   4. MAIN STATS GRID (2x2)
-   ========================================== */
-.stats-grid {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-.stat-grid-item {
-    width: 48%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgba(25, 25, 35, 0.6);
-    border-radius: 3px;
-    padding: 3px 5px;
-    margin-bottom: 4px;
-}
-
-.stat-icon {
-    width: 11px;
-    height: 11px;
-    margin-right: 4px;
-    border-radius: 2px;
-}
-
-.stat-grid-name {
-    font-size: 11px;
-    color: #CCCCCC;
-    flex-grow: 1;
-}
-
-.stat-grid-val {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: #FFFFFF;
-}
-
-.icon-attack { background-color: #E74C3C; }
-.icon-defense { background-color: #3498DB; }
-.icon-agility { background-color: #2ECC71; }
-.icon-luck { background-color: #F1C40F; }
-
-/* ==========================================
-   5. ELEMENTAL AFFINITY TABLE
-   ========================================== */
-.element-table-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.element-col-titles {
-    flex-direction: row;
-}
-
-.elem-col-title {
-    font-size: 10px;
-    -unity-font-style: bold;
-    color: #AAAAAA;
-    width: 28px;
-    text-align: center;
-}
-
-.element-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2px 0;
-    border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.05);
-}
-
-.element-name {
-    font-size: 12px;
-    color: #E0E0E0;
-    flex-grow: 1;
-    margin-left: 6px;
-}
-
-.element-val {
-    font-size: 12px;
-    color: #FFFFFF;
-    width: 28px;
-    text-align: center;
-}
-
-/* ==========================================
-   6. BOTTOM UNIFIED CONTAINER (NEUTRAL OUTER BOX)
-   ========================================== */
 .main-djinn-card {
     width: 100%;
     flex-direction: column;
@@ -337,55 +140,6 @@
     border-color: rgba(255, 255, 255, 0.08);
     transition-property: opacity;
     transition-duration: 0.2s;
-}
-
-.class-djinn-bar {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.page-status-container .hero-class-label {
-    font-size: 15px;
-    -unity-font-style: bold;
-    color: #00FF88;
-    letter-spacing: 0.5px;
-
-    /* Marco estilo cápsula/insignia */
-    background-color: rgba(10, 16, 26, 0.75);
-    border-width: 1px;
-    border-color: rgba(218, 165, 32, 0.4);
-    border-radius: 4px;
-    padding: 2px 8px;
-}
-
-.equipped-pips-row {
-    flex-direction: row;
-    align-items: center;
-}
-
-.pip-element-group {
-    flex-direction: row;
-    align-items: center;
-    margin-left: 5px;
-}
-
-.pip-icon {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 2px;
-    border-width: 1px;
-}
-
-.page-status-container .pip-count {
-    font-size: 14px;
-    -unity-font-style: bold;
-    color: #E0E0E0;
-    width: 25px;
-    margin-right: 2px;
 }
 
 .djinn-card-divider {
@@ -405,37 +159,44 @@
     margin-bottom: 0;
 }
 
-/* STATUS BADGES */
-.status-badge {
+.page-status-container .djinn-status-badge {
     padding: 1px 6px;
     border-radius: 3px;
     border-width: 1px;
 }
 
-.status-badge-text {
-    font-size: 8.5px;
+.djinn-status-badge-text {
+    font-size: 9px;
     -unity-font-style: bold;
 }
 
-.badge-active {
+.djinn-badge-active {
     background-color: rgba(0, 255, 136, 0.15);
     border-color: rgba(0, 255, 136, 0.8);
 }
-.badge-active .status-badge-text { color: #00FF88; }
 
-.badge-standby {
+.djinn-badge-active .djinn-status-badge-text {
+    color: rgb(0, 255, 136);
+}
+
+.djinn-badge-standby {
     background-color: rgba(255, 215, 0, 0.15);
     border-color: rgba(255, 215, 0, 0.8);
 }
-.badge-standby .status-badge-text { color: #FFD700; }
 
-.badge-recovery {
+.djinn-badge-standby .djinn-status-badge-text {
+    color: rgb(255, 215, 0);
+}
+
+.djinn-badge-recovery {
     background-color: rgba(231, 76, 60, 0.15);
     border-color: rgba(231, 76, 60, 0.8);
 }
-.badge-recovery .status-badge-text { color: #FF6B6B; }
 
-/* DYNAMIC OPACITY BY STATE */
+.djinn-badge-recovery .djinn-status-badge-text {
+    color: rgb(255, 107, 107);
+}
+
 .card-djinn-standby {
     opacity: 0.65;
 }
@@ -444,16 +205,12 @@
     opacity: 0.45;
 }
 
-/* ==========================================
-   7. INNER DJINN CARD (THE ENVELOPING CARD)
-   ========================================== */
 .main-djinn-body {
     flex-direction: row;
     align-items: center;
     padding: 6px 8px;
     border-radius: 4px;
     border-width: 1px;
-    /* Altura fija para garantizar alineación exacta en las 4 hero cards */
     height: 95px;
     min-height: 95px;
     box-sizing: border-box;
@@ -467,13 +224,12 @@
     overflow: hidden;
 }
 
-/* ESTILO DISCRETO Y OSCURO PARA DJINN SIN ASIGNAR */
-.djinn-none-border { 
-    border-color: rgba(255, 255, 255, 0.05); 
+.djinn-none-border {
+    border-color: rgba(255, 255, 255, 0.05);
 }
 
-.djinn-none-bg { 
-    background-color: rgba(10, 10, 15, 0.5); 
+.djinn-none-bg {
+    background-color: rgba(10, 10, 15, 0.5);
 }
 
 .main-djinn-full-icon {
@@ -498,13 +254,12 @@
 .main-djinn-name-label {
     font-size: 12px;
     -unity-font-style: bold;
-    color: #FFD700;
     margin-bottom: 2px;
 }
 
 .main-djinn-ability-label {
     font-size: 9.5px;
-    color: #DDDDDD;
+    color: rgb(221, 221, 221);
     white-space: normal;
 }
 
@@ -524,6 +279,6 @@
 
 .passive-desc-label {
     font-size: 10px;
-    color: #AAAAAA;
+    color: rgb(170, 170, 170);
     white-space: normal;
 }

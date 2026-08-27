@@ -1,0 +1,66 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" path="Assets/UI/Components/CharacterStatsGrid.uxml" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <ui:VisualElement name="stats_summary_grid" class="stats-grid">
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-max-hp" />
+                <ui:Label text="MAX HP" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_max_hp" class="stat-val" />
+                <ui:Label text="+0" name="label_delta_max_hp" class="stat-delta delta-positive" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-max-pp" />
+                <ui:Label text="MAX PP" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_max_pp" class="stat-val" />
+                <ui:Label text="+0" name="label_delta_max_pp" class="stat-delta delta-positive" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-attack" />
+                <ui:Label text="ATQ" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_atq" class="stat-val" />
+                <ui:Label text="+0" name="label_delta_atq" class="stat-delta delta-positive" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-defense" />
+                <ui:Label text="DEF" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_def" class="stat-val" />
+                <ui:Label text="-0" name="label_delta_def" class="stat-delta delta-negative" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-agility" />
+                <ui:Label text="AGI" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_agi" class="stat-val" />
+                <ui:Label text="0" name="label_delta_agi" class="stat-delta" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="stat-item">
+            <ui:VisualElement class="stat-label-group">
+                <ui:VisualElement class="stat-icon icon-luck" />
+                <ui:Label text="SUE" class="stat-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="stat-value-group">
+                <ui:Label text="0" name="label_stat_sue" class="stat-val" />
+                <ui:Label text="0" name="label_delta_sue" class="stat-delta" style="display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

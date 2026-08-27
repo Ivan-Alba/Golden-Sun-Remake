@@ -243,7 +243,7 @@
 
 .header-hero-card {
     width: 23.5%;
-    height: 95px;
+    height: 50px;
     flex-direction: row;
     align-items: center;
     padding: 6px 8px;
@@ -278,8 +278,8 @@
 }
 
 .header-hero-portrait {
-    width: 80px;
-    height: 80px;
+    width: 40px;
+    height: 40px;
     flex-shrink: 0;
     background-color: rgba(20, 20, 20, 0.8);
     border-width: 1px;
@@ -304,19 +304,27 @@
 }
 
 .header-hero-name {
-    font-size: 13px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: #FFFFFF;
 }
 
 .header-hero-level {
-    font-size: 13px;
+    font-size: 11px;
+    color: #94A3B8;
 }
 
-.header-hero-stat-box {
-    flex-direction: column;
+
+.header-hero-stats-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
-    flex-shrink: 0;
+}
+
+.header-hero-stats-row .header-hero-stat-box {
+    flex-grow: 0;
+    width: 48%; /* Reparte el ancho equitativamente con un pequeño margen central */
 }
 
 .header-hero-stat-text {
@@ -358,8 +366,8 @@
 
     background-color: rgba(25, 25, 30, 0.5);
     border-radius: 8px;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     padding: 4px;
 }
 

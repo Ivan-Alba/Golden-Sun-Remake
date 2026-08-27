@@ -28,8 +28,7 @@
     font-size: 17px;
     -unity-font-style: bold;
     color: var(--color-gold-sun);
-    margin-top: 6px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     -unity-text-align: middle-center;
     letter-spacing: 1px;
     flex-shrink: 0;
@@ -578,7 +577,8 @@
 
 /* --- Section Subheaders (Gold Accent) --- */
 .extra-info-card-root .section-header-title,
-.page-status-container .section-header-title {
+.page-status-container .section-header-title,
+.djinn-summary-panel .section-header-title {
     font-size: 11.5px;
     flex-shrink: 0;
     color: var(--color-gold-sun);
@@ -750,7 +750,7 @@
 }
 
 /* =========================================================================
-   8. REUSABLE HERO SUMMARY & STATS GRID COMPONENT
+   HERO SUMMARY HEADER (UI TEMPLATE)
    ========================================================================= */
 
 .hero-header-instance {
@@ -759,7 +759,6 @@
     flex-shrink: 0;
 }
 
-/* --- Hero Summary Box (Header / Avatar / Pips) --- */
 .summary-hero-box {
     flex-direction: row;
     width: 100%;
@@ -823,6 +822,54 @@
     color: #94A3B8;
 }
 
+
+/* Contenedor vertical para el bloque de nivel */
+.summary-hero-level-box {
+    flex-direction: column;
+    align-items: center; /* Centra horizontalmente el label de nivel respecto a la barra */
+    justify-content: center;
+}
+
+/* Forzar que el label no tenga márgenes que desalineen */
+.summary-hero-level-box .summary-hero-column-level {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Estilo para la minibarra de EXP */
+.summary-exp-bar {
+    width: 50px;       /* Ancho compacto ajustado al texto Nv. XX */
+    height: 4px;       /* Barrita ultra fina sutil */
+    margin-top: 2px;
+}
+
+/* 1. Limpiar el contenedor interno de Unity */
+.summary-exp-bar .unity-progress-bar__container {
+    min-height: 4px;
+    max-height: 4px;
+    height: 4px;
+}
+
+/* 2. Forzar altura estricta en fondo y progreso, y anular flex-grow */
+.summary-exp-bar .unity-progress-bar__background {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-width: 0;
+    border-radius: 2px;
+    height: 4px;
+    min-height: 4px;
+    max-height: 4px;
+}
+
+.summary-exp-bar .unity-progress-bar__progress {
+    background-color: #9b59b6;
+    border-radius: 2px;
+    height: 4px;
+    min-height: 4px;
+    max-height: 4px;
+}
+
+
 .summary-class-name-container {
     flex-direction: row;
     align-items: center;
@@ -878,7 +925,11 @@
     width: 25px;
 }
 
-/* --- Reusable Stats Grid System (2 Columns x 3 Rows) --- */
+
+
+/* =========================================================================
+   CHARACTER STATS GRID (UI TEMPLATE)
+   ========================================================================= */
 .summary-stats-container {
     width: 100%;
     flex-direction: column;
@@ -957,6 +1008,74 @@
 .icon-agility { background-color: #A32BBA; }
 .icon-luck { background-color: #F1C40F; }
 
+
+/* =========================================================================
+   ELEMENTAL AFFINITY GRID (UI TEMPLATE) - REFACTOR LAYOUT
+   ========================================================================= */
+
+.elemental-affinity-container {
+    width: 100%;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+}
+
+/* Layout contenedor para 2x2 */
+.elemental-grid-2x2 {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Cada columna ocupa el 48% del espacio */
+.elemental-grid-col {
+    flex-direction: column;
+    width: 48%;
+}
+
+.element-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between; /* Empuja el nombre a la izq y las stats a la der */
+    padding: 2px 0;
+}
+
+/* Nombre del elemento: Ancho flexible pero no invasivo */
+.element-name {
+    font-size: 13px;
+    margin-left: 6px;
+    color: var(--color-text-white);
+    flex-grow: 1;
+}
+
+/* Grupo par etiqueta-valor (P: 100) */
+.elem-stat-group {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 8px;
+}
+
+/* Prefijo sutil P: o R: */
+.elem-stat-group .elem-prefix-label {
+    font-size: 11px;
+    color: #8899A6;
+    margin-right: 3px;
+    -unity-font-style: bold;
+}
+
+/* Valor numérico: Ajustado a la derecha sin espacio residual al final */
+.element-val {
+    font-size: 13px;
+    color: var(--color-text-white);
+    width: auto;         /* Eliminamos los 28px fijos centrados */
+    min-width: 22px;     /* Reserva espacio mínimo para alineación perfecta */
+    text-align: right;   /* Alineación estricta a la derecha */
+}
+
+/* =========================================================================
+   8. REUSABLE
+   ========================================================================= */
+
 /* --- Summary Psynergies Scroll Container --- */
 .summary-psynergy-view-container {
     width: 100%;
@@ -1027,6 +1146,8 @@
     color: #E74C3C;
     background-color: rgba(231, 76, 60, 0.15);
 }
+
+/* SUMMARY PSINERGY LIST SCROLL */
 .summary-psynergy-list-scroll {
     width: 100%;
     flex-grow: 1;
@@ -1036,9 +1157,64 @@
     padding-top: 2px;
 }
 
-.summary-psynergy-list-scroll .unity-scroll-view__content-container {
-    flex-direction: column;
+/* Forzar al viewport interno de Unity a usar el 100% del ancho */
+.summary-psynergy-list-scroll .unity-scroll-view__content-viewport {
     width: 100%;
+    align-items: stretch;
+}
+
+/* Forzar al contenedor interno del ScrollView a expandirse al 100% */
+.summary-psynergy-list-scroll .unity-scroll-view__content-container {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    flex-grow: 1;
+    /*justify-content: center;*/
+}
+
+
+/* Scroller Component Overrides */
+.summary-psynergy-list-scroll .unity-scroller--vertical,
+.summary-psynergy-list-scroll .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.summary-psynergy-list-scroll .unity-scroller__low-button,
+.summary-psynergy-list-scroll .unity-scroller__high-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.summary-psynergy-list-scroll .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
+    background-color: rgba(10, 15, 24, 0.8);
+    border-width: 1px;
+    border-color: rgba(31, 45, 64, 0.6);
+    border-radius: 3px;
+    margin: 0;
+}
+
+.summary-psynergy-list-scroll .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.9);
+    border-radius: 3px;
+}
+
+.summary-psynergy-list-scroll .unity-base-slider__dragger:hover {
+    background-color: var(--color-gold-bright);
+}
+
+.summary-psynergy-list-scroll .unity-base-slider__dragger:active {
+    background-color: #FFA500;
 }
 
 /* BADGES EFFECTS UNLEASH / PSYNERGY */

@@ -78,6 +78,7 @@ public class PageDjinnController
 
     #region Private Fields - Left Panel Elements
 
+    private VisualElement djinnSummarySection;
     private VisualElement heroAvatarIcon;
     private Label labelHeroName;
     private Label labelHeroLevel;
@@ -102,6 +103,15 @@ public class PageDjinnController
     private Label labelDeltaAgi;
     private Label labelDeltaSue;
 
+    private Label labelPowVenus;
+    private Label labelResVenus;
+    private Label labelPowMars;
+    private Label labelResMars;
+    private Label labelPowJupiter;
+    private Label labelResJupiter;
+    private Label labelPowMercury;
+    private Label labelResMercury;
+
     private ScrollView scrollClassPsynergies;
 
     #endregion
@@ -117,6 +127,8 @@ public class PageDjinnController
 
     #region Private Fields - Right Panel Elements
 
+    private VisualElement djinnInfoPanel;
+
     private VisualElement djinnVideoPreview;
     private VisualElement djinnElementalIcon;
     private Label labelDjinnName;
@@ -131,6 +143,15 @@ public class PageDjinnController
     private Label labelSetBonusDef;
     private Label labelSetBonusAgi;
     private Label labelSetBonusSue;
+
+    private Label labelSetPowVenus;
+    private Label labelSetResVenus;
+    private Label labelSetPowMars;
+    private Label labelSetResMars;
+    private Label labelSetPowJupiter;
+    private Label labelSetResJupiter;
+    private Label labelSetPowMercury;
+    private Label labelSetResMercury;
 
     private VisualElement boxUnleashStatusEffectInfo;
     private Label labelUnleashName;
@@ -272,6 +293,9 @@ public class PageDjinnController
         if (rootViewA != null)
         {
             pageDjinnContainer = rootViewA.Q<VisualElement>("page_djinn_container") ?? rootViewA;
+            djinnSummarySection = rootViewA.Q<VisualElement>("djinn_summary_section");
+            djinnInfoPanel = rootViewA.Q<VisualElement>("djinn_info_panel");
+
 
             heroAvatarIcon = rootViewA.Q<VisualElement>("hero_avatar_icon");
             labelHeroName = rootViewA.Q<Label>("label_hero_name");
@@ -297,6 +321,17 @@ public class PageDjinnController
             labelDeltaAgi = rootViewA.Q<Label>("label_delta_agi");
             labelDeltaSue = rootViewA.Q<Label>("label_delta_sue");
 
+
+            labelPowVenus = djinnSummarySection.Q<Label>("elem_power_venus");
+            labelResVenus = djinnSummarySection.Q<Label>("elem_resistance_venus");
+            labelPowMars = djinnSummarySection.Q<Label>("elem_power_mars");
+            labelResMars = djinnSummarySection.Q<Label>("elem_resistance_mars");
+            labelPowJupiter = djinnSummarySection.Q<Label>("elem_power_jupiter");
+            labelResJupiter = djinnSummarySection.Q<Label>("elem_resistance_jupiter");
+            labelPowMercury = djinnSummarySection.Q<Label>("elem_power_mercury");
+            labelResMercury = djinnSummarySection.Q<Label>("elem_resistance_mercury");
+
+
             scrollClassPsynergies = rootViewA.Q<ScrollView>("scroll_class_psynergies");
 
             labelGridHeader = rootViewA.Q<Label>("label_grid_header");
@@ -312,12 +347,21 @@ public class PageDjinnController
             labelDjinnRecovery = rootViewA.Q<Label>("label_djinn_recovery");
             labelDjinnDesc = rootViewA.Q<Label>("label_djinn_desc");
 
-            labelSetBonusMaxHP = rootViewA.Q<Label>("label_set_bonus_max_hp");
-            labelSetBonusMaxPP = rootViewA.Q<Label>("label_set_bonus_max_pp");
-            labelSetBonusAtq = rootViewA.Q<Label>("label_set_bonus_atq");
-            labelSetBonusDef = rootViewA.Q<Label>("label_set_bonus_def");
-            labelSetBonusAgi = rootViewA.Q<Label>("label_set_bonus_agi");
-            labelSetBonusSue = rootViewA.Q<Label>("label_set_bonus_sue");
+            labelSetBonusMaxHP = djinnInfoPanel.Q<Label>("label_stat_max_hp");
+            labelSetBonusMaxPP = djinnInfoPanel.Q<Label>("label_stat_max_pp");
+            labelSetBonusAtq = djinnInfoPanel.Q<Label>("label_stat_atq");
+            labelSetBonusDef = djinnInfoPanel.Q<Label>("label_stat_def");
+            labelSetBonusAgi = djinnInfoPanel.Q<Label>("label_stat_agi");
+            labelSetBonusSue = djinnInfoPanel.Q<Label>("label_stat_sue");
+
+            labelSetPowVenus = djinnInfoPanel.Q<Label>("elem_power_venus");
+            labelSetResVenus = djinnInfoPanel.Q<Label>("elem_resistance_venus");
+            labelSetPowMars = djinnInfoPanel.Q<Label>("elem_power_mars");
+            labelSetResMars = djinnInfoPanel.Q<Label>("elem_resistance_mars");
+            labelSetPowJupiter = djinnInfoPanel.Q<Label>("elem_power_jupiter");
+            labelSetResJupiter = djinnInfoPanel.Q<Label>("elem_resistance_jupiter");
+            labelSetPowMercury = djinnInfoPanel.Q<Label>("elem_power_mercury");
+            labelSetResMercury = djinnInfoPanel.Q<Label>("elem_resistance_mercury");
 
             boxUnleashStatusEffectInfo = rootViewA.Q<VisualElement>("box_unleash_status_effect_info");
             labelUnleashName = rootViewA.Q<Label>("label_unleash_name");
@@ -516,13 +560,24 @@ public class PageDjinnController
 
         UpdateElementalPips(currentHeroDjinnController, labelPipVenus, labelPipMars, labelPipJupiter, labelPipMercury);
 
-        // English comment: Directly query live calculated core stats from HeroStats overrides.
+        // Directly query live calculated core stats from HeroStats overrides.
         if (labelStatAtq != null) labelStatAtq.text = currentHero.Attack.ToString();
         if (labelStatDef != null) labelStatDef.text = currentHero.Defense.ToString();
         if (labelStatAgi != null) labelStatAgi.text = currentHero.Agility.ToString();
         if (labelStatSue != null) labelStatSue.text = currentHero.Luck.ToString();
         if (labelStatMaxHP != null) labelStatMaxHP.text = currentHero.MaxHp.ToString();
         if (labelStatMaxPP != null) labelStatMaxPP.text = currentHero.MaxPp.ToString();
+
+        // Elemental affinity
+        if (labelPowVenus != null) labelPowVenus.text = currentHero.PowerVenus.ToString();
+        if (labelResVenus != null) labelResVenus.text = currentHero.ResistVenus.ToString();
+        if (labelPowMars != null) labelPowMars.text = currentHero.PowerMars.ToString();
+        if (labelResMars != null) labelResMars.text = currentHero.ResistMars.ToString();
+        if (labelPowJupiter != null) labelPowJupiter.text = currentHero.PowerJupiter.ToString();
+        if (labelResJupiter != null) labelResJupiter.text = currentHero.ResistJupiter.ToString();
+        if (labelPowMercury != null) labelPowMercury.text = currentHero.PowerMercury.ToString();
+        if (labelResMercury != null) labelResMercury.text = currentHero.ResistMercury.ToString();
+
 
         HideStatDeltas();
 
@@ -910,7 +965,9 @@ public class PageDjinnController
 
     private void UpdateSetBonusGrid(DjinnSO data)
     {
-        float maxHp = 0, maxPp = 0, atk = 0, def = 0, agi = 0, sue = 0;
+        float maxHp = 0, maxPp = 0, atk = 0, def = 0, agi = 0, sue = 0,
+            powVenus = 0, resVenus = 0, powMars = 0, resMars = 0,
+            powJupiter = 0, resJupiter = 0, powMercury = 0, resMercury = 0;
 
         if (data.SetStatModifiers != null)
         {
@@ -924,6 +981,14 @@ public class PageDjinnController
                     case StatType.Defense: def += mod.value; break;
                     case StatType.Agility: agi += mod.value; break;
                     case StatType.Luck: sue += mod.value; break;
+                    case StatType.PowerVenus: powVenus += mod.value; break;
+                    case StatType.ResistVenus: resVenus += mod.value; break;
+                    case StatType.PowerMars: powMars += mod.value; break;
+                    case StatType.ResistMars: resMars += mod.value; break;
+                    case StatType.PowerJupiter: powJupiter += mod.value; break;
+                    case StatType.ResistJupiter: resJupiter += mod.value; break;
+                    case StatType.PowerMercury: powMercury += mod.value; break;
+                    case StatType.ResistMercury: resMercury += mod.value; break;
                 }
             }
         }
@@ -934,6 +999,15 @@ public class PageDjinnController
         if (labelSetBonusDef != null) labelSetBonusDef.text = formatBonus(def, labelSetBonusDef);
         if (labelSetBonusAgi != null) labelSetBonusAgi.text = formatBonus(agi, labelSetBonusAgi);
         if (labelSetBonusSue != null) labelSetBonusSue.text = formatBonus(sue, labelSetBonusSue);
+
+        if (labelSetPowVenus != null) labelSetPowVenus.text = formatBonus(powVenus, labelSetPowVenus);
+        if (labelSetResVenus != null) labelSetResVenus.text = formatBonus(resVenus, labelSetResVenus);
+        if (labelSetPowMars != null) labelSetPowMars.text = formatBonus(powMars, labelSetPowMars);
+        if (labelSetResMars != null) labelSetResMars.text = formatBonus(resMars, labelSetResMars);
+        if (labelSetPowJupiter != null) labelSetPowJupiter.text = formatBonus(powJupiter, labelSetPowJupiter);
+        if (labelSetResJupiter != null) labelSetResJupiter.text = formatBonus(resJupiter, labelSetResJupiter);
+        if (labelSetPowMercury != null) labelSetPowMercury.text = formatBonus(powMercury, labelSetPowMercury);
+        if (labelSetResMercury != null) labelSetResMercury.text = formatBonus(resMercury, labelSetResMercury);
     }
 
     private string formatBonus(float val, Label setBonusLabel)

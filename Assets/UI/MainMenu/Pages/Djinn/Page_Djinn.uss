@@ -1,13 +1,30 @@
-/* ==========================================================================
-   PAGE DJINN MAIN LAYOUT (Inherits Summary Panel & Chassis from Common_Layouts.uss)
-   ========================================================================== */
-
 .djinn-summary-panel {
     align-items: stretch;
 }
 
-.djinn-summary-panel .subpanel-header-label,
-.modal-overlay-container .subpanel-header-label{
+.djinn-summary-panel .subpanel-header-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+    color: var(--color-gold-sun);
+    margin-bottom: 6px;
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.modal-overlay-container .subpanel-header-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+    color: var(--color-gold-sun);
+    margin-bottom: 6px;
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.djinn-central-panel .subpanel-header-label {
     font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: upper-left;
@@ -21,27 +38,24 @@
 .section-separator {
     height: 1px;
     width: 100%;
-    background-color: #2e3a4e;
+    background-color: rgb(46, 58, 78);
     margin-top: 5px;
     margin-bottom: 5px;
     flex-shrink: 0;
     flex-grow: 0;
 }
 
-/* ==========================================================================
-   CENTER PANEL: SANCTUARY 3D VIEWPORT & DJINN GRID SPECIFICS
-   ========================================================================== */
 .djinn-viewport-container {
     flex-grow: 1;
     flex-shrink: 0;
     flex-basis: 0;
     width: 100%;
-    background-color: #05080c;
+    background-color: rgb(5, 8, 12);
     border-width: 1px;
     border-color: rgba(46, 75, 110, 0.6);
     border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 8px; 
+    margin-bottom: 8px;
 }
 
 .djinn-render-target {
@@ -92,35 +106,27 @@
     font-size: 12px;
     height: 100%;
     width: 100%;
-    background-color: #1a2538;
+    background-color: rgb(26, 37, 56);
     border-width: 1px;
-    border-color: #2e3a4e;
+    border-color: rgb(46, 58, 78);
     border-radius: 4px;
     color: var(--color-gold-sun);
     -unity-font-style: bold;
 }
 
 .action-switch-btn:hover {
-    background-color: #2b3d59;
-    border-color: #d4af37;
+    background-color: rgb(43, 61, 89);
+    border-color: rgb(212, 175, 55);
     color: var(--color-text-white);
 }
 
-/* ==========================================================================
-   RIGHT PANEL SPECIFICS & EXTRA INFO DETAILS
-   ========================================================================== */
-
 .detail-separator {
     height: 1px;
-    background-color: #1f2d40;
+    background-color: rgb(31, 45, 64);
     margin-top: 6px;
     margin-bottom: 6px;
 }
 
-
-/* ==========================================================================
-   GLOBAL PARTY ORGANIZER & MODAL OVERLAY (VISTA B)
-   ========================================================================== */
 .djinn-global-section {
     flex-grow: 1;
     width: 100%;
@@ -128,7 +134,7 @@
     padding: 8px;
     background-color: rgba(15, 20, 28, 0.85);
     border-width: 2px;
-    border-color: #2e3a4e;
+    border-color: rgb(46, 58, 78);
     border-radius: 6px;
     flex-direction: column;
     overflow: hidden;
@@ -148,7 +154,7 @@
     margin: 0 6px;
     background-color: rgba(10, 15, 22, 0.6);
     border-width: 1px;
-    border-color: #1f2d40;
+    border-color: rgb(31, 45, 64);
     border-radius: 5px;
     padding: 3px 5px;
     flex-direction: column;
@@ -160,11 +166,6 @@
     color: var(--color-gold-bright);
 }
 
-/* ==========================================================================
-   MODAL OVERLAY & COMPARISON SYSTEM (COMPACT JRPG EDITION)
-   ========================================================================== */
-
-/* Overlay oscuro de fondo que cubre toda la pantalla */
 .modal-overlay-container {
     position: absolute;
     top: 0;
@@ -177,11 +178,10 @@
     z-index: 1000;
 }
 
-/* Caja principal del Modal: Reducida y centrada */
 .compare-modal-box {
     width: 1150px;
     height: 100%;
-    background-color: var(--theme-bg-dark, #0d1117);
+    background-color: var(--theme-bg-dark, rgb(13, 17, 23));
     border-width: 2px;
     border-color: var(--theme-border-gold, rgba(212, 175, 55, 0.6));
     border-radius: 8px;
@@ -193,13 +193,12 @@
 .compare-modal-title {
     font-size: 18px;
     -unity-font-style: bold;
-    color: var(--theme-text-gold, #ffd700);
+    color: var(--theme-text-gold, rgb(255, 215, 0));
     text-align: center;
     margin-bottom: 12px;
     letter-spacing: 1px;
 }
 
-/* Contenedor Flex de 3 Columnas */
 .compare-modal-content {
     flex-direction: row;
     flex-grow: 1;
@@ -209,7 +208,6 @@
     align-items: stretch;
 }
 
-/* Paneles Laterales de Héroes (Izquierda / Derecha): Ancho fijo y compacto */
 .modal-hero-panel {
     width: 430px;
     flex-shrink: 0;
@@ -222,11 +220,10 @@
     flex-direction: column;
 }
 
-/* Panel Central de Acciones e Intercambio */
 .compare-center-action-box {
     width: 200px;
     flex-shrink: 0;
-    align-self: center; /* Evita que se estire al 100% de altura y lo centra verticalmente */
+    align-self: center;
     margin-left: 14px;
     margin-right: 14px;
     background-color: var(--theme-bg-subpanel, rgba(15, 18, 26, 0.8));
@@ -235,20 +232,20 @@
     border-radius: 6px;
     padding: 14px 12px;
     align-items: center;
-    justify-content: space-between; /* Mantiene título arriba, botones abajo y centro libre */
+    justify-content: space-between;
 }
 
 .compare-exchange-visual {
     flex-grow: 1;
     align-items: center;
-    justify-content: center; /* Centra las píldoras justo en la mitad vertical */
+    justify-content: center;
     width: 100%;
 }
 
 .compare-action-title {
     font-size: 13px;
     -unity-font-style: bold;
-    color: var(--theme-text-gold, #ffd700);
+    color: var(--theme-text-gold, rgb(255, 215, 0));
     letter-spacing: 1px;
     margin-bottom: 8px;
 }
@@ -268,17 +265,16 @@
 .compare-djinn-pill-name {
     font-size: 13px;
     -unity-font-style: bold;
-    color: #ffffff;
+    color: rgb(255, 255, 255);
 }
 
 .compare-exchange-arrow {
     font-size: 22px;
-    color: var(--theme-text-gold, #ffd700);
+    color: var(--theme-text-gold, rgb(255, 215, 0));
     margin-top: 2px;
     margin-bottom: 2px;
 }
 
-/* Fila de Botones Confirmar / Cancelar */
 .modal-actions-row {
     width: 100%;
     flex-direction: column;
@@ -294,8 +290,8 @@
 
 .btn-confirm {
     background-color: rgba(46, 125, 50, 0.8);
-    border-color: #4caf50;
-    color: #ffffff;
+    border-color: rgb(76, 175, 80);
+    color: rgb(255, 255, 255);
 }
 
 .btn-confirm:hover {
@@ -304,25 +300,19 @@
 
 .btn-cancel {
     background-color: rgba(198, 40, 40, 0.8);
-    border-color: #f44336;
-    color: #ffffff;
+    border-color: rgb(244, 67, 54);
+    color: rgb(255, 255, 255);
 }
 
 .btn-cancel:hover {
     background-color: rgba(239, 83, 80, 0.9);
 }
 
-/* ==========================================================================
-   DRAG & DROP SYSTEM (VISTA B)
-   ========================================================================== */
-
-/* Slot Origen: Estado deshabilitado / atenuado mientras se arrastra */
 .djinn-card-disabled {
     opacity: 0.35;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Elemento Ghost flotante que sigue al cursor */
 .djinn-drag-ghost {
     position: absolute;
     pointer-events: none;
@@ -334,15 +324,13 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
 }
 
-/* Casillas/Slots destino VÁLIDOS (Highlight de Intercambio o Donación) */
 .djinn-slot-drop-valid {
-    border-width: 2px !important;
-    border-color: #2ECC71 !important;
-    background-color: rgba(46, 204, 113, 0.15) !important;
+    border-width: 2px;
+    border-color: rgb(46, 204, 113);
+    background-color: rgba(46, 204, 113, 0.15);
 }
 
-/* Casillas/Slots destino INVÁLIDOS (Bloqueados por regla de recuento) */
 .djinn-slot-drop-invalid {
     opacity: 0.5;
-    border-color: rgba(231, 76, 60, 0.4) !important;
+    border-color: rgba(231, 76, 60, 0.4);
 }

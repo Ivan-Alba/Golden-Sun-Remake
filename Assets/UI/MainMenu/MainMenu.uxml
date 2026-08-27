@@ -1,4 +1,4 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/MainMenu.uss?fileID=7433441132597879392&amp;guid=d2954fa9e96c5c64ebeb7394ba486812&amp;type=3#MainMenu" />
     <ui:VisualElement name="container_book" picking-mode="Ignore" class="container-book">
         <ui:VisualElement name="header_top" picking-mode="Ignore">
@@ -90,7 +90,10 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
+            
             <ui:VisualElement name="header_heroes_bar" picking-mode="Ignore" class="header-heroes-bar">
+                
+                <!-- HÉROE 0 (Hans) -->
                 <ui:Button name="btn_hero0" class="header-hero-card">
                     <ui:VisualElement name="hero_portrait_0" class="header-hero-portrait" />
                     <ui:VisualElement class="header-hero-info">
@@ -98,20 +101,26 @@
                             <ui:Label name="label_hero_name_0" text="Hans" class="header-hero-name" />
                             <ui:Label name="label_hero_level_0" text="Nv. 1" class="header-hero-level" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_hp_val_0" text="100/100" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_hp_0" class="header-hero-bar-fill hp-bar-fill" />
+                        
+                        <!-- Fila horizontal para HP y PP -->
+                        <ui:VisualElement class="header-hero-stats-row">
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_hp_val_0" text="100/100" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_hp_0" class="header-hero-bar-fill hp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_pp_val_0" text="50/50" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_pp_0" class="header-hero-bar-fill pp-bar-fill" />
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_pp_val_0" text="50/50" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_pp_0" class="header-hero-bar-fill pp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:Button>
+                
+                <!-- HÉROE 1 (Garet) -->
                 <ui:Button name="btn_hero1" class="header-hero-card">
                     <ui:VisualElement name="hero_portrait_1" class="header-hero-portrait" />
                     <ui:VisualElement class="header-hero-info">
@@ -119,41 +128,53 @@
                             <ui:Label name="label_hero_name_1" text="Garet" class="header-hero-name" />
                             <ui:Label name="label_hero_level_1" text="Nv. 1" class="header-hero-level" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_hp_val_1" text="100/100" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_hp_1" class="header-hero-bar-fill hp-bar-fill" />
+                        
+                        <!-- Fila horizontal para HP y PP -->
+                        <ui:VisualElement class="header-hero-stats-row">
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_hp_val_1" text="100/100" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_hp_1" class="header-hero-bar-fill hp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_pp_val_1" text="50/50" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_pp_1" class="header-hero-bar-fill pp-bar-fill" />
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_pp_val_1" text="50/50" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_pp_1" class="header-hero-bar-fill pp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:Button>
+                
+                <!-- HÉROE 2 (Ivan) -->
                 <ui:Button name="btn_hero2" class="header-hero-card">
-                    <ui:VisualElement name="hero_portrait_2" class="header-hero-portrait " />
+                    <ui:VisualElement name="hero_portrait_2" class="header-hero-portrait" />
                     <ui:VisualElement class="header-hero-info">
                         <ui:VisualElement class="header-hero-top-row">
                             <ui:Label name="label_hero_name_2" text="Ivan" class="header-hero-name" />
                             <ui:Label name="label_hero_level_2" text="Nv. 1" class="header-hero-level" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_hp_val_2" text="100/100" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_hp_2" class="header-hero-bar-fill hp-bar-fill" />
+                        
+                        <!-- Fila horizontal para HP y PP -->
+                        <ui:VisualElement class="header-hero-stats-row">
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_hp_val_2" text="100/100" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_hp_2" class="header-hero-bar-fill hp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_pp_val_2" text="50/50" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_pp_2" class="header-hero-bar-fill pp-bar-fill" />
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_pp_val_2" text="50/50" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_pp_2" class="header-hero-bar-fill pp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:Button>
+                
+                <!-- HÉROE 3 (Mia) -->
                 <ui:Button name="btn_hero3" class="header-hero-card">
                     <ui:VisualElement name="hero_portrait_3" class="header-hero-portrait" />
                     <ui:VisualElement class="header-hero-info">
@@ -161,20 +182,25 @@
                             <ui:Label name="label_hero_name_3" text="Mia" class="header-hero-name" />
                             <ui:Label name="label_hero_level_3" text="Nv. 1" class="header-hero-level" />
                         </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_hp_val_3" text="100/100" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_hp_3" class="header-hero-bar-fill hp-bar-fill" />
+                        
+                        <!-- Fila horizontal para HP y PP -->
+                        <ui:VisualElement class="header-hero-stats-row">
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_hp_val_3" text="100/100" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_hp_3" class="header-hero-bar-fill hp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="header-hero-stat-box">
-                            <ui:Label name="label_hero_pp_val_3" text="50/50" class="header-hero-stat-text" />
-                            <ui:VisualElement class="header-hero-bar-bg">
-                                <ui:VisualElement name="bar_hero_pp_3" class="header-hero-bar-fill pp-bar-fill" />
+                            <ui:VisualElement class="header-hero-stat-box">
+                                <ui:Label name="label_hero_pp_val_3" text="50/50" class="header-hero-stat-text" />
+                                <ui:VisualElement class="header-hero-bar-bg">
+                                    <ui:VisualElement name="bar_hero_pp_3" class="header-hero-bar-fill pp-bar-fill" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:Button>
+
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="page_content" picking-mode="Ignore" />

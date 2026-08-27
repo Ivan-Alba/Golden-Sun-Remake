@@ -1,21 +1,19 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="HeroSummaryHeader" src="project://database/Assets/UI/Components/HeroSummaryHeader.uxml?fileID=9197481963319205126&amp;guid=dd9c1beaf6716f1448ed73c9e8292334&amp;type=3#HeroSummaryHeader" />
+    <ui:Template name="CharacterStatsGrid" src="project://database/Assets/UI/Components/CharacterStatsGrid.uxml?fileID=9197481963319205126&amp;guid=3af735e5c0a48f642822636f051f6c3c&amp;type=3#CharacterStatsGrid" />
+    <ui:Template name="ElementalAffinityGrid" src="project://database/Assets/UI/Components/ElementalAffinityGrid.uxml" />
+    
     <Style src="project://database/Assets/UI/MainMenu/Pages/Status/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
     <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    
     <ui:VisualElement name="page_status_container" picking-mode="Ignore" class="page-status-container" style="flex-direction: row; justify-content: center; flex-grow: 1; height: 100%;">
+        
+        <!-- HÉROE 0 (Hans) -->
         <ui:VisualElement name="hero_card_0" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_0" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
-                <ui:VisualElement name="hero_top_section_0" picking-mode="Ignore" class="hero-top-section">
-                    <ui:VisualElement name="hero_portrait_0" picking-mode="Ignore" class="hero-portrait" />
-                    <ui:VisualElement name="hero_header_info_0" picking-mode="Ignore" class="hero-header-info">
-                        <ui:Label text="Hans" name="label_hero_name_0" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:VisualElement class="exp-bar-wrapper">
-                            <ui:ProgressBar value="85" name="bar_exp_0" picking-mode="Ignore" class="custom-bar exp-bar-header" />
-                            <ui:Label text="EXP 1250/1500" name="label_exp_text_0" picking-mode="Ignore" class="exp-bar-text" />
-                        </ui:VisualElement>
-                        <ui:Label text="Nv. 15" name="label_hero_level_0" picking-mode="Ignore" class="hero-level-label" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
+                <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_0" class="hero-header-instance" />
+                
                 <ui:VisualElement name="bars_container_0" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_0" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 240/240" name="label_hp_text_0" picking-mode="Ignore" class="bar-label-text" />
@@ -26,91 +24,22 @@
                         <ui:ProgressBar value="100" name="bar_pp_0" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="stats_section_0" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
-                    <ui:VisualElement name="stats_grid_0" class="stats-grid">
-                        <ui:VisualElement name="stat_row_0_0" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-attack" />
-                            <ui:Label text="ATQ" class="stat-grid-name" />
-                            <ui:Label text="145" name="label_stat_value_0_0" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_1_0" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-defense" />
-                            <ui:Label text="DEF" class="stat-grid-name" />
-                            <ui:Label text="98" name="label_stat_value_1_0" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_2_0" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-agility" />
-                            <ui:Label text="AGI" class="stat-grid-name" />
-                            <ui:Label text="64" name="label_stat_value_2_0" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_3_0" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-luck" />
-                            <ui:Label text="SUE" class="stat-grid-name" />
-                            <ui:Label text="12" name="label_stat_value_3_0" class="stat-grid-val" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" />
+                    <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_0" class="character-stats-instance" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="element_section_0" picking-mode="Ignore" class="section-box">
-                    <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0;" />
-                        <ui:VisualElement class="element-col-titles">
-                            <ui:Label text="POD" class="elem-col-title" />
-                            <ui:Label text="RES" class="elem-col-title" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_0_0" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-venus" />
-                        <ui:Label text="Venus" class="element-name" />
-                        <ui:Label text="120" name="elem_power_0_0" class="element-val" />
-                        <ui:Label text="115" name="elem_resistance_0_0" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_1_0" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mars" />
-                        <ui:Label text="Marte" class="element-name" />
-                        <ui:Label text="90" name="elem_power_1_0" class="element-val" />
-                        <ui:Label text="95" name="elem_resistance_1_0" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_2_0" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                        <ui:Label text="Júpiter" class="element-name" />
-                        <ui:Label text="85" name="elem_power_2_0" class="element-val" />
-                        <ui:Label text="80" name="elem_resistance_2_0" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_3_0" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mercury" />
-                        <ui:Label text="Mercurio" class="element-name" />
-                        <ui:Label text="80" name="elem_power_3_0" class="element-val" />
-                        <ui:Label text="85" name="elem_resistance_3_0" class="element-val" />
-                    </ui:VisualElement>
+                    <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                    <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_0" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="main_djinn_card_0" picking-mode="Ignore" class="main-djinn-card">
-                    <ui:VisualElement name="class_djinn_bar_0" picking-mode="Ignore" class="class-djinn-bar">
-                        <ui:Label text="Escudero" name="label_hero_class_0" picking-mode="Ignore" class="hero-class-label" />
-                        <ui:VisualElement name="equipped_pips_row_0" picking-mode="Ignore" class="equipped-pips-row">
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-venus" />
-                                <ui:Label text="1/2" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mars" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-jupiter" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mercury" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="djinn_card_divider_0" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_0" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-title" />
-                        <ui:VisualElement name="badge_status_0" class="status-badge badge-active">
-                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_0" class="status-badge-text" />
+                        <ui:VisualElement name="badge_status_0" class="djinn-status-badge djinn-badge-active">
+                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_0" class="djinn-status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="main_djinn_body_0" class="main-djinn-body element-venus element-venus-bg">
@@ -128,19 +57,12 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <!-- HÉROE 1 (Garet) -->
         <ui:VisualElement name="hero_card_1" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_1" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
-                <ui:VisualElement name="hero_top_section_1" picking-mode="Ignore" class="hero-top-section">
-                    <ui:VisualElement name="hero_portrait_1" picking-mode="Ignore" class="hero-portrait" />
-                    <ui:VisualElement name="hero_header_info_1" picking-mode="Ignore" class="hero-header-info">
-                        <ui:Label text="Garet" name="label_hero_name_1" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:VisualElement class="exp-bar-wrapper">
-                            <ui:ProgressBar value="85" name="bar_exp_1" picking-mode="Ignore" class="custom-bar exp-bar-header" />
-                            <ui:Label text="EXP 1250/1500" name="label_exp_text_1" picking-mode="Ignore" class="exp-bar-text" />
-                        </ui:VisualElement>
-                        <ui:Label text="Nv. 15" name="label_hero_level_1" picking-mode="Ignore" class="hero-level-label" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
+                <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_1" class="hero-header-instance" />
+                
                 <ui:VisualElement name="bars_container_1" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_1" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 260/260" name="label_hp_text_1" picking-mode="Ignore" class="bar-label-text" />
@@ -151,91 +73,22 @@
                         <ui:ProgressBar value="100" name="bar_pp_1" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="stats_section_1" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
-                    <ui:VisualElement name="stats_grid_1" class="stats-grid">
-                        <ui:VisualElement name="stat_row_0_1" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-attack" />
-                            <ui:Label text="ATQ" class="stat-grid-name" />
-                            <ui:Label text="160" name="label_stat_value_0_1" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_1_1" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-defense" />
-                            <ui:Label text="DEF" class="stat-grid-name" />
-                            <ui:Label text="110" name="label_stat_value_1_1" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_2_1" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-agility" />
-                            <ui:Label text="AGI" class="stat-grid-name" />
-                            <ui:Label text="52" name="label_stat_value_2_1" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_3_1" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-luck" />
-                            <ui:Label text="SUE" class="stat-grid-name" />
-                            <ui:Label text="8" name="label_stat_value_3_1" class="stat-grid-val" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" />
+                    <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_1" class="character-stats-instance" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="element_section_1" picking-mode="Ignore" class="section-box">
-                    <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label section-header-title" style="margin-bottom: 0;" />
-                        <ui:VisualElement class="element-col-titles">
-                            <ui:Label text="POD" class="elem-col-title" />
-                            <ui:Label text="RES" class="elem-col-title" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_0_1" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-venus" />
-                        <ui:Label text="Venus" class="element-name" />
-                        <ui:Label text="90" name="elem_power_0_1" class="element-val" />
-                        <ui:Label text="90" name="elem_resistance_0_1" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_1_1" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mars" />
-                        <ui:Label text="Marte" class="element-name" />
-                        <ui:Label text="125" name="elem_power_1_1" class="element-val" />
-                        <ui:Label text="120" name="elem_resistance_1_1" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_2_1" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                        <ui:Label text="Júpiter" class="element-name" />
-                        <ui:Label text="75" name="elem_power_2_1" class="element-val" />
-                        <ui:Label text="70" name="elem_resistance_2_1" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_3_1" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mercury" />
-                        <ui:Label text="Mercurio" class="element-name" />
-                        <ui:Label text="70" name="elem_power_3_1" class="element-val" />
-                        <ui:Label text="75" name="elem_resistance_3_1" class="element-val" />
-                    </ui:VisualElement>
+                    <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-label section-header-title" />
+                    <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_1" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="main_djinn_card_1" picking-mode="Ignore" class="main-djinn-card">
-                    <ui:VisualElement name="class_djinn_bar_1" picking-mode="Ignore" class="class-djinn-bar">
-                        <ui:Label text="Soldado" name="label_hero_class_1" picking-mode="Ignore" class="hero-class-label" />
-                        <ui:VisualElement name="equipped_pips_row_1" picking-mode="Ignore" class="equipped-pips-row">
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-venus" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mars" />
-                                <ui:Label text="2/2" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-jupiter" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mercury" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="djinn_card_divider_1" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_1" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
-                        <ui:VisualElement name="badge_status_1" class="status-badge badge-active">
-                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_1" class="status-badge-text" />
+                        <ui:VisualElement name="badge_status_1" class="djinn-status-badge djinn-badge-active">
+                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_1" class="djinn-status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="main_djinn_body_1" class="main-djinn-body element-mars element-mars-bg">
@@ -245,7 +98,7 @@
                                 <ui:VisualElement name="main_djinn_element_icon_1" class="pip-icon icon-mars" />
                                 <ui:Label text="Forge" name="label_main_djinn_name_1" picking-mode="Ignore" class="main-djinn-name-label" />
                             </ui:VisualElement>
-                            <ui:VisualElement picking-mode="Ignore" class="passive-divider info-divider" />
+                            <ui:VisualElement picking-mode="Ignore" class="info-divider" />
                             <ui:Label text="PASIVA: Furia Ígnea" name="label_passive_title_1" picking-mode="Ignore" class="passive-title-label" />
                             <ui:Label text="Incrementa el crítico físico un 10% y poder Marte." name="label_passive_desc_1" picking-mode="Ignore" class="passive-desc-label" />
                         </ui:VisualElement>
@@ -253,19 +106,12 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <!-- HÉROE 2 (Ivan) -->
         <ui:VisualElement name="hero_card_2" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_2" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
-                <ui:VisualElement name="hero_top_section_2" picking-mode="Ignore" class="hero-top-section">
-                    <ui:VisualElement name="hero_portrait_2" picking-mode="Ignore" class="hero-portrait" />
-                    <ui:VisualElement name="hero_header_info_2" picking-mode="Ignore" class="hero-header-info">
-                        <ui:Label text="Ivan" name="label_hero_name_2" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:VisualElement class="exp-bar-wrapper">
-                            <ui:ProgressBar value="85" name="bar_exp_2" picking-mode="Ignore" class="custom-bar exp-bar-header" />
-                            <ui:Label text="EXP 1250/1500" name="label_exp_text_2" picking-mode="Ignore" class="exp-bar-text" />
-                        </ui:VisualElement>
-                        <ui:Label text="Nv. 15" name="label_hero_level_2" picking-mode="Ignore" class="hero-level-label" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
+                <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_2" class="hero-header-instance" />
+                
                 <ui:VisualElement name="bars_container_2" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_2" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 190/190" name="label_hp_text_2" picking-mode="Ignore" class="bar-label-text" />
@@ -276,91 +122,22 @@
                         <ui:ProgressBar value="100" name="bar_pp_2" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="stats_section_2" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
-                    <ui:VisualElement name="stats_grid_2" class="stats-grid">
-                        <ui:VisualElement name="stat_row_0_2" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-attack" />
-                            <ui:Label text="ATQ" class="stat-grid-name" />
-                            <ui:Label text="115" name="label_stat_value_0_2" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_1_2" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-defense" />
-                            <ui:Label text="DEF" class="stat-grid-name" />
-                            <ui:Label text="75" name="label_stat_value_1_2" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_2_2" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-agility" />
-                            <ui:Label text="AGI" class="stat-grid-name" />
-                            <ui:Label text="110" name="label_stat_value_2_2" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_3_2" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-luck" />
-                            <ui:Label text="SUE" class="stat-grid-name" />
-                            <ui:Label text="15" name="label_stat_value_3_2" class="stat-grid-val" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" />
+                    <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_2" class="character-stats-instance" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="element_section_2" picking-mode="Ignore" class="section-box">
-                    <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0;" />
-                        <ui:VisualElement class="element-col-titles">
-                            <ui:Label text="POD" class="elem-col-title" />
-                            <ui:Label text="RES" class="elem-col-title" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_0_2" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-venus" />
-                        <ui:Label text="Venus" class="element-name" />
-                        <ui:Label text="80" name="elem_power_0_2" class="element-val" />
-                        <ui:Label text="80" name="elem_resistance_0_2" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_1_2" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mars" />
-                        <ui:Label text="Marte" class="element-name" />
-                        <ui:Label text="85" name="elem_power_1_2" class="element-val" />
-                        <ui:Label text="85" name="elem_resistance_1_2" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_2_2" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                        <ui:Label text="Júpiter" class="element-name" />
-                        <ui:Label text="130" name="elem_power_2_2" class="element-val" />
-                        <ui:Label text="125" name="elem_resistance_2_2" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_3_2" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mercury" />
-                        <ui:Label text="Mercurio" class="element-name" />
-                        <ui:Label text="90" name="elem_power_3_2" class="element-val" />
-                        <ui:Label text="90" name="elem_resistance_3_2" class="element-val" />
-                    </ui:VisualElement>
+                    <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                    <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_2" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="main_djinn_card_2" picking-mode="Ignore" class="main-djinn-card">
-                    <ui:VisualElement name="class_djinn_bar_2" picking-mode="Ignore" class="class-djinn-bar">
-                        <ui:Label text="Mago Viento" name="label_hero_class_2" picking-mode="Ignore" class="hero-class-label" />
-                        <ui:VisualElement name="equipped_pips_row_2" picking-mode="Ignore" class="equipped-pips-row">
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-venus" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mars" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-jupiter" />
-                                <ui:Label text="1/1" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mercury" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="djinn_card_divider_2" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_2" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
-                        <ui:VisualElement name="badge_status_2" class="status-badge badge-active">
-                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_2" class="status-badge-text" />
+                        <ui:VisualElement name="badge_status_2" class="djinn-status-badge djinn-badge-active">
+                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_2" class="djinn-status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="main_djinn_body_2" class="main-djinn-body element-jupiter element-jupiter-bg">
@@ -378,19 +155,12 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <!-- HÉROE 3 (Mia) -->
         <ui:VisualElement name="hero_card_3" class="hero-card" style="display: flex;">
             <ui:VisualElement name="card_front_3" picking-mode="Ignore" class="card-face card-front" style="display: flex;">
-                <ui:VisualElement name="hero_top_section_3" picking-mode="Ignore" class="hero-top-section">
-                    <ui:VisualElement name="hero_portrait_3" picking-mode="Ignore" class="hero-portrait" />
-                    <ui:VisualElement name="hero_header_info_3" picking-mode="Ignore" class="hero-header-info">
-                        <ui:Label text="Mia" name="label_hero_name_3" picking-mode="Ignore" class="hero-name-label" />
-                        <ui:VisualElement class="exp-bar-wrapper">
-                            <ui:ProgressBar value="85" name="bar_exp_3" picking-mode="Ignore" class="custom-bar exp-bar-header" />
-                            <ui:Label text="EXP 1250/1500" name="label_exp_text_3" picking-mode="Ignore" class="exp-bar-text" />
-                        </ui:VisualElement>
-                        <ui:Label text="Nv. 15" name="label_hero_level_3" picking-mode="Ignore" class="hero-level-label" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
+                <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_3" class="hero-header-instance" />
+                
                 <ui:VisualElement name="bars_container_3" picking-mode="Ignore" class="bars-container">
                     <ui:VisualElement name="hp_bar_box_3" picking-mode="Ignore" class="stat-bar-box">
                         <ui:Label text="PV 210/210" name="label_hp_text_3" picking-mode="Ignore" class="bar-label-text" />
@@ -401,91 +171,22 @@
                         <ui:ProgressBar value="100" name="bar_pp_3" picking-mode="Ignore" class="custom-bar pp-bar" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="stats_section_3" picking-mode="Ignore" class="section-box">
-                    <ui:Label text="ATRIBUTOS" class="section-header-title" style="margin-bottom: 0;" />
-                    <ui:VisualElement name="stats_grid_3" class="stats-grid">
-                        <ui:VisualElement name="stat_row_0_3" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-attack" />
-                            <ui:Label text="ATQ" class="stat-grid-name" />
-                            <ui:Label text="110" name="label_stat_value_0_3" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_1_3" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-defense" />
-                            <ui:Label text="DEF" class="stat-grid-name" />
-                            <ui:Label text="88" name="label_stat_value_1_3" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_2_3" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-agility" />
-                            <ui:Label text="AGI" class="stat-grid-name" />
-                            <ui:Label text="78" name="label_stat_value_2_3" class="stat-grid-val" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="stat_row_3_3" class="stat-grid-item">
-                            <ui:VisualElement class="stat-icon icon-luck" />
-                            <ui:Label text="SUE" class="stat-grid-name" />
-                            <ui:Label text="14" name="label_stat_value_3_3" class="stat-grid-val" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
+                    <ui:Label text="ATRIBUTOS" class="section-header-title" />
+                    <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_3" class="character-stats-instance" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="element_section_3" picking-mode="Ignore" class="section-box">
-                    <ui:VisualElement class="element-table-header">
-                        <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" style="margin-bottom: 0;" />
-                        <ui:VisualElement class="element-col-titles">
-                            <ui:Label text="POD" class="elem-col-title" />
-                            <ui:Label text="RES" class="elem-col-title" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_0_3" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-venus" />
-                        <ui:Label text="Venus" class="element-name" />
-                        <ui:Label text="85" name="elem_power_0_3" class="element-val" />
-                        <ui:Label text="85" name="elem_resistance_0_3" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_1_3" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mars" />
-                        <ui:Label text="Marte" class="element-name" />
-                        <ui:Label text="75" name="elem_power_1_3" class="element-val" />
-                        <ui:Label text="80" name="elem_resistance_1_3" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_2_3" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-jupiter" />
-                        <ui:Label text="Júpiter" class="element-name" />
-                        <ui:Label text="95" name="elem_power_2_3" class="element-val" />
-                        <ui:Label text="95" name="elem_resistance_2_3" class="element-val" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="element_row_3_3" class="element-row">
-                        <ui:VisualElement class="pip-icon icon-mercury" />
-                        <ui:Label text="Mercurio" class="element-name" />
-                        <ui:Label text="125" name="elem_power_3_3" class="element-val" />
-                        <ui:Label text="120" name="elem_resistance_3_3" class="element-val" />
-                    </ui:VisualElement>
+                    <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                    <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_3" />
                 </ui:VisualElement>
+                
                 <ui:VisualElement name="main_djinn_card_3" picking-mode="Ignore" class="main-djinn-card">
-                    <ui:VisualElement name="class_djinn_bar_3" picking-mode="Ignore" class="class-djinn-bar">
-                        <ui:Label text="Boticaria" name="label_hero_class_3" picking-mode="Ignore" class="hero-class-label" />
-                        <ui:VisualElement name="equipped_pips_row_3" picking-mode="Ignore" class="equipped-pips-row">
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-venus" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mars" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-jupiter" />
-                                <ui:Label text="0/0" class="pip-count" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="pip-element-group">
-                                <ui:VisualElement class="pip-icon icon-mercury" />
-                                <ui:Label text="1/1" class="pip-count" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="djinn_card_divider_3" class="djinn-card-divider" />
                     <ui:VisualElement name="djinn_header_row_3" class="djinn-header-row">
                         <ui:Label text="DJINN PRINCIPAL" class="section-header-label djinn-header-label section-header-title" />
-                        <ui:VisualElement name="badge_status_3" class="status-badge badge-active">
-                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_3" class="status-badge-text" />
+                        <ui:VisualElement name="badge_status_3" class="djinn-status-badge djinn-badge-active">
+                            <ui:Label text="PASIVA ACTIVA" name="label_badge_status_3" class="status-badge-text djinn-status-badge-text" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="main_djinn_body_3" class="main-djinn-body element-mercury element-mercury-bg">
@@ -503,5 +204,6 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
     </ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,61 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Status/Page_Status.uss?fileID=7433441132597879392&amp;guid=ab5dc87744cf3554aae967c803f3895f&amp;type=3#Page_Status" />
+    <ui:VisualElement name="elemental_affinity_box" class="elemental-affinity-container">
+        <ui:VisualElement name="elemental_grid_container" class="elemental-grid-2x2">
+            <ui:VisualElement class="elemental-grid-col">
+                <ui:VisualElement name="element_row_venus" class="element-row">
+                    <ui:VisualElement class="pip-icon icon-venus" />
+                    <ui:Label text="Venus" class="element-name" />
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="P:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_power_venus" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="R:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_resistance_venus" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_row_mars" class="element-row">
+                    <ui:VisualElement class="pip-icon icon-mars" />
+                    <ui:Label text="Marte" class="element-name" />
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="P:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_power_mars" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="R:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_resistance_mars" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="elemental-grid-col">
+                <ui:VisualElement name="element_row_jupiter" class="element-row">
+                    <ui:VisualElement class="pip-icon icon-jupiter" />
+                    <ui:Label text="Júpiter" class="element-name" />
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="P:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_power_jupiter" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="R:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_resistance_jupiter" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="element_row_mercury" class="element-row">
+                    <ui:VisualElement class="pip-icon icon-mercury" />
+                    <ui:Label text="Mercurio" class="element-name" />
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="P:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_power_mercury" class="element-val" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="elem-stat-group">
+                        <ui:Label text="R:" class="elem-prefix-label" />
+                        <ui:Label text="100" name="elem_resistance_mercury" class="element-val" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
