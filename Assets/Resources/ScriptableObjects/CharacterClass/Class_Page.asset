@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d26fc070cb504994c83d7f97856614b7, type: 3}
+  m_Name: Class_Page
+  m_EditorClassIdentifier: 
+  className: Page
+  classSlug: page
+  description: 
+  hpMultiplier: 1
+  ppMultiplier: 1.2
+  atkMultiplier: 1.1
+  defMultiplier: 1
+  agiMultiplier: 1.2
+  lckMultiplier: 0.9
+  grantedPsynergies:
+  - psynergy: {fileID: 11400000, guid: 813359bf48c6c24418fde9875ba7b437, type: 2}
+    requiredLevel: 2
+  - psynergy: {fileID: 11400000, guid: 7087ddf58ff771e42a94b62efd82e247, type: 2}
+    requiredLevel: 4

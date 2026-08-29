@@ -578,7 +578,8 @@
 /* --- Section Subheaders (Gold Accent) --- */
 .extra-info-card-root .section-header-title,
 .page-status-container .section-header-title,
-.djinn-summary-panel .section-header-title {
+.djinn-summary-panel .section-header-title, 
+.page-djinn-container .section-header-title, {
     font-size: 11.5px;
     flex-shrink: 0;
     color: var(--color-gold-sun);

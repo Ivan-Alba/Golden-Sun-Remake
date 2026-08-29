@@ -69,6 +69,7 @@ public class MainMenuController : MonoBehaviour
     private Button btnPsynergy;
     private Button btnDjinn;
     private Button btnEncyclopedia;
+    private Dictionary<MenuTab, Button> bookmarkDictionary = new Dictionary<MenuTab, Button>();
 
     // Hero Selection Header Cards
     private Button[] btnHeroes = new Button[4];
@@ -90,6 +91,9 @@ public class MainMenuController : MonoBehaviour
     private MenuTab currentTab = MenuTab.Status;
     private int selectedHeroIndex = 0;
     private bool isMenuOpen = false;
+
+    // CSS Active Class Name (Matches MainMenu.uss)
+    private const string ACTIVE_CLASS = "active";
 
     #endregion
 
@@ -172,9 +176,26 @@ public class MainMenuController : MonoBehaviour
         btnDjinn = rootElement.Q<Button>("btn_djinn");
         btnEncyclopedia = rootElement.Q<Button>("btn_encyclopedia");
 
+        bookmarkDictionary.Clear();
+        if (btnStatus != null) bookmarkDictionary.Add(MenuTab.Status, btnStatus);
+        if (btnItems != null) bookmarkDictionary.Add(MenuTab.Items, btnItems);
+        if (btnPsynergy != null) bookmarkDictionary.Add(MenuTab.Psynergy, btnPsynergy);
+        if (btnDjinn != null) bookmarkDictionary.Add(MenuTab.Djinn, btnDjinn);
+        if (btnEncyclopedia != null) bookmarkDictionary.Add(MenuTab.Encyclopedia, btnEncyclopedia);
+
+        // Disable native focus on bookmark buttons to prevent UI Navigation conflicts with A/D keys
+        foreach (var btn in bookmarkDictionary.Values)
+        {
+            if (btn != null) btn.focusable = false;
+        }
+
         for (int i = 0; i < 4; i++)
         {
             btnHeroes[i] = rootElement.Q<Button>($"btn_hero{i}");
+            if (btnHeroes[i] != null)
+            {
+                btnHeroes[i].focusable = false; // Disable native focus on hero cards
+            }
 
             imgHeroPortraits[i] = rootElement.Q<VisualElement>($"header_hero_portrait_{i}")
                                 ?? btnHeroes[i]?.Q<VisualElement>(className: "header-hero-portrait");
@@ -229,6 +250,9 @@ public class MainMenuController : MonoBehaviour
         InputManager.Instance.OnMenuNextTabPressed += HandleNextTab;
         InputManager.Instance.OnMenuPreviousTabPressed += HandlePreviousTab;
         InputManager.Instance.OnMenuCancelPressed += HandleCancelInput;
+
+        InputManager.Instance.OnMenuNextHeroPressed += HandleNextHero;
+        InputManager.Instance.OnMenuPreviousHeroPressed += HandlePreviousHero;
     }
 
     private void UnsubscribeFromMenuInputs()
@@ -238,6 +262,9 @@ public class MainMenuController : MonoBehaviour
         InputManager.Instance.OnMenuNextTabPressed -= HandleNextTab;
         InputManager.Instance.OnMenuPreviousTabPressed -= HandlePreviousTab;
         InputManager.Instance.OnMenuCancelPressed -= HandleCancelInput;
+
+        InputManager.Instance.OnMenuNextHeroPressed -= HandleNextHero;
+        InputManager.Instance.OnMenuPreviousHeroPressed -= HandlePreviousHero;
     }
 
     private void HandleToggleMenuInput()
@@ -270,6 +297,9 @@ public class MainMenuController : MonoBehaviour
 
     private void HandleNextTab() => CycleTab(1);
     private void HandlePreviousTab() => CycleTab(-1);
+
+    private void HandleNextHero() => CycleHero(1);
+    private void HandlePreviousHero() => CycleHero(-1);
 
     #endregion
 
@@ -317,6 +347,7 @@ public class MainMenuController : MonoBehaviour
 
         Debug.Log($"[MainMenu] Active Tab: {tab}");
         LoadTabContent(tab);
+        UpdateBookmarksHighlight();
         UpdateHeroCardsHighlight();
     }
 
@@ -343,20 +374,36 @@ public class MainMenuController : MonoBehaviour
         RefreshActiveTabHeroData();
     }
 
+    private void CycleHero(int direction)
+    {
+        if (!IsHeroSelectorVisible()) return;
+
+        List<HeroStats> party = GetPartyHeroStatsList();
+        if (party == null || party.Count <= 1) return;
+
+        int nextHero = (selectedHeroIndex + direction + party.Count) % party.Count;
+        SelectHero(nextHero);
+    }
+
+    private void UpdateBookmarksHighlight()
+    {
+        foreach (var kvp in bookmarkDictionary)
+        {
+            if (kvp.Value == null) continue;
+
+            bool isCurrent = (kvp.Key == currentTab);
+            kvp.Value.EnableInClassList(ACTIVE_CLASS, isCurrent);
+        }
+    }
+
     private void UpdateHeroCardsHighlight()
     {
         for (int i = 0; i < btnHeroes.Length; i++)
         {
             if (btnHeroes[i] == null) continue;
 
-            if (i == selectedHeroIndex)
-            {
-                btnHeroes[i].AddToClassList("active");
-            }
-            else
-            {
-                btnHeroes[i].RemoveFromClassList("active");
-            }
+            bool isSelected = (i == selectedHeroIndex);
+            btnHeroes[i].EnableInClassList(ACTIVE_CLASS, isSelected);
         }
     }
 
@@ -466,14 +513,13 @@ public class MainMenuController : MonoBehaviour
     {
         if (pageDjinnAsset == null || globalViewAsset == null) return;
 
-        // English comment: Instantiate Vista A and Vista B as sister containers inside pageContent
         TemplateContainer instanceA = pageDjinnAsset.Instantiate();
         instanceA.style.flexGrow = 1;
-        instanceA.style.display = DisplayStyle.Flex; // Default Vista A visible
+        instanceA.style.display = DisplayStyle.Flex;
 
         TemplateContainer instanceB = globalViewAsset.Instantiate();
         instanceB.style.flexGrow = 1;
-        instanceB.style.display = DisplayStyle.None; // Default Vista B hidden
+        instanceB.style.display = DisplayStyle.None;
 
         pageContent.Add(instanceA);
         pageContent.Add(instanceB);
@@ -481,8 +527,6 @@ public class MainMenuController : MonoBehaviour
         djinnViewAContainer = instanceA;
         djinnViewBContainer = instanceB;
 
-
-        // English comment: Pass both root containers to PageDjinnController
         djinnPageController = new PageDjinnController(instanceA, instanceB);
         djinnPageController.SetParty(GetPartyHeroStatsList());
         djinnPageController.SetTemplates(psynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);

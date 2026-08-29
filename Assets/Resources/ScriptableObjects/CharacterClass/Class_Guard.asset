@@ -16,13 +16,13 @@ MonoBehaviour:
   classSlug: guard
   description: 
   hpMultiplier: 1.1
-  ppMultiplier: 1
-  atkMultiplier: 1.1
+  ppMultiplier: 0.8
+  atkMultiplier: 1
   defMultiplier: 1.1
-  agiMultiplier: 1.05
+  agiMultiplier: 0.7
   lckMultiplier: 1
   grantedPsynergies:
   - psynergy: {fileID: 11400000, guid: b87b49856cf53764598aa80caa774a7d, type: 2}
-    requiredLevel: 2
-  - psynergy: {fileID: 11400000, guid: 8d7176f7d01030746961650b5b8c6cc4, type: 2}
     requiredLevel: 1
+  - psynergy: {fileID: 11400000, guid: 2d50eeb3d9e979c4faca9089afdd29f2, type: 2}
+    requiredLevel: 6

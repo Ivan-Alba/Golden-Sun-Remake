@@ -1,3 +1,5 @@
+@import url('project://database/Assets/UI/Global_Theme.uss');
+
 /* ==========================================================================
    Page_Psynergy.uss
    Specific styles for the Psynergy Page (Hero Portrait & D-Pad Shortcuts)
@@ -67,11 +69,25 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    
+    /* Dynamic UI Interactive System */
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
 }
 
+/* Hover discreto azulado */
 .shortcut-slot:hover {
-    border-color: var(--color-gold-sun);
-    background-color: #1A2536;
+    background-color: var(--color-hover-subtle-bg);
+    border-color: var(--color-hover-subtle-border);
+}
+
+/* Estado activo/seleccionado en el D-Pad */
+.shortcut-slot.active {
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    background-color: rgba(60, 50, 30, 0.95);
+    scale: 1.05;
 }
 
 .dpad-arrow-label {
@@ -139,11 +155,30 @@
 
 .psynergy-cards-scroll .psynergy-card {
     width: 49%;
+    
+    /* Dynamic UI Interactive System */
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.psynergy-cards-scroll .psynergy-card:hover {
+    background-color: var(--color-hover-subtle-bg);
+    border-color: var(--color-hover-subtle-border);
+}
+
+/* Estado activo/seleccionado de tarjeta en la lista central */
+.psynergy-cards-scroll .psynergy-card.active {
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    background-color: rgba(60, 50, 30, 0.95);
+    scale: 1.03;
 }
 
 .psynergy-cards-scroll #unity-content-container {
     flex-direction: row;
     flex-wrap: wrap;
+    padding: 10px;
     justify-content: space-between;
     gap: 8px;
 }

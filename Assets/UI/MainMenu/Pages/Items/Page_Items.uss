@@ -1,3 +1,5 @@
+@import url('project://database/Assets/UI/Global_Theme.uss');
+
 /* ==========================================
    PAGE ITEMS CONTAINER & ROOT LAYOUT (3 VERTICAL PANELS)
    ========================================== */
@@ -248,8 +250,6 @@
     flex-shrink: 0;
 }
 
-
-
 /* ==========================================================================
    EXTRA INFO SCROLLVIEW & INNER CARD (IGUALADO A PAGE ITEMS)
    ========================================================================== */
@@ -340,7 +340,7 @@
 }
 
 /* ==========================================
-   UNIFIED SQUARE SLOT STYLES (65px x 65px)
+   UNIFIED SQUARE SLOT STYLES (80px x 80px)
    ========================================== */
 .slot-box {
     width: 80px;
@@ -353,6 +353,25 @@
     justify-content: center;
     align-items: center;
     position: relative;
+    
+    /* Dynamic UI Interactive System */
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+/* Hover Discreto Azulado */
+.slot-box:hover {
+    background-color: var(--color-hover-subtle-bg);
+    border-color: var(--color-hover-subtle-border);
+}
+
+/* Estado Activo / Seleccionado (Objeto inspeccionado en el panel derecho) */
+.slot-box.active {
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    background-color: rgba(60, 50, 30, 0.95);
+    scale: 1.05;
 }
 
 /* Equipment Slot Specialization */
@@ -407,7 +426,6 @@
     -unity-text-outline-color: #000000;
     -unity-text-align: middle-center;
 }
-
 
 /* ==========================================
    STACK SPLITTER POPUP MODAL

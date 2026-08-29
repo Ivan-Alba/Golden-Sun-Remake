@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 605ee74b50a21bd43a8054b9555a2c40, type: 3}
-  m_Name: SuperCure
+  m_Name: Cure_Well
   m_EditorClassIdentifier: 
   psynergyName: Supercura
-  slugName: supercure
-  description: Recupera 120 PV.
-  icon: {fileID: 21300000, guid: aefdfe340a4743a48a53f8559e89007b, type: 3}
+  slugName: cure_well
+  description: Recupera 150 PV.
+  icon: {fileID: 21300000, guid: 0fcd9387866b1ee418c42ce6045f49ec, type: 3}
   ppCost: 6
   element: 1
   isBattlePsynergy: 1
@@ -36,7 +36,7 @@ MonoBehaviour:
     menuSoundEffect: {fileID: 8300000, guid: 906adc1e66317fa4095e5af893ebd582, type: 3}
     menuVfxPrefab: {fileID: 0}
   restoresHp: 1
-  healValue: 120
+  healValue: 150
   isPercentage: 0
   restoresPp: 0
   ppHealValue: 10

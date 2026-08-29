@@ -132,6 +132,13 @@ public class PagePsynergyController
     private PsynergySO targetingPsynergy;
     private VisualElement targetingGhostElement;
 
+    // Active Selection State Tracking
+    private PsynergySO selectedPsynergy;
+    private VisualElement currentlySelectedCardUI;
+
+    // Filter index memory (0: All, 1: World, 2: Menu, 3: Battle)
+    private int currentFilterIndex = 0;
+
     #endregion
 
     #region Constructor
@@ -151,6 +158,55 @@ public class PagePsynergyController
     private VisualElement GetTopRootElement()
     {
         return rootElement?.panel?.visualTree ?? rootElement;
+    }
+
+    /// <summary>
+    /// Highlights the active Psynergy card or shortcut slot currently displayed in the right detail panel.
+    /// </summary>
+    private void SetSelectedCardUI(VisualElement newSelectedCard)
+    {
+        if (currentlySelectedCardUI != null)
+        {
+            currentlySelectedCardUI.RemoveFromClassList("active");
+        }
+
+        currentlySelectedCardUI = newSelectedCard;
+
+        if (currentlySelectedCardUI != null)
+        {
+            currentlySelectedCardUI.AddToClassList("active");
+        }
+    }
+
+    /// <summary>
+    /// Restores selection UI targeting the card or shortcut associated with selectedPsynergy.
+    /// </summary>
+    private void RestoreSelectionUI()
+    {
+        if (selectedPsynergy == null) return;
+
+        // 1. Check if selected from D-Pad shortcuts
+        for (int i = 0; i < assignedShortcuts.Length; i++)
+        {
+            if (assignedShortcuts[i] == selectedPsynergy && dpadSlotUI[i] != null)
+            {
+                SetSelectedCardUI(dpadSlotUI[i]);
+                return;
+            }
+        }
+
+        // 2. Search in spawned scroll view cards
+        if (psynergyCardsScroll != null)
+        {
+            foreach (VisualElement card in psynergyCardsScroll.Children())
+            {
+                if (card.userData is PsynergySO cardPsynergy && cardPsynergy == selectedPsynergy)
+                {
+                    SetSelectedCardUI(card);
+                    return;
+                }
+            }
+        }
     }
 
     #endregion
@@ -210,6 +266,10 @@ public class PagePsynergyController
             VisualElement slot = dpadSlotUI[i];
             if (slot == null) continue;
 
+            slot.AddToClassList("shortcut-slot");
+            slot.AddToClassList("ui-interactive");
+            slot.AddToClassList("ui-hover-subtle");
+
             slot.RegisterCallback<PointerDownEvent>(evt => OnDPadSlotPointerDown(evt, slotIdx, slot));
             slot.RegisterCallback<PointerMoveEvent>(OnCardPointerMove);
             slot.RegisterCallback<PointerUpEvent>(OnCardPointerUp);
@@ -222,6 +282,7 @@ public class PagePsynergyController
         if (evt.button == 1) // Right Click -> Clear
         {
             ClearShortcut(slotIdx);
+            ClearInfoPanel();
             evt.StopPropagation();
             return;
         }
@@ -233,6 +294,7 @@ public class PagePsynergyController
                 PsynergySO psynergy = assignedShortcuts[slotIdx];
                 if (psynergy != null)
                 {
+                    SetSelectedCardUI(slotUI);
                     UpdateInfoPanel(psynergy);
 
                     if (isTargetingPsynergy)
@@ -323,6 +385,8 @@ public class PagePsynergyController
             VisualElement card = CreatePsynergyCard(psynergy, i);
             psynergyCardsScroll.Add(card);
         }
+
+        RestoreSelectionUI();
     }
 
     private VisualElement CreatePsynergyCard(PsynergySO psynergy, int index)
@@ -333,22 +397,21 @@ public class PagePsynergyController
             return new VisualElement();
         }
 
-        // 1. Instantiate the UXML template asset
         TemplateContainer cardInstance = psynergyCardTemplate.Instantiate();
         VisualElement card = cardInstance.Q<VisualElement>("psynergy_card") ?? cardInstance;
-        card.AddToClassList("interactive)");
+        card.userData = psynergy; // Store reference to retrieve selection after rebuilds
+        card.AddToClassList("psynergy-card");
+        card.AddToClassList("ui-interactive");
+        card.AddToClassList("ui-hover-subtle");
 
-        // 2. Apply dynamic elemental theme class
         card.AddToClassList(GetElementCssClass(psynergy.Element));
 
-        // 3. Bind Icon
         VisualElement cardIcon = card.Q<VisualElement>("psynergy_card_icon");
         if (cardIcon != null && psynergy.Icon != null)
         {
             cardIcon.style.backgroundImage = new StyleBackground(psynergy.Icon);
         }
 
-        // 4. Bind Element Pip Icon & Name
         VisualElement elementPipIcon = card.Q<VisualElement>("element_pip_icon");
         if (elementPipIcon != null)
         {
@@ -361,7 +424,6 @@ public class PagePsynergyController
             nameLabel.text = psynergy.PsynergyName;
         }
 
-        // 5. Dynamically instantiate Badges into card_badges_row
         VisualElement badgesRow = card.Q<VisualElement>("card_badges_row");
         if (badgesRow != null)
         {
@@ -392,7 +454,6 @@ public class PagePsynergyController
             }
         }
 
-        // 6. Bind PP Cost & Low PP Warning Style
         Label ppLabel = card.Q<Label>("label_card_pp");
         if (ppLabel != null)
         {
@@ -405,13 +466,11 @@ public class PagePsynergyController
             card.style.opacity = 0.6f;
         }
 
-        // 7. Register Drag & Click Callbacks
         RegisterPointerCallbacks(card, psynergy, index);
 
         return card;
     }
 
-    // Helper method to resolve the element pip CSS class
     private string GetElementPipCssClass(ElementalType element)
     {
         return element switch
@@ -490,6 +549,7 @@ public class PagePsynergyController
             activePointerId = -1;
             isDragging = false;
 
+            SetSelectedCardUI(cardUI);
             HandleCardDoubleClick(psynergy);
             return;
         }
@@ -508,6 +568,7 @@ public class PagePsynergyController
         currentDragContext = new PsynergyDragContext(psynergy, cardUI, -1);
         isDragging = false;
 
+        SetSelectedCardUI(cardUI);
         UpdateInfoPanel(psynergy);
     }
 
@@ -609,7 +670,6 @@ public class PagePsynergyController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
-            // Registering with TrickleDown ensures we intercept clicks before hero header cards process them
             topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
         }
@@ -623,6 +683,7 @@ public class PagePsynergyController
         if (evt.button == 1)
         {
             CancelPsynergyTargeting();
+            ClearInfoPanel();
             evt.StopPropagation();
             return;
         }
@@ -632,13 +693,13 @@ public class PagePsynergyController
         {
             if (TryGetDropTarget(evt.position, out PsynergyDropTargetInfo targetInfo) && targetInfo.IsHeroCard)
             {
-                // Prevent MainMenuController from triggering SelectHero when clicking the card during targeting
                 evt.StopImmediatePropagation();
                 ExecutePsynergyOnHero(targetInfo.HeroIndex);
             }
             else
             {
                 CancelPsynergyTargeting();
+                ClearInfoPanel();
             }
         }
     }
@@ -658,6 +719,7 @@ public class PagePsynergyController
         if (targetingPsynergy == null || currentHeroStats == null)
         {
             CancelPsynergyTargeting();
+            ClearInfoPanel();
             return;
         }
 
@@ -670,21 +732,21 @@ public class PagePsynergyController
 
         Debug.Log($"[PagePsynergy] Intentando lanzar '{targetingPsynergy.PsynergyName}' sobre {targetHero.Name}...");
 
-        // 1. Intentar aplicar el efecto en el héroe objetivo
         bool effectApplied = targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
 
-        // 2. Solo si el efecto tuvo éxito real consumimos los PP y actualizamos la UI
         if (effectApplied)
         {
             currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
 
             OnPsynergyUsedOnHero?.Invoke();
-            BuildPsynergyCardsList();
 
-            // Si tras consumir PP el héroe ya no tiene suficiente para otra tirada, cancelamos el modo objetivo
+            // Refresh cards maintaining the current filter predicate
+            FilterCards(currentFilterIndex);
+
             if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
             {
                 CancelPsynergyTargeting();
+                ClearInfoPanel();
             }
         }
         else
@@ -766,7 +828,6 @@ public class PagePsynergyController
                 int targetSlotIdx = (int)targetInfo.Direction;
                 int sourceSlotIdx = currentDragContext.SourceShortcutIndex;
 
-                // Swap case: Dragged from a D-Pad slot to another D-Pad slot
                 if (sourceSlotIdx != -1 && sourceSlotIdx != targetSlotIdx)
                 {
                     if (currentHeroObj != null && PsynergyWorldController.Instance != null)
@@ -774,27 +835,33 @@ public class PagePsynergyController
                         PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
                         PsynergySO targetPsynergy = (currentShortcuts != null && targetSlotIdx < currentShortcuts.Length) ? currentShortcuts[targetSlotIdx] : null;
 
-                        // Assign target's previous psynergy to the source slot (swap)
                         PsynergyWorldController.Instance.SetShortcut(currentHeroObj, targetPsynergy, sourceSlotIdx);
-
-                        // Assign dragged psynergy to the target slot
                         PsynergyWorldController.Instance.SetShortcut(currentHeroObj, currentDragContext.Psynergy, targetSlotIdx);
 
                         LoadShortcutsFromWorldController();
+
+                        if (targetSlotIdx >= 0 && targetSlotIdx < dpadSlotUI.Length && dpadSlotUI[targetSlotIdx] != null)
+                        {
+                            SetSelectedCardUI(dpadSlotUI[targetSlotIdx]);
+                        }
                     }
                     return;
                 }
 
-                // Default assignment (from list card to shortcut slot)
                 AssignShortcut(targetInfo.Direction, currentDragContext.Psynergy);
+
+                if (targetSlotIdx >= 0 && targetSlotIdx < dpadSlotUI.Length && dpadSlotUI[targetSlotIdx] != null)
+                {
+                    SetSelectedCardUI(dpadSlotUI[targetSlotIdx]);
+                }
                 return;
             }
         }
 
-        // If dragged from a D-Pad slot and dropped anywhere else outside shortcut slots, clear it
         if (currentDragContext.SourceShortcutIndex != -1)
         {
             ClearShortcut(currentDragContext.SourceShortcutIndex);
+            ClearInfoPanel();
         }
     }
 
@@ -810,7 +877,6 @@ public class PagePsynergyController
 
         int slotIndex = (int)direction;
 
-        // Clear previous assignment if this Psynergy was already assigned to another slot for this hero
         PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
         for (int i = 0; i < currentShortcuts.Length; i++)
         {
@@ -820,7 +886,6 @@ public class PagePsynergyController
             }
         }
 
-        // Persist shortcut via PsynergyWorldController
         PsynergyWorldController.Instance.SetShortcut(currentHeroObj, psynergy, slotIndex);
         Debug.Log($"[PagePsynergy] Assigned '{psynergy.PsynergyName}' to D-Pad shortcut slot: {direction}");
 
@@ -1005,6 +1070,8 @@ public class PagePsynergyController
 
     private void FilterCards(int filterIndex)
     {
+        currentFilterIndex = filterIndex;
+
         if (btnTabAll != null) btnTabAll.RemoveFromClassList("active");
         if (btnTabWorld != null) btnTabWorld.RemoveFromClassList("active");
         if (btnTabMenu != null) btnTabMenu.RemoveFromClassList("active");
@@ -1034,6 +1101,8 @@ public class PagePsynergyController
 
     private void UpdateInfoPanel(PsynergySO psynergy)
     {
+        selectedPsynergy = psynergy;
+
         if (psynergy == null)
         {
             ClearInfoPanel();
@@ -1091,6 +1160,9 @@ public class PagePsynergyController
 
     public void ClearInfoPanel()
     {
+        selectedPsynergy = null;
+        SetSelectedCardUI(null);
+
         if (detailPsynergyIcon != null) detailPsynergyIcon.style.display = DisplayStyle.None;
         if (labelPsynergyName != null) labelPsynergyName.text = "Seleccionar Psinergía";
         if (labelPsynergyType != null) labelPsynergyType.text = "---";

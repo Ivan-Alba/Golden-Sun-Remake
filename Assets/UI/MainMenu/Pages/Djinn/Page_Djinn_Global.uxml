@@ -1,60 +1,48 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Template name="HeroSummaryHeader" src="project://database/Assets/UI/Components/HeroSummaryHeader.uxml" />
-    <ui:Template name="CharacterStatsGrid" src="project://database/Assets/UI/Components/CharacterStatsGrid.uxml" />
-    
+    <ui:Template name="HeroSummaryHeader" src="project://database/Assets/UI/Components/HeroSummaryHeader.uxml?fileID=9197481963319205126&amp;guid=dd9c1beaf6716f1448ed73c9e8292334&amp;type=3#HeroSummaryHeader" />
+    <ui:Template name="CharacterStatsGrid" src="project://database/Assets/UI/Components/CharacterStatsGrid.uxml?fileID=9197481963319205126&amp;guid=3af735e5c0a48f642822636f051f6c3c&amp;type=3#CharacterStatsGrid" />
+    <ui:Template name="ElementalAffinityGrid" src="project://database/Assets/UI/Components/ElementalAffinityGrid.uxml?fileID=9197481963319205126&amp;guid=68abfa5848718a444971ab998d35f6d9&amp;type=3#ElementalAffinityGrid" />
     <Style src="project://database/Assets/UI/MainMenu/Pages/Djinn/Page_Djinn.uss?fileID=7433441132597879392&amp;guid=7a1279321ab063d4db434976e80f0555&amp;type=3#Page_Djinn" />
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
     <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
-    
     <ui:VisualElement name="page_djinn_global_container" class="page-djinn-container">
         <ui:VisualElement name="djinn_global_section" class="djinn-global-section">
             <ui:Label text="ORGANIZACIÓN GLOBAL DE DJINNS" class="info-title-label" />
             <ui:VisualElement name="party_columns_container" class="party-columns-container">
-                
-                <!-- Columna Héroe 1 -->
                 <ui:VisualElement class="hero-djinn-column">
                     <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_0" />
                     <ui:VisualElement name="column_slots_hero_0" class="column-slots-container" />
                 </ui:VisualElement>
-                
-                <!-- Columna Héroe 2 -->
                 <ui:VisualElement class="hero-djinn-column">
                     <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_1" />
                     <ui:VisualElement name="column_slots_hero_1" class="column-slots-container" />
                 </ui:VisualElement>
-                
-                <!-- Columna Héroe 3 -->
                 <ui:VisualElement class="hero-djinn-column">
                     <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_2" />
                     <ui:VisualElement name="column_slots_hero_2" class="column-slots-container" />
                 </ui:VisualElement>
-                
-                <!-- Columna Héroe 4 -->
                 <ui:VisualElement class="hero-djinn-column">
                     <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_3" />
                     <ui:VisualElement name="column_slots_hero_3" class="column-slots-container" />
                 </ui:VisualElement>
-
             </ui:VisualElement>
-            
             <ui:VisualElement name="djinn_global_action_bar" class="djinn-action-bar">
                 <ui:Button text="[ CANCEL / SELECT ] VOLVER A VISTA INDIVIDUAL" name="btn_switch_vista_a" class="action-switch-btn" />
             </ui:VisualElement>
         </ui:VisualElement>
-        
-        <!-- Modal de Comparación -->
         <ui:VisualElement name="compare_modal_overlay" class="modal-overlay-container" style="display: none;">
             <ui:VisualElement class="compare-modal-box">
                 <ui:Label text="CONFIRMAR INTERCAMBIO DE DJINNS" class="info-title-label compare-modal-title" />
                 <ui:VisualElement class="compare-modal-content">
-                    
-                    <!-- Panel Héroe Izquierdo -->
                     <ui:VisualElement name="modal_hero_left" class="modal-hero-panel">
                         <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_left" />
-                        
                         <ui:VisualElement name="summary_stats_container" class="summary-stats-container">
-                            <ui:Label text="ATRIBUTOS" class="subpanel-header-label" />
+                            <ui:Label text="ATRIBUTOS" class="section-header-title" />
                             <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_left" class="character-stats-instance" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="summary_elemental_container_left" class="summary-stats-container">
+                            <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                            <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_left" class="elemental-affinity-instance" />
                         </ui:VisualElement>
                         <ui:VisualElement name="separator" class="info-divider" />
                         <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
@@ -67,8 +55,6 @@
                             <ui:ScrollView name="scroll_class_psynergies_left" class="summary-psynergy-list-scroll" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    
-                    <!-- Acción Central -->
                     <ui:VisualElement class="compare-center-action-box">
                         <ui:Label text="INTERCAMBIO" class="compare-action-title" />
                         <ui:VisualElement class="compare-exchange-visual">
@@ -85,14 +71,15 @@
                             <ui:Button text="[ B ] CANCELAR" name="btn_modal_cancel" class="modal-btn btn-cancel" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    
-                    <!-- Panel Héroe Derecho -->
                     <ui:VisualElement name="modal_hero_right" class="modal-hero-panel">
                         <ui:Instance template="HeroSummaryHeader" name="hero_summary_header_right" />
-                        
                         <ui:VisualElement name="summary_stats_container" class="summary-stats-container">
-                            <ui:Label text="ATRIBUTOS" class="subpanel-header-label" />
+                            <ui:Label text="ATRIBUTOS" class="section-header-title" />
                             <ui:Instance template="CharacterStatsGrid" name="character_stats_grid_right" class="character-stats-instance" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="summary_elemental_container_right" class="summary-stats-container">
+                            <ui:Label text="AFINIDAD ELEMENTAL" class="section-header-title" />
+                            <ui:Instance template="ElementalAffinityGrid" name="elemental_affinity_grid_right" class="elemental-affinity-instance" />
                         </ui:VisualElement>
                         <ui:VisualElement name="separator" class="info-divider" />
                         <ui:VisualElement name="psynergy_projection_container" class="summary-psynergy-view-container">
@@ -105,7 +92,6 @@
                             <ui:ScrollView name="scroll_class_psynergies_right" class="summary-psynergy-list-scroll" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

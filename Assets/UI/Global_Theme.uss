@@ -19,6 +19,16 @@
     --color-subbox-bg: #101722;
     --color-subbox-border: #1F2D40;
 
+    /* Interactive States Colors */
+    --color-hover-subtle-bg: rgba(50, 50, 65, 0.95);
+    --color-hover-subtle-border: rgba(218, 165, 32, 0.6);
+    
+    --color-hover-gold-bg: rgba(218, 165, 32, 0.35);
+    --color-hover-gold-border: #FFD700;
+
+    --color-active-gold-bg: rgba(60, 50, 30, 0.95);
+    --color-active-gold-border: #FFD700;
+
     /* Elemental Colors */
     --color-venus: #C88A2E;
     --color-mars: #E74C3C;
@@ -94,4 +104,34 @@
 
 .text-accent-blue {
     color: var(--color-accent-blue);
+}
+
+/* =========================================================================
+   GLOBAL INTERACTIVE UTILITY CLASSES
+   ========================================================================= */
+
+/* Base transition for interactive UI elements */
+.ui-interactive {
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+/* 1. Subtle Hover (Azulado/Blanquecino discreto) */
+.ui-hover-subtle:hover {
+    background-color: var(--color-hover-subtle-bg);
+    border-color: var(--color-hover-subtle-border);
+}
+
+/* 2. Gold Hover (Dorado vistoso) */
+.ui-hover-gold:hover {
+    background-color: var(--color-hover-gold-bg);
+    border-color: var(--color-hover-gold-border);
+}
+
+/* 3. Global Active/Selected State */
+.ui-state-active {
+    border-color: var(--color-active-gold-border);
+    border-width: 2px;
+    background-color: var(--color-active-gold-bg);
 }

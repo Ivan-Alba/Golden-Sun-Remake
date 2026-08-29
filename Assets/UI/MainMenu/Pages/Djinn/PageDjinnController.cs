@@ -224,6 +224,24 @@ public class PageDjinnController
         public Label LabelStatAgi;
         public Label LabelStatSue;
 
+        public Label labelPowVenusB;
+        public Label labelResVenusB;
+        public Label labelPowMarsB;
+        public Label labelResMarsB;
+        public Label labelPowJupiterB;
+        public Label labelResJupiterB;
+        public Label labelPowMercuryB;
+        public Label labelResMercuryB;
+
+        public Label labelDeltaPowVenusB;
+        public Label labelDeltaResVenusB;
+        public Label labelDeltaPowMarsB;
+        public Label labelDeltaResMarsB;
+        public Label labelDeltaPowJupiterB;
+        public Label labelDeltaResJupiterB;
+        public Label labelDeltaPowMercuryB;
+        public Label labelDeltaResMercuryB;
+
         public Label LabelDeltaMaxHP;
         public Label LabelDeltaMaxPP;
         public Label LabelDeltaAtq;
@@ -462,6 +480,24 @@ public class PageDjinnController
         ui.LabelStatDef = panelRoot.Q<Label>("label_stat_def");
         ui.LabelStatAgi = panelRoot.Q<Label>("label_stat_agi");
         ui.LabelStatSue = panelRoot.Q<Label>("label_stat_sue");
+
+        ui.labelPowVenusB = panelRoot.Q<Label>("elem_power_venus");
+        ui.labelResVenusB = panelRoot.Q<Label>("elem_resistance_venus");
+        ui.labelPowMarsB = panelRoot.Q<Label>("elem_power_mars");
+        ui.labelResMarsB = panelRoot.Q<Label>("elem_resistance_mars"); 
+        ui.labelPowJupiterB = panelRoot.Q<Label>("elem_power_jupiter");
+        ui.labelResJupiterB = panelRoot.Q<Label>("elem_resistance_jupiter"); 
+        ui.labelPowMercuryB = panelRoot.Q<Label>("elem_power_mercury");
+        ui.labelResMercuryB = panelRoot.Q<Label>("elem_resistance_mercury");
+
+        ui.labelDeltaPowVenusB = panelRoot.Q<Label>("elem_power_delta_venus");
+        ui.labelDeltaResVenusB = panelRoot.Q<Label>("elem_resistance_delta_venus");
+        ui.labelDeltaPowMarsB = panelRoot.Q<Label>("elem_power_delta_mars");
+        ui.labelDeltaResMarsB = panelRoot.Q<Label>("elem_resistance_delta_mars");
+        ui.labelDeltaPowJupiterB = panelRoot.Q<Label>("elem_power_delta_jupiter");
+        ui.labelDeltaResJupiterB = panelRoot.Q<Label>("elem_resistance_delta_jupiter");
+        ui.labelDeltaPowMercuryB = panelRoot.Q<Label>("elem_power_delta_mercury");
+        ui.labelDeltaResMercuryB = panelRoot.Q<Label>("elem_resistance_delta_mercury");
 
         ui.LabelDeltaMaxHP = panelRoot.Q<Label>("label_delta_max_hp");
         ui.LabelDeltaMaxPP = panelRoot.Q<Label>("label_delta_max_pp");
@@ -1982,6 +2018,15 @@ public class PageDjinnController
         if (ui.LabelStatAgi != null) ui.LabelStatAgi.text = hero.Agility.ToString();
         if (ui.LabelStatSue != null) ui.LabelStatSue.text = hero.Luck.ToString();
 
+        if (ui.labelPowVenusB != null) ui.labelPowVenusB.text = hero.PowerVenus.ToString();
+        if (ui.labelResVenusB != null) ui.labelResVenusB.text = hero.ResistVenus.ToString();
+        if (ui.labelPowMarsB != null) ui.labelPowMarsB.text = hero.PowerMars.ToString();
+        if (ui.labelResMarsB != null) ui.labelResMarsB.text = hero.ResistMars.ToString();
+        if (ui.labelPowJupiterB != null) ui.labelPowJupiterB.text = hero.PowerJupiter.ToString();
+        if (ui.labelResJupiterB != null) ui.labelResJupiterB.text = hero.ResistJupiter.ToString();
+        if (ui.labelPowMercuryB != null) ui.labelPowMercuryB.text = hero.PowerMercury.ToString();
+        if (ui.labelResMercuryB != null) ui.labelResMercuryB.text = hero.ResistMercury.ToString();
+
         HideModalDeltas(ui);
     }
 
@@ -1993,6 +2038,16 @@ public class PageDjinnController
         if (ui.LabelDeltaDef != null) ui.LabelDeltaDef.style.display = DisplayStyle.None;
         if (ui.LabelDeltaAgi != null) ui.LabelDeltaAgi.style.display = DisplayStyle.None;
         if (ui.LabelDeltaSue != null) ui.LabelDeltaSue.style.display = DisplayStyle.None;
+
+        //Elemental affinity grid
+        if (ui.labelDeltaPowVenusB != null) ui.labelDeltaPowVenusB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaResVenusB != null) ui.labelDeltaResVenusB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaPowMarsB != null) ui.labelDeltaPowMarsB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaResMarsB != null) ui.labelDeltaResMarsB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaPowJupiterB != null) ui.labelDeltaPowJupiterB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaResJupiterB != null) ui.labelDeltaResJupiterB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaPowMercuryB != null) ui.labelDeltaPowMercuryB.style.display = DisplayStyle.None;
+        if (ui.labelDeltaResMercuryB != null) ui.labelDeltaResMercuryB.style.display = DisplayStyle.None;
     }
 
     private void ApplyHeroProjection(HeroStats hero, DjinnInstance djinnToRemove, DjinnInstance djinnToAdd, ModalHeroPanelUI ui)
@@ -2054,6 +2109,15 @@ public class PageDjinnController
         ApplyStatProjection(ui.LabelStatDef, ui.LabelDeltaDef, hero.Defense, projectedStats.Defense);
         ApplyStatProjection(ui.LabelStatAgi, ui.LabelDeltaAgi, hero.Agility, projectedStats.Agility);
         ApplyStatProjection(ui.LabelStatSue, ui.LabelDeltaSue, hero.Luck, projectedStats.Luck);
+        // 3.1 Elemental power/resistance
+        ApplyStatProjection(ui.labelPowVenusB, ui.labelDeltaPowVenusB, hero.PowerVenus, projectedStats.PowerVenus);
+        ApplyStatProjection(ui.labelResVenusB, ui.labelDeltaResVenusB, hero.ResistVenus, projectedStats.ResistVenus);
+        ApplyStatProjection(ui.labelPowMarsB, ui.labelDeltaPowMarsB, hero.PowerMars, projectedStats.PowerMars);
+        ApplyStatProjection(ui.labelResMarsB, ui.labelDeltaResMarsB, hero.ResistMars, projectedStats.ResistMars);
+        ApplyStatProjection(ui.labelPowJupiterB, ui.labelDeltaPowJupiterB, hero.PowerJupiter, projectedStats.PowerJupiter);
+        ApplyStatProjection(ui.labelResJupiterB, ui.labelDeltaResJupiterB, hero.ResistJupiter, projectedStats.ResistJupiter);
+        ApplyStatProjection(ui.labelPowMercuryB, ui.labelDeltaPowMercuryB, hero.PowerMercury, projectedStats.PowerMercury);
+        ApplyStatProjection(ui.labelResMercuryB, ui.labelDeltaResMercuryB, hero.ResistMercury, projectedStats.ResistMercury);
 
         // 4. Project Psynergies
         List<PsynergySO> currentPsynergies = hero.Psynergies != null ? new List<PsynergySO>(hero.Psynergies) : new List<PsynergySO>();

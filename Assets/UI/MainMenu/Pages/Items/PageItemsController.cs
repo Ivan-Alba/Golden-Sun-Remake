@@ -186,6 +186,7 @@ public class PageItemsController
 
     // Item Selected (Info Panel) State Tracking
     private ItemSO selectedItem;
+    private VisualElement currentlySelectedSlotUI;
 
     // Equipment slot type mapping matching gearSlots[0..6] indices
     private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
@@ -218,9 +219,6 @@ public class PageItemsController
 
     #region Helper Methods for Global Panel Access
 
-    /// <summary>
-    /// Binds the modular VisualTreeAsset templates required for dynamic item details rendering.
-    /// </summary>
     public void SetExtraInfoTemplates(
         VisualTreeAsset consumableTpl,
         VisualTreeAsset equipableTpl,
@@ -235,13 +233,24 @@ public class PageItemsController
         templateInfoKeyItem = keyItemTpl;
     }
 
-    /// <summary>
-    /// Retrieves the top-level root visual element of the entire UI Document panel
-    /// to ensure ghosts and global events bypass sub-page boundaries.
-    /// </summary>
     private VisualElement GetTopRootElement()
     {
         return rootElement?.panel?.visualTree ?? rootElement;
+    }
+
+    private void SetSelectedSlotUI(VisualElement newSelectedSlot)
+    {
+        if (currentlySelectedSlotUI != null)
+        {
+            currentlySelectedSlotUI.RemoveFromClassList("active");
+        }
+
+        currentlySelectedSlotUI = newSelectedSlot;
+
+        if (currentlySelectedSlotUI != null)
+        {
+            currentlySelectedSlotUI.AddToClassList("active");
+        }
     }
 
     #endregion
@@ -252,15 +261,12 @@ public class PageItemsController
     {
         if (rootElement == null) return;
 
-        // Header Elements
         heroInventoryIcon = rootElement.Q<VisualElement>("hero_inventory_icon");
         labelInventoryTitle = rootElement.Q<Label>("label_inventory_title");
 
-        // Grid Containers
         inventoryGrid = rootElement.Q<VisualElement>("inventory_grid");
         globalBagGrid = rootElement.Q<VisualElement>("global_bag_grid");
 
-        // Info Panel
         labelInfoTitle = rootElement.Q<Label>("label_info_title");
         itemIconPreview = rootElement.Q<VisualElement>("item_icon_preview");
         labelItemName = rootElement.Q<Label>("label_item_name");
@@ -269,10 +275,8 @@ public class PageItemsController
         labelItemMaxStack = rootElement.Q<Label>("label_item_max_stack");
         labelItemDesc = rootElement.Q<Label>("label_item_desc");
 
-        // Container holding extra item details
         extraInfoContainer = rootElement.Q<VisualElement>("extra_info_container") ?? rootElement.Q<VisualElement>("stat_changes_box");
 
-        // Split Modal Overlay Elements
         splitPopupOverlay = rootElement.Q<VisualElement>("split_popup_overlay");
         splitItemIcon = rootElement.Q<VisualElement>("split_item_icon");
         labelSplitItemName = rootElement.Q<Label>("label_split_item_name");
@@ -288,7 +292,6 @@ public class PageItemsController
             splitPopupOverlay.style.display = DisplayStyle.None;
         }
 
-        // Bind Fixed Equipment Slots
         gearSlots[0] = rootElement.Q<VisualElement>("slot_weapon");
         gearSlots[1] = rootElement.Q<VisualElement>("slot_shield");
         gearSlots[2] = rootElement.Q<VisualElement>("slot_armor");
@@ -297,13 +300,11 @@ public class PageItemsController
         gearSlots[5] = rootElement.Q<VisualElement>("slot_boots");
         gearSlots[6] = rootElement.Q<VisualElement>("slot_acc");
 
-        // Bind Fixed Relic Slots
         relicSlots[0] = rootElement.Q<VisualElement>("slot_relic_0");
         relicSlots[1] = rootElement.Q<VisualElement>("slot_relic_1");
         relicSlots[2] = rootElement.Q<VisualElement>("slot_relic_2");
         relicSlots[3] = rootElement.Q<VisualElement>("slot_relic_3");
 
-        // Ensure equipment and relic slots register pointer hit tests properly
         for (int i = 0; i < gearSlots.Length; i++)
         {
             if (gearSlots[i] != null) gearSlots[i].pickingMode = PickingMode.Position;
@@ -401,6 +402,10 @@ public class PageItemsController
             if (slotRoot != null)
             {
                 slotRoot.pickingMode = PickingMode.Position;
+                slotRoot.AddToClassList("slot-box");
+                slotRoot.AddToClassList("ui-interactive");
+                slotRoot.AddToClassList("ui-hover-subtle");
+
                 inventoryGrid.Add(slotRoot);
                 spawnedInventorySlots.Add(slotRoot);
             }
@@ -426,7 +431,11 @@ public class PageItemsController
             {
                 int slotIndex = i;
                 slotRoot.pickingMode = PickingMode.Position;
-                slotRoot.RegisterCallback<ClickEvent>(evt => SelectGlobalBagSlot(slotIndex));
+                slotRoot.AddToClassList("slot-box");
+                slotRoot.AddToClassList("ui-interactive");
+                slotRoot.AddToClassList("ui-hover-subtle");
+
+                slotRoot.RegisterCallback<ClickEvent>(evt => SelectGlobalBagSlot(slotIndex, slotRoot));
 
                 globalBagGrid.Add(slotRoot);
                 spawnedGlobalBagSlots.Add(slotRoot);
@@ -449,7 +458,6 @@ public class PageItemsController
             UpdateInfoPanel(selectedItem);
         }
 
-        // Notify MainMenuController to update top header hero cards (HP/PP/Stats)
         OnItemUsedOnHero?.Invoke();
     }
 
@@ -522,7 +530,6 @@ public class PageItemsController
     {
         if (currentEquipment == null) return;
 
-        // 1. Refresh Standard Gear Slots (gearSlots[0..6])
         for (int i = 0; i < gearSlots.Length; i++)
         {
             int slotIndex = i;
@@ -545,7 +552,6 @@ public class PageItemsController
             }
         }
 
-        // 2. Refresh Psynergy Relic Slots (relicSlots[0..3])
         for (int i = 0; i < relicSlots.Length; i++)
         {
             int slotIndex = i;
@@ -719,6 +725,7 @@ public class PageItemsController
         currentDragContext = new DragContext(sourceType, slotIndex, liveItem, quantity, slotUI);
         isDragging = false;
 
+        SetSelectedSlotUI(slotUI);
         UpdateInfoPanel(liveItem);
     }
 
@@ -805,12 +812,28 @@ public class PageItemsController
 
                         currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
                         RefreshAllData();
+
+                        // Actualizamos la selección hacia el slot de reliquia equipado
+                        if (targetRelicIndex >= 0 && targetRelicIndex < relicSlots.Length && relicSlots[targetRelicIndex] != null)
+                        {
+                            SetSelectedSlotUI(relicSlots[targetRelicIndex]);
+                        }
                     }
                 }
                 else
                 {
                     currentEquipment?.EquipFromBackpack(slotIndex);
                     RefreshAllData();
+
+                    // Buscamos el slot de equipamiento correspondiente para mantener el active ahí
+                    for (int i = 0; i < gearSlotTypes.Length; i++)
+                    {
+                        if (gearSlotTypes[i] == equipable.EquipmentSlot && gearSlots[i] != null)
+                        {
+                            SetSelectedSlotUI(gearSlots[i]);
+                            break;
+                        }
+                    }
                 }
             }
             else if (item is ConsumableSO)
@@ -824,7 +847,8 @@ public class PageItemsController
             if (currentEquipment == null || currentInventory == null) return;
             if (slotIndex < 0 || slotIndex >= gearSlotTypes.Length) return;
 
-            if (GetFirstEmptyInventoryIndex() == -1)
+            int targetInvIndex = GetFirstEmptyInventoryIndex();
+            if (targetInvIndex == -1)
             {
                 Debug.LogWarning("[PageItems] Cannot unequip: Personal inventory is full.");
                 return;
@@ -834,6 +858,12 @@ public class PageItemsController
             if (currentEquipment.UnequipStandardSlot(slotType))
             {
                 RefreshAllData();
+
+                // Movemos el active al slot recién desequipado en el inventario
+                if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
+                {
+                    SetSelectedSlotUI(spawnedInventorySlots[targetInvIndex]);
+                }
             }
         }
         // 3. Actions from Relic Slots
@@ -841,7 +871,8 @@ public class PageItemsController
         {
             if (currentEquipment == null || currentInventory == null) return;
 
-            if (GetFirstEmptyInventoryIndex() == -1)
+            int targetInvIndex = GetFirstEmptyInventoryIndex();
+            if (targetInvIndex == -1)
             {
                 Debug.LogWarning("[PageItems] Cannot unequip relic: Personal inventory is full.");
                 return;
@@ -850,6 +881,12 @@ public class PageItemsController
             if (currentEquipment.UnequipRelicSlot(slotIndex))
             {
                 RefreshAllData();
+
+                // Movemos el active al slot recién desequipado en el inventario
+                if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
+                {
+                    SetSelectedSlotUI(spawnedInventorySlots[targetInvIndex]);
+                }
             }
         }
     }
@@ -951,6 +988,7 @@ public class PageItemsController
             InventorySlot updatedSlot = currentInventory.GetSlot(targetingSourceIndex);
             if (updatedSlot == null || updatedSlot.IsEmpty || updatedSlot.Quantity <= 0)
             {
+                ClearInfoPanel();
                 CancelItemTargeting();
             }
         }
@@ -1077,7 +1115,6 @@ public class PageItemsController
         VisualElement picked = rootElement.panel.Pick(pointerPosition);
         if (picked == null) return false;
 
-        // 1. Check Personal Inventory Slots
         for (int i = 0; i < spawnedInventorySlots.Count; i++)
         {
             if (spawnedInventorySlots[i] != null && IsElementOrChildOf(picked, spawnedInventorySlots[i]))
@@ -1087,7 +1124,6 @@ public class PageItemsController
             }
         }
 
-        // 2. Check Equipment Slots
         for (int i = 0; i < gearSlots.Length; i++)
         {
             if (gearSlots[i] != null && IsElementOrChildOf(picked, gearSlots[i]))
@@ -1097,7 +1133,6 @@ public class PageItemsController
             }
         }
 
-        // 3. Check Relic Slots
         for (int i = 0; i < relicSlots.Length; i++)
         {
             if (relicSlots[i] != null && IsElementOrChildOf(picked, relicSlots[i]))
@@ -1107,7 +1142,6 @@ public class PageItemsController
             }
         }
 
-        // 4. Check Hero Header Cards in Main Menu
         VisualElement heroCard = FindParentMatching(picked, elem => elem.name != null && elem.name.StartsWith("btn_hero"));
         if (heroCard != null)
         {
@@ -1201,6 +1235,10 @@ public class PageItemsController
             else
             {
                 currentInventory.SwapOrMergeSlots(sourceIndex, targetIndex);
+                if (targetIndex >= 0 && targetIndex < spawnedInventorySlots.Count)
+                {
+                    SetSelectedSlotUI(spawnedInventorySlots[targetIndex]);
+                }
             }
         }
         else if (currentDragContext.SourceType == DragSourceType.Equipment || currentDragContext.SourceType == DragSourceType.Relic)
@@ -1220,6 +1258,10 @@ public class PageItemsController
             if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == targetSlotType)
             {
                 currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex);
+                if (gearSlots[targetIndex] != null)
+                {
+                    SetSelectedSlotUI(gearSlots[targetIndex]);
+                }
             }
         }
     }
@@ -1231,6 +1273,10 @@ public class PageItemsController
             if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
             {
                 currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex, targetIndex);
+                if (targetIndex >= 0 && targetIndex < relicSlots.Length && relicSlots[targetIndex] != null)
+                {
+                    SetSelectedSlotUI(relicSlots[targetIndex]);
+                }
             }
         }
     }
@@ -1260,10 +1306,12 @@ public class PageItemsController
             if (currentDragContext.SourceType == DragSourceType.Equipment)
             {
                 currentEquipment.EquipFromBackpack(targetInventoryIndex);
+                SetSelectedSlotUI(gearSlots[currentDragContext.SourceIndex]);
             }
             else if (currentDragContext.SourceType == DragSourceType.Relic)
             {
                 currentEquipment.EquipFromBackpack(targetInventoryIndex, currentDragContext.SourceIndex);
+                SetSelectedSlotUI(relicSlots[currentDragContext.SourceIndex]);
             }
         }
         else if (targetSlot != null && targetSlot.IsEmpty)
@@ -1290,6 +1338,11 @@ public class PageItemsController
                     }
                 }
             }
+
+            if (targetInventoryIndex >= 0 && targetInventoryIndex < spawnedInventorySlots.Count)
+            {
+                SetSelectedSlotUI(spawnedInventorySlots[targetInventoryIndex]);
+            }
         }
         else
         {
@@ -1300,6 +1353,12 @@ public class PageItemsController
             else if (currentDragContext.SourceType == DragSourceType.Relic)
             {
                 currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex);
+            }
+
+            int emptyIndex = GetFirstEmptyInventoryIndex();
+            if (emptyIndex != -1 && emptyIndex < spawnedInventorySlots.Count)
+            {
+                SetSelectedSlotUI(spawnedInventorySlots[emptyIndex]);
             }
         }
     }
@@ -1331,7 +1390,14 @@ public class PageItemsController
             }
             else
             {
-                currentInventory.TransferAmountToHero(currentDragContext.SourceIndex, 1, targetHeroInv);
+                int sourceIdx = currentDragContext.SourceIndex;
+                currentInventory.TransferAmountToHero(sourceIdx, 1, targetHeroInv);
+
+                InventorySlot sourceSlot = currentInventory.GetSlot(sourceIdx);
+                if (sourceSlot == null || sourceSlot.IsEmpty || sourceSlot.Quantity <= 0)
+                {
+                    ClearInfoPanel();
+                }
             }
         }
         else if (currentDragContext.SourceType == DragSourceType.Equipment || currentDragContext.SourceType == DragSourceType.Relic)
@@ -1358,6 +1424,8 @@ public class PageItemsController
                     currentInventory.TransferItemToHero(GetFirstEmptyInventoryIndex(), targetHeroInv);
                 }
             }
+
+            ClearInfoPanel();
         }
     }
 
@@ -1449,6 +1517,10 @@ public class PageItemsController
             if (pendingSplit.SourceType == DragSourceType.PersonalInventory)
             {
                 currentInventory.SplitOrMoveSlotAmount(pendingSplit.SourceIndex, pendingSplit.TargetIndex, amountToMove);
+                if (pendingSplit.TargetIndex >= 0 && pendingSplit.TargetIndex < spawnedInventorySlots.Count)
+                {
+                    SetSelectedSlotUI(spawnedInventorySlots[pendingSplit.TargetIndex]);
+                }
             }
         }
         else if (pendingSplit.TargetType == DropTargetType.HeroCard && pendingSplit.TargetHeroInventory != null)
@@ -1456,6 +1528,12 @@ public class PageItemsController
             if (pendingSplit.SourceType == DragSourceType.PersonalInventory)
             {
                 currentInventory.TransferAmountToHero(pendingSplit.SourceIndex, amountToMove, pendingSplit.TargetHeroInventory);
+
+                InventorySlot sourceSlot = currentInventory.GetSlot(pendingSplit.SourceIndex);
+                if (sourceSlot == null || sourceSlot.IsEmpty || sourceSlot.Quantity <= 0)
+                {
+                    ClearInfoPanel();
+                }
             }
         }
 
@@ -1579,10 +1657,6 @@ public class PageItemsController
         UpdateInfoExtraPanel(item);
     }
 
-    /// <summary>
-    /// Instantiates and binds the matching UXML template into extraInfoContainer based on the selected ItemSO type.
-    /// Dynamically renders equipment stat modifiers and composite consumable status/resource effects.
-    /// </summary>
     private void UpdateInfoExtraPanel(ItemSO item)
     {
         if (extraInfoContainer == null) return;
@@ -1591,7 +1665,6 @@ public class PageItemsController
 
         if (item == null) return;
 
-        // 1. Weapon Artifacts / Standard Weapons
         if (item is WeaponSO weapon)
         {
             if (templateInfoWeapon == null) return;
@@ -1599,17 +1672,14 @@ public class PageItemsController
             TemplateContainer instance = templateInfoWeapon.Instantiate();
             extraInfoContainer.Add(instance);
 
-            // Element Badge
             VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
             Label labelElementName = instance.Q<Label>("label_element_name");
             VisualElement elementIcon = instance.Q<VisualElement>("element_icon");
             ApplyElementBadgeTheme(badgeElement, labelElementName, elementIcon, weapon.Element);
 
-            // Hit Type Badge
             Label labelHitType = instance.Q<Label>("label_hit_type");
             if (labelHitType != null) labelHitType.text = weapon.HitFXType.ToString().ToUpper();
 
-            // Battle Use Badge
             VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
             if (badgeBattleUse != null)
             {
@@ -1618,7 +1688,6 @@ public class PageItemsController
                 badgeBattleUse.AddToClassList(weapon.UseInBattle ? "badge-active" : "badge-inactive");
             }
 
-            // Weapon Unleash Box
             VisualElement unleashBox = instance.Q<VisualElement>("unleash_info_box");
             if (unleashBox != null)
             {
@@ -1635,7 +1704,6 @@ public class PageItemsController
                         unleashIcon.style.backgroundImage = new StyleBackground(weapon.UnleashEffect.Icon);
                     }
 
-                    // Unleash Elemental Pip
                     VisualElement unleashElementIcon = instance.Q<VisualElement>("unleash_element_icon");
                     if (unleashElementIcon != null)
                     {
@@ -1671,17 +1739,12 @@ public class PageItemsController
                 }
             }
 
-            // Render Stat Modifiers
             RenderEquipableStatModifiers(instance, weapon);
-
-            // Stat Delta Comparison
             PopulateStatDeltaComparison(instance, weapon);
 
-            // Flavor Text
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = weapon.FlavorText;
         }
-        // 2. Psynergy Relics
         else if (item is PsynergyRelicSO relic)
         {
             if (templateInfoPsynergyRelic == null) return;
@@ -1739,7 +1802,6 @@ public class PageItemsController
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = relic.FlavorText;
         }
-        // 3. Standard Equipables (Armors, Helmets, Accessories, etc.)
         else if (item is EquipableSO equipable)
         {
             if (templateInfoEquipable == null) return;
@@ -1747,13 +1809,11 @@ public class PageItemsController
             TemplateContainer instance = templateInfoEquipable.Instantiate();
             extraInfoContainer.Add(instance);
 
-            // Element Badge
             VisualElement badgeElement = instance.Q<VisualElement>("badge_element");
             Label labelElementName = instance.Q<Label>("label_element_name");
             VisualElement elementIcon = instance.Q<VisualElement>("element_icon");
             ApplyElementBadgeTheme(badgeElement, labelElementName, elementIcon, equipable.Element);
 
-            // Battle Use Badge & Effect Description
             VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
             VisualElement battleEffectBox = instance.Q<VisualElement>("battle_effect_info_box");
             Label labelBattleEffectName = instance.Q<Label>("label_battle_effect_name");
@@ -1778,17 +1838,12 @@ public class PageItemsController
                 }
             }
 
-            // Render Stat Modifiers
             RenderEquipableStatModifiers(instance, equipable);
-
-            // Stat Delta Comparison
             PopulateStatDeltaComparison(instance, equipable);
 
-            // Flavor Text
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = equipable.FlavorText;
         }
-        // 4. Consumables (Composite Effects System)
         else if (item is ConsumableSO consumable)
         {
             if (templateInfoConsumable == null) return;
@@ -1808,35 +1863,30 @@ public class PageItemsController
                 badgeBattleUseClassToggle(badgeBattleUse, consumable.UseInBattle);
             }
 
-            // Target the dynamic effects list container in UXML
             VisualElement effectsContainer = instance.Q<VisualElement>("effects_list_container");
 
             if (effectsContainer != null)
             {
                 effectsContainer.Clear();
 
-                // 1. HP Restoration
                 if (consumable.RestoresHp)
                 {
                     string hpText = consumable.IsHpPercentage ? $"+{consumable.HpAmount}% PV" : $"+{consumable.HpAmount} PV";
                     AddEffectRow(effectsContainer, "Restaura HP", hpText);
                 }
 
-                // 2. PP Restoration
                 if (consumable.RestoresPp)
                 {
                     string ppText = consumable.IsPpPercentage ? $"+{consumable.PpAmount}% PP" : $"+{consumable.PpAmount} PP";
                     AddEffectRow(effectsContainer, "Restaura PP", ppText);
                 }
 
-                // 3. Revival Settings
                 if (consumable.CanRevive)
                 {
                     string reviveText = consumable.IsRevivePercentage ? $"+{consumable.ReviveHpAmount}% PV" : $"+{consumable.ReviveHpAmount} PV";
                     AddEffectRow(effectsContainer, "Resurrección", reviveText);
                 }
 
-                // 4. Status Removal & Cures
                 if (consumable.CureAllStatusEffects)
                 {
                     AddEffectRow(effectsContainer, "Curar Estados", "Todos");
@@ -1863,7 +1913,6 @@ public class PageItemsController
                     }
                 }
 
-                // 5. Applied Status Effects / Buffs
                 if (consumable.StatusEffectsToApply != null)
                 {
                     foreach (var statusSO in consumable.StatusEffectsToApply)
@@ -1875,7 +1924,6 @@ public class PageItemsController
                     }
                 }
 
-                // 6. Permanent Stat Boost
                 if (consumable.IsPermanentStatBoost)
                 {
                     string statName = GetStatDisplayName(consumable.StatToBonus);
@@ -1886,7 +1934,6 @@ public class PageItemsController
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = consumable.FlavorText;
         }
-        // 5. Key / Story Items
         else if (item is KeyItemSO keyItem)
         {
             if (templateInfoKeyItem == null) return;
@@ -1899,9 +1946,6 @@ public class PageItemsController
         }
     }
 
-    /// <summary>
-    /// Helper method to dynamically instantiate an effect row using ItemInfo_Consumable.uss CSS classes.
-    /// </summary>
     private void AddEffectRow(VisualElement container, string typeText, string valueText)
     {
         if (container == null) return;
@@ -1928,9 +1972,6 @@ public class PageItemsController
         elem.AddToClassList(active ? "badge-active" : "badge-inactive");
     }
 
-    /// <summary>
-    /// Applies CSS class themes to the elemental badge according to ElementalType.
-    /// </summary>
     private void ApplyElementBadgeTheme(VisualElement badgeElement, Label labelElementName, VisualElement elementIcon, ElementalType element)
     {
         if (badgeElement == null) return;
@@ -1944,7 +1985,6 @@ public class PageItemsController
         string elemString = element.ToString().ToLower();
         badgeElement.AddToClassList($"badge-element-{elemString}");
 
-        // ElementIcon
         if (elementIcon != null)
         {
             elementIcon.RemoveFromClassList("icon-none");
@@ -1982,14 +2022,10 @@ public class PageItemsController
         }
     }
 
-    /// <summary>
-    /// Renders all Stat Modifiers belonging strictly to the equipable item into generic containers.
-    /// </summary>
     private void RenderEquipableStatModifiers(VisualElement rootInstance, EquipableSO equipable)
     {
         if (equipable == null) return;
 
-        // Query generic grid containers across weapon, equipable, or relic views
         VisualElement statsContainer = rootInstance.Q<VisualElement>("stats_grid") ??
                                        rootInstance.Q<VisualElement>("stats_list_container") ??
                                        rootInstance.Q<VisualElement>("stat_modifiers_box");
@@ -2022,15 +2058,10 @@ public class PageItemsController
         }
     }
 
-    /// <summary>
-    /// Calculates current vs new stat comparison delta values using the centralized StatCalculator engine.
-    /// Evaluates exact predicted stats if newEquipable is equipped, replacing current gear in the same slot.
-    /// </summary>
     private void PopulateStatDeltaComparison(VisualElement rootInstance, EquipableSO newEquipable)
     {
         if (currentHero == null || currentEquipment == null || newEquipable == null) return;
 
-        // Query generic comparison containers across UXML views
         VisualElement deltaContainer = rootInstance.Q<VisualElement>("comparison_rows_container") ??
                                        rootInstance.Q<VisualElement>("delta_comparison_container") ??
                                        rootInstance.Q<VisualElement>("stat_delta_box");
@@ -2039,14 +2070,11 @@ public class PageItemsController
 
         deltaContainer.Clear();
 
-        // 1. Build Base Context Shared Setup (Base Stats + Class Multipliers + Djinns + Leader Passives)
         CharacterClassSO currentClass = currentHero.CurrentClass;
         HeroDjinnController djinnCtrl = currentHero.DjinnController;
 
-        // Helper action to populate base parameters onto any context instance
         void PopulateBaseContextData(StatEvaluationContext context)
         {
-            // A. Assign Base Stats
             context.SetBaseStat(StatType.MaxHP, currentHero.GetStat(StatType.MaxHP)?.BaseValue ?? 0);
             context.SetBaseStat(StatType.MaxPP, currentHero.GetStat(StatType.MaxPP)?.BaseValue ?? 0);
             context.SetBaseStat(StatType.Attack, currentHero.GetStat(StatType.Attack)?.BaseValue ?? 0);
@@ -2054,7 +2082,6 @@ public class PageItemsController
             context.SetBaseStat(StatType.Agility, currentHero.GetStat(StatType.Agility)?.BaseValue ?? 0);
             context.SetBaseStat(StatType.Luck, currentHero.GetStat(StatType.Luck)?.BaseValue ?? 0);
 
-            // B. Assign Class Multipliers
             if (currentClass != null)
             {
                 context.SetClassMultiplier(StatType.MaxHP, currentClass.GetStatMultiplier(StatType.MaxHP));
@@ -2065,7 +2092,6 @@ public class PageItemsController
                 context.SetClassMultiplier(StatType.Luck, currentClass.GetStatMultiplier(StatType.Luck));
             }
 
-            // C. Assign Djinn Set Modifiers
             if (djinnCtrl != null && djinnCtrl.AssignedDjinns != null)
             {
                 foreach (var djinn in djinnCtrl.AssignedDjinns)
@@ -2080,7 +2106,6 @@ public class PageItemsController
                     }
                 }
 
-                // D. Assign Leader Passive Modifiers directly from active leader
                 DjinnInstance leader = djinnCtrl.LeaderDjinn;
                 if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffect != null)
                 {
@@ -2097,7 +2122,6 @@ public class PageItemsController
             }
         }
 
-        // 2. Build CURRENT Context (with currently equipped gear)
         StatEvaluationContext currentContext = new StatEvaluationContext();
         PopulateBaseContextData(currentContext);
 
@@ -2116,7 +2140,6 @@ public class PageItemsController
             }
         }
 
-        // 3. Build HYPOTHETICAL Context (replacing item in target equipment slot)
         StatEvaluationContext hypotheticalContext = new StatEvaluationContext();
         PopulateBaseContextData(hypotheticalContext);
 
@@ -2127,7 +2150,6 @@ public class PageItemsController
                 EquipmentSlot slot = kvp.Key;
                 EquipableSO item = kvp.Value;
 
-                // Exclude currently equipped item if it occupies the exact same slot as newEquipable
                 if (slot == newEquipable.EquipmentSlot) continue;
 
                 if (item != null && item.StatModifiers != null)
@@ -2141,7 +2163,6 @@ public class PageItemsController
             }
         }
 
-        // Add target newEquipable modifiers to hypothetical context
         if (newEquipable.StatModifiers != null)
         {
             foreach (var mod in newEquipable.StatModifiers)
@@ -2151,11 +2172,9 @@ public class PageItemsController
             }
         }
 
-        // 4. Evaluate both contexts via StatCalculator engine
         StatBlock currentEvaluatedStats = StatCalculator.Evaluate(currentContext);
         StatBlock hypotheticalEvaluatedStats = StatCalculator.Evaluate(hypotheticalContext);
 
-        // 5. Identify relevant stats modified by either current slot item or new item
         EquipableSO currentlyEquippedInSlot = currentEquipment.GetEquippedItem(newEquipable.EquipmentSlot);
         HashSet<StatType> relevantStats = new HashSet<StatType>();
 
@@ -2175,7 +2194,6 @@ public class PageItemsController
             }
         }
 
-        // 6. Render UI Rows for Delta Comparisons
         foreach (StatType stat in relevantStats)
         {
             float currentStatVal = currentEvaluatedStats.Get(stat);
@@ -2218,9 +2236,7 @@ public class PageItemsController
             deltaContainer.Add(row);
         }
     }
-    /// <summary>
-    /// Friendly name resolver for StatType enums.
-    /// </summary>
+
     private string GetStatDisplayName(StatType statType)
     {
         switch (statType)
@@ -2243,7 +2259,7 @@ public class PageItemsController
         }
     }
 
-    private void SelectGlobalBagSlot(int index)
+    private void SelectGlobalBagSlot(int index, VisualElement slotUI)
     {
         if (GlobalBag.Instance == null) return;
 
@@ -2253,6 +2269,7 @@ public class PageItemsController
             InventorySlot slot = keySlots[index];
             if (slot != null && slot.Item != null)
             {
+                SetSelectedSlotUI(slotUI);
                 UpdateInfoPanel(slot.Item);
             }
         }
@@ -2261,6 +2278,7 @@ public class PageItemsController
     public void ClearInfoPanel()
     {
         selectedItem = null;
+        SetSelectedSlotUI(null);
 
         if (labelItemName != null) labelItemName.text = "Seleccionar Objeto";
         if (labelItemType != null) labelItemType.text = "---";

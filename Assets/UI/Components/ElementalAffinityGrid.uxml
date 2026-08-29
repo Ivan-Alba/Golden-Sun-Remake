@@ -11,10 +11,12 @@
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="P:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_power_venus" class="element-val" />
+                        <ui:Label text="+0" name="elem_power_delta_venus" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="R:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_resistance_venus" class="element-val" />
+                        <ui:Label text="+0" name="elem_resistance_delta_venus" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="element_row_mars" class="element-row">
@@ -23,10 +25,12 @@
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="P:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_power_mars" class="element-val" />
+                        <ui:Label text="+0" name="elem_power_delta_mars" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="R:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_resistance_mars" class="element-val" />
+                        <ui:Label text="+0" name="elem_resistance_delta_mars" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -37,10 +41,12 @@
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="P:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_power_jupiter" class="element-val" />
+                        <ui:Label text="+0" name="elem_power_delta_jupiter" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="R:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_resistance_jupiter" class="element-val" />
+                        <ui:Label text="+0" name="elem_resistance_delta_jupiter" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="element_row_mercury" class="element-row">
@@ -49,10 +55,12 @@
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="P:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_power_mercury" class="element-val" />
+                        <ui:Label text="+0" name="elem_power_delta_mercury" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                     <ui:VisualElement class="elem-stat-group">
                         <ui:Label text="R:" class="elem-prefix-label" />
                         <ui:Label text="100" name="elem_resistance_mercury" class="element-val" />
+                        <ui:Label text="+0" name="elem_resistance_delta_mercury" class="stat-delta" style="display: none;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

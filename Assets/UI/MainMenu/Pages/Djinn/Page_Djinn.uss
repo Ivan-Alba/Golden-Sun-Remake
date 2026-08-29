@@ -334,3 +334,6 @@
     opacity: 0.5;
     border-color: rgba(231, 76, 60, 0.4);
 }
+
+.section-header-title {
+}
