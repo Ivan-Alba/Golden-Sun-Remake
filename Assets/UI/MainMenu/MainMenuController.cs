@@ -289,6 +289,7 @@ public class MainMenuController : MonoBehaviour
         if (itemsPageController != null && itemsPageController.IsTargetingItem)
         {
             itemsPageController.CancelItemTargeting();
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
             return;
         }
 
@@ -317,23 +318,32 @@ public class MainMenuController : MonoBehaviour
 
         if (visible)
         {
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Confirm);
+
             timeUpdateTimer = 0f;
             UpdatePlayTimeText();
 
             SubscribeToMenuInputs();
             RefreshGlobalHeaderInfo();
-            SelectTab(currentTab);
+            SelectTab(currentTab, playSound: false);
         }
         else
         {
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+
             itemsPageController?.CancelItemTargeting();
             psynergyPageController?.CancelPsynergyTargeting();
             UnsubscribeFromMenuInputs();
         }
     }
 
-    public void SelectTab(MenuTab tab)
+    public void SelectTab(MenuTab tab, bool playSound = true)
     {
+        if (playSound && currentTab != tab)
+        {
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Move);
+        }
+
         itemsPageController?.CancelItemTargeting();
         psynergyPageController?.CancelPsynergyTargeting();
 
@@ -360,14 +370,18 @@ public class MainMenuController : MonoBehaviour
         }
 
         List<HeroStats> party = GetPartyHeroStatsList();
+        int targetIndex = 0;
         if (party != null && party.Count > 0)
         {
-            selectedHeroIndex = Mathf.Clamp(heroIndex, 0, party.Count - 1);
+            targetIndex = Mathf.Clamp(heroIndex, 0, party.Count - 1);
         }
-        else
+
+        if (selectedHeroIndex != targetIndex)
         {
-            selectedHeroIndex = 0;
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Move);
         }
+
+        selectedHeroIndex = targetIndex;
 
         Debug.Log($"[MainMenu] Selected Hero Index: {selectedHeroIndex}");
         UpdateHeroCardsHighlight();

@@ -736,6 +736,7 @@ public class PagePsynergyController
 
         if (effectApplied)
         {
+            AudioManager.Instance?.PlaySFXClip(targetingPsynergy.MenuData.MenuSoundEffect);
             currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
 
             OnPsynergyUsedOnHero?.Invoke();
@@ -751,6 +752,7 @@ public class PagePsynergyController
         }
         else
         {
+            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
             Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' no tuvo efecto sobre {targetHero.Name}. No se consumen PP.");
         }
     }

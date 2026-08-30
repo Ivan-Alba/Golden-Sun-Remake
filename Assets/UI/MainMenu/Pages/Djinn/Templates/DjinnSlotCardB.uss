@@ -19,6 +19,11 @@
     overflow: hidden; /* Garantiza que nada desborde la tarjeta */
 }
 
+.djinn-card-b-root:hover {
+    background-color: var(--color-hover-subtle-bg);
+    border-color: var(--color-hover-subtle-border);
+}
+
 .djinn-card-b-root Label {
     margin: 0;
     padding: 0;

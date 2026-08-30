@@ -12,21 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02a153bd3a5b8fd4d9d5e476f6d92fd0, type: 3}
   m_Name: Growth
   m_EditorClassIdentifier: 
-  psynergyName: Temblor
-  slugName: quake
-  description: Ataca a los enemigos con un poderoso temblor.
-  icon: {fileID: 21300000, guid: fe5582aac7839564a97e4eed644ab29c, type: 3}
+  psynergyName: Planta
+  slugName: growth
+  description: Ataca a los enemigos con la fuerza de las plantas.
+  icon: {fileID: 21300000, guid: c55a5606e9343a34c91837a87b14a63c, type: 3}
   ppCost: 4
   element: 1
   isBattlePsynergy: 1
   targetType: 2
-  vfxPrefab: {fileID: 1535640691960112, guid: 96a8f73d24c38884bad7e4802680eaa7, type: 3}
+  vfxPrefab: {fileID: 0}
   soundEffect: {fileID: 0}
+  hitFXType: 0
+  customHitVFX: {fileID: 0}
   areaRange: 1
   hasDiminishingSpread: 1
   worldData:
-    canBeUsedInWorld: 0
-    worldAction: 0
+    canBeUsedInWorld: 1
+    worldAction: 9
     worldVfxPrefab: {fileID: 0}
     worldSoundEffect: {fileID: 0}
   menuData:

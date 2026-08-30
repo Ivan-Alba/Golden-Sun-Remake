@@ -1,0 +1,741 @@
+/* =========================================================================
+   PlayerHUD.uss
+   Styles for Exploration HUD, Dialogues & Persistent Notifications
+   ========================================================================= */
+
+/* --- Root Container & Layers --- */
+.hud-root {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.hud-layer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    picking-mode: ignore; /* Allows clicks to pass through transparent areas */
+}
+
+/* =========================================================================
+   LAYER 1: OVERWORLD HUD (ACTIVE EXPLORATION)
+   ========================================================================= */
+
+/* --- Top-Left: Journal Menu Prompt (Medallion Style) --- */
+.top-left-container {
+    position: absolute;
+    left: 44px;
+    top: 44px;
+}
+
+.journal-medallion-prompt {
+    align-items: center;
+    position: relative;
+}
+
+.journal-medallion-frame {
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    align-items: center;
+    justify-content: center;
+}
+
+.journal-icon {
+    width: 22px;
+    height: 22px;
+    background-color: var(--color-gold-sun);
+    border-radius: 4px;
+}
+
+/* Hanging Key Badge underneath the Medallion */
+.journal-key-badge {
+    position: absolute;
+    bottom: -8px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1px;
+    border-radius: 4px;
+    padding: 1px 6px;
+}
+
+.label-menu-key {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Top-Center: Legend Zone Banner --- */
+.zone-title-banner-container {
+    position: absolute;
+    width: 100%;
+    top: 40px;
+    align-items: center;
+    picking-mode: ignore;
+}
+
+.zone-title-banner {
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 10px 30px;
+    align-items: center;
+    opacity: 0; /* Animated dynamically via C# for zone entry */
+    transition-property: opacity, scale;
+    transition-duration: 0.5s;
+}
+
+.label-banner-zone-name {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    letter-spacing: 2px;
+}
+
+.label-banner-region-name {
+    font-size: 11px;
+    color: var(--color-text-description);
+    margin-top: 2px;
+}
+
+/* --- Top-Right: Golden Compass Minimap & Quest Objective --- */
+.top-right-container {
+    position: absolute;
+    right: 44px;
+    top: 44px;
+    align-items: flex-end;
+}
+
+.minimap-frame {
+    width: 150px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.minimap-viewport {
+    width: 126px;
+    height: 126px;
+    border-radius: 63px;
+    background-color: var(--color-subbox-bg);
+    overflow: hidden;
+    position: absolute;
+}
+
+.minimap-player-marker {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-gold-bright);
+    border-radius: 50%;
+    position: absolute;
+    left: 59px;
+    top: 59px;
+    border-width: 1px;
+    border-color: #000000;
+}
+
+.minimap-markers-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.minimap-compass-ring {
+    width: 150px;
+    height: 150px;
+    border-radius: 75px;
+    border-width: 3px;
+    border-color: var(--color-gold-sun);
+    position: absolute;
+    align-items: center;
+}
+
+.minimap-north-indicator {
+    position: absolute;
+    top: 2px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+}
+
+/* --- Day/Night Astrological Clock Ring --- */
+.day-night-orbit-ring {
+    width: 168px;
+    height: 168px;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    picking-mode: ignore;
+}
+
+.celestial-body-pivot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.sun-moon-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    border-width: 1px;
+    margin-top: -9px;
+}
+
+.sun-moon-icon.icon-sun {
+    background-color: var(--color-gold-bright);
+    border-color: #D4AC0D;
+}
+
+.sun-moon-icon.icon-moon {
+    background-color: #F0F3F4;
+    border-color: var(--color-accent-blue);
+}
+
+.label-world-time {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-text-muted);
+    margin-top: 12px;
+    margin-bottom: 6px;
+    width: 150px;
+    text-align: center;
+    align-self: center;
+}
+
+/* Clean Right-Aligned Quest Objective Style */
+.quest-objective-box {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 4px 0;
+    margin-top: 2px;
+    max-width: 280px;
+}
+
+.quest-marker-icon {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.label-quest-objective {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    white-space: normal;
+    text-align: right;
+}
+
+/* --- Center Screen: Psynergy Aiming Reticle --- */
+.center-aiming-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    picking-mode: ignore;
+}
+
+.aiming-reticle {
+    width: 48px;
+    height: 48px;
+    border-width: 2px;
+    border-color: var(--color-gold-bright);
+    border-radius: 24px;
+    background-color: rgba(255, 215, 0, 0.15);
+    display: none; /* Toggled dynamically in C# */
+}
+
+/* --- Bottom Center: Stamina Arc/Bar (2D UI) --- */
+.bottom-center-stamina-container {
+    position: absolute;
+    bottom: 90px;
+    width: 100%;
+    align-items: center;
+    picking-mode: ignore;
+}
+
+.stamina-bar-background {
+    width: 160px;
+    height: 8px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1px;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 0; /* Smooth fade-in/out in C# when stamina drains */
+    transition-property: opacity;
+    transition-duration: 0.25s;
+}
+
+.stamina-bar-fill {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-accent-blue);
+}
+
+/* --- Bottom-Left: Party Quick Status Container & Cards --- */
+.bottom-left-party-container {
+    position: absolute;
+    left: 44px;
+    bottom: 44px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* --- Fantasy Hero Status Card --- */
+.hero-status-card {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 1.5px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    padding: 6px 14px 6px 6px;
+    margin-top: 8px;
+    position: relative;
+    align-self: flex-start;
+    transition-property: scale, border-color, background-color;
+    transition-duration: 0.2s;
+}
+
+.hero-status-card.active-hero {
+    border-color: var(--color-gold-bright);
+    background-color: var(--color-hover-subtle-bg);
+    scale: 1.03;
+}
+
+/* Key Shortcut Badge (Sealed Coin) */
+.hero-key-badge {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: var(--color-subbox-bg);
+    border-width: 1.5px;
+    border-color: var(--color-gold-bright);
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.label-key-number {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+}
+
+/* Rhombus/Bveled Portrait Frame */
+.hero-portrait-frame {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border-top-left-radius: 16px; /* Asymmetric cut for a sharp fantasy look */
+    border-bottom-right-radius: 16px;
+    border-width: 2px;
+    border-color: var(--color-gold-sun);
+    background-color: var(--color-subbox-bg);
+    overflow: hidden;
+    margin-right: 12px;
+}
+
+.hero-portrait-img {
+    width: 100%;
+    height: 100%;
+}
+
+/* Info Block Layout */
+.hero-info-block {
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-header-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.label-hud-hero-name {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    margin-right: 8px;
+    padding: 0;
+}
+
+.label-hud-hero-level {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin-right: 8px;
+    padding: 0;
+}
+
+.status-effects-container {
+    flex-direction: row;
+    align-items: center;
+}
+
+.hero-status-effect-icon {
+    width: 12px;
+    height: 12px;
+}
+
+/* Stats Container: Row-by-Row Layout guarantees 100% Alignment */
+.hero-stats-rows-container {
+    flex-direction: column;
+}
+
+.hud-stat-single-row {
+    flex-direction: row;
+    align-items: center; /* Centers Label, Bar, and Value on the exact same horizontal axis */
+    margin-bottom: 3px;
+}
+
+.hud-stat-type-label {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: var(--color-text-muted);
+    width: 18px; /* Fixed width prevents shifting */
+    margin-right: 6px;
+    padding: 0;
+}
+
+.hud-bar-bg {
+    width: 100px; /* Width of the bar */
+    height: 7px;  /* Bar height */
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1px;
+    border-radius: 3px;
+    margin-right: 8px;
+    overflow: hidden;
+}
+
+.hud-bar-hp-fill {
+    width: 100%;
+    height: 100%;
+    background-color: #2ECC71;
+}
+
+.hud-bar-pp-fill {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-accent-blue);
+}
+
+.hud-stat-value-text {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    width: 42px; /* Fixed width for right-aligned numerical values */
+    text-align: right;
+    padding: 0;
+}
+
+/* Right Rhombus Element Gem (Venus/Mars Star) */
+.hero-element-gem {
+    width: 20px;
+    height: 20px;
+    margin-left: 12px;
+    rotate: 45deg;
+    border-width: 1.5px;
+    border-color: var(--color-gold-bright);
+    background-size: cover;
+}
+
+/* --- Bottom-Right: D-Pad Shortcuts (Wheel) --- */
+.bottom-right-shortcuts-container {
+    position: absolute;
+    right: 44px;
+    bottom: 44px;
+}
+
+.dpad-hud-wheel {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+}
+
+.dpad-hud-wheel.passive-dpad {
+    opacity: 0.35;
+    scale: 0.95;
+    transition-property: opacity, scale;
+    transition-duration: 0.25s;
+}
+
+.dpad-hud-wheel.aiming-active {
+    opacity: 1.0;
+    scale: 1.08;
+    transition-property: opacity, scale;
+    transition-duration: 0.15s;
+}
+
+.hud-shortcut-slot {
+    width: 32px;
+    height: 32px;
+    position: absolute;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+}
+
+.slot-up { top: 0; }
+.slot-down { bottom: 0; }
+.slot-left { left: 0; }
+.slot-right { right: 0; }
+
+.hud-shortcut-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.dpad-hud-center-gem {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: var(--color-gold-bright);
+    border-width: 1px;
+    border-color: #000000;
+}
+
+/* --- World to Screen Interaction Prompts Container --- */
+.world-interaction-prompts-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    picking-mode: ignore;
+}
+
+/* =========================================================================
+   LAYER 2: DIALOGUES & NARRATIVE
+   ========================================================================= */
+
+.dialogue-layer {
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 40px;
+    display: none; /* Toggled in C# during interactions */
+}
+
+.dialogue-box-container {
+    width: 85%;
+    max-width: 900px;
+    flex-direction: row;
+    align-items: flex-end; /* Align bottom edges of portrait and box */
+}
+
+/* Standalone Portrait Frame */
+.dialogue-portrait-frame {
+    width: 100px;
+    height: 100px;
+    border-top-left-radius: 18px;     /* Asymmetric fantasy cut */
+    border-bottom-right-radius: 18px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    margin-right: 14px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.dialogue-portrait-img {
+    width: 100%;
+    height: 100%;
+}
+
+/* Main Dialogue Box */
+.dialogue-text-box {
+    flex-grow: 1;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 2px;
+    border-radius: 10px;
+    padding: 20px 24px;
+    min-height: 90px;
+    justify-content: center;
+    position: relative;
+}
+
+/* Speaker Name Badge: Anchored consistently to top-left of text box */
+.dialogue-name-badge {
+    position: absolute;
+    top: -14px;
+    left: 20px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-radius: 6px;
+    padding: 2px 14px;
+}
+
+.label-speaker-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+}
+
+.label-dialogue-text {
+    font-size: 15px;
+    color: var(--color-text-white);
+    white-space: normal;
+    line-height: 22px;
+    margin: 0;
+}
+
+.dialogue-next-prompt {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+}
+
+/* =========================================================================
+   LAYER 3: PERSISTENT NOTIFICATIONS (GLOBAL)
+   ========================================================================= */
+
+.notifications-layer {
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 44px; /* Matches top-right 44px screen margin */
+    picking-mode: ignore;
+}
+
+.notifications-stream-container {
+    width: 310px;
+    flex-direction: column-reverse; /* New notifications appear dynamically at the bottom */
+    align-items: flex-end;
+}
+
+/* Notification Card Base */
+.hud-notification-card {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 1.5px;
+    border-top-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+    width: 290px;
+    
+    /* Smooth CSS animations for fade-in/out and slide from right in C# */
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.3s;
+}
+
+/* Left Accent Line according to Notification Type */
+.notification-type-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3.5px;
+    background-color: var(--color-gold-bright);
+}
+
+.notification-type-accent.accent-item {
+    background-color: #2ECC71; /* Green for Items */
+}
+
+.notification-type-accent.accent-quest {
+    background-color: var(--color-gold-bright); /* Gold for Quests/Log */
+}
+
+.notification-type-accent.accent-psynergy {
+    background-color: var(--color-accent-blue); /* Blue for Psynergy/Magic */
+}
+
+.notification-type-accent.accent-warning {
+    background-color: #E74C3C; /* Red for Danger/System Warnings */
+}
+
+/* Icon Frame Medallion */
+.notification-icon-frame {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border-width: 1.5px;
+    border-color: var(--color-gold-sun);
+    background-color: var(--color-subbox-bg);
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.notification-icon-img {
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+}
+
+/* Text Block Layout */
+.notification-text-block {
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.label-notification-category {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    letter-spacing: 0.8px;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 2px;
+}
+
+.label-notification-message {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}

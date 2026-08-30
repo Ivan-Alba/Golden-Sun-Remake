@@ -24,7 +24,7 @@ MonoBehaviour:
   soundEffect: {fileID: 0}
   hitFXType: 0
   customHitVFX: {fileID: 0}
-  areaRange: 1
+  areaRange: 2
   hasDiminishingSpread: 1
   worldData:
     canBeUsedInWorld: 0

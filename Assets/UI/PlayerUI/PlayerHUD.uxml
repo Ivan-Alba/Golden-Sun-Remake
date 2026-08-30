@@ -1,0 +1,146 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="HeroStatusCardTemplate" src="project://database/Assets/UI/Components/HeroStatusCardTemplate.uxml?fileID=9197481963319205126&amp;guid=559dfa0c9a67e66478431b26f0540ca8&amp;type=3#HeroStatusCardTemplate" />
+    <ui:Template name="NotificationCardTemplate" src="project://database/Assets/UI/Components/NotificationCardTemplate.uxml" />
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss?fileID=7433441132597879392&amp;guid=2fd1775c5a3f56947945b46434856b8e&amp;type=3#PlayerHUD" />
+    
+    <ui:VisualElement name="hud_root" class="hud-root">
+        
+        <!-- ========================================== -->
+        <!-- LAYER 1: OVERWORLD HUD (ACTIVE EXPLORATION) -->
+        <!-- ========================================== -->
+        <ui:VisualElement name="hud_exploration_layer" class="hud-layer">
+            
+            <!-- TOP-LEFT: Journal Menu Medallion Prompt -->
+            <ui:VisualElement name="top_left_container" class="top-left-container">
+                <ui:VisualElement name="journal_medallion_prompt" class="journal-medallion-prompt">
+                    <!-- Circular Medallion Frame -->
+                    <ui:VisualElement name="journal_medallion_frame" class="journal-medallion-frame">
+                        <ui:VisualElement name="journal_icon" class="journal-icon" />
+                    </ui:VisualElement>
+                    <!-- Hanging Key Badge (Style Visions of Mana) -->
+                    <ui:VisualElement name="journal_key_badge" class="journal-key-badge">
+                        <ui:Label name="label_menu_key" text="TAB" class="label-menu-key" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- TOP-CENTER: Legend Zone Title Banner (Appears on zone entry & fades out) -->
+            <ui:VisualElement name="zone_title_banner_container" class="zone-title-banner-container">
+                <ui:VisualElement name="zone_title_banner" class="zone-title-banner">
+                    <ui:Label name="label_banner_zone_name" text="BOSQUE DE KOLIMA" class="label-banner-zone-name" />
+                    <ui:Label name="label_banner_region_name" text="Región de Bilibin" class="label-banner-region-name" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- TOP-RIGHT: Golden Compass Minimap, Clock & Centered Objective -->
+            <ui:VisualElement name="top_right_container" class="top-right-container">
+                <ui:VisualElement name="minimap_frame" class="minimap-frame">
+                    
+                    <!-- Minimap Viewport -->
+                    <ui:VisualElement name="minimap_viewport" class="minimap-viewport">
+                        <ui:VisualElement name="minimap_player_marker" class="minimap-player-marker" />
+                        <ui:VisualElement name="minimap_markers_container" class="minimap-markers-container" />
+                    </ui:VisualElement>
+                    
+                    <!-- Compass Outer Gold Ring -->
+                    <ui:VisualElement name="minimap_compass_ring" class="minimap-compass-ring">
+                        <ui:Label name="minimap_north_indicator" text="N" class="minimap-north-indicator" />
+                    </ui:VisualElement>
+
+                    <!-- Day/Night Astrological Clock Ring -->
+                    <ui:VisualElement name="day_night_orbit_ring" class="day-night-orbit-ring">
+                        <ui:VisualElement name="celestial_body_pivot" class="celestial-body-pivot">
+                            <ui:VisualElement name="sun_moon_icon" class="sun-moon-icon icon-sun" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                </ui:VisualElement>
+
+                <!-- Centered World Time Text -->
+                <ui:Label name="label_world_time" text="14:30 - Tarde" class="label-world-time" />
+
+                <!-- Centered Quest Objective (Clean Style inspired by Visions of Mana) -->
+                <ui:VisualElement name="quest_objective_box" class="quest-objective-box">
+                    <ui:VisualElement name="quest_marker_icon" class="quest-marker-icon" />
+                    <ui:Label name="label_quest_objective" text="Investiga el extraño árbol sabio." class="label-quest-objective" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- CENTER SCREEN: Psynergy Aiming Reticle -->
+            <ui:VisualElement name="center_aiming_container" class="center-aiming-container">
+                <ui:VisualElement name="aiming_reticle" class="aiming-reticle" />
+            </ui:VisualElement>
+
+            <!-- BOTTOM CENTER: Stamina Arc/Bar -->
+            <ui:VisualElement name="bottom_center_stamina_container" class="bottom-center-stamina-container">
+                <ui:VisualElement name="stamina_bar_background" class="stamina-bar-background">
+                    <ui:VisualElement name="stamina_bar_fill" class="stamina-bar-fill" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- BOTTOM-LEFT: Party Quick Status Container -->
+            <ui:VisualElement name="bottom_left_party_container" class="bottom-left-party-container">
+                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_0" class="active-hero" />
+                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_1" />
+            </ui:VisualElement>
+
+            <!-- BOTTOM-RIGHT: D-Pad Shortcuts (Wheel) -->
+            <ui:VisualElement name="bottom_right_shortcuts_container" class="bottom-right-shortcuts-container">
+                <ui:VisualElement name="dpad_hud_wheel" class="dpad-hud-wheel passive-dpad">
+                    <ui:VisualElement name="hud_shortcut_up" class="hud-shortcut-slot slot-up">
+                        <ui:VisualElement name="hud_shortcut_up_icon" class="hud-shortcut-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="hud_shortcut_left" class="hud-shortcut-slot slot-left">
+                        <ui:VisualElement name="hud_shortcut_left_icon" class="hud-shortcut-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="hud_shortcut_right" class="hud-shortcut-slot slot-right">
+                        <ui:VisualElement name="hud_shortcut_right_icon" class="hud-shortcut-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="hud_shortcut_down" class="hud-shortcut-slot slot-down">
+                        <ui:VisualElement name="hud_shortcut_down_icon" class="hud-shortcut-icon" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="dpad_hud_center_gem" class="dpad-hud-center-gem" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- WORLD TO SCREEN INTERACTION PROMPTS -->
+            <ui:VisualElement name="world_interaction_prompts_container" class="world-interaction-prompts-container" />
+
+        </ui:VisualElement>
+
+        <!-- LAYER 2: DIALOGUES & NARRATIVE -->
+<ui:VisualElement name="hud_dialogue_layer" class="hud-layer dialogue-layer">
+    <ui:VisualElement name="dialogue_box_container" class="dialogue-box-container">
+        
+        <!-- Retrato exento (Sin solapamientos extraños, ocultable mediante C#) -->
+        <ui:VisualElement name="dialogue_portrait_frame" class="dialogue-portrait-frame">
+            <ui:VisualElement name="dialogue_portrait_img" class="dialogue-portrait-img" />
+        </ui:VisualElement>
+
+        <!-- Bocadillo de texto independiente -->
+        <ui:VisualElement name="dialogue_text_box" class="dialogue-text-box">
+            <!-- Badge de Nombre SIEMPRE fijo en la caja de texto -->
+            <ui:VisualElement name="dialogue_name_badge" class="dialogue-name-badge">
+                <ui:Label name="label_speaker_name" text="Kraden" class="label-speaker-name" />
+            </ui:VisualElement>
+            
+            <ui:Label name="label_dialogue_text" text="¡Increíble! La energía de la Psinergía en este santuario es mucho más densa de lo que sospechaba..." class="label-dialogue-text" />
+            <ui:VisualElement name="dialogue_next_prompt" class="dialogue-next-prompt" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:VisualElement>
+
+        <!-- ========================================== -->
+        <!-- LAYER 3: PERSISTENT NOTIFICATIONS -->
+        <!-- ========================================== -->
+        <ui:VisualElement name="hud_notifications_layer" class="hud-layer notifications-layer">
+            <ui:VisualElement name="notifications_stream_container" class="notifications-stream-container" >
+                 <ui:Instance template="NotificationCardTemplate" name="notification_0" />
+                 <ui:Instance template="NotificationCardTemplate" name="notification_0" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

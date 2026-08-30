@@ -102,6 +102,13 @@ MonoBehaviour:
     priority: 1
     targetClass: {fileID: 11400000, guid: 2571d0f8bc2022a458d06e0d1ffb03d5, type: 2}
   - baseElement: 2
+    venusCount: 1
+    marsCount: 0
+    jupiterCount: 0
+    mercuryCount: 0
+    priority: 1
+    targetClass: {fileID: 11400000, guid: a8e672c2c5767664d9817c780743f912, type: 2}
+  - baseElement: 2
     venusCount: 2
     marsCount: 0
     jupiterCount: 0

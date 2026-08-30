@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss" />
+    
+    <ui:VisualElement name="hud_notification_card" class="hud-notification-card">
+        
+        <!-- Left Accent Glow Bar (Dynamic Type Indicator) -->
+        <ui:VisualElement name="notification_type_accent" class="notification-type-accent accent-item" />
+
+        <!-- Icon Medallion Badge -->
+        <ui:VisualElement name="notification_icon_frame" class="notification-icon-frame">
+            <ui:VisualElement name="notification_icon_img" class="notification-icon-img icon-item-default" />
+        </ui:VisualElement>
+
+        <!-- Notification Text Content Block -->
+        <ui:VisualElement name="notification_text_block" class="notification-text-block">
+            <ui:Label name="label_notification_category" text="NUEVO OBJETO" class="label-notification-category" />
+            <ui:Label name="label_notification_message" text="Manzana de Dragón x1" class="label-notification-message" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

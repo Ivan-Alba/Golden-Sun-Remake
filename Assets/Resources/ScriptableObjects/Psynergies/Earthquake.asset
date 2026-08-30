@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   psynergyName: Terremoto
   slugName: earthquake
-  description: Ataca a los enemigos con un poderoso temblor.
+  description: "Inflige da\xF1os medianos de tierra."
   icon: {fileID: 21300000, guid: 22ff0fed097ce0546afff32acdc0251f, type: 3}
   ppCost: 7
   element: 1

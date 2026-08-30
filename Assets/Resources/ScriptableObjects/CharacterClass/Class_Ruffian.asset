@@ -22,7 +22,5 @@ MonoBehaviour:
   agiMultiplier: 1.2
   lckMultiplier: 0.7
   grantedPsynergies:
-  - psynergy: {fileID: 11400000, guid: 813359bf48c6c24418fde9875ba7b437, type: 2}
-    requiredLevel: 2
-  - psynergy: {fileID: 11400000, guid: 7087ddf58ff771e42a94b62efd82e247, type: 2}
-    requiredLevel: 4
+  - psynergy: {fileID: 11400000, guid: 0290a8485541f2d4c9cbc4c2cb92686f, type: 2}
+    requiredLevel: 1

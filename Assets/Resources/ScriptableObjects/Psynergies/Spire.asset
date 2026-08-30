@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   psynergyName: Esquirlas
   slugName: spire
-  description: Invoca un meteorito sobre un enemigo.
+  description: 'Invoca esquirlas sobre los enemigos. '
   icon: {fileID: 21300000, guid: 2774ba1f6d901604ab14e2e4598fb596, type: 3}
   ppCost: 5
   element: 1
