@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.09895782, g: 0.2213651, b: 0.37356997, a: 1}
+  m_IndirectSpecularColor: {r: 0.024851661, g: 0.07073467, b: 0.13899031, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -784,6 +784,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 722975092}
   m_CullTransparentMesh: 1
+--- !u!4 &928659549 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8459378965970709028, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &936426566
 GameObject:
   m_ObjectHideFlags: 0
@@ -833,6 +838,11 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &956351873 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1254954233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1508,6 +1518,22 @@ PrefabInstance:
     - target: {fileID: 8459378967151069454, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378967438113738, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: hudDocument
+      value: 
+      objectReference: {fileID: 8459378966747734656}
+    - target: {fileID: 8459378967438113738, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 928659549}
+    - target: {fileID: 8459378967438113738, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: mainCameraTransform
+      value: 
+      objectReference: {fileID: 956351873}
+    - target: {fileID: 8459378967438113739, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_RenderShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9044216244319915375, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: currentXp

@@ -40,10 +40,11 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _VignetteInnerRadius: 0.2
-    - _VignetteOuterRadius: 0.45
+    - _VignetteInnerRadius: 0.35
+    - _VignetteOuterRadius: 0.5
     m_Colors:
     - _MapTint: {r: 0.9811321, g: 0.9371682, b: 0.8021834, a: 0}
+    - _PsynergySweepColor: {r: 1, g: 0.8431373, b: 0.19607836, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &6490157886474307091
 MonoBehaviour:

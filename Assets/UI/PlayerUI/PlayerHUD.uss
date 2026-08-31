@@ -207,7 +207,10 @@
     opacity: 0.9;
 }
 
-/* --- Top-Right: Golden Compass Minimap & Quest Objective --- */
+/* =========================================================================
+   TOP-RIGHT: GOLDEN COMPASS MINIMAP & QUEST OBJECTIVE
+   ========================================================================= */
+
 .top-right-container {
     position: absolute;
     right: 44px;
@@ -260,16 +263,23 @@
     picking-mode: ignore;
 }
 
-.minimap-player-marker {
+/* Stylized Directional Player Arrow using Sprite */
+.minimap-player-arrow {
     width: 12px;
-    height: 12px;
-    background-color: var(--color-gold-bright);
-    border-radius: 50%;
+    height: 15px;
     position: absolute;
-    left: 82px;
-    top: 82px;
-    border-width: 1.5px;
-    border-color: #000000;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    
+    /* Sprite Loading & Tinting */
+    background-image: url("project://database/Assets/Resources/Images/Minimap/minimap_arrow.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--color-gold-bright); /* Teñido en dorado claro */
+    
+    /* Pivot strictly in the visual center for seamless rotation */
+    transform-origin: center;
+    z-index: 10;
 }
 
 .minimap-markers-container {
