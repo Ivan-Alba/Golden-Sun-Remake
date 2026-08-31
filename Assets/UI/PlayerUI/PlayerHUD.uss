@@ -22,8 +22,57 @@
 }
 
 /* =========================================================================
+   UNIFIED KEYBOARD KEYCAP BADGES
+   Consistent 3D Keycap Styling across Menu (TAB), Party (1-9), and DPAD (Q,E,R,F)
+   ========================================================================= */
+
+.hero-key-badge,
+.journal-key-badge,
+.hud-shortcut-key-badge {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    min-width: 22px;
+    height: 22px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 1.5px;
+    border-bottom-width: 2.5px; /* 3D keycap tactile depth */
+    border-radius: 5px;
+    padding: 0 5px;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+}
+
+/* DPAD internal adjustment so badges sit cleanly inside the slots */
+.hud-shortcut-key-badge {
+    top: 3px;
+    left: 3px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 3px;
+    border-bottom-width: 1.5px;
+}
+
+.label-key-number,
+.label-menu-key,
+.label-shortcut-key {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* =========================================================================
    LAYER 1: OVERWORLD HUD (ACTIVE EXPLORATION)
    ========================================================================= */
+
+.exploration-layer {
+    display: flex; /* Base display mode, toggled dynamically to none in C# */
+}
 
 /* --- Top-Left: Journal Menu Prompt (Medallion Style) --- */
 .top-left-container {
@@ -38,74 +87,124 @@
 }
 
 .journal-medallion-frame {
-    width: 42px;
-    height: 42px;
-    border-radius: 21px;
+    width: 80px;
+    height: 80px;
+    border-radius: 32px;
     background-color: var(--color-panel-bg);
     border-color: var(--color-gold-bright);
-    border-width: 2px;
+    border-width: 2.5px;
     align-items: center;
     justify-content: center;
 }
 
 .journal-icon {
-    width: 22px;
-    height: 22px;
-    background-color: var(--color-gold-sun);
+    width: 80px;
+    height: 80px;
+    background-image: url("project://database/Assets/Resources/Images/journal_menu.png");
+    -unity-background-scale-mode: scale-to-fit;
     border-radius: 4px;
 }
 
-/* Hanging Key Badge underneath the Medallion */
+/* Key Badge override positioning specifically for the hanging journal prompt */
 .journal-key-badge {
-    position: absolute;
-    bottom: -8px;
-    background-color: var(--color-subbox-bg);
-    border-color: var(--color-gold-sun);
-    border-width: 1px;
-    border-radius: 4px;
-    padding: 1px 6px;
+    top: auto;
+    left: auto;
+    bottom: -10px;
 }
 
-.label-menu-key {
-    font-size: 9px;
+/* =========================================================================
+   TOP-CENTER: LEGEND ZONE BANNER (FANTASY RIBBON STYLE)
+   ========================================================================= */
+
+.zone-title-banner-container {
+    position: absolute;
+    width: 100%;
+    top: 36px;
+    align-items: center;
+    picking-mode: ignore;
+    display: none; /* Controlled dynamically in C# */
+    opacity: 0;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.5s;
+    translate: 0 -20px;
+    scale: 0.95 0.95;
+}
+
+/* Class triggering smooth arrival animation */
+.zone-title-banner-container.banner-visible {
+    display: flex;
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+/* Banner Container: Celestial fantasy scroll ribbon background */
+.zone-title-banner {
+    background-color: rgba(12, 18, 32, 0.85); /* Semi-transparent dark slate background */
+    border-color: var(--color-gold-bright);
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 0;  /* Borderless sides for open ribbon feel */
+    border-right-width: 0;
+    border-radius: 4px;
+    padding: 10px 60px;
+    align-items: center;
+    min-width: 320px; /* Guarantees elegant width even for short zone names */
+}
+
+/* Primary Zone Title */
+.label-banner-zone-name {
+    font-size: 26px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.95);
     margin: 0;
     padding: 0;
 }
 
-/* --- Top-Center: Legend Zone Banner --- */
-.zone-title-banner-container {
-    position: absolute;
-    width: 100%;
-    top: 40px;
+/* Decorative Golden Divider Layout */
+.banner-divider-container {
+    flex-direction: row;
     align-items: center;
-    picking-mode: ignore;
+    justify-content: center;
+    width: 75%;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
-.zone-title-banner {
-    background-color: var(--color-panel-bg);
-    border-color: var(--color-gold-bright);
-    border-width: 2px;
-    border-radius: 8px;
-    padding: 10px 30px;
-    align-items: center;
-    opacity: 0; /* Animated dynamically via C# for zone entry */
-    transition-property: opacity, scale;
-    transition-duration: 0.5s;
+/* Continuous Center Line */
+.banner-divider-line {
+    flex-grow: 1;
+    height: 1.5px;
+    background-color: var(--color-gold-sun);
+    margin-left: 8px;
+    margin-right: 8px;
 }
 
-.label-banner-zone-name {
-    font-size: 18px;
-    -unity-font-style: bold;
-    color: var(--color-gold-bright);
-    letter-spacing: 2px;
+/* Side Flanking Diamonds */
+.banner-divider-diamond {
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+    border-width: 1px;
+    border-color: #000000;
+    flex-shrink: 0;
 }
 
+/* Subtitle Region Name */
 .label-banner-region-name {
-    font-size: 11px;
-    color: var(--color-text-description);
-    margin-top: 2px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #E0E6ED; /* Soft warm white */
+    letter-spacing: 1.5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+    margin-top: 1px;
+    margin-bottom: 2px;
+    padding: 0;
+    opacity: 0.9;
 }
 
 /* --- Top-Right: Golden Compass Minimap & Quest Objective --- */
@@ -116,32 +215,60 @@
     align-items: flex-end;
 }
 
+/* Wrapper aligns the circular minimap and its mounted time badge strictly to center */
+.minimap-wrapper {
+    align-items: center;
+    position: relative;
+}
+
 .minimap-frame {
-    width: 150px;
-    height: 150px;
+    width: 210px;
+    height: 210px;
     align-items: center;
     justify-content: center;
     position: relative;
 }
 
 .minimap-viewport {
-    width: 126px;
-    height: 126px;
-    border-radius: 63px;
-    background-color: var(--color-subbox-bg);
+    width: 176px;
+    height: 176px;
+    border-radius: 88px;
+    border-color: var(--color-gold-sun);
+    border-width: 2px;
+    background-color: transparent;
     overflow: hidden;
     position: absolute;
 }
 
+/* Inner Vignette Shadow Overlay (Cleaned up hard borders) */
+.minimap-vignette-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 88px;
+    background-color: transparent;
+    picking-mode: ignore;
+}
+
+/* Glass Lens Reflection Highlight */
+.minimap-glass-reflection {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 88px;
+    background-color: transparent;
+    picking-mode: ignore;
+}
+
 .minimap-player-marker {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     background-color: var(--color-gold-bright);
     border-radius: 50%;
     position: absolute;
-    left: 59px;
-    top: 59px;
-    border-width: 1px;
+    left: 82px;
+    top: 82px;
+    border-width: 1.5px;
     border-color: #000000;
 }
 
@@ -152,27 +279,32 @@
 }
 
 .minimap-compass-ring {
-    width: 150px;
-    height: 150px;
-    border-radius: 75px;
-    border-width: 3px;
+    width: 210px;
+    height: 210px;
+    border-radius: 105px;
+    border-width: 4px;
     border-color: var(--color-gold-sun);
     position: absolute;
     align-items: center;
 }
 
+/* Mathematical Absolute Centering for North Indicator on top border */
 .minimap-north-indicator {
     position: absolute;
-    top: 2px;
-    font-size: 12px;
+    top: 6px;
+    left: 50%;
+    translate: -50% 0;
+    font-size: 16px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
 }
 
 /* --- Day/Night Astrological Clock Ring --- */
 .day-night-orbit-ring {
-    width: 168px;
-    height: 168px;
+    width: 232px;
+    height: 232px;
     position: absolute;
     align-items: center;
     justify-content: center;
@@ -188,11 +320,11 @@
 }
 
 .sun-moon-icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    border-width: 1px;
-    margin-top: -9px;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    border-width: 1.5px;
+    margin-top: -12px;
 }
 
 .sun-moon-icon.icon-sun {
@@ -205,15 +337,25 @@
     border-color: var(--color-accent-blue);
 }
 
-.label-world-time {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: var(--color-text-muted);
-    margin-top: 12px;
-    margin-bottom: 6px;
-    width: 150px;
-    text-align: center;
+/* Mounted Time Badge (Anchored perfectly beneath the Minimap Frame) */
+.time-badge-container {
     align-self: center;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-radius: 12px;
+    padding: 3px 14px;
+    margin-top: -12px; /* Smooth overlap with compass frame */
+    z-index: 10;
+}
+
+.label-world-time {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+    text-align: center;
 }
 
 /* Clean Right-Aligned Quest Objective Style */
@@ -221,25 +363,25 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    padding: 4px 0;
-    margin-top: 2px;
-    max-width: 280px;
+    padding: 6px 0;
+    margin-top: 10px;
+    max-width: 360px;
 }
 
 .quest-marker-icon {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     background-color: var(--color-gold-bright);
     rotate: 45deg;
-    margin-right: 8px;
+    margin-right: 10px;
     flex-shrink: 0;
 }
 
 .label-quest-objective {
-    font-size: 12px;
+    font-size: 16px;
     -unity-font-style: bold;
     color: var(--color-text-white);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95);
     white-space: normal;
     text-align: right;
 }
@@ -255,11 +397,11 @@
 }
 
 .aiming-reticle {
-    width: 48px;
-    height: 48px;
-    border-width: 2px;
+    width: 64px;
+    height: 64px;
+    border-width: 3px;
     border-color: var(--color-gold-bright);
-    border-radius: 24px;
+    border-radius: 32px;
     background-color: rgba(255, 215, 0, 0.15);
     display: none; /* Toggled dynamically in C# */
 }
@@ -267,19 +409,19 @@
 /* --- Bottom Center: Stamina Arc/Bar (2D UI) --- */
 .bottom-center-stamina-container {
     position: absolute;
-    bottom: 90px;
+    bottom: 110px;
     width: 100%;
     align-items: center;
     picking-mode: ignore;
 }
 
 .stamina-bar-background {
-    width: 160px;
-    height: 8px;
+    width: 220px;
+    height: 12px;
     background-color: var(--color-subbox-bg);
     border-color: var(--color-subbox-border);
-    border-width: 1px;
-    border-radius: 4px;
+    border-width: 1.5px;
+    border-radius: 6px;
     overflow: hidden;
     opacity: 0; /* Smooth fade-in/out in C# when stamina drains */
     transition-property: opacity;
@@ -307,15 +449,16 @@
     align-items: center;
     background-color: var(--color-panel-bg);
     border-color: var(--color-panel-border);
-    border-width: 1.5px;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
-    padding: 6px 14px 6px 6px;
-    margin-top: 8px;
+    border-width: 2px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    padding: 10px 18px 10px 12px;
+    margin-top: 18px;
     position: relative;
     align-self: flex-start;
+    overflow: visible; /* Guarantees keycap badge does not get clipped */
     transition-property: scale, border-color, background-color;
     transition-duration: 0.2s;
 }
@@ -326,42 +469,18 @@
     scale: 1.03;
 }
 
-/* Key Shortcut Badge (Sealed Coin) */
-.hero-key-badge {
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    background-color: var(--color-subbox-bg);
-    border-width: 1.5px;
-    border-color: var(--color-gold-bright);
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-.label-key-number {
-    font-size: 10px;
-    -unity-font-style: bold;
-    color: var(--color-gold-bright);
-    margin: 0;
-    padding: 0;
-}
-
-/* Rhombus/Bveled Portrait Frame */
+/* Rhombus/Beveled Portrait Frame */
 .hero-portrait-frame {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    border-top-left-radius: 16px; /* Asymmetric cut for a sharp fantasy look */
-    border-bottom-right-radius: 16px;
-    border-width: 2px;
+    width: 80px;
+    height: 80px;
+    border-radius: 14px;
+    border-top-left-radius: 22px; /* Asymmetric cut for a sharp fantasy look */
+    border-bottom-right-radius: 22px;
+    border-width: 2.5px;
     border-color: var(--color-gold-sun);
     background-color: var(--color-subbox-bg);
     overflow: hidden;
-    margin-right: 12px;
+    margin-right: 16px;
 }
 
 .hero-portrait-img {
@@ -378,22 +497,22 @@
 .hero-header-row {
     flex-direction: row;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .label-hud-hero-name {
-    font-size: 12px;
+    font-size: 17px;
     -unity-font-style: bold;
-    color: var(--color-text-white);
-    margin-right: 8px;
+    color: var(--color-gold-bright);
+    margin-right: 12px;
     padding: 0;
 }
 
 .label-hud-hero-level {
-    font-size: 10px;
+    font-size: 13px;
     -unity-font-style: bold;
-    color: var(--color-gold-bright);
-    margin-right: 8px;
+    color: var(--color-text-white);
+    margin-right: 12px;
     padding: 0;
 }
 
@@ -403,8 +522,8 @@
 }
 
 .hero-status-effect-icon {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
 }
 
 /* Stats Container: Row-by-Row Layout guarantees 100% Alignment */
@@ -415,26 +534,26 @@
 .hud-stat-single-row {
     flex-direction: row;
     align-items: center; /* Centers Label, Bar, and Value on the exact same horizontal axis */
-    margin-bottom: 3px;
+    margin-bottom: 5px;
 }
 
 .hud-stat-type-label {
-    font-size: 9px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--color-text-muted);
-    width: 18px; /* Fixed width prevents shifting */
-    margin-right: 6px;
+    width: 24px; /* Fixed width prevents shifting */
+    margin-right: 8px;
     padding: 0;
 }
 
 .hud-bar-bg {
-    width: 100px; /* Width of the bar */
-    height: 7px;  /* Bar height */
+    width: 150px; /* Width of the bar */
+    height: 13px;  /* Bar height */
     background-color: var(--color-subbox-bg);
     border-color: var(--color-subbox-border);
-    border-width: 1px;
-    border-radius: 3px;
-    margin-right: 8px;
+    border-width: 1.5px;
+    border-radius: 4px;
+    margin-right: 12px;
     overflow: hidden;
 }
 
@@ -451,21 +570,21 @@
 }
 
 .hud-stat-value-text {
-    font-size: 9px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: var(--color-text-white);
-    width: 42px; /* Fixed width for right-aligned numerical values */
+    width: 56px; /* Fixed width for right-aligned numerical values */
     text-align: right;
     padding: 0;
 }
 
 /* Right Rhombus Element Gem (Venus/Mars Star) */
 .hero-element-gem {
-    width: 20px;
-    height: 20px;
-    margin-left: 12px;
+    width: 28px;
+    height: 28px;
+    margin-left: 16px;
     rotate: 45deg;
-    border-width: 1.5px;
+    border-width: 2px;
     border-color: var(--color-gold-bright);
     background-size: cover;
 }
@@ -478,8 +597,8 @@
 }
 
 .dpad-hud-wheel {
-    width: 100px;
-    height: 100px;
+    width: 180px; /* Scaled up base dimensions */
+    height: 180px;
     position: relative;
     align-items: center;
     justify-content: center;
@@ -494,19 +613,19 @@
 
 .dpad-hud-wheel.aiming-active {
     opacity: 1.0;
-    scale: 1.08;
+    scale: 1.08; /* Scales dynamically on aiming */
     transition-property: opacity, scale;
     transition-duration: 0.15s;
 }
 
 .hud-shortcut-slot {
-    width: 32px;
-    height: 32px;
+    width: 52px;
+    height: 52px;
     position: absolute;
     background-color: var(--color-panel-bg);
     border-color: var(--color-gold-sun);
-    border-width: 1.5px;
-    border-radius: 6px;
+    border-width: 2px;
+    border-radius: 10px;
     align-items: center;
     justify-content: center;
 }
@@ -517,16 +636,16 @@
 .slot-right { right: 0; }
 
 .hud-shortcut-icon {
-    width: 24px;
-    height: 24px;
+    width: 38px;
+    height: 38px;
 }
 
 .dpad-hud-center-gem {
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
     background-color: var(--color-gold-bright);
-    border-width: 1px;
+    border-width: 1.5px;
     border-color: #000000;
 }
 
@@ -545,29 +664,29 @@
 .dialogue-layer {
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: 40px;
+    padding-bottom: 50px;
     display: none; /* Toggled in C# during interactions */
 }
 
 .dialogue-box-container {
     width: 85%;
-    max-width: 900px;
+    max-width: 1200px;
     flex-direction: row;
     align-items: flex-end; /* Align bottom edges of portrait and box */
 }
 
 /* Standalone Portrait Frame */
 .dialogue-portrait-frame {
-    width: 100px;
-    height: 100px;
-    border-top-left-radius: 18px;     /* Asymmetric fantasy cut */
-    border-bottom-right-radius: 18px;
-    border-top-right-radius: 6px;
-    border-bottom-left-radius: 6px;
+    width: 140px;
+    height: 140px;
+    border-top-left-radius: 24px;      /* Asymmetric fantasy cut */
+    border-bottom-right-radius: 24px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
     background-color: var(--color-subbox-bg);
     border-color: var(--color-gold-bright);
-    border-width: 2px;
-    margin-right: 14px;
+    border-width: 3px;
+    margin-right: 20px;
     flex-shrink: 0;
     overflow: hidden;
 }
@@ -582,28 +701,29 @@
     flex-grow: 1;
     background-color: var(--color-panel-bg);
     border-color: var(--color-panel-border);
-    border-width: 2px;
-    border-radius: 10px;
-    padding: 20px 24px;
-    min-height: 90px;
-    justify-content: center;
+    border-width: 2.5px;
+    border-radius: 14px;
+    padding: 26px 32px;
+    min-height: 120px;
+    justify-content: flex-start; /* Fixes text origin to the top instead of vertical center */
     position: relative;
 }
 
 /* Speaker Name Badge: Anchored consistently to top-left of text box */
 .dialogue-name-badge {
     position: absolute;
-    top: -14px;
-    left: 20px;
+    top: -16px;
+    left: 28px;
     background-color: var(--color-subbox-bg);
     border-color: var(--color-gold-sun);
-    border-width: 1.5px;
-    border-radius: 6px;
-    padding: 2px 14px;
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 4px 18px;
+    z-index: 5;
 }
 
 .label-speaker-name {
-    font-size: 13px;
+    font-size: 20px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
     margin: 0;
@@ -611,19 +731,19 @@
 }
 
 .label-dialogue-text {
-    font-size: 15px;
+    font-size: 20px;
     color: var(--color-text-white);
     white-space: normal;
-    line-height: 22px;
+    line-height: 28px;
     margin: 0;
 }
 
 .dialogue-next-prompt {
     position: absolute;
-    bottom: 10px;
-    right: 14px;
-    width: 10px;
-    height: 10px;
+    bottom: 14px;
+    right: 18px;
+    width: 14px;
+    height: 14px;
     background-color: var(--color-gold-bright);
     rotate: 45deg;
 }
@@ -640,7 +760,7 @@
 }
 
 .notifications-stream-container {
-    width: 310px;
+    width: 420px;
     flex-direction: column-reverse; /* New notifications appear dynamically at the bottom */
     align-items: flex-end;
 }
@@ -651,16 +771,16 @@
     align-items: center;
     background-color: var(--color-panel-bg);
     border-color: var(--color-panel-border);
-    border-width: 1.5px;
-    border-top-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-top-right-radius: 4px;
-    border-bottom-left-radius: 4px;
-    padding: 8px 12px;
-    margin-top: 8px;
+    border-width: 2px;
+    border-top-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    padding: 12px 18px;
+    margin-top: 12px;
     position: relative;
     overflow: hidden;
-    width: 290px;
+    width: 390px;
     
     /* Smooth CSS animations for fade-in/out and slide from right in C# */
     transition-property: opacity, scale, translate;
@@ -673,7 +793,7 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 3.5px;
+    width: 5px;
     background-color: var(--color-gold-bright);
 }
 
@@ -693,25 +813,39 @@
     background-color: #E74C3C; /* Red for Danger/System Warnings */
 }
 
+/* Additional Type-Based Accent Classes for Notifications */
+.notification-type-accent.accent-key-item {
+    background-color: #9B59B6; /* Purple for Key Items */
+}
+
+.notification-type-accent.accent-levelup {
+    background-color: #F1C40F; /* Bright Gold for Level Up */
+}
+
+.notification-type-accent.accent-info {
+    background-color: #BDC3C7; /* Neutral Light Grey for Information */
+}
+
 /* Icon Frame Medallion */
 .notification-icon-frame {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    border-width: 1.5px;
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border-width: 2px;
     border-color: var(--color-gold-sun);
     background-color: var(--color-subbox-bg);
     align-items: center;
     justify-content: center;
-    margin-left: 4px;
-    margin-right: 10px;
+    margin-left: 6px;
+    margin-right: 14px;
     flex-shrink: 0;
 }
 
 .notification-icon-img {
-    width: 20px;
-    height: 20px;
+    width: 100%;
+    height: 100%;
     background-size: contain;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 /* Text Block Layout */
@@ -722,17 +856,17 @@
 }
 
 .label-notification-category {
-    font-size: 9px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     margin: 0;
     padding: 0;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 
 .label-notification-message {
-    font-size: 12px;
+    font-size: 16px;
     -unity-font-style: bold;
     color: var(--color-text-white);
     white-space: normal;

@@ -1,5 +1,3 @@
-// File: SceneTeleporter.cs
-// Handles scene transition triggers with an ambient auto-walk fade sequence before calling scene changes.
 using System.Collections;
 using UnityEngine;
 using static GameManager;
@@ -18,7 +16,7 @@ public class SceneTeleporter : MonoBehaviour
 
     [Header("Ambient Fade Settings")]
     [Range(0f, 1f)][SerializeField] private float targetOverlayAlpha = 1f;
-    [SerializeField] private float fadeDuration = 2f;
+    [SerializeField] private float fadeDuration = 1.5f;
 
     #endregion
 

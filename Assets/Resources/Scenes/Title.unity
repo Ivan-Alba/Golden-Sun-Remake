@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.07602609, g: 0.17888738, b: 0.3075293, a: 1}
+  m_IndirectSpecularColor: {r: 0.09895782, g: 0.2213651, b: 0.37356997, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1413,6 +1413,26 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -0.12882975
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378966195427847, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: uiDocument
+      value: 
+      objectReference: {fileID: 8459378966747734656}
+    - target: {fileID: 8459378966195427847, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: minimapMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 65c0a1e5abcb40c48a80f2d5e3c67d1e, type: 2}
+    - target: {fileID: 8459378966195427847, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: minimapRenderTexture
+      value: 
+      objectReference: {fileID: 8400000, guid: 4487c1cbbd1e9534ca8e75bf178762e0, type: 2}
+    - target: {fileID: 8459378966195427847, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: minimapCustomRenderTexture
+      value: 
+      objectReference: {fileID: 8600000, guid: d3b4ad743b9b60a4e9d632ec5832d6fb, type: 2}
+    - target: {fileID: 8459378966195427849, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Name
+      value: PlayerHUD
+      objectReference: {fileID: 0}
     - target: {fileID: 8459378966228098901, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: marsElementCircle
       value: 
@@ -1424,6 +1444,10 @@ PrefabInstance:
     - target: {fileID: 8459378966228098901, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: psynergiesResourcePath
       value: ScriptableObjects/Psynergies
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378966427559357, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Priority
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8459378966440450112, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_SizeDelta.x
@@ -1491,3 +1515,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+--- !u!114 &8459378966747734656 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6147482466788152970, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -1,44 +1,84 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class PlayerUIManager : MonoBehaviour
 {
     public static PlayerUIManager Instance { get; private set; }
 
-    #region Serialized Fields
+    #region Serialized Fields & UI Toolkit Document
 
-    [Header("Exploration UI Containers")]
-    [SerializeField] private GameObject partyInfoPanel;
-    [SerializeField] private GameObject minimapPanel;
-    [SerializeField] private GameObject shortcutsPanel;
-    [SerializeField] private GameObject notificationPanel;
+    [Header("UI Document Reference")]
+    [SerializeField] private UIDocument uiDocument;
 
-    [Header("Stamina UI Components")]
-    [SerializeField] private GameObject staminaBarObject;
-    [SerializeField] private Slider staminaSlider;
-    [SerializeField] private Image staminaFillImage;
-    [SerializeField] private Color normalStaminaColor = new Color(0.94f, 0.71f, 0f);
-    [SerializeField] private Color lowStaminaColor = Color.red;
+    [Header("Stamina Colors")]
+    [SerializeField] private Color normalStaminaColor = new Color(0.18f, 0.8f, 0.44f); // #2ECC71
+    [SerializeField] private Color lowStaminaColor = new Color(0.9f, 0.3f, 0.23f);     // Red
 
-    [Header("Interaction & Aiming Components")]
-    [SerializeField] private GameObject interactionIcon;
-    [SerializeField] private GameObject aimUI;
-    [SerializeField] private Image reticleImage;
-    [SerializeField] private Color unlockedReticleColor = Color.white;
-    [SerializeField] private Color lockedReticleColor = Color.red;
+    [Header("Notification Template")]
+    [SerializeField] private VisualTreeAsset notificationCardTemplate;
 
-    [Header("Dialogue Component")]
-    [SerializeField] private GameObject dialoguePanel;
+    [Header("Minimap Setup")]
+    [Tooltip("Asigna aquí la Custom RenderTexture procesada por el Shader (CRT_MinimapProcessed)")]
+    [SerializeField] private CustomRenderTexture minimapCustomRenderTexture;
 
-    [Header("Party Member Subcomponents")]
-    [SerializeField] private List<PartyMemberUI> partySlots;
+    public VisualTreeAsset NotificationCardTemplate => notificationCardTemplate;
 
     #endregion
 
-    #region Unity Lifecycle & Event Subscriptions
+    #region UI Toolkit VisualElement References
+
+    private VisualElement _root;
+
+    // Layers
+    private VisualElement _explorationLayer;
+    private VisualElement _dialogueLayer;
+    private VisualElement _notificationsLayer;
+
+    // Independent Zone Banner Elements
+    private VisualElement _zoneTitleBannerContainer;
+    private Label _labelBannerZoneName;
+    private Label _labelBannerRegionName;
+    private Coroutine _zoneBannerCoroutine;
+
+    // Sub-Containers (Exploration Layer)
+    private VisualElement _topLeftContainer;
+    private VisualElement _topRightContainer;
+    private VisualElement _bottomLeftPartyContainer;
+    private VisualElement _dpadWheel;
+    private VisualElement _notificationsStreamContainer;
+
+    // Party Member Controllers
+    private readonly List<HeroStatusCardController> _partyCardControllers = new List<HeroStatusCardController>();
+
+    // Stamina Bar
+    private VisualElement _staminaContainer;
+    private VisualElement _staminaFill;
+    private VisualElement _staminaBarBackground;
+
+    // Aiming Reticle
+    private VisualElement _aimingReticle;
+
+    // World Interaction Prompts Container
+    private VisualElement _worldInteractionPromptsContainer;
+
+    // Shortcuts Elements
+    private VisualElement _shortcutUpIcon;
+    private VisualElement _shortcutLeftIcon;
+    private VisualElement _shortcutRightIcon;
+    private VisualElement _shortcutDownIcon;
+
+    // Dialogue Elements
+    private Label _labelSpeakerName;
+    private Label _labelDialogueText;
+    private VisualElement _dialoguePortraitFrame;
+    private VisualElement _dialoguePortraitImg;
+
+    #endregion
+
+    #region Unity Lifecycle & Initialization
 
     private void Awake()
     {
@@ -48,61 +88,200 @@ public class PlayerUIManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        InitializeUIElements();
+    }
+
+    private void InitializeUIElements()
+    {
+        if (uiDocument == null)
+        {
+            uiDocument = GetComponent<UIDocument>();
+        }
+
+        if (uiDocument == null)
+        {
+            Debug.LogError($"[{nameof(PlayerUIManager)}] CRITICAL: UIDocument reference is missing on {gameObject.name}!");
+            return;
+        }
+
+        _root = uiDocument.rootVisualElement;
+
+        if (_root == null)
+        {
+            return;
+        }
+
+        // Prevent HUD root from capturing mouse inputs when elements are hidden
+        _root.pickingMode = PickingMode.Ignore;
+
+        // Query Independent Zone Banner Layer
+        _zoneTitleBannerContainer = _root.Q<VisualElement>("zone_title_banner_container");
+        _labelBannerZoneName = _root.Q<Label>("label_banner_zone_name");
+        _labelBannerRegionName = _root.Q<Label>("label_banner_region_name");
+
+        if (_zoneTitleBannerContainer != null)
+        {
+            _zoneTitleBannerContainer.pickingMode = PickingMode.Ignore;
+            _zoneTitleBannerContainer.RemoveFromClassList("banner-visible");
+            _zoneTitleBannerContainer.style.display = DisplayStyle.None;
+        }
+
+        // Query Layers
+        _explorationLayer = _root.Q<VisualElement>("hud_exploration_layer");
+        _dialogueLayer = _root.Q<VisualElement>("hud_dialogue_layer");
+        _notificationsLayer = _root.Q<VisualElement>("hud_notifications_layer");
+
+        if (_explorationLayer != null) _explorationLayer.pickingMode = PickingMode.Ignore;
+        if (_dialogueLayer != null) _dialogueLayer.pickingMode = PickingMode.Ignore;
+        if (_notificationsLayer != null) _notificationsLayer.pickingMode = PickingMode.Ignore;
+
+        // Query Sub-Containers
+        _topLeftContainer = _root.Q<VisualElement>("top_left_container");
+        _topRightContainer = _root.Q<VisualElement>("top_right_container");
+        _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
+        _dpadWheel = _root.Q<VisualElement>("dpad_hud_wheel");
+
+        // Query Notifications Stream Container
+        _notificationsStreamContainer = _root.Q<VisualElement>("notifications_stream_container");
+        if (_notificationsStreamContainer != null)
+        {
+            _notificationsStreamContainer.Clear();
+        }
+
+        // Minimap Setup with CRT
+        SetupMinimap();
+
+        // Query Stamina Bar
+        _staminaContainer = _root.Q<VisualElement>("bottom_center_stamina_container");
+        _staminaFill = _root.Q<VisualElement>("stamina_bar_fill");
+        _staminaBarBackground = _root.Q<VisualElement>(className: "stamina-bar-background");
+
+        // Query Reticle & Interaction Prompts
+        _aimingReticle = _root.Q<VisualElement>("aiming_reticle");
+        _worldInteractionPromptsContainer = _root.Q<VisualElement>("world_interaction_prompts_container");
+
+        // Query D-Pad Shortcut Icons
+        _shortcutUpIcon = _root.Q<VisualElement>("hud_shortcut_up_icon");
+        _shortcutLeftIcon = _root.Q<VisualElement>("hud_shortcut_left_icon");
+        _shortcutRightIcon = _root.Q<VisualElement>("hud_shortcut_right_icon");
+        _shortcutDownIcon = _root.Q<VisualElement>("hud_shortcut_down_icon");
+
+        // Query Dialogue Elements
+        _labelSpeakerName = _root.Q<Label>("label_speaker_name");
+        _labelDialogueText = _root.Q<Label>("label_dialogue_text");
+        _dialoguePortraitFrame = _root.Q<VisualElement>("dialogue_portrait_frame");
+        _dialoguePortraitImg = _root.Q<VisualElement>("dialogue_portrait_img");
+
+        // Query and Bind Party Cards
+        InitializePartyCardControllers();
+    }
+
+    private void SetupMinimap()
+    {
+        VisualElement minimapViewport = _root.Q<VisualElement>("minimap_viewport");
+        if (minimapViewport == null || minimapCustomRenderTexture == null) return;
+
+        // Aseguramos que la Custom Render Texture se esté actualizando dinámicamente
+        if (!minimapCustomRenderTexture.IsCreated())
+        {
+            minimapCustomRenderTexture.Create();
+        }
+
+        // Asignamos directamente la CRT (que ya contiene el Shader procesado) al background de UI Toolkit
+        minimapViewport.style.backgroundImage = Background.FromRenderTexture(minimapCustomRenderTexture);
+    }
+
+    private void InitializePartyCardControllers()
+    {
+        _partyCardControllers.Clear();
+
+        if (_bottomLeftPartyContainer == null) return;
+
+        VisualElement card0 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_0");
+        VisualElement card1 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_1");
+
+        if (card0 != null) _partyCardControllers.Add(new HeroStatusCardController(card0));
+        if (card1 != null) _partyCardControllers.Add(new HeroStatusCardController(card1));
     }
 
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
-
-        if (GameManager.Instance != null)
-        {
-            // 1. Subscribe to future state changes
-            GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
-
-            // 2. Immediately sync UI with the current state upon enablement
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
-        }
-
-        // Subscribe to Psynergy shortcut updates
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.OnShortcutsChanged += HandleShortcutsChanged;
-        }
+        SubscribeEvents();
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
-        }
-
-        // Unsubscribe from Psynergy shortcut updates
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
-        }
+        UnsubscribeEvents();
     }
 
     private void Start()
+    {
+        SubscribeEvents();
+
+        if (GameManager.Instance != null)
+        {
+            HandleGameStateChanged(GameManager.Instance.CurrentState);
+        }
+
+        RefreshPartyInfo();
+        RefreshShortcuts();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        InitializeUIElements();
+
+        if (GameManager.Instance != null)
+        {
+            HandleGameStateChanged(GameManager.Instance.CurrentState);
+        }
+
+        RefreshPartyInfo();
+        RefreshShortcuts();
+    }
+
+    #endregion
+
+    #region Event Subscriptions
+
+    private void SubscribeEvents()
     {
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
 
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
+            GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
+            GameManager.Instance.OnPartyChanged += RefreshPartyInfo;
         }
 
-        RefreshShortcuts();
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
+            PsynergyWorldController.Instance.OnShortcutsChanged += HandleShortcutsChanged;
+        }
+
+        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
+        GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void UnsubscribeEvents()
     {
-        RefreshPartyInfo();
-        RefreshShortcuts();
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
+            GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
+        }
+
+        if (PsynergyWorldController.Instance != null)
+        {
+            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
+        }
+
+        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
     }
 
     #endregion
@@ -111,7 +290,6 @@ public class PlayerUIManager : MonoBehaviour
 
     private void HandleGameStateChanged(GameManager.GameState newState)
     {
-        Debug.Log($"{nameof(HandleGameStateChanged)}: Game state changed to: {newState}");
         switch (newState)
         {
             case GameManager.GameState.WorldExploration:
@@ -128,6 +306,7 @@ public class PlayerUIManager : MonoBehaviour
                 SetAimUIVisible(false);
                 break;
 
+            case GameManager.GameState.TitleScreen:
             case GameManager.GameState.InMenu:
             case GameManager.GameState.InBattle:
             case GameManager.GameState.Cutscene:
@@ -136,8 +315,11 @@ public class PlayerUIManager : MonoBehaviour
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);
                 SetAimUIVisible(false);
+                HideZoneBannerImmediate();
                 break;
+
             case GameManager.GameState.Interacting:
+                SetNotificationsUIVisible(true);
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);
                 SetAimUIVisible(false);
@@ -147,38 +329,120 @@ public class PlayerUIManager : MonoBehaviour
 
     #endregion
 
-    #region Exploration HUD Visibility Controls
+    #region Zone Banner Handling
+
+    private void HandleShowZoneBanner(string zoneName, string regionName, float duration)
+    {
+        if (_zoneBannerCoroutine != null)
+        {
+            StopCoroutine(_zoneBannerCoroutine);
+        }
+
+        _zoneBannerCoroutine = StartCoroutine(Routine_ShowZoneBanner(zoneName, regionName, duration));
+    }
+
+    private IEnumerator Routine_ShowZoneBanner(string zoneName, string regionName, float duration)
+    {
+        if (_zoneTitleBannerContainer == null) yield break;
+
+        if (_labelBannerZoneName != null) _labelBannerZoneName.text = zoneName;
+        if (_labelBannerRegionName != null) _labelBannerRegionName.text = regionName;
+
+        _zoneTitleBannerContainer.style.display = DisplayStyle.Flex;
+
+        yield return null;
+
+        _zoneTitleBannerContainer.AddToClassList("banner-visible");
+
+        yield return new WaitForSeconds(duration);
+
+        _zoneTitleBannerContainer.RemoveFromClassList("banner-visible");
+
+        yield return new WaitForSeconds(0.5f);
+
+        _zoneTitleBannerContainer.style.display = DisplayStyle.None;
+        _zoneBannerCoroutine = null;
+    }
+
+    private void HideZoneBannerImmediate()
+    {
+        if (_zoneBannerCoroutine != null)
+        {
+            StopCoroutine(_zoneBannerCoroutine);
+            _zoneBannerCoroutine = null;
+        }
+
+        if (_zoneTitleBannerContainer != null)
+        {
+            _zoneTitleBannerContainer.RemoveFromClassList("banner-visible");
+            _zoneTitleBannerContainer.style.display = DisplayStyle.None;
+        }
+    }
+
+    #endregion
+
+    #region Layer Visibility Controls
 
     public void SetExplorationUIVisible(bool visible)
     {
-        if (partyInfoPanel != null) partyInfoPanel.SetActive(visible);
-        if (minimapPanel != null) minimapPanel.SetActive(visible);
-        if (shortcutsPanel != null) shortcutsPanel.SetActive(visible);
-
-        if (!visible && interactionIcon != null)
-        {
-            interactionIcon.SetActive(false);
-        }
-
-        if (!visible && staminaBarObject != null)
-        {
-            staminaBarObject.SetActive(false);
-        }
+        SetElementDisplay(_explorationLayer, visible);
     }
 
     public void SetDialogueUIVisible(bool visible)
     {
-        if (dialoguePanel != null)
-        {
-            dialoguePanel.SetActive(visible);
-        }
+        SetElementDisplay(_dialogueLayer, visible);
     }
 
     public void SetNotificationsUIVisible(bool visible)
     {
-        if (notificationPanel != null)
+        SetElementDisplay(_notificationsLayer, visible);
+    }
+
+    public void SetPlayerUIVisible(bool visible)
+    {
+        SetElementDisplay(_root, visible);
+    }
+
+    private void SetElementDisplay(VisualElement element, bool visible)
+    {
+        if (element != null)
         {
-            notificationPanel.SetActive(visible);
+            element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+    }
+
+    #endregion
+
+    #region Dialogue UI Controls
+
+    public void UpdateDialogueUI(string speakerName, string text, Sprite portrait = null)
+    {
+        if (_labelSpeakerName != null)
+        {
+            _labelSpeakerName.text = speakerName;
+
+            if (_labelSpeakerName.parent != null)
+            {
+                _labelSpeakerName.parent.style.display = string.IsNullOrEmpty(speakerName) ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+        }
+
+        if (_labelDialogueText != null)
+        {
+            _labelDialogueText.text = text;
+        }
+
+        if (_dialoguePortraitFrame != null)
+        {
+            if (portrait != null && _dialoguePortraitImg != null)
+            {
+                _dialoguePortraitImg.style.backgroundImage = Background.FromSprite(portrait);
+                _dialoguePortraitFrame.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _dialoguePortraitFrame.style.display = DisplayStyle.None;
+            }
         }
     }
 
@@ -188,15 +452,12 @@ public class PlayerUIManager : MonoBehaviour
 
     public void UpdateStamina(float currentValue, float maxValue)
     {
-        if (staminaSlider == null) return;
+        if (_staminaFill == null) return;
 
-        staminaSlider.maxValue = maxValue;
-        staminaSlider.value = currentValue;
+        float percentage = Mathf.Clamp01(currentValue / maxValue) * 100f;
+        _staminaFill.style.width = Length.Percent(percentage);
 
-        if (staminaFillImage != null)
-        {
-            staminaFillImage.color = (currentValue < 30f) ? lowStaminaColor : normalStaminaColor;
-        }
+        _staminaFill.style.backgroundColor = (currentValue < 30f) ? lowStaminaColor : normalStaminaColor;
 
         bool isFull = currentValue >= maxValue;
         SetStaminaBarVisible(!isFull);
@@ -206,24 +467,21 @@ public class PlayerUIManager : MonoBehaviour
     {
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
-        if (staminaBarObject != null)
+        if (_staminaBarBackground != null)
         {
-            staminaBarObject.SetActive(visible);
+            _staminaBarBackground.style.opacity = visible ? 1f : 0f;
         }
     }
 
     #endregion
 
-    #region Interaction Icon Methods
+    #region Interaction Icon Methods (TODO)
 
     public void SetInteractionIconVisible(bool visible)
     {
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
-        if (interactionIcon != null)
-        {
-            interactionIcon.SetActive(visible);
-        }
+        // TODO: Implement World-to-Screen interaction prompt display logic using _worldInteractionPromptsContainer
     }
 
     #endregion
@@ -235,17 +493,22 @@ public class PlayerUIManager : MonoBehaviour
         if (GameManager.Instance == null) return;
 
         List<GameObject> party = GameManager.Instance.GetParty();
+        GameObject activeHero = GameManager.Instance.ActiveHero;
 
-        for (int i = 0; i < partySlots.Count; i++)
+        if (party == null || party.Count == 0) return;
+
+        for (int i = 0; i < _partyCardControllers.Count; i++)
         {
             if (i < party.Count && party[i] != null)
             {
                 HeroStats stats = party[i].GetComponent<HeroStats>();
-                partySlots[i].UpdateData(stats, party[i].name);
+                bool isActive = (party[i] == activeHero);
+
+                _partyCardControllers[i].UpdateData(stats, party[i].name, keyNumber: i + 1, isActiveHero: isActive);
             }
             else
             {
-                partySlots[i].gameObject.SetActive(false);
+                _partyCardControllers[i].SetVisible(false);
             }
         }
     }
@@ -254,9 +517,6 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Shortcuts UI Methods
 
-    /// <summary>
-    /// Event handler for shortcuts changes triggered by PsynergyWorldController.
-    /// </summary>
     private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
     {
         if (GameManager.Instance != null && GameManager.Instance.ActiveHero == hero)
@@ -265,9 +525,6 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Refreshes the active hero's shortcuts display manually.
-    /// </summary>
     public void RefreshShortcuts()
     {
         if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null && PsynergyWorldController.Instance != null)
@@ -277,77 +534,89 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Updates the 4 shortcut icons (Icon0..Icon3) inside the shortcutsPanel object.
-    /// </summary>
     public void UpdateShortcutsUI(PsynergySO[] shortcuts)
     {
-        if (shortcutsPanel == null) return;
-
-        for (int i = 0; i < 4; i++)
+        VisualElement[] shortcutIcons = new VisualElement[]
         {
-            Transform iconTrans = shortcutsPanel.transform.Find($"Icon{i}");
-            if (iconTrans == null) continue;
+            _shortcutUpIcon,
+            _shortcutLeftIcon,
+            _shortcutRightIcon,
+            _shortcutDownIcon
+        };
+
+        for (int i = 0; i < shortcutIcons.Length; i++)
+        {
+            if (shortcutIcons[i] == null) continue;
 
             PsynergySO currentPsynergy = (shortcuts != null && i < shortcuts.Length) ? shortcuts[i] : null;
 
-            if (currentPsynergy != null)
+            if (currentPsynergy != null && currentPsynergy.Icon != null)
             {
-                Image img = iconTrans.GetComponent<Image>();
-                if (img != null)
-                {
-                    img.sprite = currentPsynergy.Icon;
-                }
-                iconTrans.gameObject.SetActive(true);
+                shortcutIcons[i].style.backgroundImage = Background.FromSprite(currentPsynergy.Icon);
+                if (shortcutIcons[i].parent != null) shortcutIcons[i].parent.style.display = DisplayStyle.Flex;
             }
             else
             {
-                iconTrans.gameObject.SetActive(false);
+                if (shortcutIcons[i].parent != null) shortcutIcons[i].parent.style.display = DisplayStyle.None;
             }
         }
     }
 
     #endregion
 
-    #region Specific Panel Methods
+    #region Specific HUD Panel & Aiming Controls
 
     public void SetMinimapVisible(bool visible)
     {
-        if (minimapPanel != null)
-        {
-            minimapPanel.SetActive(visible);
-        }
+        SetElementDisplay(_topRightContainer, visible);
     }
 
     public void SetAimUIVisible(bool visible)
     {
-        if (aimUI != null)
+        if (_aimingReticle != null)
         {
-            aimUI.SetActive(visible);
+            _aimingReticle.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        // Reset target lock state when hiding aim UI
+        if (_dpadWheel != null)
+        {
+            if (visible)
+            {
+                _dpadWheel.RemoveFromClassList("passive-dpad");
+                _dpadWheel.AddToClassList("aiming-active");
+            }
+            else
+            {
+                _dpadWheel.RemoveFromClassList("aiming-active");
+                _dpadWheel.AddToClassList("passive-dpad");
+            }
+        }
+
         if (!visible)
         {
             SetAimTargetLocked(false);
         }
     }
 
-    /// <summary>
-    /// Changes the reticle appearance when locking onto a valid targetable object.
-    /// </summary>
     public void SetAimTargetLocked(bool locked)
     {
-        if (reticleImage != null)
+        if (_aimingReticle != null)
         {
-            reticleImage.color = locked ? lockedReticleColor : unlockedReticleColor;
+            StyleColor targetColor = locked
+                ? new StyleColor(Color.red)
+                : new StyleColor(new Color(1f, 0.84f, 0f));
+
+            _aimingReticle.style.borderLeftColor = targetColor;
+            _aimingReticle.style.borderRightColor = targetColor;
+            _aimingReticle.style.borderTopColor = targetColor;
+            _aimingReticle.style.borderBottomColor = targetColor;
         }
     }
 
-    public void SetPlayerUIVisible(bool visible)
-    {
-        gameObject.SetActive(visible);
-    }
-
     #endregion
+
+    public VisualElement GetNotificationsContainer()
+    {
+        return _notificationsStreamContainer;
+    }
 }

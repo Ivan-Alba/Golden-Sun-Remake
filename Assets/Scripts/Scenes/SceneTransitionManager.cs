@@ -18,6 +18,17 @@ public class SceneTransitionManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private float transitionDuration = 1.0f;
+    [SerializeField] private float arrivalWalkDelay = 0.2f;
+
+    #endregion
+
+    #region Public Properties
+
+    /// <summary>
+    /// Duration in seconds for the transition animation to complete opening or closing.
+    /// </summary>
+    public float TransitionDuration => transitionDuration;
+    public float ArrivalWalkDelay => arrivalWalkDelay;
 
     #endregion
 
@@ -56,26 +67,9 @@ public class SceneTransitionManager : MonoBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
     #endregion
 
-    #region Scene Load Handlers
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        // Reset overlay alpha on new scene load
-        ResetFadeOverlay();
-        FadeInNewScene();
-    }
+    #region Ambient Screen Fade (Black Overlay)
 
     /// <summary>
     /// Smoothly fades an overlay black panel to a target alpha (e.g., 0.8f or 1f) over a specified duration.
@@ -128,8 +122,12 @@ public class SceneTransitionManager : MonoBehaviour
         activeFadeCoroutine = null;
     }
 
+    #endregion
+
+    #region Logo Transition & Scene Loading
+
     /// <summary>
-    /// Loads a scene asynchronously with a smooth logo transition effect.
+    /// Initiates a scene load covered by the closing transition animation.
     /// </summary>
     public void LoadSceneWithTransition(string sceneName)
     {
@@ -138,6 +136,7 @@ public class SceneTransitionManager : MonoBehaviour
 
     private IEnumerator Routine_LoadScene(string sceneName)
     {
+        // 1. Play closing transition (cover screen)
         if (logoTransitionAnimator != null)
         {
             logoTransitionAnimator.ResetTrigger(END_TRIGGER);
@@ -146,6 +145,7 @@ public class SceneTransitionManager : MonoBehaviour
 
         yield return new WaitForSeconds(transitionDuration);
 
+        // 2. Load the scene asynchronously in the background
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
         while (!asyncLoad.isDone)
         {
@@ -154,10 +154,12 @@ public class SceneTransitionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Plays the transition to reveal the current scene.
+    /// Plays the transition animation to reveal the new scene.
     /// </summary>
     public void FadeInNewScene()
     {
+        ResetFadeOverlay();
+
         if (logoTransitionAnimator != null)
         {
             logoTransitionAnimator.ResetTrigger(START_TRIGGER);
@@ -170,10 +172,14 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     public IEnumerator PlayFullTransitionRoutine(System.Action onScreenCovered = null)
     {
-        GameManager.Instance.SetGameState(GameManager.GameState.Loading);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetGameState(GameManager.GameState.Loading);
+        }
 
         if (logoTransitionAnimator != null)
         {
+            logoTransitionAnimator.ResetTrigger(END_TRIGGER);
             logoTransitionAnimator.SetTrigger(START_TRIGGER);
         }
 
@@ -183,10 +189,9 @@ public class SceneTransitionManager : MonoBehaviour
 
         yield return null;
 
-        if (logoTransitionAnimator != null)
-        {
-            logoTransitionAnimator.SetTrigger(END_TRIGGER);
-        }
+        FadeInNewScene();
+
+        yield return new WaitForSeconds(transitionDuration);
     }
 
     #endregion

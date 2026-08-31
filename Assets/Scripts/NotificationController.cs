@@ -1,20 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+
+public enum NotificationType
+{
+    Info,
+    ItemObtained,
+    KeyItemObtained,
+    PsynergyLearned,
+    LevelUp,
+    QuestUpdate,
+    Warning
+}
 
 public class NotificationController : MonoBehaviour
 {
-    // Singleton Instance
     public static NotificationController Instance { get; private set; }
-
-    #region Private Fields
-
-    private GameObject notifPrefab;
-    private GameObject container;
-
-    #endregion
 
     #region Unity Lifecycle
 
@@ -29,20 +31,6 @@ public class NotificationController : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        // Load notification UI prefab dynamically
-        notifPrefab = Resources.Load<GameObject>("Prefabs/UIComponents/PlayerUI/Notification");
-
-        // Safely cache container reference
-        ContentSizeFitter sizeFitter = GetComponentInChildren<ContentSizeFitter>();
-        if (sizeFitter != null)
-        {
-            container = sizeFitter.gameObject;
-        }
-        else
-        {
-            Debug.LogError("[NotificationController] ContentSizeFitter component not found in children!");
-        }
     }
 
     private void OnDestroy()
@@ -55,60 +43,141 @@ public class NotificationController : MonoBehaviour
 
     #endregion
 
-    #region Public Notification Methods
+    #region Public Notification API
 
     /// <summary>
-    /// Instantiates a notification UI element, configures its message and icon, and handles smooth fade transitions.
+    /// Displays a typed notification card with automatic formatting and styling based on NotificationType.
+    /// </summary>
+    public void ShowNotification(NotificationType type, string message, Sprite icon = null)
+    {
+        StartCoroutine(AddNotificationRoutine(type, message, icon));
+    }
+
+    /// <summary>
+    /// Spawns a custom-categorized notification card with a dynamic string category.
+    /// </summary>
+    public void ShowNotification(string customCategory, string message, Sprite icon = null)
+    {
+        StartCoroutine(AddNotificationRoutine(NotificationType.Info, message, icon, customCategory));
+    }
+
+    /// <summary>
+    /// Legacy overload compatibility method.
     /// </summary>
     public IEnumerator AddNotification(string message, Sprite icon)
     {
-        if (notifPrefab == null || container == null)
+        yield return AddNotificationRoutine(NotificationType.Info, message, icon);
+    }
+
+    #endregion
+
+    #region Private Flow & Animation
+
+    private IEnumerator AddNotificationRoutine(NotificationType type, string message, Sprite icon, string overrideCategory = null)
+    {
+        if (PlayerUIManager.Instance == null) yield break;
+
+        VisualElement container = PlayerUIManager.Instance.GetNotificationsContainer();
+        VisualTreeAsset template = PlayerUIManager.Instance.NotificationCardTemplate;
+
+        if (container == null || template == null) yield break;
+
+        // 1. Instantiate template
+        TemplateContainer cardInstance = template.Instantiate();
+        VisualElement cardElement = cardInstance.Q<VisualElement>("hud_notification_card") ?? cardInstance;
+
+        cardElement.pickingMode = PickingMode.Ignore;
+
+        // 2. Query child controls
+        Label categoryLabel = cardElement.Q<Label>("label_notification_category");
+        Label messageLabel = cardElement.Q<Label>("label_notification_message");
+        VisualElement iconImg = cardElement.Q<VisualElement>("notification_icon_img");
+        VisualElement accentBar = cardElement.Q<VisualElement>("notification_type_accent");
+
+        // 3. Populate category label and CSS accent class
+        string categoryTitle = !string.IsNullOrEmpty(overrideCategory) ? overrideCategory.ToUpper() : GetCategoryTitle(type);
+        string accentClass = GetAccentClass(type);
+
+        if (categoryLabel != null) categoryLabel.text = categoryTitle;
+        if (messageLabel != null) messageLabel.text = message;
+
+        if (accentBar != null && !string.IsNullOrEmpty(accentClass))
         {
-            Debug.LogWarning("[NotificationController] Cannot display notification: Prefab or Container reference is missing.");
-            yield break;
+            accentBar.AddToClassList(accentClass);
         }
 
-        GameObject newNotification = Instantiate(notifPrefab, container.transform);
-
-        // Assign message text
-        Transform messageTransform = newNotification.transform.Find("Message");
-        if (messageTransform != null && messageTransform.TryGetComponent<TextMeshProUGUI>(out var textComp))
+        // 4. Assign icon sprite or hide frame if null
+        if (iconImg != null)
         {
-            textComp.SetText(message);
-        }
-
-        // Assign icon sprite
-        Transform iconTransform = newNotification.transform.Find("Icon");
-        if (iconTransform != null && iconTransform.TryGetComponent<Image>(out var imageComp))
-        {
-            imageComp.sprite = icon;
-        }
-
-        // Handle fade-in, display duration, and fade-out transitions
-        if (newNotification.TryGetComponent<CanvasGroup>(out var canvasGroup))
-        {
-            // Fade In
-            while (canvasGroup.alpha < 1f)
+            if (icon != null)
             {
-                canvasGroup.alpha += 0.2f;
-                yield return new WaitForSeconds(0.1f);
+                iconImg.style.backgroundImage = Background.FromSprite(icon);
             }
-
-            yield return new WaitForSeconds(3f);
-
-            // Fade Out
-            while (canvasGroup.alpha > 0f)
+            else
             {
-                canvasGroup.alpha -= 0.2f;
-                yield return new WaitForSeconds(0.1f);
+                VisualElement frame = cardElement.Q<VisualElement>("notification_icon_frame");
+                if (frame != null) frame.style.display = DisplayStyle.None;
             }
         }
-        else
-        {
-            yield return new WaitForSeconds(3f);
-        }
 
-        Destroy(newNotification);
+        // 5. Configure native UI Toolkit CSS transition for opacity
+        cardElement.style.transitionProperty = new List<StylePropertyName> { new StylePropertyName("opacity") };
+        cardElement.style.transitionDuration = new List<TimeValue> { new TimeValue(0.4f, TimeUnit.Second) };
+        cardElement.style.transitionTimingFunction = new List<EasingFunction> { new EasingFunction(EasingMode.EaseOut) };
+
+        // Initial transparent state
+        cardElement.style.opacity = 0f;
+        container.Add(cardElement);
+
+        // Wait 1 frame for UI Toolkit to register position and opacity state
+        yield return null;
+
+        // 6. Fade In (Triggered natively by UI Toolkit)
+        cardElement.style.opacity = 1f;
+        yield return new WaitForSeconds(0.4f);
+
+        // 7. On-screen hold duration
+        yield return new WaitForSeconds(4.0f);
+
+        // 8. Fade Out (Triggered natively by UI Toolkit)
+        cardElement.style.opacity = 0f;
+        yield return new WaitForSeconds(0.4f);
+
+        // 9. Remove node from hierarchy
+        container.Remove(cardElement);
+    }
+
+    #endregion
+
+    #region Helper Formatting Methods
+
+    private string GetCategoryTitle(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.ItemObtained => "NUEVO OBJETO",
+            NotificationType.KeyItemObtained => "OBJETO CLAVE",
+            NotificationType.PsynergyLearned => "NUEVA PSINERGÍA",
+            NotificationType.LevelUp => "¡SUBIDA DE NIVEL!",
+            NotificationType.QuestUpdate => "MISIONES",
+            NotificationType.Warning => "ATENCIÓN",
+            NotificationType.Info => "INFORMACIÓN",
+            _ => "SISTEMA"
+        };
+    }
+
+    private string GetAccentClass(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.ItemObtained => "accent-item",
+            NotificationType.KeyItemObtained => "accent-key-item",
+            NotificationType.PsynergyLearned => "accent-psynergy",
+            NotificationType.LevelUp => "accent-levelup",
+            NotificationType.QuestUpdate => "accent-quest",
+            NotificationType.Warning => "accent-warning",
+            _ => "accent-info"
+        };
     }
 
     #endregion

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using Cinemachine;
 
@@ -10,17 +9,14 @@ public class DialogueManager : MonoBehaviour
 
     #region Serialized Fields
 
-    [Header("UI References")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TextMeshProUGUI dialogueText;
-    [SerializeField] private TextMeshProUGUI nameText;
-    [SerializeField] private GameObject namePanel;
-
     [Header("Camera Control")]
     [SerializeField] private CinemachineVirtualCamera dialogueCamera;
     [SerializeField] private CinemachineTargetGroup targetGroup;
     [SerializeField] private int activeCameraPriority = 20;
     [SerializeField] private int inactiveCameraPriority = 0;
+
+    [Header("Typewriter Settings")]
+    [SerializeField] private float charactersPerSecond = 30f;
 
     #endregion
 
@@ -30,6 +26,10 @@ public class DialogueManager : MonoBehaviour
     private string currentNpcName;
     private GameObject currentInteractableElement;
     private List<string> dialogueLines = new List<string>();
+
+    private Coroutine typewriterCoroutine;
+    private bool isTyping = false;
+    private string currentFullLine = "";
 
     #endregion
 
@@ -46,13 +46,6 @@ public class DialogueManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        // Auto-find references if missing in Inspector
-        if (dialoguePanel == null) dialoguePanel = GameObject.Find("DialoguePanel");
-        if (dialogueText == null && dialoguePanel != null) dialogueText = dialoguePanel.transform.Find("DialogueText")?.GetComponent<TextMeshProUGUI>();
-        if (nameText == null && dialoguePanel != null) nameText = dialoguePanel.transform.Find("NamePanel")?.GetComponentInChildren<TextMeshProUGUI>();
-
-        if (dialoguePanel != null) dialoguePanel.SetActive(false);
 
         if (dialogueCamera != null)
         {
@@ -82,10 +75,15 @@ public class DialogueManager : MonoBehaviour
 
     private void HandleDialogueAdvance()
     {
-        // Only process if we are currently in dialogue state
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InDialogue) return;
 
-        // Play dialogue advance sound effect
+        // If typewriter effect is still running, complete the sentence immediately
+        if (isTyping)
+        {
+            CompleteCurrentLine();
+            return;
+        }
+
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
@@ -105,7 +103,6 @@ public class DialogueManager : MonoBehaviour
     {
         if (lines == null || lines.Length == 0) return;
 
-        // 1. Set Game State to InDialogue
         if (GameManager.Instance != null)
         {
             GameManager.Instance.SetGameState(GameManager.GameState.InDialogue);
@@ -116,33 +113,56 @@ public class DialogueManager : MonoBehaviour
         currentNpcName = name;
         currentInteractableElement = element;
 
-        // 2. Position and activate dialogue camera focus
         FocusDialogueCamera(element);
-
-        // 3. Render initial line and panel
         DisplayCurrentLine();
     }
 
     private void DisplayCurrentLine()
     {
-        if (dialogueText != null)
+        if (typewriterCoroutine != null)
         {
-            dialogueText.SetText(dialogueLines[dialogueIndex]);
+            StopCoroutine(typewriterCoroutine);
         }
 
-        if (!string.IsNullOrEmpty(currentNpcName))
+        currentFullLine = dialogueLines[dialogueIndex];
+        typewriterCoroutine = StartCoroutine(TypewriterRoutine(currentFullLine));
+    }
+
+    private IEnumerator TypewriterRoutine(string line)
+    {
+        isTyping = true;
+        float delay = 1f / charactersPerSecond;
+
+        for (int i = 0; i <= line.Length; i++)
         {
-            if (nameText != null) nameText.SetText(currentNpcName);
-            if (namePanel != null) namePanel.SetActive(true);
-        }
-        else
-        {
-            if (namePanel != null) namePanel.SetActive(false);
+            string currentSubstring = line.Substring(0, i);
+
+            if (PlayerUIManager.Instance != null)
+            {
+                PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentSubstring);
+            }
+
+            // TODO: Play Golden Sun retro bleeps/voice SFX here
+            // e.g. AudioManager.Instance.PlayDialogueTextSound();
+
+            yield return new WaitForSeconds(delay);
         }
 
-        if (dialoguePanel != null)
+        isTyping = false;
+    }
+
+    private void CompleteCurrentLine()
+    {
+        if (typewriterCoroutine != null)
         {
-            dialoguePanel.SetActive(true);
+            StopCoroutine(typewriterCoroutine);
+        }
+
+        isTyping = false;
+
+        if (PlayerUIManager.Instance != null)
+        {
+            PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentFullLine);
         }
     }
 
@@ -161,12 +181,16 @@ public class DialogueManager : MonoBehaviour
 
     private IEnumerator CloseDialogueRoutine()
     {
-        if (dialoguePanel != null) dialoguePanel.SetActive(false);
+        if (typewriterCoroutine != null)
+        {
+            StopCoroutine(typewriterCoroutine);
+        }
 
-        // Lower dialogue camera priority
-        if (dialogueCamera != null) dialogueCamera.Priority = inactiveCameraPriority;
+        if (dialogueCamera != null)
+        {
+            dialogueCamera.Priority = inactiveCameraPriority;
+        }
 
-        // Notify NPC to stop looking at player
         if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<NPC>(out var npc))
         {
             npc.EndDialogueLook();

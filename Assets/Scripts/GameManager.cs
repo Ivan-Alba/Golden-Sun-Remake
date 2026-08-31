@@ -1,4 +1,6 @@
 using Cinemachine;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Animations;
@@ -22,6 +24,8 @@ public class GameManager : MonoBehaviour
 
     private static GameManager instance = null;
 
+    #region Serialized Fields
+
     [Header("Game State System")]
     [SerializeField] private GameState currentState = GameState.None;
 
@@ -29,10 +33,20 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playerMainCamera;
     [SerializeField] private CinemachineFreeLook freeLookCamera;
 
+    #endregion
+
+    #region Private Fields
+
     private bool loadingData = false;
 
     // SCENE & SPAWN MANAGEMENT
     private string pendingSpawnID = null;
+    private GameState pendingTargetState = GameState.WorldExploration;
+    private SpawnPoint currentUsedSpawnPoint = null;
+
+    // ZONE & AREA TRACKING
+    private string currentZoneName = "DESCONOCIDO";
+    private string currentRegionName = "MUNDO";
 
     // PARTY INFO
     private List<GameObject> party = new List<GameObject>();
@@ -40,17 +54,23 @@ public class GameManager : MonoBehaviour
     // GAME INFO
     private int totalGold;
     private float totalPlayed;
+    private GameObject activeHero;
 
-    // Getters and setters
+    private float originalXSpeed = 300f;
+    private float originalYSpeed = 2f;
+    private bool speedsCached = false;
+
+    #endregion
+
+    #region Properties
+
     public GameState CurrentState { get => currentState; private set => currentState = value; }
     public int TotalGold { get => totalGold; set => totalGold = value; }
     public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
-
-    private GameObject activeHero;
-
     public GameObject ActiveHero { get => activeHero; set => activeHero = value; }
-
     public bool LoadingData { get => loadingData; set => loadingData = value; }
+    public string CurrentZoneName => currentZoneName;
+    public string CurrentRegionName => currentRegionName;
     public static GameManager Instance { get => instance; set => instance = value; }
 
     public List<GameObject> GetParty()
@@ -58,14 +78,16 @@ public class GameManager : MonoBehaviour
         return party;
     }
 
+    #endregion
+
     #region Events
 
-    /// <summary>
-    /// Event triggered whenever the global GameState changes.
-    /// </summary>
-    public event System.Action<GameState> OnGameStateChanged;
+    public event Action<GameState> OnGameStateChanged;
+    public event Action OnPartyChanged;
 
     #endregion
+
+    #region Unity Lifecycle & Initialization
 
     private void Awake()
     {
@@ -100,15 +122,24 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnLevelFinishedLoading;
     }
 
+    private void Update()
+    {
+        if (currentState != GameState.TitleScreen && currentState != GameState.Loading)
+        {
+            TotalPlayed += Time.deltaTime;
+        }
+    }
+
+    #endregion
+
     #region State Machine Management
 
     public void SetGameState(GameState newState)
     {
         if (currentState == newState) return;
 
-        Debug.Log("Game State changed from " + currentState + " to " + newState);
+        Debug.Log($"[GameManager] Game State changed from {currentState} to {newState}");
         currentState = newState;
-
 
         if (currentState != GameState.InMenu && MenuController.Instance != null)
         {
@@ -118,15 +149,15 @@ public class GameManager : MonoBehaviour
         switch (currentState)
         {
             case GameState.TitleScreen:
-                ToggleGameplaySystems(false);
+                ToggleGameplaySystems(active: false);
                 break;
 
             case GameState.WorldExploration:
-                ToggleGameplaySystems(true);
+                ToggleGameplaySystems(active: true);
                 break;
 
             case GameState.InBattle:
-                ToggleGameplaySystems(false);
+                ToggleGameplaySystems(active: false);
                 break;
 
             case GameState.InMenu:
@@ -134,33 +165,50 @@ public class GameManager : MonoBehaviour
             case GameState.InDialogue:
             case GameState.Cutscene:
             case GameState.Loading:
-                // Camera orbit is paused; InputManager handles switching context maps
                 ToggleCameraInput(false);
                 break;
         }
 
         OnGameStateChanged?.Invoke(currentState);
-
     }
 
+    /// <summary>
+    /// Enables or disables gameplay features cleanly, isolating camera rendering for Title scene.
+    /// </summary>
     private void ToggleGameplaySystems(bool active)
     {
+        // 1. Manage Player components and mesh visibility
         if (PlayerController.Instance != null)
         {
-            PlayerController.Instance.gameObject.SetActive(active);
+            PlayerController.Instance.enabled = active;
+
+            CharacterController cc = PlayerController.Instance.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = active;
+
+            Transform modelTrans = PlayerController.Instance.transform.Find("Model");
+            if (modelTrans != null)
+            {
+                modelTrans.gameObject.SetActive(active);
+            }
         }
 
+        // 2. Control Camera Inputs and rendering layer
         ToggleCameraInput(active);
 
         if (playerMainCamera != null)
         {
-            playerMainCamera.SetActive(active);
+            bool isTitle = (currentState == GameState.TitleScreen);
+
+            // Hide/Disable persistent camera on Title to allow Title's camera complete control
+            playerMainCamera.SetActive(!isTitle);
+
+            CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
+            if (brain != null)
+            {
+                brain.enabled = !isTitle;
+            }
         }
     }
-
-    private float originalXSpeed = 300f;
-    private float originalYSpeed = 2f;
-    private bool speedsCached = false;
 
     private void ToggleCameraInput(bool active)
     {
@@ -196,7 +244,17 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region New Game Flow
+    #region Zone & Area Management
+
+    public void UpdateCurrentZone(string zoneName, string regionName)
+    {
+        currentZoneName = zoneName;
+        currentRegionName = regionName;
+    }
+
+    #endregion
+
+    #region New Game & Scene Flow
 
     public void StartNewGame(string firstSceneName, string initialSpawnID)
     {
@@ -211,35 +269,26 @@ public class GameManager : MonoBehaviour
 
         GameObject isaac = GameObject.Find("Isaac");
         GameObject garet = GameObject.Find("Garet");
-        //GameObject ivan = GameObject.Find("Ivan");
 
         if (isaac != null) party.Add(isaac);
         if (garet != null) party.Add(garet);
-        //if (ivan != null) party.Add(ivan);
 
         if (party.Count > 0)
         {
             activeHero = party[0];
 
-            for (int i = 0; i < party.Count; i++) 
-            { 
-                HeroStats stats = party[i].GetComponent<HeroStats>(); 
-                if (stats != null) 
+            for (int i = 0; i < party.Count; i++)
+            {
+                HeroStats stats = party[i].GetComponent<HeroStats>();
+                if (stats != null)
                 {
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp();
-                    stats.LevelUp(); 
-                } 
+                    for (int l = 0; l < 7; l++) stats.LevelUp();
+                }
             }
 
             changeModelHero();
         }
 
-        // Synchronize InventoryController with the newly formed active party
         if (InventoryController.Instance != null)
         {
             InventoryController.Instance.SyncWithParty();
@@ -248,20 +297,18 @@ public class GameManager : MonoBehaviour
         if (PsynergyWorldController.Instance != null)
         {
             PsynergyWorldController.Instance.Initialize();
-            //PsynergyWorldController.Instance.SetShortcut(party[0], PsynergyDatabase.Instance.GetPsynergy("catch"), 0);
-            //Debug.Log(PsynergyDatabase.Instance.GetPsynergy("catch").PsynergyName + " set to shortcut 0");
         }
 
-        ChangeScene(firstSceneName, initialSpawnID);
+        NotifyPartyChanged();
+
+        ChangeScene(firstSceneName, initialSpawnID, GameState.WorldExploration);
     }
 
-    #endregion
-
-    public void ChangeScene(string sceneName, string spawnID)
+    public void ChangeScene(string sceneName, string spawnID, GameState targetStateAfterLoad = GameState.WorldExploration)
     {
         SetGameState(GameState.Loading);
-
         pendingSpawnID = spawnID;
+        pendingTargetState = targetStateAfterLoad;
 
         if (SceneTransitionManager.Instance != null)
         {
@@ -275,13 +322,15 @@ public class GameManager : MonoBehaviour
 
     private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"Level Loaded: {scene.name}");
+        Debug.Log($"[GameManager] Level Loaded in background: {scene.name}");
 
         if (scene.name.Equals("Title") || scene.name.Equals("MainMenu"))
         {
             SetGameState(GameState.TitleScreen);
             return;
         }
+
+        SetGameState(GameState.Loading);
 
         if (SaveManager.loadedData != null)
         {
@@ -294,57 +343,82 @@ public class GameManager : MonoBehaviour
             RelocatePlayerToSpawnPoint();
         }
 
-        SetGameState(GameState.WorldExploration);
+        NotifyPartyChanged();
+
+        StartCoroutine(Routine_HandlePostLoadSequence());
     }
 
-    private void RelocatePlayerToSpawnPoint()
+    private IEnumerator Routine_HandlePostLoadSequence()
     {
-        if (PlayerController.Instance == null) return;
-
-        SpawnPoint[] spawnPoints = FindObjectsOfType<SpawnPoint>();
-
-        foreach (SpawnPoint sp in spawnPoints)
+        // 1. Enable visual components while fully covered by curtain
+        if (PlayerController.Instance != null)
         {
-            if (sp.SpawnPointID == pendingSpawnID)
+            Transform modelTrans = PlayerController.Instance.transform.Find("Model");
+            if (modelTrans != null)
             {
-                Transform playerTransform = PlayerController.Instance.transform;
-                Vector3 previousPosition = playerTransform.position;
-
-                CharacterController cc = playerTransform.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-
-                playerTransform.position = sp.transform.position;
-                playerTransform.rotation = sp.transform.rotation;
-
-                ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
-
-                if (cc != null) cc.enabled = true;
-
-                break;
+                modelTrans.gameObject.SetActive(true);
             }
         }
 
-        pendingSpawnID = null;
+        if (playerMainCamera != null)
+        {
+            playerMainCamera.SetActive(true);
+            CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
+            if (brain != null) brain.enabled = true;
+        }
+
+        // 2. Wait 1-2 frames so Cinemachine and physics settle position in the dark
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForFixedUpdate();
+
+        // 3. Start revealing the screen (Curtain begins fade out)
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.FadeInNewScene();
+        }
+
+        // 4. Handle Arrival vs Immediate Entry
+        bool isGameplayTeleport = !loadingData && currentUsedSpawnPoint != null;
+
+        if (pendingTargetState == GameState.WorldExploration && isGameplayTeleport && currentUsedSpawnPoint.AutoWalkOnArrival)
+        {
+            SetGameState(GameState.Cutscene);
+
+            float walkDelay = SceneTransitionManager.Instance != null
+                ? SceneTransitionManager.Instance.ArrivalWalkDelay
+                : 0.2f;
+
+            yield return new WaitForSeconds(walkDelay);
+
+            yield return StartCoroutine(currentUsedSpawnPoint.Routine_ExecuteArrivalSequence());
+        }
+        else if (pendingTargetState == GameState.WorldExploration)
+        {
+            GameEvents.UI.TriggerShowZoneBanner(currentZoneName, currentRegionName, 3.5f);
+
+            if (SceneTransitionManager.Instance != null)
+            {
+                yield return new WaitForSeconds(SceneTransitionManager.Instance.TransitionDuration);
+            }
+        }
+
+        // 5. Activate target game state (revealing Exploration HUD and returning control immediately)
+        SetGameState(pendingTargetState);
     }
 
-    public void Start()
+    #endregion
+
+    #region Party & Hero Management
+
+    public void NotifyPartyChanged()
     {
-        // Initialization handled via StartNewGame or LoadData
+        OnPartyChanged?.Invoke();
     }
 
     public void ChangeGameSpeed()
     {
-        Debug.Log("Change game speed:");
-        if (Time.timeScale == 2f)
-        {
-            Time.timeScale = 1f;
-            Debug.Log($"SpeedChanged to {Time.timeScale}");
-        }
-        else
-        {
-            Time.timeScale = 2f;
-            Debug.Log($"SpeedChanged to {Time.timeScale}");
-        }
+        Time.timeScale = (Time.timeScale == 2f) ? 1f : 2f;
+        Debug.Log($"[GameManager] SpeedChanged to {Time.timeScale}");
     }
 
     public void ChangeActiveHero(int index)
@@ -359,6 +433,7 @@ public class GameManager : MonoBehaviour
             }
 
             changeModelHero();
+            NotifyPartyChanged();
         }
     }
 
@@ -389,13 +464,77 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Relocates player to spawn point, updates zone info and snaps position to ground using Raycast.
+    /// </summary>
+    private void RelocatePlayerToSpawnPoint()
+    {
+        if (PlayerController.Instance == null) return;
+
+        SpawnPoint[] spawnPoints = FindObjectsOfType<SpawnPoint>();
+        currentUsedSpawnPoint = null;
+
+        foreach (SpawnPoint sp in spawnPoints)
+        {
+            if (sp.SpawnPointID == pendingSpawnID)
+            {
+                currentUsedSpawnPoint = sp;
+                UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+
+                Transform playerTransform = PlayerController.Instance.transform;
+                Vector3 previousPosition = playerTransform.position;
+
+                CharacterController cc = playerTransform.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+
+                // Safety ground snap raycast
+                Vector3 spawnPos = sp.transform.position;
+                if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
+                {
+                    spawnPos.y = hit.point.y;
+                }
+
+                playerTransform.position = spawnPos;
+                playerTransform.rotation = sp.transform.rotation;
+
+                if (cc != null) cc.enabled = true;
+
+                ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
+
+                break;
+            }
+        }
+
+        pendingSpawnID = null;
+    }
+
+    private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
+    {
+        if (freeLookCamera == null && playerMainCamera != null)
+        {
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
+        }
+
+        if (freeLookCamera != null)
+        {
+            Vector3 deltaPosition = targetTransform.position - previousPosition;
+            freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
+
+            freeLookCamera.m_XAxis.Value = targetRotation.eulerAngles.y;
+            freeLookCamera.m_YAxis.Value = 0.5f;
+        }
+    }
+
+    #endregion
+
+    #region Save & Load System
+
     private void LoadData()
     {
         if (SaveManager.loadedData == null) return;
 
         GameData dataToLoad = SaveManager.loadedData[0];
 
-        // ---- PLAYER POSITION & ROTATION ----
         if (PlayerController.Instance != null)
         {
             Transform playerTransform = PlayerController.Instance.transform;
@@ -410,18 +549,21 @@ public class GameManager : MonoBehaviour
             Vector3 targetPos = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
             Quaternion targetRot = Quaternion.Euler(0, dataToLoad.playerRotation[1], 0);
 
+            // Ground snap raycast for saved position
+            if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
+            {
+                targetPos.y = hit.point.y;
+            }
+
             playerTransform.position = targetPos;
             playerTransform.rotation = targetRot;
 
             ResetCameraBehindPlayer(playerTransform, targetRot, previousPosition);
-
-            if (cc != null) cc.enabled = true;
         }
 
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
 
-        // ---- RECONSTRUCT PARTY ----
         party.Clear();
 
         if (InventoryController.Instance != null)
@@ -441,13 +583,11 @@ public class GameManager : MonoBehaviour
         if (party.Count > 0) activeHero = party[0];
         changeModelHero();
 
-        // Synchronize InventoryController with the reconstructed active party
         if (InventoryController.Instance != null)
         {
             InventoryController.Instance.SyncWithParty();
         }
 
-        // ---- RESTORE GLOBAL BAG ----
         if (GlobalBag.Instance != null && dataToLoad.globalBagItems != null)
         {
             for (int i = GlobalBag.Instance.KeyItemSlots.Count - 1; i >= 0; i--)
@@ -467,13 +607,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // ---- RESTORE HERO STATS, INVENTORY & EQUIPMENT ----
         for (int i = 0; i < party.Count; i++)
         {
             GameObject heroObj = party[i];
             string currentHeroName = heroObj.name;
 
-            // 1. Restore Base Stats, Level, XP
             if (heroObj.TryGetComponent<HeroStats>(out var heroStats))
             {
                 if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
@@ -495,8 +633,6 @@ public class GameManager : MonoBehaviour
                     heroStats.LoadProgression(savedLevel, savedXp);
                 }
 
-
-                // 1.2 Restore Psynergy 
                 if (dataToLoad.heroPsynergySlugs != null && i < dataToLoad.heroPsynergySlugs.Count)
                 {
                     List<string> savedSlugs = dataToLoad.heroPsynergySlugs[i];
@@ -507,16 +643,8 @@ public class GameManager : MonoBehaviour
                         foreach (string slug in savedSlugs)
                         {
                             if (string.IsNullOrEmpty(slug)) continue;
-
                             PsynergySO psynergy = PsynergyDatabase.Instance.GetPsynergy(slug);
-                            if (psynergy != null)
-                            {
-                                loadedPsynergies.Add(psynergy);
-                            }
-                            else
-                            {
-                                Debug.LogWarning($"[GameManager] Could not find PsynergySO for saved slug: '{slug}'.");
-                            }
+                            if (psynergy != null) loadedPsynergies.Add(psynergy);
                         }
                     }
 
@@ -524,7 +652,6 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // 2. Restore Individual Backpack (HeroInventory) by Hero Name
             if (heroObj.TryGetComponent<HeroInventory>(out var heroInventory))
             {
                 var savedInvData = dataToLoad.heroesInventories?.Find(x => x.heroName == currentHeroName);
@@ -546,17 +673,14 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // 3. Restore Equipment (HeroEquipment) by Hero Name
             if (heroObj.TryGetComponent<HeroEquipment>(out var heroEquipment))
             {
                 var eqData = dataToLoad.heroesEquipment?.Find(x => x.heroName == currentHeroName);
                 if (eqData != null)
                 {
-                    // Restore Standard Equipment
                     foreach (var eqSlotData in eqData.standardEquipment)
                     {
                         if (string.IsNullOrEmpty(eqSlotData.itemSlug)) continue;
-
                         ItemSO item = ItemDatabase.Instance.GetItem(eqSlotData.itemSlug);
                         if (item is EquipableSO equipable)
                         {
@@ -564,12 +688,10 @@ public class GameManager : MonoBehaviour
                         }
                     }
 
-                    // Restore Relics
                     for (int relicIdx = 0; relicIdx < eqData.relicSlugs.Count; relicIdx++)
                     {
                         string relicSlug = eqData.relicSlugs[relicIdx];
                         if (string.IsNullOrEmpty(relicSlug)) continue;
-
                         ItemSO item = ItemDatabase.Instance.GetItem(relicSlug);
                         if (item is PsynergyRelicSO relic)
                         {
@@ -579,7 +701,6 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // 4. Restore Current HP and PP (Done LAST so MaxHP/MaxPP modifiers are active)
             if (heroObj.TryGetComponent<HeroStats>(out var heroStatsFinal))
             {
                 if (dataToLoad.heroCurrHpPp != null && i < dataToLoad.heroCurrHpPp.Count)
@@ -590,48 +711,34 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Refresh Psynergy Icons
-        //party.ForEach(x => x.GetComponent<FighterStats>()?.Psynergies?.ForEach(p => p.SetElementIcon()));
-
-        // ---- SHORTCUTS ----
         if (PsynergyWorldController.Instance != null)
         {
-            // Inicializa el diccionario de atajos para los héroes del grupo actual
             PsynergyWorldController.Instance.Initialize();
 
             if (dataToLoad.heroShortcuts != null)
             {
                 foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
                 {
-                    // Localiza el GameObject del héroe guardado en la escena/party
                     GameObject heroObj = GameObject.Find(heroShortcut.Key);
-
                     if (heroObj != null && heroShortcut.Value != null)
                     {
                         string[] savedSlugs = heroShortcut.Value;
-
                         for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
                         {
                             string slug = savedSlugs[slotIdx];
-                            PsynergySO psynergy = !string.IsNullOrEmpty(slug)
-                                ? PsynergyDatabase.Instance.GetPsynergy(slug)
-                                : null;
-
-                            // Asigna la psinergía cargada (o null si la casilla estaba vacía) usando la API pública
+                            PsynergySO psynergy = !string.IsNullOrEmpty(slug) ? PsynergyDatabase.Instance.GetPsynergy(slug) : null;
                             PsynergyWorldController.Instance.SetShortcut(heroObj, psynergy, slotIdx);
                         }
                     }
                 }
             }
 
-            // Sincroniza la UI del mundo/HUD para reflejar los atajos cargados del héroe activo
             if (activeHero != null)
             {
                 PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
             }
         }
 
-        // Re-enable Player Animator
         if (PlayerController.Instance != null)
         {
             Animator anim = PlayerController.Instance.GetComponent<Animator>();
@@ -640,29 +747,9 @@ public class GameManager : MonoBehaviour
 
         loadingData = false;
         SaveManager.loadedData = null;
-    }
-    private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
-    {
-        if (freeLookCamera == null && playerMainCamera != null)
-        {
-            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
-        }
 
-        if (freeLookCamera != null)
-        {
-            Vector3 deltaPosition = targetTransform.position - previousPosition;
-            freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
-
-            freeLookCamera.m_XAxis.Value = targetRotation.eulerAngles.y;
-            freeLookCamera.m_YAxis.Value = 0.5f;
-        }
+        NotifyPartyChanged();
     }
 
-    private void Update()
-    {
-        if (currentState != GameState.TitleScreen)
-        {
-            TotalPlayed += Time.deltaTime;
-        }
-    }
+    #endregion
 }
