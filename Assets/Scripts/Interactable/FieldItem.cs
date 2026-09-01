@@ -2,7 +2,8 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Handles field item pickups (items lying on the ground), animations, inventory additions, and destruction.
+/// Handles field item pickups (items lying on the ground), picking animations, 
+/// decoupled inventory transactions via events, and object cleanup/destruction.
 /// </summary>
 public class FieldItem : Interactable
 {
@@ -42,6 +43,10 @@ public class FieldItem : Interactable
 
     #region Interaction Coroutine
 
+    /// <summary>
+    /// Coroutine sequence that handles state locks, picking animations, 
+    /// inventory addition event transactions, and world object destruction.
+    /// </summary>
     private IEnumerator PickItemRoutine()
     {
         itemPicked = true;
@@ -50,7 +55,7 @@ public class FieldItem : Interactable
         int defaultLayer = LayerMask.NameToLayer("Default");
         gameObject.layer = defaultLayer;
 
-        // 1. Lock gameplay and camera via GameState
+        // 1. Lock gameplay and camera via GameState event command
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
         // 2. Play picking animation on Player
@@ -61,31 +66,43 @@ public class FieldItem : Interactable
 
         yield return new WaitForSeconds(2.2f);
 
-        // Retrieve item data from ItemDatabase
+        // Retrieve item data from ItemDatabase for notification styling
         ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
 
-        // 3. Attempt to add item to Inventory and evaluate remaining space
+        // 3. Attempt to add item to Inventory via decoupled event transaction
         int remaining = -1;
         GameEvents.Inventory.RequestAddItem(itemSlug, itemQuantity, (result) =>
         {
             remaining = result;
         });
 
-        // 4. Handle Full Inventory Scenario (Cannot fit item)
-        if (remaining > 0)
+        // FALLBACK CASE A: System error / No active inventory listener responded
+        if (remaining < 0)
         {
-            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+            Debug.LogError($"[FieldItem] Transaction failed for item '{itemSlug}'. No inventory handler responded to RequestAddItem.");
 
-            // Restore original interactable layer and reset flag
+            // Rollback interaction state
             gameObject.layer = originalLayer;
             itemPicked = false;
 
             GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+            yield break; // Abort remaining pickup and destruction routine
+        }
 
+        // FALLBACK CASE B: Backpacks are full (Overflow scenario)
+        if (remaining > 0)
+        {
+            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+
+            // Restore original interactable layer state and re-allow interaction
+            gameObject.layer = originalLayer;
+            itemPicked = false;
+
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
             yield break; // Abort destruction routine
         }
 
-        // 5. Successful Pickup Scenario
+        // SUCCESS CASE (remaining == 0): Item successfully stored in inventory
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
