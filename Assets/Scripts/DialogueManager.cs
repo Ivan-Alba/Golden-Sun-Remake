@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Cinemachine;
+using Unity.Cinemachine;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class DialogueManager : MonoBehaviour
     #region Serialized Fields
 
     [Header("Camera Control")]
-    [SerializeField] private CinemachineVirtualCamera dialogueCamera;
+    [SerializeField] private CinemachineCamera dialogueCamera;
     [SerializeField] private CinemachineTargetGroup targetGroup;
     [SerializeField] private int activeCameraPriority = 20;
     [SerializeField] private int inactiveCameraPriority = 0;
@@ -50,7 +50,7 @@ public class DialogueManager : MonoBehaviour
 
         if (dialogueCamera != null)
         {
-            dialogueCamera.Priority = inactiveCameraPriority;
+            dialogueCamera.Priority.Value = inactiveCameraPriority;
         }
     }
 
@@ -187,7 +187,7 @@ public class DialogueManager : MonoBehaviour
 
         if (dialogueCamera != null)
         {
-            dialogueCamera.Priority = inactiveCameraPriority;
+            dialogueCamera.Priority.Value = inactiveCameraPriority;
         }
 
         if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<NPC>(out var npc))
@@ -198,7 +198,6 @@ public class DialogueManager : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
 
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
-
     }
 
     #endregion
@@ -211,9 +210,20 @@ public class DialogueManager : MonoBehaviour
 
         if (targetGroup != null && PlayerController.Instance != null)
         {
-            targetGroup.m_Targets = new CinemachineTargetGroup.Target[0];
-            targetGroup.AddMember(PlayerController.Instance.transform, 1f, 1.2f);
-            targetGroup.AddMember(npcTarget.transform, 1f, 1.2f);
+            targetGroup.Targets.Clear();
+            targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+            {
+                Object = PlayerController.Instance.transform,
+                Weight = 1f,
+                Radius = 1.2f
+            });
+
+            targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+            {
+                Object = npcTarget.transform,
+                Weight = 1f,
+                Radius = 1.2f
+            });
 
             dialogueCamera.Follow = targetGroup.transform;
             dialogueCamera.LookAt = targetGroup.transform;
@@ -227,7 +237,7 @@ public class DialogueManager : MonoBehaviour
             dialogueCamera.transform.position = desiredCameraPos;
         }
 
-        dialogueCamera.Priority = activeCameraPriority;
+        dialogueCamera.Priority.Value = activeCameraPriority;
     }
 
     #endregion

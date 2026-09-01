@@ -1,10 +1,10 @@
-using Cinemachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Animations;
+using Unity.Cinemachine;
 
 public class GameManager : MonoBehaviour
 {
@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Persistent References")]
     [SerializeField] private GameObject playerMainCamera;
-    [SerializeField] private CinemachineFreeLook freeLookCamera;
+    [SerializeField] private CinemachineCamera freeLookCamera;
 
     #endregion
 
@@ -113,14 +113,12 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnLevelFinishedLoading;
-
         GameEvents.GameState.OnChangeGameStateRequested += HandleGameStateRequest;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnLevelFinishedLoading;
-
         GameEvents.GameState.OnChangeGameStateRequested -= HandleGameStateRequest;
     }
 
@@ -222,30 +220,15 @@ public class GameManager : MonoBehaviour
     {
         if (freeLookCamera == null && playerMainCamera != null)
         {
-            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineCamera>();
         }
 
         if (freeLookCamera != null)
         {
-            if (!speedsCached)
+            // In Cinemachine 3.x, input processing is managed by CinemachineInputAxisController
+            if (freeLookCamera.TryGetComponent<CinemachineInputAxisController>(out var inputController))
             {
-                originalXSpeed = freeLookCamera.m_XAxis.m_MaxSpeed;
-                originalYSpeed = freeLookCamera.m_YAxis.m_MaxSpeed;
-                speedsCached = true;
-            }
-
-            if (active)
-            {
-                freeLookCamera.m_XAxis.m_MaxSpeed = originalXSpeed;
-                freeLookCamera.m_YAxis.m_MaxSpeed = originalYSpeed;
-            }
-            else
-            {
-                freeLookCamera.m_XAxis.m_MaxSpeed = 0f;
-                freeLookCamera.m_YAxis.m_MaxSpeed = 0f;
-
-                freeLookCamera.m_XAxis.m_InputAxisValue = 0f;
-                freeLookCamera.m_YAxis.m_InputAxisValue = 0f;
+                inputController.enabled = active;
             }
         }
     }
@@ -461,7 +444,7 @@ public class GameManager : MonoBehaviour
         Animator anim = PlayerController.Instance.GetComponent<Animator>();
         if (anim != null)
         {
-            anim.runtimeAnimatorController = Resources.Load<AnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
+            anim.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
             anim.avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
         }
     }
@@ -514,7 +497,7 @@ public class GameManager : MonoBehaviour
     {
         if (freeLookCamera == null && playerMainCamera != null)
         {
-            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineFreeLook>();
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineCamera>();
         }
 
         if (freeLookCamera != null)
@@ -522,8 +505,11 @@ public class GameManager : MonoBehaviour
             Vector3 deltaPosition = targetTransform.position - previousPosition;
             freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
 
-            freeLookCamera.m_XAxis.Value = targetRotation.eulerAngles.y;
-            freeLookCamera.m_YAxis.Value = 0.5f;
+            if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
+            {
+                orbitalFollow.HorizontalAxis.Value = targetRotation.eulerAngles.y;
+                orbitalFollow.VerticalAxis.Value = 0.5f;
+            }
         }
     }
 

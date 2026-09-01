@@ -24,6 +24,6 @@ public class PushRigidbody : MonoBehaviour
         targetMass = otherRigidbody.mass;
         Vector3 direction = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
 
-        otherRigidbody.velocity = direction * pushPower / targetMass;
+        otherRigidbody.linearVelocity = direction * pushPower / targetMass;
     }
 }

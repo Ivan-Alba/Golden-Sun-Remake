@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Cinemachine;
+using Unity.Cinemachine;
 
 /// <summary>
 /// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
@@ -31,8 +31,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
-    [SerializeField] private CinemachineFreeLook freeLookCamera;
-    [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
+    [SerializeField] private CinemachineCamera freeLookCamera;
+    [SerializeField] private CinemachineCamera aimVirtualCamera;
     [SerializeField] private float aimRotationSpeed = 1200f;
 
     [Header("Cinemachine Priority Settings")]
@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Animator playerAnim;
     private AudioSource audioSource;
-    private CinemachinePOV aimPOV;
+    private CinemachinePanTilt aimPanTilt;
     private PlayerInteractionDetector interactionDetector;
 
     private float verticalVelocity;
@@ -109,8 +109,8 @@ public class PlayerController : MonoBehaviour
 
         if (aimVirtualCamera != null)
         {
-            aimVirtualCamera.Priority = defaultAimPriority;
-            aimPOV = aimVirtualCamera.GetCinemachineComponent<CinemachinePOV>();
+            aimVirtualCamera.Priority.Value = defaultAimPriority;
+            aimPanTilt = aimVirtualCamera.GetComponent<CinemachinePanTilt>();
         }
     }
 
@@ -456,19 +456,22 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (freeLookCamera != null && aimPOV != null && mainCamera != null)
+        if (freeLookCamera != null && aimPanTilt != null && mainCamera != null)
         {
-            aimPOV.m_HorizontalAxis.Value = freeLookCamera.m_XAxis.Value;
+            if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
+            {
+                aimPanTilt.PanAxis.Value = orbitalFollow.HorizontalAxis.Value;
+            }
 
             float pitchAngle = mainCamera.eulerAngles.x;
             if (pitchAngle > 180f) pitchAngle -= 360f;
 
-            aimPOV.m_VerticalAxis.Value = pitchAngle;
+            aimPanTilt.TiltAxis.Value = pitchAngle;
         }
 
         if (aimVirtualCamera != null)
         {
-            aimVirtualCamera.Priority = activeAimPriority;
+            aimVirtualCamera.Priority.Value = activeAimPriority;
         }
 
         if (PlayerUIManager.Instance != null)
@@ -484,17 +487,19 @@ public class PlayerController : MonoBehaviour
 
     private void StopAiming()
     {
-        if (freeLookCamera != null && aimPOV != null)
+        if (freeLookCamera != null && aimPanTilt != null)
         {
-            freeLookCamera.m_XAxis.Value = aimPOV.m_HorizontalAxis.Value;
-
-            float normalizedPitch = Mathf.InverseLerp(45f, -45f, aimPOV.m_VerticalAxis.Value);
-            freeLookCamera.m_YAxis.Value = Mathf.Clamp01(normalizedPitch);
+            if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
+            {
+                orbitalFollow.HorizontalAxis.Value = aimPanTilt.PanAxis.Value;
+                float normalizedPitch = Mathf.InverseLerp(45f, -45f, aimPanTilt.TiltAxis.Value);
+                orbitalFollow.VerticalAxis.Value = Mathf.Clamp01(normalizedPitch);
+            }
         }
 
         if (aimVirtualCamera != null)
         {
-            aimVirtualCamera.Priority = defaultAimPriority;
+            aimVirtualCamera.Priority.Value = defaultAimPriority;
         }
 
         if (TryGetComponent<PlayerAiming>(out var aimingScript))
