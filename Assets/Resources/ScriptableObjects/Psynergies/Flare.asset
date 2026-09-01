@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Llamas
   slugName: flare
   description: "Inflige da\xF1o peque\xF1o de fuego."
-  icon: {fileID: 21300000, guid: 155b0977cee156849ab157834ade29d2, type: 3}
+  icon: {fileID: 21300000, guid: 3deb967518abbf84290722b0543f2861, type: 3}
   ppCost: 4
   element: 2
   isBattlePsynergy: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: "Erupci\xF3n"
   slugName: eruption
   description: "Inflige da\xF1o medio de fuego."
-  icon: {fileID: 21300000, guid: c81381dd89338d742a8c79160af5d756, type: 3}
+  icon: {fileID: 21300000, guid: 099fba6ac02e2d540965686475b1fe66, type: 3}
   ppCost: 8
   element: 2
   isBattlePsynergy: 1

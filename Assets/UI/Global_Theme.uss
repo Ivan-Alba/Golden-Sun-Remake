@@ -60,29 +60,21 @@
     color: #E0E0E0;
     width: 25px;
 }
-
 .icon-venus { 
-    /* background-color: var(--color-venus); */
-    background-image: url('project://database/Assets/Resources/Images/Icons/Venus_Star.gif');
+    background-image: url('/Assets/Resources/Images/Icons/Venus_Star.gif');
     border-color: rgba(255, 255, 255, 0.4); 
 }
-
 .icon-mars { 
-    /* background-color: var(--color-mars); */
-    background-image: url('project://database/Assets/Resources/Images/Icons/Mars_Star.gif');
+    background-image: url('/Assets/Resources/Images/Icons/Mars_Star.gif');
     border-color: rgba(255, 255, 255, 0.4); 
 }
-
 .icon-jupiter { 
-    /* background-color: var(--color-jupiter); */
-    background-image: url('project://database/Assets/Resources/Images/Icons/Jupiter_Star.gif');
+    background-image: url('/Assets/Resources/Images/Icons/Jupiter_Star.gif');
     border-color: rgba(255, 255, 255, 0.4); 
 }
-
 .icon-mercury { 
-   /* background-color: var(--color-mercury); */
-    background-image: url('project://database/Assets/Resources/Images/Icons/Mercury_Star.gif');
-   border-color: rgba(255, 255, 255, 0.4); 
+    background-image: url('/Assets/Resources/Images/Icons/Mercury_Star.gif');
+    border-color: rgba(255, 255, 255, 0.4); 
 }
 
 .icon-none { 

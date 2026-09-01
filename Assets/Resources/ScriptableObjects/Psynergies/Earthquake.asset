@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Terremoto
   slugName: earthquake
   description: "Inflige da\xF1os medianos de tierra."
-  icon: {fileID: 21300000, guid: 22ff0fed097ce0546afff32acdc0251f, type: 3}
+  icon: {fileID: 21300000, guid: 0cb51a8c2d7c41840b577f3912a43a60, type: 3}
   ppCost: 7
   element: 1
   isBattlePsynergy: 1

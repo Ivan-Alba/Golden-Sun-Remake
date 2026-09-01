@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Esquirlas
   slugName: spire
   description: 'Invoca esquirlas sobre los enemigos. '
-  icon: {fileID: 21300000, guid: 2774ba1f6d901604ab14e2e4598fb596, type: 3}
+  icon: {fileID: 21300000, guid: 7cf9f9a1141c0a04bbe3118a7d3e27d1, type: 3}
   ppCost: 5
   element: 1
   isBattlePsynergy: 1

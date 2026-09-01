@@ -18,7 +18,7 @@ MonoBehaviour:
     el Ataque de un aliado."
   flavorText: Cosechada en huertos impregnados de Psinergia, se dice que sus jugos
     transmiten la fuerza implacable de la tierra.
-  icon: {fileID: 21300000, guid: 7021b553c7a458645b74fcbce8022b2e, type: 3}
+  icon: {fileID: 21300000, guid: dfbd1296b76bf0143904f04dabf8c232, type: 3}
   itemType: 0
   buyPrice: 0
   sellPrice: 500

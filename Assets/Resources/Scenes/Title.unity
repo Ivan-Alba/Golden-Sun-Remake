@@ -1481,6 +1481,18 @@ PrefabInstance:
       propertyPath: templateInfoPsynergyRelic
       value: 
       objectReference: {fileID: 9197481963319205126, guid: c2e35c2b5f5ab70468b4097b5ff46ad7, type: 3}
+    - target: {fileID: 8025452197950221508, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: Priority.Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8025452197950221508, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_LegacyPriority
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8025452197950221508, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_StreamingVersion
+      value: 20241001
+      objectReference: {fileID: 0}
     - target: {fileID: 8293104066895028404, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: currentXp
       value: 2500
@@ -1519,35 +1531,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201015, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: field of view
-      value: 49.999256
+      value: 55
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378965900201015, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: far clip plane
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.005651474
+      value: 29.525476
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0045211315
+      value: -1.8000002
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.007911921
+      value: -37.19848
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9298337
+      value: 0.99965
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.20561127
+      value: 0.02497569
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.29797927
+      value: 0.008723781
       objectReference: {fileID: 0}
     - target: {fileID: 8459378965900201018, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.06589125
+      value: -0.00021795876
       objectReference: {fileID: 0}
     - target: {fileID: 8459378966118849749, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: freeLookCamera

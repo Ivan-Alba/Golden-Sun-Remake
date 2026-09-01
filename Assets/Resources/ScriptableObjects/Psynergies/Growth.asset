@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Planta
   slugName: growth
   description: Ataca a los enemigos con la fuerza de las plantas.
-  icon: {fileID: 21300000, guid: c55a5606e9343a34c91837a87b14a63c, type: 3}
+  icon: {fileID: 21300000, guid: 5c3875212d8bb0a4a9342b0163f3ce9c, type: 3}
   ppCost: 4
   element: 1
   isBattlePsynergy: 1

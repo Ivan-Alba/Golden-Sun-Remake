@@ -19,7 +19,7 @@ MonoBehaviour:
   flavorText: "\xABT\xF3malo, Hans. Que la bendici\xF3n del Monte Aleph te proteja
     en tu viaje\xBB. Entregado por su madre antes de partir, este amuleto late con
     el c\xE1lido abrazo del hogar."
-  icon: {fileID: 21300000, guid: 59c58468b36ec7148accd72e87ea3e76, type: 3}
+  icon: {fileID: 21300000, guid: b3ee1577533e62c4f8a6d669102dca03, type: 3}
   itemType: 2
   buyPrice: 0
   sellPrice: 0
@@ -28,8 +28,8 @@ MonoBehaviour:
   equipmentSlot: 8
   statModifiers:
   - statType: 6
-    value: 5
     modifierType: 0
+    value: 5
   element: 1
   elementalPowerBonus: 0
   useInBattle: 0

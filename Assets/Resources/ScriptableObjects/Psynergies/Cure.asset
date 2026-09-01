@@ -15,13 +15,15 @@ MonoBehaviour:
   psynergyName: Cura
   slugName: cure
   description: Recupera 70 PV.
-  icon: {fileID: 21300000, guid: aefdfe340a4743a48a53f8559e89007b, type: 3}
+  icon: {fileID: 21300000, guid: bff53b8335eed0043880dc6573373587, type: 3}
   ppCost: 3
   element: 1
   isBattlePsynergy: 1
   targetType: 4
   vfxPrefab: {fileID: 1492667978523942, guid: b7c2244e4118e4e4594d87d81a413efd, type: 3}
   soundEffect: {fileID: 0}
+  hitFXType: 0
+  customHitVFX: {fileID: 0}
   areaRange: 0
   hasDiminishingSpread: 0
   worldData:
@@ -38,6 +40,9 @@ MonoBehaviour:
   isPercentage: 0
   restoresPp: 0
   ppHealValue: 10
+  isPpPercentage: 0
   canRevive: 0
-  curesStatusEffects: 0
-  removesStatDebuffs: 0
+  statusEffectsToApply: []
+  cureAllStatusEffects: 0
+  categoriesToCure: 
+  specificStatusToCure: []

@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Supercura
   slugName: cure_well
   description: Recupera 150 PV.
-  icon: {fileID: 21300000, guid: 0fcd9387866b1ee418c42ce6045f49ec, type: 3}
+  icon: {fileID: 21300000, guid: e05a0c1e042df974682e1e1a071ffefb, type: 3}
   ppCost: 6
   element: 1
   isBattlePsynergy: 1

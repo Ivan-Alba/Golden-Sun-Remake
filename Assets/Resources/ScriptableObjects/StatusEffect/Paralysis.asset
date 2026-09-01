@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   effectSlug: paralysis
   effectName: Paralysis
-  icon: {fileID: 21300000, guid: 09205ebadec2f4743886b36f1916acc5, type: 3}
+  icon: {fileID: 21300000, guid: 645d966e5591dc74486ae22ed7794b8a, type: 3}
   description: 
   category: 2
   effectType: 4
@@ -30,6 +30,5 @@ MonoBehaviour:
   damageMitigationPercentage: 0
   doomTurnCount: 0
   statModifiers: []
-  elementalModifiers: []
   resourceRegens: []
   damagesOverTime: []

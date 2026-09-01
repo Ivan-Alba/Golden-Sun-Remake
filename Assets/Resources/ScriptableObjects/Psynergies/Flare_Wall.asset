@@ -15,7 +15,7 @@ MonoBehaviour:
   psynergyName: Muro fuego
   slugName: flare_wall
   description: "Inflige da\xF1o medio de fuego."
-  icon: {fileID: 21300000, guid: 8482995eeaf434f48bd8d20db0b7a2a5, type: 3}
+  icon: {fileID: 21300000, guid: 598335bd32666a543bcb9570c0ea70b2, type: 3}
   ppCost: 7
   element: 2
   isBattlePsynergy: 1
