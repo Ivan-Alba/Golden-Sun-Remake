@@ -43,7 +43,7 @@ public class EnemyDetector : MonoBehaviour
             // 1. Lock inputs during overworld encounter animation using Cutscene state
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.SetGameState(GameManager.GameState.Cutscene);
+                GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
             }
 
             // 2. Play collision sound

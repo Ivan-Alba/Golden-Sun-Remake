@@ -88,9 +88,9 @@ public class NPC : Interactable
         }
 
         // Debug Command
-        if (npcName == "DEBUG_ALL_ITEMS" && InventoryController.Instance != null)
+        if (npcName == "DEBUG_ALL_ITEMS")
         {
-            InventoryController.Instance.AllItems();
+            GameEvents.Inventory.RequestAllItems();
         }
     }
 

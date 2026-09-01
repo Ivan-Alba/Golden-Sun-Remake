@@ -174,7 +174,7 @@ public class SceneTransitionManager : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.SetGameState(GameManager.GameState.Loading);
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
         }
 
         if (logoTransitionAnimator != null)

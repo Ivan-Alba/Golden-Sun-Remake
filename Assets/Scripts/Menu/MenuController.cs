@@ -95,7 +95,7 @@ public class MenuController : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.SetGameState(GameManager.GameState.InMenu);
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InMenu);
             SetHeros();
             RefreshGold();
             RefreshTime();
@@ -117,7 +117,7 @@ public class MenuController : MonoBehaviour
 
         if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.InMenu)
         {
-            GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
         }
 
     }
@@ -376,7 +376,7 @@ public class MenuController : MonoBehaviour
     public void ExitMenu()
     {
         CloseMenu();
-        GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 
     public void FinishAnimation()

@@ -104,10 +104,7 @@ public class DialogueManager : MonoBehaviour
     {
         if (lines == null || lines.Length == 0) return;
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.InDialogue);
-        }
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InDialogue);
 
         dialogueIndex = 0;
         dialogueLines = new List<string>(lines);
@@ -200,10 +197,8 @@ public class DialogueManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
-        }
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+
     }
 
     #endregion

@@ -456,7 +456,7 @@ public class BattleManager : MonoBehaviour
         // Initializing Turn System and starting first turn
         InitializeBattleTurns();
 
-        GameManager.Instance.SetGameState(GameManager.GameState.InBattle);
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InBattle);
     }
 
     private void SetEnemiesOnBattle(GameObject firstEnemy)
@@ -773,7 +773,7 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.ClearBattleReferences();
         }
 
-        GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
 
         if (player != null) player.GetComponent<Animator>().enabled = true;
 

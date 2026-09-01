@@ -313,7 +313,7 @@ public class MainMenuController : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.SetGameState(visible ? GameManager.GameState.InMenu : GameManager.GameState.WorldExploration);
+            GameEvents.GameState.RequestGameStateChange(visible ? GameManager.GameState.InMenu : GameManager.GameState.WorldExploration);
         }
 
         if (visible)

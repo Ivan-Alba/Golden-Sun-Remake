@@ -46,7 +46,7 @@ public class SceneTeleporter : MonoBehaviour
     private IEnumerator TeleportSequenceRoutine(GameObject playerObject)
     {
         // 1. Lock controls and camera movement
-        GameManager.Instance.SetGameState(GameState.Cutscene);
+        GameEvents.GameState.RequestGameStateChange(GameState.Cutscene);
 
         // 2. Order player to walk towards the target point if defined
         if (walkTarget != null && playerObject.TryGetComponent<PlayerController>(out PlayerController playerController))

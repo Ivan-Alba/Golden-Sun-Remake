@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Controls item routing, backpack distribution, and global bag operations for the active party.
+/// Listens exclusively to GameEvents.Inventory for decoupled transactional messaging.
+/// </summary>
 public class InventoryController : MonoBehaviour
 {
-    public static InventoryController Instance { get; private set; }
-
     [Header("Active Party References")]
     [SerializeField] private List<HeroInventory> partyInventories = new List<HeroInventory>();
 
@@ -14,24 +17,58 @@ public class InventoryController : MonoBehaviour
 
     #endregion
 
-    private void Awake()
+    #region Unity Lifecycle
+
+    private void OnEnable()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        GameEvents.Inventory.OnRequestAddItem += HandleRequestAddItem;
+        GameEvents.Inventory.OnSyncWithPartyRequested += SyncWithParty;
+        GameEvents.Inventory.OnClearAllInventoriesRequested += ClearAllInventories;
+        GameEvents.Inventory.OnCheckHasItem += HandleCheckHasItem;
+        GameEvents.Inventory.OnAllItemsRequested += AllItems;
+        GameEvents.Inventory.OnRequestRemoveItem += HandleRequestRemoveItem;
     }
+
+    private void OnDisable()
+    {
+        GameEvents.Inventory.OnRequestAddItem -= HandleRequestAddItem;
+        GameEvents.Inventory.OnSyncWithPartyRequested -= SyncWithParty;
+        GameEvents.Inventory.OnClearAllInventoriesRequested -= ClearAllInventories;
+        GameEvents.Inventory.OnCheckHasItem -= HandleCheckHasItem;
+        GameEvents.Inventory.OnAllItemsRequested -= AllItems;
+        GameEvents.Inventory.OnRequestRemoveItem -= HandleRequestRemoveItem;
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void HandleRequestAddItem(string itemSlug, int quantity, Action<int> onResult)
+    {
+        int remaining = AddItem(itemSlug, quantity);
+        onResult?.Invoke(remaining);
+    }
+
+    private void HandleRequestRemoveItem(string itemSlug, int quantity, Action<bool> onResult)
+    {
+        bool success = RemoveItem(itemSlug, quantity);
+        onResult?.Invoke(success);
+    }
+
+    private void HandleCheckHasItem(string itemSlug, int amount, Action<bool> onResult)
+    {
+        bool hasIt = HasItem(itemSlug, amount);
+        onResult?.Invoke(hasIt);
+    }
+
+    #endregion
 
     #region Party Registration
 
     /// <summary>
     /// Rebuilds the active party inventory list based on the current active heroes in GameManager.
     /// </summary>
-    public void SyncWithParty()
+    private void SyncWithParty()
     {
         partyInventories.Clear();
 
@@ -49,7 +86,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Registers a hero's inventory into the active party list.
     /// </summary>
-    public void RegisterHeroInventory(HeroInventory heroInv)
+    private void RegisterHeroInventory(HeroInventory heroInv)
     {
         if (heroInv != null && !partyInventories.Contains(heroInv))
         {
@@ -60,7 +97,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Unregisters a hero inventory (e.g., when a hero leaves the active party).
     /// </summary>
-    public void UnregisterHeroInventory(HeroInventory heroInv)
+    private void UnregisterHeroInventory(HeroInventory heroInv)
     {
         if (partyInventories.Contains(heroInv))
         {
@@ -75,7 +112,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Adds an item by slug. Automatically targets active hero first (or specific targetHeroIndex if provided).
     /// </summary>
-    public int AddItem(string itemSlug, int quantity = 1, int targetHeroIndex = -1)
+    private int AddItem(string itemSlug, int quantity = 1, int targetHeroIndex = -1)
     {
         ItemSO itemToAdd = ItemDatabase.Instance.GetItem(itemSlug);
         if (itemToAdd == null)
@@ -90,7 +127,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Adds an ItemSO instance. Routes KeyItems to GlobalBag, or places in active hero's backpack (overflowing to party).
     /// </summary>
-    public int AddItem(ItemSO item, int quantity = 1, int targetHeroIndex = -1)
+    private int AddItem(ItemSO item, int quantity = 1, int targetHeroIndex = -1)
     {
         if (item == null || quantity <= 0) return quantity;
 
@@ -165,7 +202,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Removes a quantity of a specific item from the party (checks GlobalBag first, then hero backpacks).
     /// </summary>
-    public bool LoseItem(string itemSlug, int quantity = 1)
+    private bool RemoveItem(string itemSlug, int quantity = 1)
     {
         ItemSO item = ItemDatabase.Instance.GetItem(itemSlug);
         if (item == null) return false;
@@ -210,57 +247,12 @@ public class InventoryController : MonoBehaviour
 
     #endregion
 
-    #region Consumable Execution
-
-    /// <summary>
-    /// Consumes a consumable item from a hero's inventory slot and applies its composite effects onto the target.
-    /// Delegates execution directly to ConsumableSO.
-    /// </summary>
-    public bool ConsumeItem(HeroInventory sourceHero, int slotIndex, FighterStats target, bool isBattleContext = false)
-    {
-        if (sourceHero == null || target == null) return false;
-
-        InventorySlot slot = sourceHero.GetSlot(slotIndex);
-        if (slot == null || slot.IsEmpty || !(slot.Item is ConsumableSO consumable))
-        {
-            Debug.LogWarning("[InventoryController] Slot does not contain a valid consumable.");
-            return false;
-        }
-
-        bool effectApplied = false;
-
-        // Delegate execution to the ConsumableSO instance
-        if (isBattleContext)
-        {
-            effectApplied = consumable.ExecuteBattleEffect(target);
-        }
-        else if (target is HeroStats heroTarget)
-        {
-            effectApplied = consumable.ExecuteMenuEffect(heroTarget);
-        }
-        else
-        {
-            effectApplied = consumable.ExecuteBattleEffect(target);
-        }
-
-        if (effectApplied)
-        {
-            sourceHero.RemoveFromSlot(slotIndex, 1);
-            Debug.Log($"<color=yellow>Used {consumable.ItemName} on {target.gameObject.name}</color>");
-            return true;
-        }
-
-        return false;
-    }
-
-    #endregion
-
     #region Queries & Debug Helpers
 
     /// <summary>
     /// Checks if any party member (or GlobalBag) possesses a given item slug.
     /// </summary>
-    public bool HasItem(string itemSlug, int amount = 1)
+    private bool HasItem(string itemSlug, int amount = 1)
     {
         if (GlobalBag.Instance != null && GlobalBag.Instance.HasKeyItem(itemSlug, amount))
         {
@@ -286,7 +278,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Debug utility: Adds 1 instance of every item in ItemDatabase to the party.
     /// </summary>
-    public void AllItems()
+    private void AllItems()
     {
         if (ItemDatabase.Instance == null) return;
 
@@ -299,7 +291,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Clears all hero inventories and global bag.
     /// </summary>
-    public void ClearAllInventories()
+    private void ClearAllInventories()
     {
         foreach (var heroInv in partyInventories)
         {

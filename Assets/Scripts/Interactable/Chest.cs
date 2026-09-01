@@ -2,7 +2,8 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Handles treasure chest interactions, opening animations, inventory additions, and full-inventory fallbacks.
+/// Handles treasure chest interactions, opening animations, inventory additions via event transactions,
+/// and full-inventory/error fallbacks.
 /// </summary>
 public class Chest : Interactable
 {
@@ -44,6 +45,10 @@ public class Chest : Interactable
 
     #region Interaction Coroutine
 
+    /// <summary>
+    /// Coroutine sequence that handles state locks, opening animations, 
+    /// inventory addition callbacks, and transactional rollback logic.
+    /// </summary>
     private IEnumerator OpenChestRoutine()
     {
         chestOpened = true;
@@ -52,10 +57,10 @@ public class Chest : Interactable
         int defaultLayer = LayerMask.NameToLayer("Default");
         gameObject.layer = defaultLayer;
 
-        // 1. Lock gameplay and camera via GameState
-        GameManager.Instance?.SetGameState(GameManager.GameState.Interacting);
+        // 1. Lock gameplay and camera via GameState event command
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
-        // Retrieve item data from ItemDatabase
+        // Retrieve item data from ItemDatabase for notification styling
         ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
 
         // Trigger player picking animation
@@ -72,55 +77,74 @@ public class Chest : Interactable
             chestAnimator.SetTrigger("openChest");
         }
 
-        // Wait for chest opening animation to finish
+        // Wait for chest opening animation to settle
         yield return new WaitForSeconds(2f);
 
-        // Add item to inventory and retrieve overflow amount
-        if (InventoryController.Instance != null)
+        // 2. Request item addition to inventory via decoupled event transaction
+        int remaining = -1;
+        GameEvents.Inventory.RequestAddItem(itemSlug, itemQuantity, (result) =>
         {
-            int remaining = InventoryController.Instance.AddItem(itemSlug, itemQuantity);
+            remaining = result;
+        });
 
-            // Handle Full Inventory Scenario
-            if (remaining > 0)
+        // FALLBACK CASE A: System error / No active inventory listener responded
+        if (remaining < 0)
+        {
+            Debug.LogError($"[Chest] Transaction failed for item '{itemSlug}'. No inventory handler responded to RequestAddItem.");
+
+            // Rollback interaction state
+            gameObject.layer = originalLayer;
+            chestOpened = false;
+
+            if (chestAnimator != null)
             {
-                NotificationController.Instance?.ShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
-
-                // Restore interactable layer state and re-allow interaction
-                gameObject.layer = originalLayer;
-                chestOpened = false;
-
-                // Re-close chest animation
-                if (chestAnimator != null)
-                {
-                    chestAnimator.SetTrigger("closeChest");
-                    yield return new WaitForSeconds(1f);
-                }
-
-                GameManager.Instance?.SetGameState(GameManager.GameState.WorldExploration);
-                yield break; // Abort remaining pickup flow
+                chestAnimator.SetTrigger("closeChest");
             }
 
-            // Play item discovery sound
-            if (AudioManager.Instance != null)
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+            yield break; // Abort remaining pickup flow
+        }
+
+        // FALLBACK CASE B: Backpacks are full (Overflow scenario)
+        if (remaining > 0)
+        {
+            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+
+            // Restore interactable layer state and re-allow interaction
+            gameObject.layer = originalLayer;
+            chestOpened = false;
+
+            // Re-close chest animation
+            if (chestAnimator != null)
             {
-                AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
+                chestAnimator.SetTrigger("closeChest");
+                yield return new WaitForSeconds(1f);
             }
 
-            // Show UI notification
-            if (itemData != null && NotificationController.Instance != null)
-            {
-                string notificationMessage = itemQuantity > 1
-                    ? $"Has obtenido: {itemData.ItemName} x{itemQuantity}"
-                    : $"Has obtenido: {itemData.ItemName}";
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+            yield break; // Abort remaining pickup flow
+        }
 
-                NotificationController.Instance.ShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
-            }
+        // SUCCESS CASE (remaining == 0): Item successfully stored in inventory
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
+        }
+
+        // Show UI notification
+        if (itemData != null)
+        {
+            string notificationMessage = itemQuantity > 1
+                ? $"Has obtenido: {itemData.ItemName} x{itemQuantity}"
+                : $"Has obtenido: {itemData.ItemName}";
+
+            GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
         }
 
         yield return new WaitForSeconds(0.5f);
 
-        // 2. Restore game state back to free exploration (Chest remains in 'Default' layer permanently)
-        GameManager.Instance?.SetGameState(GameManager.GameState.WorldExploration);
+        // 3. Restore game state back to free exploration (Chest remains in 'Default' layer permanently)
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 
     #endregion

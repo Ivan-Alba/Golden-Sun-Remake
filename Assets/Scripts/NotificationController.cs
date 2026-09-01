@@ -14,31 +14,34 @@ public enum NotificationType
     Warning
 }
 
+/// <summary>
+/// Controls the instantiation, styling, and lifecycle animations of notification cards in the HUD stream.
+/// Listens exclusively to GameEvents.UI.OnShowNotification for decoupled messaging.
+/// </summary>
 public class NotificationController : MonoBehaviour
 {
-    public static NotificationController Instance { get; private set; }
-
     #region Unity Lifecycle
 
-    private void Awake()
+    private void OnEnable()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // Event Subscriptions
+        GameEvents.UI.OnShowNotification -= HandleShowNotification;
+        GameEvents.UI.OnShowNotification += HandleShowNotification;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
+        // Event Unsubscriptions
+        GameEvents.UI.OnShowNotification -= HandleShowNotification;
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void HandleShowNotification(NotificationType type, string message, Sprite icon)
+    {
+        ShowNotification(type, message, icon);
     }
 
     #endregion
@@ -59,14 +62,6 @@ public class NotificationController : MonoBehaviour
     public void ShowNotification(string customCategory, string message, Sprite icon = null)
     {
         StartCoroutine(AddNotificationRoutine(NotificationType.Info, message, icon, customCategory));
-    }
-
-    /// <summary>
-    /// Legacy overload compatibility method.
-    /// </summary>
-    public IEnumerator AddNotification(string message, Sprite icon)
-    {
-        yield return AddNotificationRoutine(NotificationType.Info, message, icon);
     }
 
     #endregion

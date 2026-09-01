@@ -51,7 +51,7 @@ public class FieldItem : Interactable
         gameObject.layer = defaultLayer;
 
         // 1. Lock gameplay and camera via GameState
-        GameManager.Instance?.SetGameState(GameManager.GameState.Interacting);
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
         // 2. Play picking animation on Player
         if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
@@ -65,25 +65,22 @@ public class FieldItem : Interactable
         ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
 
         // 3. Attempt to add item to Inventory and evaluate remaining space
-        int remaining = itemQuantity;
-        if (InventoryController.Instance != null)
+        int remaining = -1;
+        GameEvents.Inventory.RequestAddItem(itemSlug, itemQuantity, (result) =>
         {
-            remaining = InventoryController.Instance.AddItem(itemSlug, itemQuantity);
-        }
+            remaining = result;
+        });
 
         // 4. Handle Full Inventory Scenario (Cannot fit item)
         if (remaining > 0)
         {
-            NotificationController.Instance?.ShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
 
             // Restore original interactable layer and reset flag
             gameObject.layer = originalLayer;
             itemPicked = false;
 
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
-            }
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
 
             yield break; // Abort destruction routine
         }
@@ -94,13 +91,13 @@ public class FieldItem : Interactable
             AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
         }
 
-        if (itemData != null && NotificationController.Instance != null)
+        if (itemData != null)
         {
             string notificationText = itemQuantity > 1
                 ? $"Has recogido: {itemData.ItemName} x{itemQuantity}"
                 : $"Has recogido: {itemData.ItemName}";
 
-            NotificationController.Instance.ShowNotification(NotificationType.ItemObtained, notificationText, itemData.Icon);
+            GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationText, itemData.Icon);
         }
 
         // Hide world object visually while processing cleanup
@@ -109,10 +106,7 @@ public class FieldItem : Interactable
         yield return new WaitForSeconds(0.7f);
 
         // Restore game state back to free exploration
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
-        }
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
 
         Destroy(gameObject, 5f);
     }

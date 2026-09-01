@@ -114,24 +114,25 @@ public class PlayerUIManager : MonoBehaviour
 
     private void Start()
     {
-        SubscribeEvents();
-
-        if (GameManager.Instance != null)
-        {
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
-        }
-
-        RefreshPartyInfo();
-        RefreshShortcuts();
+        // Solamente sincronizamos datos en la primera carga sin volver a suscribir eventos
+        SyncInitialUIState();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Re-vinculamos los elementos por si el UIDocument fue reconstruido en la nueva escena
         InitializeUIElements();
+        SyncInitialUIState();
+    }
 
+    /// <summary>
+    /// Synchronizes initial HUD visibility and party state without duplicating subscriptions.
+    /// </summary>
+    private void SyncInitialUIState()
+    {
         if (GameManager.Instance != null)
         {
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
+            HandleGameStateChanged(GameManager.GameState.None, GameManager.Instance.CurrentState);
         }
 
         RefreshPartyInfo();
@@ -260,11 +261,16 @@ public class PlayerUIManager : MonoBehaviour
 
     private void SubscribeEvents()
     {
+        // GameEvents.GameState subscription
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+
+        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
+        GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
+
+        // Local subscriptions (until migrated to GameEvents)
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
-            GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
-
             GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
             GameManager.Instance.OnPartyChanged += RefreshPartyInfo;
         }
@@ -274,16 +280,15 @@ public class PlayerUIManager : MonoBehaviour
             PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
             PsynergyWorldController.Instance.OnShortcutsChanged += HandleShortcutsChanged;
         }
-
-        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
-        GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
     }
 
     private void UnsubscribeEvents()
     {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
+
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
             GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
         }
 
@@ -291,15 +296,13 @@ public class PlayerUIManager : MonoBehaviour
         {
             PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
         }
-
-        GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
     }
 
     #endregion
 
     #region State Event Handler
 
-    private void HandleGameStateChanged(GameManager.GameState newState)
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
         switch (newState)
         {

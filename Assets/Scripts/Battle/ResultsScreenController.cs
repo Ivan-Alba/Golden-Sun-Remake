@@ -234,7 +234,11 @@ public class ResultsScreenController : MonoBehaviour
             int quantity = kvp.Value;
 
             // Automatically routes KeyItems to GlobalBag or regular items to Hero Backpacks
-            InventoryController.Instance.AddItem(item, quantity);
+            int remaining = -1;
+            GameEvents.Inventory.RequestAddItem(item.ItemSlug, quantity, (result) =>
+            {
+                remaining = result;
+            });
         }
 
         totalItemsObtained.Clear();

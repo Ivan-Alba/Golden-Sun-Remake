@@ -2,7 +2,6 @@ using Cinemachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -82,7 +81,6 @@ public class GameManager : MonoBehaviour
 
     #region Events
 
-    public event Action<GameState> OnGameStateChanged;
     public event Action OnPartyChanged;
 
     #endregion
@@ -115,11 +113,15 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnLevelFinishedLoading;
+
+        GameEvents.GameState.OnChangeGameStateRequested += HandleGameStateRequest;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnLevelFinishedLoading;
+
+        GameEvents.GameState.OnChangeGameStateRequested -= HandleGameStateRequest;
     }
 
     private void Update()
@@ -134,11 +136,17 @@ public class GameManager : MonoBehaviour
 
     #region State Machine Management
 
+    private void HandleGameStateRequest(GameState requestedState)
+    {
+        SetGameState(requestedState);
+    }
+
     public void SetGameState(GameState newState)
     {
         if (currentState == newState) return;
 
-        Debug.Log($"[GameManager] Game State changed from {currentState} to {newState}");
+        GameState previousState = currentState;
+        Debug.Log($"[GameManager] Game State changed from {previousState} to {newState}");
         currentState = newState;
 
         if (currentState != GameState.InMenu && MenuController.Instance != null)
@@ -169,7 +177,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        OnGameStateChanged?.Invoke(currentState);
+        GameEvents.GameState.TriggerGameStateChanged(previousState, currentState);
     }
 
     /// <summary>
@@ -262,10 +270,7 @@ public class GameManager : MonoBehaviour
         totalPlayed = 0f;
         party.Clear();
 
-        if (InventoryController.Instance != null)
-        {
-            InventoryController.Instance.ClearAllInventories();
-        }
+        GameEvents.Inventory.RequestClearAllInventories();
 
         GameObject isaac = GameObject.Find("Isaac");
         GameObject garet = GameObject.Find("Garet");
@@ -289,10 +294,7 @@ public class GameManager : MonoBehaviour
             changeModelHero();
         }
 
-        if (InventoryController.Instance != null)
-        {
-            InventoryController.Instance.SyncWithParty();
-        }
+        GameEvents.Inventory.RequestSyncWithParty();
 
         if (PsynergyWorldController.Instance != null)
         {
@@ -566,10 +568,7 @@ public class GameManager : MonoBehaviour
 
         party.Clear();
 
-        if (InventoryController.Instance != null)
-        {
-            InventoryController.Instance.ClearAllInventories();
-        }
+        GameEvents.Inventory.RequestClearAllInventories();
 
         foreach (string heroName in dataToLoad.party)
         {
@@ -583,10 +582,7 @@ public class GameManager : MonoBehaviour
         if (party.Count > 0) activeHero = party[0];
         changeModelHero();
 
-        if (InventoryController.Instance != null)
-        {
-            InventoryController.Instance.SyncWithParty();
-        }
+        GameEvents.Inventory.RequestSyncWithParty();
 
         if (GlobalBag.Instance != null && dataToLoad.globalBagItems != null)
         {

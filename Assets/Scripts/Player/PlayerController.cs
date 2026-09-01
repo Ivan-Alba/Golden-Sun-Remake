@@ -119,10 +119,7 @@ public class PlayerController : MonoBehaviour
         SubscribeToInputEvents();
 
         // Subscribe to GameManager state changes to handle transitions cleanly
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
-        }
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void OnDisable()
@@ -130,10 +127,7 @@ public class PlayerController : MonoBehaviour
         UnsubscribeFromInputEvents();
 
         // Unsubscribe from GameManager state changes
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
-        }
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
 
         StopAutoWalk();
     }
@@ -166,7 +160,7 @@ public class PlayerController : MonoBehaviour
 
     #region GameState Events
 
-    private void HandleGameStateChanged(GameManager.GameState newState)
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
         // Whenever player regains control in world exploration, cancel any residual auto-walk operations
         if (newState == GameManager.GameState.WorldExploration)
