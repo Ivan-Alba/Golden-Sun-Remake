@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/Components/WorldInteractionPrompt.uss" />
+    
+    <ui:VisualElement name="world_prompt_root" class="world-prompt-root">
+        <ui:VisualElement name="prompt_action_banner" class="prompt-action-banner">
+            <ui:Label name="label_action_text" text="Abrir" class="label-action-text" />
+            <ui:VisualElement name="prompt_gem_icon" class="prompt-gem-icon" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="prompt_badge_frame" class="prompt-badge-frame">
+            <ui:VisualElement name="prompt_key_badge" class="prompt-key-badge">
+                <ui:Label name="label_prompt_key" text="E" class="label-prompt-key" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

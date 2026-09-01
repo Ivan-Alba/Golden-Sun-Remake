@@ -1,39 +1,64 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Handles treasure chest interactions, opening animations, inventory additions, and full-inventory fallbacks.
+/// </summary>
 public class Chest : Interactable
 {
     [Header("Chest Content")]
     [SerializeField] private string itemSlug;
     [SerializeField] private int itemQuantity = 1;
 
-    private bool chestOpened;
+    #region Private Fields
 
+    private bool chestOpened;
+    private Animator chestAnimator;
+    private int originalLayer;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        chestAnimator = GetComponent<Animator>();
+        originalLayer = gameObject.layer;
+    }
+
+    #endregion
+
+    #region Interactable Overrides
+
+    /// <summary>
+    /// Triggers the chest opening routine if it hasn't been opened yet.
+    /// </summary>
     public override void Interact()
     {
-        // Prevent interacting if chest is already opened or opening process has started
         if (chestOpened) return;
 
         StartCoroutine(OpenChestRoutine());
     }
 
+    #endregion
+
+    #region Interaction Coroutine
+
     private IEnumerator OpenChestRoutine()
     {
         chestOpened = true;
 
+        // Temporarily disable interaction detection via Layer change
+        int defaultLayer = LayerMask.NameToLayer("Default");
+        gameObject.layer = defaultLayer;
+
         // 1. Lock gameplay and camera via GameState
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.Interacting);
-        }
+        GameManager.Instance?.SetGameState(GameManager.GameState.Interacting);
 
-        // Prevent further interaction triggers
-        gameObject.tag = "Untagged";
+        // Retrieve item data from ItemDatabase
+        ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
 
-        // Retrieve item data using the new ItemSO architecture
-        ItemSO itemFound = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
-
-        // Trigger player animation
+        // Trigger player picking animation
         if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
         {
             PlayerController.Instance.PlayerAnim.SetTrigger("pickChest");
@@ -42,50 +67,61 @@ public class Chest : Interactable
         yield return new WaitForSeconds(1f);
 
         // Trigger chest opening animation
-        if (TryGetComponent<Animator>(out var chestAnim))
+        if (chestAnimator != null)
         {
-            chestAnim.SetTrigger("openChest");
+            chestAnimator.SetTrigger("openChest");
         }
 
         // Wait for chest opening animation to finish
         yield return new WaitForSeconds(2f);
 
-        // Add item to inventory and retrieve overflow
+        // Add item to inventory and retrieve overflow amount
         if (InventoryController.Instance != null)
         {
             int remaining = InventoryController.Instance.AddItem(itemSlug, itemQuantity);
 
-            // TODO: Handle full inventory scenario.
-            // If 'remaining > 0', it means all hero backpacks are full.
-            // In the future, we should:
-            // 1. Show a notification: "Backpacks are full!".
-            // 2. Revert 'chestOpened = false' and restore the 'Interactable' tag.
-            // 3. Keep the chest closed (or re-closable) so the loot isn't lost.
+            // Handle Full Inventory Scenario
+            if (remaining > 0)
+            {
+                NotificationController.Instance?.ShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+
+                // Restore interactable layer state and re-allow interaction
+                gameObject.layer = originalLayer;
+                chestOpened = false;
+
+                // Re-close chest animation
+                if (chestAnimator != null)
+                {
+                    chestAnimator.SetTrigger("closeChest");
+                    yield return new WaitForSeconds(1f);
+                }
+
+                GameManager.Instance?.SetGameState(GameManager.GameState.WorldExploration);
+                yield break; // Abort remaining pickup flow
+            }
+
+            // Play item discovery sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
+            }
+
+            // Show UI notification
+            if (itemData != null && NotificationController.Instance != null)
+            {
+                string notificationMessage = itemQuantity > 1
+                    ? $"Has obtenido: {itemData.ItemName} x{itemQuantity}"
+                    : $"Has obtenido: {itemData.ItemName}";
+
+                NotificationController.Instance.ShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
+            }
         }
 
+        yield return new WaitForSeconds(0.5f);
 
-        // Play item discovery sound
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
-        }
-
-        // Show UI notification
-        if (itemFound != null && NotificationController.Instance != null)
-        {
-            string notificationMessage = itemQuantity > 1
-                ? $"Has obtenido: {itemFound.ItemName} x{itemQuantity}"
-                : $"Has obtenido: {itemFound.ItemName}";
-
-            StartCoroutine(NotificationController.Instance.AddNotification(notificationMessage, itemFound.Icon));
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        // 2. Restore game state back to free exploration
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
-        }
+        // 2. Restore game state back to free exploration (Chest remains in 'Default' layer permanently)
+        GameManager.Instance?.SetGameState(GameManager.GameState.WorldExploration);
     }
+
+    #endregion
 }

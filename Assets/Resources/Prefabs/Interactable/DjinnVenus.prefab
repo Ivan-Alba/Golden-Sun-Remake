@@ -175,9 +175,9 @@ GameObject:
   - component: {fileID: 4026299312855817950}
   - component: {fileID: 4026299314619900600}
   - component: {fileID: 4782556760297396801}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DjinnVenus
-  m_TagString: Interactable
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -201,7 +201,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &4026299312855817950
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -218,7 +218,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!65 &4026299314619900600
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -244,7 +245,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06926bb2f3e557a4088038c834b5a56d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actionText: Hablar
+  keyPrompt: SPC
+  promptAnchor: {fileID: 0}
+  promptOffset: {x: 0, y: 1.8, z: 0}
   npcName: "S\xEDlex"
+  rotationSpeed: 4
+  portraitSprite: {fileID: 0}
   dialogue:
   - "Soy un Djiin de Venus. Me llamo S\xEDlex."
   - "\xBFC\xF3mo? \xBFQue no sabes lo qu\xE9 es un Djiin?"

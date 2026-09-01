@@ -1,35 +1,57 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Handles field item pickups (items lying on the ground), animations, inventory additions, and destruction.
+/// </summary>
 public class FieldItem : Interactable
 {
     [Header("Item Configuration")]
     [SerializeField] private string itemSlug;
     [SerializeField] private int itemQuantity = 1;
 
-    private bool itemPicked;
+    #region Private Fields
 
+    private bool itemPicked;
+    private int originalLayer;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        originalLayer = gameObject.layer;
+    }
+
+    #endregion
+
+    #region Interactable Overrides
+
+    /// <summary>
+    /// Triggers the item pickup routine if it hasn't been collected yet.
+    /// </summary>
     public override void Interact()
     {
-        // Prevent multiple interactions while the picking routine is active
         if (itemPicked) return;
 
         StartCoroutine(PickItemRoutine());
     }
 
+    #endregion
+
+    #region Interaction Coroutine
+
     private IEnumerator PickItemRoutine()
     {
         itemPicked = true;
-        string originalTag = gameObject.tag;
+
+        // Temporarily disable interaction detection via Layer change
+        int defaultLayer = LayerMask.NameToLayer("Default");
+        gameObject.layer = defaultLayer;
 
         // 1. Lock gameplay and camera via GameState
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetGameState(GameManager.GameState.Interacting);
-        }
-
-        // Temporarily prevent further interaction triggers during animation
-        gameObject.tag = "Untagged";
+        GameManager.Instance?.SetGameState(GameManager.GameState.Interacting);
 
         // 2. Play picking animation on Player
         if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
@@ -52,16 +74,10 @@ public class FieldItem : Interactable
         // 4. Handle Full Inventory Scenario (Cannot fit item)
         if (remaining > 0)
         {
-            if (NotificationController.Instance != null)
-            {
-                StartCoroutine(NotificationController.Instance.AddNotification(
-                    "Tus mochilas están llenas",
-                    itemData != null ? itemData.Icon : null
-                ));
-            }
+            NotificationController.Instance?.ShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
 
-            // Restore interactable state and game control without destroying object
-            gameObject.tag = originalTag;
+            // Restore original interactable layer and reset flag
+            gameObject.layer = originalLayer;
             itemPicked = false;
 
             if (GameManager.Instance != null)
@@ -69,7 +85,7 @@ public class FieldItem : Interactable
                 GameManager.Instance.SetGameState(GameManager.GameState.WorldExploration);
             }
 
-            yield break; // Cancel remaining item destruction routine
+            yield break; // Abort destruction routine
         }
 
         // 5. Successful Pickup Scenario
@@ -81,13 +97,10 @@ public class FieldItem : Interactable
         if (itemData != null && NotificationController.Instance != null)
         {
             string notificationText = itemQuantity > 1
-                ? $"Has encontrado: {itemData.ItemName} x{itemQuantity}"
-                : $"Has encontrado: {itemData.ItemName}";
+                ? $"Has recogido: {itemData.ItemName} x{itemQuantity}"
+                : $"Has recogido: {itemData.ItemName}";
 
-            StartCoroutine(NotificationController.Instance.AddNotification(
-                notificationText,
-                itemData.Icon
-            ));
+            NotificationController.Instance.ShowNotification(NotificationType.ItemObtained, notificationText, itemData.Icon);
         }
 
         // Hide world object visually while processing cleanup
@@ -103,4 +116,6 @@ public class FieldItem : Interactable
 
         Destroy(gameObject, 5f);
     }
+
+    #endregion
 }

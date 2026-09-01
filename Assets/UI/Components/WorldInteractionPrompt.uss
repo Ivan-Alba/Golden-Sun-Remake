@@ -1,0 +1,100 @@
+/* =========================================================================
+   WorldInteractionPrompt.uss
+   Floating 3D World-Space Interaction Prompt Styles
+   ========================================================================= */
+
+.world-prompt-root {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    translate: -50% -50%;
+    
+    opacity: 1;
+    scale: 1 1;
+    
+    /* CSS Transition Smoothness */
+    transition-property: opacity, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+    
+    picking-mode: ignore;
+}
+
+.world-prompt-root.prompt-hidden {
+    opacity: 0;
+    scale: 0.7 0.7;
+}
+
+/* --- Medallón (Círculo de 40px para mejor respiración) --- */
+.prompt-badge-frame {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: var(--color-panel-bg-no-alpha);
+    border-color: var(--color-gold-bright);
+    border-width: 2px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Keycap Badge interno (Ligeramente rectangular 25x19px para acoger 3 letras) */
+.prompt-key-badge {
+    min-width: 25px;
+    height: 19px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 1.5px;
+    border-bottom-width: 2.5px;
+    border-radius: 4px;
+    padding: 0 2px;
+    align-items: center;
+    justify-content: center;
+}
+
+.label-prompt-key {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    -unity-text-align: middle-center;
+}
+
+/* --- Banner de texto (Ajustado al centro de 40px) --- */
+.prompt-action-banner {
+    position: absolute;
+    left: 20px; /* Entra hasta el centro del medallón de 40px */
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-left-width: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 4px 12px 4px 24px;
+    white-space: nowrap;
+}
+
+.label-action-text {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+    margin: 0;
+    padding: 0;
+    margin-right: 8px;
+}
+
+/* Gema decorativa */
+.prompt-gem-icon {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+    border-width: 1px;
+    border-color: #000000;
+}

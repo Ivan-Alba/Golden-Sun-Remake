@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
+/// <summary>
+/// Central manager for the player's 2D HUD overlays using UI Toolkit.
+/// Controls layer visibility, party status cards, dialogues, stamina, minimap integration, and notification streams.
+/// </summary>
 public class PlayerUIManager : MonoBehaviour
 {
     public static PlayerUIManager Instance { get; private set; }
@@ -21,10 +25,8 @@ public class PlayerUIManager : MonoBehaviour
     [SerializeField] private VisualTreeAsset notificationCardTemplate;
 
     [Header("Minimap Setup")]
-    [Tooltip("Asigna aquí la Custom RenderTexture procesada por el Shader (CRT_MinimapProcessed)")]
+    [Tooltip("Assign the Custom RenderTexture processed by CRT_MinimapProcessed shader here.")]
     [SerializeField] private CustomRenderTexture minimapCustomRenderTexture;
-
-    public VisualTreeAsset NotificationCardTemplate => notificationCardTemplate;
 
     #endregion
 
@@ -78,6 +80,12 @@ public class PlayerUIManager : MonoBehaviour
 
     #endregion
 
+    #region Properties
+
+    public VisualTreeAsset NotificationCardTemplate => notificationCardTemplate;
+
+    #endregion
+
     #region Unity Lifecycle & Initialization
 
     private void Awake()
@@ -92,6 +100,47 @@ public class PlayerUIManager : MonoBehaviour
         InitializeUIElements();
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        SubscribeEvents();
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        UnsubscribeEvents();
+    }
+
+    private void Start()
+    {
+        SubscribeEvents();
+
+        if (GameManager.Instance != null)
+        {
+            HandleGameStateChanged(GameManager.Instance.CurrentState);
+        }
+
+        RefreshPartyInfo();
+        RefreshShortcuts();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        InitializeUIElements();
+
+        if (GameManager.Instance != null)
+        {
+            HandleGameStateChanged(GameManager.Instance.CurrentState);
+        }
+
+        RefreshPartyInfo();
+        RefreshShortcuts();
+    }
+
+    /// <summary>
+    /// Queries all necessary VisualElements from the root UIDocument and binds initial properties.
+    /// </summary>
     private void InitializeUIElements()
     {
         if (uiDocument == null)
@@ -149,7 +198,7 @@ public class PlayerUIManager : MonoBehaviour
             _notificationsStreamContainer.Clear();
         }
 
-        // Minimap Setup with CRT
+        // Minimap Setup with Custom Render Texture
         SetupMinimap();
 
         // Query Stamina Bar
@@ -157,7 +206,7 @@ public class PlayerUIManager : MonoBehaviour
         _staminaFill = _root.Q<VisualElement>("stamina_bar_fill");
         _staminaBarBackground = _root.Q<VisualElement>(className: "stamina-bar-background");
 
-        // Query Reticle & Interaction Prompts
+        // Query Reticle & Interaction Prompts Container
         _aimingReticle = _root.Q<VisualElement>("aiming_reticle");
         _worldInteractionPromptsContainer = _root.Q<VisualElement>("world_interaction_prompts_container");
 
@@ -182,13 +231,13 @@ public class PlayerUIManager : MonoBehaviour
         VisualElement minimapViewport = _root.Q<VisualElement>("minimap_viewport");
         if (minimapViewport == null || minimapCustomRenderTexture == null) return;
 
-        // Aseguramos que la Custom Render Texture se esté actualizando dinámicamente
+        // Ensure the Custom Render Texture is initialized and actively rendering
         if (!minimapCustomRenderTexture.IsCreated())
         {
             minimapCustomRenderTexture.Create();
         }
 
-        // Asignamos directamente la CRT (que ya contiene el Shader procesado) al background de UI Toolkit
+        // Assign Custom Render Texture directly to UI Toolkit background
         minimapViewport.style.backgroundImage = Background.FromRenderTexture(minimapCustomRenderTexture);
     }
 
@@ -203,44 +252,6 @@ public class PlayerUIManager : MonoBehaviour
 
         if (card0 != null) _partyCardControllers.Add(new HeroStatusCardController(card0));
         if (card1 != null) _partyCardControllers.Add(new HeroStatusCardController(card1));
-    }
-
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        SubscribeEvents();
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-        UnsubscribeEvents();
-    }
-
-    private void Start()
-    {
-        SubscribeEvents();
-
-        if (GameManager.Instance != null)
-        {
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
-        }
-
-        RefreshPartyInfo();
-        RefreshShortcuts();
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        InitializeUIElements();
-
-        if (GameManager.Instance != null)
-        {
-            HandleGameStateChanged(GameManager.Instance.CurrentState);
-        }
-
-        RefreshPartyInfo();
-        RefreshShortcuts();
     }
 
     #endregion
@@ -475,17 +486,6 @@ public class PlayerUIManager : MonoBehaviour
 
     #endregion
 
-    #region Interaction Icon Methods (TODO)
-
-    public void SetInteractionIconVisible(bool visible)
-    {
-        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
-
-        // TODO: Implement World-to-Screen interaction prompt display logic using _worldInteractionPromptsContainer
-    }
-
-    #endregion
-
     #region Party Info Methods
 
     public void RefreshPartyInfo()
@@ -615,8 +615,12 @@ public class PlayerUIManager : MonoBehaviour
 
     #endregion
 
+    #region Public Getters
+
     public VisualElement GetNotificationsContainer()
     {
         return _notificationsStreamContainer;
     }
+
+    #endregion
 }

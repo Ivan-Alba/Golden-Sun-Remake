@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1710497815}
-  m_IndirectSpecularColor: {r: 0.024851661, g: 0.07073467, b: 0.13899031, a: 1}
+  m_IndirectSpecularColor: {r: 0.0929188, g: 0.2106964, b: 0.3572006, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -919,6 +919,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254954233}
   m_CullTransparentMesh: 1
+--- !u!1 &1528383838 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8459378966195427849, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1710497814
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,6 +1368,18 @@ PrefabInstance:
       propertyPath: initialDjinns.Array.data[3]
       value: 
       objectReference: {fileID: 11400000, guid: be3a735dbb688c44e9021c73e7c54e51, type: 2}
+    - target: {fileID: 2919010086879356514, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: detectionRadius
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2919010086879356514, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: maxInteractionAngle
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2919010086879356514, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: interactableLayer.m_Bits
+      value: 2048
+      objectReference: {fileID: 0}
     - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: templateInfoWeapon
       value: 
@@ -1546,9 +1563,25 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6147482466788152970, guid: a19744102be9ac7459c9135b44be0284, type: 3}
   m_PrefabInstance: {fileID: 8459378966747734655}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1528383838}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8459378966747734659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1528383838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a80fb080b92e924fbe2bd3d251c7256, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 8459378966747734656}
+  interactionPromptTemplate: {fileID: 9197481963319205126, guid: f47eab4e1c8feba4694cca1e640847b3, type: 3}
+  containerName: world_interaction_prompts_container
+  targetCamera: {fileID: 0}

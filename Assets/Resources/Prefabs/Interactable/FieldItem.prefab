@@ -4940,9 +4940,9 @@ GameObject:
   - component: {fileID: 1572714192713929016}
   - component: {fileID: 1572714192713929015}
   - component: {fileID: 1572714192713929012}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: FieldItem
-  m_TagString: Interactable
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5017,4 +5017,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23155665b2df322439e0cafb08e11644, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemName: herb
+  actionText: Recoger
+  keyPrompt: SPC
+  promptAnchor: {fileID: 0}
+  promptOffset: {x: 0, y: 0.8, z: 0}
+  itemSlug: 
+  itemQuantity: 1

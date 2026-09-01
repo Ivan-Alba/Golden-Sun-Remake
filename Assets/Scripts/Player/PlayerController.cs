@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 
+/// <summary>
+/// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
     // Singleton Instance
@@ -44,13 +47,12 @@ public class PlayerController : MonoBehaviour
     private Animator playerAnim;
     private AudioSource audioSource;
     private CinemachinePOV aimPOV;
+    private PlayerInteractionDetector interactionDetector;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
     private float currentStamina;
     private bool enoughStaminaToRun = true;
-
-    private GameObject objectHit;
 
     private float timeCount;
     private readonly float secondsInIdle = 15f;
@@ -82,6 +84,7 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
         playerAnim = GetComponent<Animator>();
+        interactionDetector = GetComponent<PlayerInteractionDetector>();
 
         currentStamina = maxStamina;
     }
@@ -149,7 +152,6 @@ public class PlayerController : MonoBehaviour
 
         HandleGravity();
         HandleMovement();
-        UpdateInteractionUI();
     }
 
     private void LateUpdate()
@@ -157,28 +159,6 @@ public class PlayerController : MonoBehaviour
         if (InputManager.Instance != null && InputManager.Instance.IsAiming)
         {
             HandleAimRotation();
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        Ray ray = new Ray(transform.position + Vector3.up, transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            Debug.DrawRay(transform.position + Vector3.up, transform.TransformDirection(Vector3.forward) * hit.distance, Color.yellow);
-            objectHit = hit.transform.gameObject;
-        }
-        else
-        {
-            objectHit = null;
-        }
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Interactable"))
-        {
-            objectHit = other.gameObject;
         }
     }
 
@@ -241,16 +221,12 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInteraction()
     {
-        if (!IsWorldExploration() || InputManager.Instance.IsAiming) return;
+        if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsAiming)) return;
 
-        if (objectHit != null && objectHit.CompareTag("Interactable") &&
-            Vector3.Distance(objectHit.transform.position, transform.position) < 2f)
+        // Fetch target directly from the decoupled interaction detector component
+        if (interactionDetector != null && interactionDetector.CurrentTarget != null)
         {
-            if (PlayerUIManager.Instance != null)
-            {
-                PlayerUIManager.Instance.SetInteractionIconVisible(false);
-            }
-            objectHit.GetComponent<Interactable>()?.Interact();
+            interactionDetector.CurrentTarget.Interact();
         }
     }
 
@@ -554,7 +530,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Stamina & Interaction Helpers
+    #region Stamina & Audio Helpers
 
     private void ModifyStamina(float amount)
     {
@@ -575,26 +551,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void UpdateInteractionUI()
-    {
-        bool canInteract = objectHit != null && objectHit.CompareTag("Interactable") &&
-                           Vector3.Distance(objectHit.transform.position, transform.position) < 2f;
-
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetInteractionIconVisible(canInteract);
-        }
-    }
-
-    #endregion
-
-    #region Utilities & Callbacks
-
-    private bool IsWorldExploration()
-    {
-        return GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
-    }
-
     public void playFootprints()
     {
         if (audioSource == null) return;
@@ -603,10 +559,14 @@ public class PlayerController : MonoBehaviour
         audioSource.PlayOneShot(audioSource.clip);
     }
 
-    public GameObject GameObjectForward()
-    {
-        return objectHit;
-    }
+    #endregion
+
+    #region Utilities & State Checks
+
+    /// <summary>
+    /// Checks whether the game is currently in World Exploration state.
+    /// </summary>
+    private bool IsWorldExploration() => GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
 
     #endregion
 }

@@ -24,6 +24,7 @@ public class DialogueManager : MonoBehaviour
 
     private int dialogueIndex;
     private string currentNpcName;
+    private Sprite currentNpcPortrait;
     private GameObject currentInteractableElement;
     private List<string> dialogueLines = new List<string>();
 
@@ -99,7 +100,7 @@ public class DialogueManager : MonoBehaviour
     /// <summary>
     /// Starts a dialogue sequence and sets game state to InDialogue.
     /// </summary>
-    public void StartDialogue(string[] lines, string name = null, GameObject element = null)
+    public void StartDialogue(string[] lines, string name = null, GameObject element = null, Sprite portrait = null)
     {
         if (lines == null || lines.Length == 0) return;
 
@@ -111,6 +112,7 @@ public class DialogueManager : MonoBehaviour
         dialogueIndex = 0;
         dialogueLines = new List<string>(lines);
         currentNpcName = name;
+        currentNpcPortrait = portrait;
         currentInteractableElement = element;
 
         FocusDialogueCamera(element);
@@ -139,7 +141,7 @@ public class DialogueManager : MonoBehaviour
 
             if (PlayerUIManager.Instance != null)
             {
-                PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentSubstring);
+                PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentSubstring, currentNpcPortrait);
             }
 
             // TODO: Play Golden Sun retro bleeps/voice SFX here
@@ -162,7 +164,7 @@ public class DialogueManager : MonoBehaviour
 
         if (PlayerUIManager.Instance != null)
         {
-            PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentFullLine);
+            PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentFullLine, currentNpcPortrait);
         }
     }
 

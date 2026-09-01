@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 1499426818598487020}
   - component: {fileID: 4156739481176843908}
   - component: {fileID: 2130500362905459358}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Chest
-  m_TagString: Interactable
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -41,7 +41,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: -129.57, z: 0}
 --- !u!95 &1499426818598487018
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -58,7 +58,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!82 &1499426818598487023
 AudioSource:
   m_ObjectHideFlags: 0
@@ -181,7 +182,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 733164d6c77f07e49ac091888b50c5a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actionText: Abrir
+  keyPrompt: SPC
+  promptAnchor: {fileID: 0}
+  promptOffset: {x: 0, y: 1.5, z: 0}
   itemSlug: Life_Water
+  itemQuantity: 1
 --- !u!65 &2130500362905459358
 BoxCollider:
   m_ObjectHideFlags: 0

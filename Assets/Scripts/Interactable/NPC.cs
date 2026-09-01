@@ -9,6 +9,7 @@ public class NPC : Interactable
     [Header("NPC Settings")]
     [SerializeField] private string npcName = "";
     [SerializeField] private float rotationSpeed = 4f;
+    [SerializeField] private Sprite portraitSprite = null;
 
     [Header("Dialogue Content")]
     [SerializeField] private string[] dialogue;
@@ -25,6 +26,7 @@ public class NPC : Interactable
     #region Properties
 
     public string NpcName { get => npcName; set => npcName = value; }
+    public Sprite PortraitSprite { get => portraitSprite; }
     public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
 
     #endregion
@@ -82,7 +84,7 @@ public class NPC : Interactable
         // Trigger Dialogue System
         if (DialogueManager.Instance != null)
         {
-            DialogueManager.Instance.StartDialogue(dialogue, npcName, gameObject);
+            DialogueManager.Instance.StartDialogue(dialogue, npcName, gameObject, portraitSprite);
         }
 
         // Debug Command

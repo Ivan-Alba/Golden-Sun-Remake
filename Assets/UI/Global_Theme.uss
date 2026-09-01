@@ -15,6 +15,7 @@
 
     /* Base Containers Backgrounds & Borders */
     --color-panel-bg: rgba(15, 20, 28, 0.85);
+    --color-panel-bg-no-alpha: rgba(15, 20, 28, 1);
     --color-panel-border: #2E3A4E;
     --color-subbox-bg: #101722;
     --color-subbox-border: #1F2D40;
