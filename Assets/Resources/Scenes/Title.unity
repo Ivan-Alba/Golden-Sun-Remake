@@ -296,6 +296,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &209294543 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8459378965970709029, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &251371545
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,6 +434,33 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 251371545}
   m_CullTransparentMesh: 1
+--- !u!1 &513688602 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8459378967203041518, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &513688611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513688602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a5e992c7870efe4d983e09649fa1adc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisualManager
+  modelContainer: {fileID: 209294543}
+  heroVisuals:
+  - heroId: Isaac
+    worldModelObject: {fileID: 1083314702}
+    animatorController: {fileID: 9100000, guid: a4fa2f55f5498aa408b7a54902ec74bd, type: 2}
+    avatar: {fileID: 9000000, guid: 17e666193fb1d4c41a49cfebabc41d04, type: 2}
+  - heroId: Garet
+    worldModelObject: {fileID: 1110077923}
+    animatorController: {fileID: 9100000, guid: a483c1b7602fffa4e85815c8395f7cbf, type: 2}
+    avatar: {fileID: 9000000, guid: 70b5de8e275f0574297ba6de256b89f1, type: 2}
 --- !u!1 &587115684
 GameObject:
   m_ObjectHideFlags: 0
@@ -849,6 +881,16 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1083314702 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8459378967120531118, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1110077923 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8459378967716165046, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1254954233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1421,7 +1463,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8459378967203041518, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 513688611}
   m_SourcePrefab: {fileID: 100100000, guid: a19744102be9ac7459c9135b44be0284, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

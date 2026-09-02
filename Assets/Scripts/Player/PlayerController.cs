@@ -85,11 +85,9 @@ public class PlayerController : MonoBehaviour
         // If InputManager wasn't ready during OnEnable, subscribe now safely
         SubscribeToInputEvents();
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.RefreshPartyInfo();
-            PlayerUIManager.Instance.UpdateStamina(currentStamina, maxStamina);
-        }
+        // Broadcast initial stamina and party status via events instead of calling PlayerUIManager directly
+        GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
+        GameEvents.Player.TriggerHeroStatusChanged();
 
         if (aimVirtualCamera != null)
         {
@@ -275,10 +273,8 @@ public class PlayerController : MonoBehaviour
 
         GameManager.Instance.ChangeActiveHero(heroIndex);
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.RefreshPartyInfo();
-        }
+        // Notify UI elements to update party info via event
+        GameEvents.Player.TriggerHeroStatusChanged();
     }
 
     private void HandleInteraction()
@@ -295,17 +291,15 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
-        if (PsynergyWorldController.Instance != null)
+        IPsynergyTargetable currentTarget = null;
+
+        if (TryGetComponent<PlayerAiming>(out var aimingScript))
         {
-            IPsynergyTargetable currentTarget = null;
-
-            if (TryGetComponent<PlayerAiming>(out var aimingScript))
-            {
-                currentTarget = aimingScript.CurrentTarget;
-            }
-
-            PsynergyWorldController.Instance.UsePsynergy(slotIndex, currentTarget);
+            currentTarget = aimingScript.CurrentTarget;
         }
+
+        // Requests Psynergy execution via global event bus (decoupled from PsynergyWorldController)
+        GameEvents.Psynergy.RequestUseShortcut(slotIndex, currentTarget);
     }
 
     #endregion
@@ -611,10 +605,8 @@ public class PlayerController : MonoBehaviour
             enoughStaminaToRun = true;
         }
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.UpdateStamina(currentStamina, maxStamina);
-        }
+        // Notify stamina changes via GameEvents instead of calling PlayerUIManager directly
+        GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
     }
 
     public void playFootprints()

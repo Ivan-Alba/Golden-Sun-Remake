@@ -243,11 +243,6 @@ public class GameManager : MonoBehaviour
 
         GameEvents.Inventory.RequestSyncWithParty();
 
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.Initialize();
-        }
-
         NotifyPartyChanged();
 
         ChangeScene(firstSceneName, initialSpawnID, GameState.WorldExploration);
@@ -372,11 +367,6 @@ public class GameManager : MonoBehaviour
         if (party.Count > index)
         {
             activeHero = party[index];
-
-            if (PsynergyWorldController.Instance != null)
-            {
-                PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
-            }
 
             GameEvents.Player.RequestActiveHeroChange(activeHero);
             NotifyPartyChanged();
@@ -589,31 +579,21 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (PsynergyWorldController.Instance != null)
+        if (dataToLoad.heroShortcuts != null)
         {
-            PsynergyWorldController.Instance.Initialize();
-
-            if (dataToLoad.heroShortcuts != null)
+            foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
             {
-                foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
+                GameObject heroObj = GameObject.Find(heroShortcut.Key);
+                if (heroObj != null && heroShortcut.Value != null)
                 {
-                    GameObject heroObj = GameObject.Find(heroShortcut.Key);
-                    if (heroObj != null && heroShortcut.Value != null)
+                    string[] savedSlugs = heroShortcut.Value;
+                    for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
                     {
-                        string[] savedSlugs = heroShortcut.Value;
-                        for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
-                        {
-                            string slug = savedSlugs[slotIdx];
-                            PsynergySO psynergy = !string.IsNullOrEmpty(slug) ? PsynergyDatabase.Instance.GetPsynergy(slug) : null;
-                            PsynergyWorldController.Instance.SetShortcut(heroObj, psynergy, slotIdx);
-                        }
+                        string slug = savedSlugs[slotIdx];
+                        PsynergySO psynergy = !string.IsNullOrEmpty(slug) ? PsynergyDatabase.Instance.GetPsynergy(slug) : null;
+                        GameEvents.Psynergy.RequestAssignShortcut(heroObj, psynergy, slotIdx);
                     }
                 }
-            }
-
-            if (activeHero != null)
-            {
-                PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
             }
         }
 

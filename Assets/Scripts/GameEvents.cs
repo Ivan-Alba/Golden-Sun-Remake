@@ -79,6 +79,22 @@ public static class GameEvents
         public static event Action<bool> OnSetPlayerVisibilityRequested;
         public static void RequestSetPlayerVisibility(bool visible)
             => OnSetPlayerVisibilityRequested?.Invoke(visible);
+
+        /// <summary>
+        /// Triggered whenever the player's stamina changes during exploration.
+        /// Params: currentStamina, maxStamina
+        /// </summary>
+        public static event Action<float, float> OnStaminaChanged;
+        public static void TriggerStaminaChanged(float currentStamina, float maxStamina)
+            => OnStaminaChanged?.Invoke(currentStamina, maxStamina);
+
+        /// <summary>
+        /// Triggered when party stats or status update (active hero swap, damage, healing, level up, etc.).
+        /// UI elements subscribe to this to refresh party info panels (HP, PP, Level, Icons).
+        /// </summary>
+        public static event Action OnHeroStatusChanged;
+        public static void TriggerHeroStatusChanged()
+            => OnHeroStatusChanged?.Invoke();
     }
 
     // ==========================================
@@ -191,6 +207,38 @@ public static class GameEvents
         public static event Action<string, Transform> OnWorldPsynergyCast;
         public static void TriggerWorldPsynergyCast(string psynergySlug, Transform caster)
             => OnWorldPsynergyCast?.Invoke(psynergySlug, caster);
+
+        /// <summary>
+        /// Request to assign or clear a Psynergy shortcut slot for a specific hero.
+        /// Params: heroTarget, psynergySO, slotIndex (0..3)
+        /// </summary>
+        public static event Action<GameObject, PsynergySO, int> OnAssignShortcutRequested;
+        public static void RequestAssignShortcut(GameObject hero, PsynergySO psynergy, int slotIndex)
+            => OnAssignShortcutRequested?.Invoke(hero, psynergy, slotIndex);
+
+        /// <summary>
+        /// Request to retrieve assigned Psynergy shortcuts array for a hero via callback.
+        /// Params: heroTarget, callbackReturningShortcuts
+        /// </summary>
+        public static event Action<GameObject, Action<PsynergySO[]>> OnGetShortcutsRequested;
+        public static void RequestGetShortcuts(GameObject hero, Action<PsynergySO[]> onResult)
+            => OnGetShortcutsRequested?.Invoke(hero, onResult);
+
+        /// <summary>
+        /// Request to execute the Psynergy assigned to a D-Pad shortcut slot.
+        /// Params: slotIndex (0..3), targetObject
+        /// </summary>
+        public static event Action<int, IPsynergyTargetable> OnUseShortcutRequested;
+        public static void RequestUseShortcut(int slotIndex, IPsynergyTargetable target)
+            => OnUseShortcutRequested?.Invoke(slotIndex, target);
+
+        /// <summary>
+        /// Triggered when shortcuts or assigned Psynergies update on a hero.
+        /// Params: heroTarget, shortcutsArray
+        /// </summary>
+        public static event Action<GameObject, PsynergySO[]> OnShortcutsChanged;
+        public static void TriggerShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
+            => OnShortcutsChanged?.Invoke(hero, shortcuts);
     }
 
     // ==========================================

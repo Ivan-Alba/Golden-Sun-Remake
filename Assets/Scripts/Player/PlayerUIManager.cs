@@ -268,17 +268,25 @@ public class PlayerUIManager : MonoBehaviour
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
 
+        // GameEvents.Player subscriptions
+        GameEvents.Player.OnStaminaChanged -= UpdateStamina;
+        GameEvents.Player.OnStaminaChanged += UpdateStamina;
+
+        GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
+        GameEvents.Player.OnHeroStatusChanged += RefreshPartyInfo;
+
+        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+
+        // GameEvents.Psynergy subscriptions
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+        GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
+
         // Local subscriptions (until migrated to GameEvents)
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
             GameManager.Instance.OnPartyChanged += RefreshPartyInfo;
-        }
-
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
-            PsynergyWorldController.Instance.OnShortcutsChanged += HandleShortcutsChanged;
         }
     }
 
@@ -287,20 +295,21 @@ public class PlayerUIManager : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
 
+        GameEvents.Player.OnStaminaChanged -= UpdateStamina;
+        GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
+        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
-        }
-
-        if (PsynergyWorldController.Instance != null)
-        {
-            PsynergyWorldController.Instance.OnShortcutsChanged -= HandleShortcutsChanged;
         }
     }
 
     #endregion
 
-    #region State Event Handler
+    #region State & Hero Event Handlers
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
@@ -339,6 +348,12 @@ public class PlayerUIManager : MonoBehaviour
                 SetAimUIVisible(false);
                 break;
         }
+    }
+
+    private void HandleActiveHeroChanged(GameObject activeHero)
+    {
+        RefreshPartyInfo();
+        RefreshShortcuts();
     }
 
     #endregion
@@ -530,10 +545,12 @@ public class PlayerUIManager : MonoBehaviour
 
     public void RefreshShortcuts()
     {
-        if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null && PsynergyWorldController.Instance != null)
+        if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
         {
-            PsynergySO[] shortcuts = PsynergyWorldController.Instance.GetShortcuts(GameManager.Instance.ActiveHero);
-            UpdateShortcutsUI(shortcuts);
+            GameEvents.Psynergy.RequestGetShortcuts(
+                GameManager.Instance.ActiveHero,
+                shortcuts => UpdateShortcutsUI(shortcuts)
+            );
         }
     }
 

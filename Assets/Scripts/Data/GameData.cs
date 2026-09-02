@@ -195,22 +195,24 @@ public class GameData
         }
 
         // ---- PSYNERGY SHORTCUTS ----
-        if (PsynergyWorldController.Instance != null && GameManager.Instance != null)
+        if (GameManager.Instance != null)
         {
             foreach (GameObject hero in GameManager.Instance.GetParty())
             {
                 if (hero == null) continue;
 
-                PsynergySO[] shortcuts = PsynergyWorldController.Instance.GetShortcuts(hero);
-                if (shortcuts != null)
+                GameEvents.Psynergy.RequestGetShortcuts(hero, shortcuts =>
                 {
-                    string[] shortcutSlugs = shortcuts
-                        .Select(p => p != null ? p.SlugName : null)
-                        .ToArray();
+                    if (shortcuts != null)
+                    {
+                        string[] shortcutSlugs = shortcuts
+                            .Select(p => p != null ? p.SlugName : null)
+                            .ToArray();
 
-                    KeyValuePair<string, string[]> item = new KeyValuePair<string, string[]>(hero.name, shortcutSlugs);
-                    heroShortcuts.Add(item);
-                }
+                        KeyValuePair<string, string[]> item = new KeyValuePair<string, string[]>(hero.name, shortcutSlugs);
+                        heroShortcuts.Add(item);
+                    }
+                });
             }
         }
     }

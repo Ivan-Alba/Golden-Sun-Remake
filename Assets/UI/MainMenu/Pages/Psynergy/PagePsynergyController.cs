@@ -141,7 +141,7 @@ public class PagePsynergyController
 
     #endregion
 
-    #region Constructor
+    #region Constructor & Cleanup
 
     public PagePsynergyController(VisualElement root)
     {
@@ -149,6 +149,35 @@ public class PagePsynergyController
         BindUIElements();
         BindFilterTabs();
         BindDPadSlotsInteractions();
+        SubscribeEvents();
+    }
+
+    /// <summary>
+    /// Unsubscribes event listeners to avoid leaks when page is destroyed or hidden.
+    /// </summary>
+    public void Dispose()
+    {
+        UnsubscribeEvents();
+    }
+
+    private void SubscribeEvents()
+    {
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+        GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+    }
+
+    private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
+    {
+        if (currentHeroObj != null && hero == currentHeroObj)
+        {
+            assignedShortcuts = shortcuts ?? new PsynergySO[4];
+            RefreshShortcutsDisplay();
+        }
     }
 
     #endregion
@@ -357,16 +386,19 @@ public class PagePsynergyController
 
     private void LoadShortcutsFromWorldController()
     {
-        if (PsynergyWorldController.Instance != null && currentHeroObj != null)
+        if (currentHeroObj != null)
         {
-            assignedShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
+            GameEvents.Psynergy.RequestGetShortcuts(currentHeroObj, shortcuts =>
+            {
+                assignedShortcuts = shortcuts ?? new PsynergySO[4];
+                RefreshShortcutsDisplay();
+            });
         }
         else
         {
             assignedShortcuts = new PsynergySO[4];
+            RefreshShortcutsDisplay();
         }
-
-        RefreshShortcutsDisplay();
     }
 
     private void BuildPsynergyCardsList(Func<PsynergySO, bool> filterPredicate = null)
@@ -399,7 +431,7 @@ public class PagePsynergyController
 
         TemplateContainer cardInstance = psynergyCardTemplate.Instantiate();
         VisualElement card = cardInstance.Q<VisualElement>("psynergy_card") ?? cardInstance;
-        card.userData = psynergy; // Store reference to retrieve selection after rebuilds
+        card.userData = psynergy;
         card.AddToClassList("psynergy-card");
         card.AddToClassList("ui-interactive");
         card.AddToClassList("ui-hover-subtle");
@@ -736,7 +768,7 @@ public class PagePsynergyController
 
         if (effectApplied)
         {
-            AudioManager.Instance?.PlaySFXClip(targetingPsynergy.MenuData.MenuSoundEffect);
+            GameEvents.Audio.RequestPlaySFXClip(targetingPsynergy.MenuData.MenuSoundEffect);
             currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
 
             OnPsynergyUsedOnHero?.Invoke();
@@ -752,7 +784,7 @@ public class PagePsynergyController
         }
         else
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
             Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' no tuvo efecto sobre {targetHero.Name}. No se consumen PP.");
         }
     }
@@ -832,15 +864,19 @@ public class PagePsynergyController
 
                 if (sourceSlotIdx != -1 && sourceSlotIdx != targetSlotIdx)
                 {
-                    if (currentHeroObj != null && PsynergyWorldController.Instance != null)
+                    if (currentHeroObj != null)
                     {
-                        PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
-                        PsynergySO targetPsynergy = (currentShortcuts != null && targetSlotIdx < currentShortcuts.Length) ? currentShortcuts[targetSlotIdx] : null;
+                        // Request current shortcuts array via GameEvents without querying any Singleton
+                        GameEvents.Psynergy.RequestGetShortcuts(currentHeroObj, currentShortcuts =>
+                        {
+                            PsynergySO targetPsynergy = (currentShortcuts != null && targetSlotIdx < currentShortcuts.Length)
+                                ? currentShortcuts[targetSlotIdx]
+                                : null;
 
-                        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, targetPsynergy, sourceSlotIdx);
-                        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, currentDragContext.Psynergy, targetSlotIdx);
-
-                        LoadShortcutsFromWorldController();
+                            // Request swapping shortcuts via GameEvents
+                            GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, targetPsynergy, sourceSlotIdx);
+                            GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, currentDragContext.Psynergy, targetSlotIdx);
+                        });
 
                         if (targetSlotIdx >= 0 && targetSlotIdx < dpadSlotUI.Length && dpadSlotUI[targetSlotIdx] != null)
                         {
@@ -875,31 +911,32 @@ public class PagePsynergyController
             return;
         }
 
-        if (currentHeroObj == null || PsynergyWorldController.Instance == null) return;
+        if (currentHeroObj == null) return;
 
         int slotIndex = (int)direction;
 
-        PsynergySO[] currentShortcuts = PsynergyWorldController.Instance.GetShortcuts(currentHeroObj);
-        for (int i = 0; i < currentShortcuts.Length; i++)
+        // Clear psynergy from any other slot first if already assigned
+        if (assignedShortcuts != null)
         {
-            if (currentShortcuts[i] == psynergy)
+            for (int i = 0; i < assignedShortcuts.Length; i++)
             {
-                PsynergyWorldController.Instance.ClearShortcut(currentHeroObj, i);
+                if (assignedShortcuts[i] == psynergy)
+                {
+                    GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, null, i);
+                }
             }
         }
 
-        PsynergyWorldController.Instance.SetShortcut(currentHeroObj, psynergy, slotIndex);
-        Debug.Log($"[PagePsynergy] Assigned '{psynergy.PsynergyName}' to D-Pad shortcut slot: {direction}");
-
-        LoadShortcutsFromWorldController();
+        // Request assignment via GameEvents
+        GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, psynergy, slotIndex);
+        Debug.Log($"[PagePsynergy] Requested assignment of '{psynergy.PsynergyName}' to D-Pad shortcut slot: {direction}");
     }
 
     private void ClearShortcut(int slotIndex)
     {
-        if (currentHeroObj == null || PsynergyWorldController.Instance == null) return;
+        if (currentHeroObj == null) return;
 
-        PsynergyWorldController.Instance.ClearShortcut(currentHeroObj, slotIndex);
-        LoadShortcutsFromWorldController();
+        GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, null, slotIndex);
     }
 
     private void RefreshShortcutsDisplay()
