@@ -35,7 +35,7 @@ public class SceneTeleporter : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isTeleporting = true;
-            StartCoroutine(TeleportSequenceRoutine(other.gameObject));
+            StartCoroutine(TeleportSequenceRoutine());
         }
     }
 
@@ -43,15 +43,15 @@ public class SceneTeleporter : MonoBehaviour
 
     #region Sequence Coroutine
 
-    private IEnumerator TeleportSequenceRoutine(GameObject playerObject)
+    private IEnumerator TeleportSequenceRoutine()
     {
         // 1. Lock controls and camera movement
         GameEvents.GameState.RequestGameStateChange(GameState.Cutscene);
 
-        // 2. Order player to walk towards the target point if defined
-        if (walkTarget != null && playerObject.TryGetComponent<PlayerController>(out PlayerController playerController))
+        // 2. Order player to walk towards the target point if defined using events
+        if (walkTarget != null)
         {
-            playerController.MoveToDestination(walkTarget.position);
+            GameEvents.Player.RequestAutoWalk(walkTarget.position);
         }
 
         // 3. Start progressive ambient fade to dark (NOT the full logo curtain yet)

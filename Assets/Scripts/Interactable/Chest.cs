@@ -67,6 +67,8 @@ public class Chest : Interactable
             yield break;
         }
 
+        GameEvents.Player.RequestLookAt(transform.position);
+
         chestOpened = true;
 
         // Temporarily disable interaction detection via Layer change

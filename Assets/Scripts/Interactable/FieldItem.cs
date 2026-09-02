@@ -65,6 +65,8 @@ public class FieldItem : Interactable
             yield break;
         }
 
+        GameEvents.Player.RequestLookAt(transform.position);
+
         itemPicked = true;
 
         // Temporarily disable interaction detection via Layer change

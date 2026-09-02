@@ -16,12 +16,10 @@ public enum PlayerInteractionAnimType
 
 /// <summary>
 /// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
+/// Reacts to decoupled commands via GameEvents.Player and GameEvents.GameState.
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
-    // Singleton Instance
-    public static PlayerController Instance { get; private set; }
-
     #region Serialized Fields
 
     [Header("Movement Settings")]
@@ -69,12 +67,7 @@ public class PlayerController : MonoBehaviour
     private readonly float secondsInIdle = 15f;
 
     private Coroutine autoWalkCoroutine;
-
-    #endregion
-
-    #region Properties
-
-    public Animator PlayerAnim { get => playerAnim; set => playerAnim = value; }
+    private Coroutine rotateCoroutine;
 
     #endregion
 
@@ -82,30 +75,12 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         controller = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
         playerAnim = GetComponent<Animator>();
         interactionDetector = GetComponent<PlayerInteractionDetector>();
 
         currentStamina = maxStamina;
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
     }
 
     private void Start()
@@ -132,6 +107,12 @@ public class PlayerController : MonoBehaviour
         // Subscribe to GameEvents
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
         GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
+        GameEvents.Player.OnRequestTeleport += HandleRequestTeleport;
+        GameEvents.Player.OnRequestLookAt += HandleRequestLookAt;
+        GameEvents.Player.OnRequestAutoWalk += HandleRequestAutoWalk;
+        GameEvents.Player.OnRequestStopAutoWalk += HandleRequestStopAutoWalk;
+        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+        GameEvents.Player.OnSetPlayerVisibilityRequested += HandleSetPlayerVisibilityRequested;
     }
 
     private void OnDisable()
@@ -141,6 +122,12 @@ public class PlayerController : MonoBehaviour
         // Unsubscribe from GameEvents
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
+        GameEvents.Player.OnRequestTeleport -= HandleRequestTeleport;
+        GameEvents.Player.OnRequestLookAt -= HandleRequestLookAt;
+        GameEvents.Player.OnRequestAutoWalk -= HandleRequestAutoWalk;
+        GameEvents.Player.OnRequestStopAutoWalk -= HandleRequestStopAutoWalk;
+        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        GameEvents.Player.OnSetPlayerVisibilityRequested -= HandleSetPlayerVisibilityRequested;
 
         StopAutoWalk();
     }
@@ -171,14 +158,32 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Event Handlers (GameState & Player Animations)
+    #region Event Handlers (GameState & Player Events)
 
+    /// <summary>
+    /// Reacts to global game state shifts, enabling/disabling player movement and mesh visibility dynamically.
+    /// </summary>
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
+        bool isGameplayActive = (newState == GameManager.GameState.WorldExploration);
+        bool isTitleScreen = (newState == GameManager.GameState.TitleScreen);
+
+        // Control character physics controller
+        if (controller != null) controller.enabled = !isTitleScreen;
+
+        // Manage mesh visibility
+        SetModelVisibility(!isTitleScreen);
+
         // Whenever player regains control in world exploration, cancel any residual auto-walk operations
-        if (newState == GameManager.GameState.WorldExploration)
+        if (isGameplayActive)
         {
             StopAutoWalk();
+
+            // Refresh active hero mesh if needed
+            if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
+            {
+                HandleActiveHeroChanged(GameManager.Instance.ActiveHero);
+            }
         }
     }
 
@@ -203,6 +208,118 @@ public class PlayerController : MonoBehaviour
             case PlayerInteractionAnimType.TouchObject:
                 playerAnim.SetTrigger("touchObject");
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Safely repositions and rotates the player, toggling CharacterController to avoid physics glitches.
+    /// </summary>
+    private void HandleRequestTeleport(Vector3 position, Quaternion rotation)
+    {
+        StopAutoWalk();
+
+        if (controller != null) controller.enabled = false;
+
+        transform.position = position;
+        transform.rotation = rotation;
+
+        if (controller != null && GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.TitleScreen)
+        {
+            controller.enabled = true;
+        }
+    }
+
+    private void HandleRequestAutoWalk(Vector3 destination)
+    {
+        StopAutoWalk();
+        autoWalkCoroutine = StartCoroutine(Routine_MoveToDestination(destination));
+    }
+
+    private void HandleRequestStopAutoWalk()
+    {
+        StopAutoWalk();
+    }
+
+    private void HandleRequestLookAt(Vector3 targetPosition, float duration)
+    {
+        if (rotateCoroutine != null) StopCoroutine(rotateCoroutine);
+        rotateCoroutine = StartCoroutine(Routine_RotateTowards(targetPosition, duration));
+    }
+
+    private IEnumerator Routine_RotateTowards(Vector3 targetPosition, float duration)
+    {
+        Vector3 direction = targetPosition - transform.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude < 0.001f) yield break;
+
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            transform.rotation = Quaternion.Slerp(startRotation, targetRotation, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.rotation = targetRotation;
+        rotateCoroutine = null;
+    }
+
+    /// <summary>
+    /// Swaps the visible hero mesh and loads matching AnimatorController/Avatar dynamically.
+    /// </summary>
+    private void HandleActiveHeroChanged(GameObject activeHero)
+    {
+        if (activeHero == null) return;
+
+        Transform modelTrans = transform.Find("Model");
+        if (modelTrans != null)
+        {
+            modelTrans.gameObject.SetActive(true);
+
+            for (int i = 0; i < modelTrans.childCount; i++)
+            {
+                modelTrans.GetChild(i).gameObject.SetActive(false);
+            }
+
+            Transform activeModel = modelTrans.Find($"{activeHero.name}_world");
+            if (activeModel != null)
+            {
+                activeModel.gameObject.SetActive(true);
+            }
+        }
+
+        if (playerAnim != null)
+        {
+            playerAnim.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
+            playerAnim.avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
+        }
+    }
+
+    private void HandleSetPlayerVisibilityRequested(bool visible)
+    {
+        SetModelVisibility(visible);
+    }
+
+    private void SetModelVisibility(bool visible)
+    {
+        Transform modelTrans = transform.Find("Model");
+        if (modelTrans != null)
+        {
+            modelTrans.gameObject.SetActive(visible);
+
+            if (visible && GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
+            {
+                string heroName = GameManager.Instance.ActiveHero.name;
+                Transform activeModel = modelTrans.Find($"{heroName}_world");
+                if (activeModel != null)
+                {
+                    activeModel.gameObject.SetActive(true);
+                }
+            }
         }
     }
 
@@ -254,7 +371,6 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsAiming)) return;
 
-        // Fetch target directly from the decoupled interaction detector component
         if (interactionDetector != null && interactionDetector.CurrentTarget != null)
         {
             interactionDetector.CurrentTarget.Interact();
@@ -284,6 +400,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGravity()
     {
+        if (controller == null || !controller.enabled) return;
+
         if (controller.isGrounded && verticalVelocity < 0)
         {
             verticalVelocity = stickToGroundForce;
@@ -296,6 +414,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
+        if (controller == null || !controller.enabled) return;
+
         Vector2 inputMove = InputManager.Instance != null ? InputManager.Instance.MoveInput : Vector2.zero;
         Vector3 direction = new Vector3(inputMove.x, 0f, inputMove.y).normalized;
 
@@ -313,7 +433,7 @@ public class PlayerController : MonoBehaviour
                 transform.rotation = Quaternion.Euler(0f, angle, 0f);
             }
 
-            PlayerAnim.SetBool("isMoving", true);
+            if (playerAnim != null) playerAnim.SetBool("isMoving", true);
 
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
 
@@ -326,7 +446,7 @@ public class PlayerController : MonoBehaviour
 
             if (isRunningInput && enoughStaminaToRun)
             {
-                PlayerAnim.SetBool("isRunning", true);
+                if (playerAnim != null) playerAnim.SetBool("isRunning", true);
 
                 Vector3 movement = (moveDirection.normalized * (speed * 2f)) + new Vector3(0f, verticalVelocity, 0f);
                 controller.Move(movement * Time.deltaTime);
@@ -335,7 +455,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                PlayerAnim.SetBool("isRunning", false);
+                if (playerAnim != null) playerAnim.SetBool("isRunning", false);
 
                 Vector3 movement = (moveDirection.normalized * speed) + new Vector3(0f, verticalVelocity, 0f);
                 controller.Move(movement * Time.deltaTime);
@@ -345,14 +465,14 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            PlayerAnim.SetBool("isMoving", false);
+            if (playerAnim != null) playerAnim.SetBool("isMoving", false);
 
             controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
 
             timeCount += Time.deltaTime;
             if (timeCount >= secondsInIdle)
             {
-                PlayerAnim.SetTrigger("longTime");
+                if (playerAnim != null) playerAnim.SetTrigger("longTime");
                 timeCount = 1f;
             }
 
@@ -362,6 +482,8 @@ public class PlayerController : MonoBehaviour
 
     private bool IsEdgeAhead(Vector3 moveDirection)
     {
+        if (controller == null) return false;
+
         float dynamicEdgeOffset = controller.radius + frontMargin;
         float safetyMargin = 0.2f;
         float rayStartHeight = controller.stepOffset + safetyMargin;
@@ -407,18 +529,6 @@ public class PlayerController : MonoBehaviour
 
     #region Auto-Walk Destination System
 
-    /// <summary>
-    /// Forces player to automatically walk towards a target destination (useful for triggers/cutscenes).
-    /// </summary>
-    public void MoveToDestination(Vector3 destination)
-    {
-        StopAutoWalk();
-        autoWalkCoroutine = StartCoroutine(Routine_MoveToDestination(destination));
-    }
-
-    /// <summary>
-    /// Cancels any active auto-walk operation and resets movement animations.
-    /// </summary>
     private void StopAutoWalk()
     {
         if (autoWalkCoroutine != null)
@@ -455,19 +565,19 @@ public class PlayerController : MonoBehaviour
 
             Vector3 moveDirection = direction.normalized;
 
-            // Rotate smoothly towards destination
             if (moveDirection.sqrMagnitude > 0.001f)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
             }
 
-            // Apply gravity
             HandleGravity();
 
-            // Move Character
-            Vector3 movement = (moveDirection * speed) + new Vector3(0f, verticalVelocity, 0f);
-            controller.Move(movement * Time.deltaTime);
+            if (controller != null && controller.enabled)
+            {
+                Vector3 movement = (moveDirection * speed) + new Vector3(0f, verticalVelocity, 0f);
+                controller.Move(movement * Time.deltaTime);
+            }
 
             yield return null;
         }
@@ -589,7 +699,7 @@ public class PlayerController : MonoBehaviour
 
     public void playFootprints()
     {
-        if (audioSource == null) return;
+        if (audioSource == null || audioSource.clip == null) return;
 
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.PlayOneShot(audioSource.clip);
@@ -599,9 +709,6 @@ public class PlayerController : MonoBehaviour
 
     #region Utilities & State Checks
 
-    /// <summary>
-    /// Checks whether the game is currently in World Exploration state.
-    /// </summary>
     private bool IsWorldExploration() => GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
 
     #endregion

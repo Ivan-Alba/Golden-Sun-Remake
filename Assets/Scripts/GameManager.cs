@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Animations;
 using Unity.Cinemachine;
 
 public class GameManager : MonoBehaviour
@@ -54,10 +53,6 @@ public class GameManager : MonoBehaviour
     private int totalGold;
     private float totalPlayed;
     private GameObject activeHero;
-
-    private float originalXSpeed = 300f;
-    private float originalYSpeed = 2f;
-    private bool speedsCached = false;
 
     #endregion
 
@@ -150,15 +145,12 @@ public class GameManager : MonoBehaviour
         switch (currentState)
         {
             case GameState.TitleScreen:
+            case GameState.InBattle:
                 ToggleGameplaySystems(active: false);
                 break;
 
             case GameState.WorldExploration:
                 ToggleGameplaySystems(active: true);
-                break;
-
-            case GameState.InBattle:
-                ToggleGameplaySystems(active: false);
                 break;
 
             case GameState.InMenu:
@@ -173,34 +165,14 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.TriggerGameStateChanged(previousState, currentState);
     }
 
-    /// <summary>
-    /// Enables or disables gameplay features cleanly, isolating camera rendering for Title scene.
-    /// </summary>
     private void ToggleGameplaySystems(bool active)
     {
-        // 1. Manage Player components and mesh visibility
-        if (PlayerController.Instance != null)
-        {
-            PlayerController.Instance.enabled = active;
-
-            CharacterController cc = PlayerController.Instance.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = active;
-
-            Transform modelTrans = PlayerController.Instance.transform.Find("Model");
-            if (modelTrans != null)
-            {
-                modelTrans.gameObject.SetActive(active);
-            }
-        }
-
-        // 2. Control Camera Inputs and rendering layer
         ToggleCameraInput(active);
 
         if (playerMainCamera != null)
         {
             bool isTitle = (currentState == GameState.TitleScreen);
 
-            // Hide/Disable persistent camera on Title to allow Title's camera complete control
             playerMainCamera.SetActive(!isTitle);
 
             CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
@@ -220,7 +192,6 @@ public class GameManager : MonoBehaviour
 
         if (freeLookCamera != null)
         {
-            // In Cinemachine 3.x, input processing is managed by CinemachineInputAxisController
             if (freeLookCamera.TryGetComponent<CinemachineInputAxisController>(out var inputController))
             {
                 inputController.enabled = active;
@@ -268,8 +239,6 @@ public class GameManager : MonoBehaviour
                     for (int l = 0; l < 7; l++) stats.LevelUp();
                 }
             }
-
-            changeModelHero();
         }
 
         GameEvents.Inventory.RequestSyncWithParty();
@@ -330,14 +299,11 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Routine_HandlePostLoadSequence()
     {
-        // 1. Enable visual components while fully covered by curtain
-        if (PlayerController.Instance != null)
+        // 1. Reveal Player Mesh and trigger Hero Swap while screen is still black
+        GameEvents.Player.RequestSetPlayerVisibility(true);
+        if (activeHero != null)
         {
-            Transform modelTrans = PlayerController.Instance.transform.Find("Model");
-            if (modelTrans != null)
-            {
-                modelTrans.gameObject.SetActive(true);
-            }
+            GameEvents.Player.RequestActiveHeroChange(activeHero);
         }
 
         if (playerMainCamera != null)
@@ -347,11 +313,11 @@ public class GameManager : MonoBehaviour
             if (brain != null) brain.enabled = true;
         }
 
-        // 2. Wait 1-2 frames so Cinemachine and physics settle position in the dark
+        // 2. Wait frames so Cinemachine and physics settle position in the dark
         yield return new WaitForEndOfFrame();
         yield return new WaitForFixedUpdate();
 
-        // 3. Start revealing the screen (Curtain begins fade out)
+        // 3. Start revealing the screen
         if (SceneTransitionManager.Instance != null)
         {
             SceneTransitionManager.Instance.FadeInNewScene();
@@ -382,7 +348,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 5. Activate target game state (revealing Exploration HUD and returning control immediately)
+        // 5. Activate target game state (WorldExploration)
         SetGameState(pendingTargetState);
     }
 
@@ -412,78 +378,36 @@ public class GameManager : MonoBehaviour
                 PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
             }
 
-            changeModelHero();
+            GameEvents.Player.RequestActiveHeroChange(activeHero);
             NotifyPartyChanged();
         }
     }
 
-    private void changeModelHero()
-    {
-        if (PlayerController.Instance == null || activeHero == null) return;
-
-        Transform modelTrans = PlayerController.Instance.transform.Find("Model");
-        if (modelTrans != null)
-        {
-            for (int i = 0; i < modelTrans.childCount; i++)
-            {
-                modelTrans.GetChild(i).gameObject.SetActive(false);
-            }
-
-            Transform activeModel = modelTrans.Find($"{activeHero.name}_world");
-            if (activeModel != null)
-            {
-                activeModel.gameObject.SetActive(true);
-            }
-        }
-
-        Animator anim = PlayerController.Instance.GetComponent<Animator>();
-        if (anim != null)
-        {
-            anim.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>($"Animations/Hero/{activeHero.name}/World/{activeHero.name}_world");
-            anim.avatar = Resources.Load<Avatar>($"Animations/Hero/{activeHero.name}/World/avatar");
-        }
-    }
-
-    /// <summary>
-    /// Relocates player to spawn point, updates zone info and snaps position to ground using Raycast.
-    /// </summary>
     private void RelocatePlayerToSpawnPoint()
     {
-        if (PlayerController.Instance == null || string.IsNullOrEmpty(pendingSpawnID)) return;
+        if (string.IsNullOrEmpty(pendingSpawnID)) return;
 
         currentUsedSpawnPoint = null;
 
-        // Direct O(1) dictionary lookup replacing FindObjectsOfType
         if (SpawnPoint.AllSpawnPoints.TryGetValue(pendingSpawnID, out SpawnPoint sp))
         {
             currentUsedSpawnPoint = sp;
             UpdateCurrentZone(sp.ZoneName, sp.RegionName);
 
-            Transform playerTransform = PlayerController.Instance.transform;
-            Vector3 previousPosition = playerTransform.position;
-
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-
-            // Safety ground snap raycast
             Vector3 spawnPos = sp.transform.position;
             if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
             {
                 spawnPos.y = hit.point.y;
             }
 
-            playerTransform.position = spawnPos;
-            playerTransform.rotation = sp.transform.rotation;
-
-            if (cc != null) cc.enabled = true;
-
-            ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
+            GameEvents.Player.RequestTeleport(spawnPos, sp.transform.rotation);
+            ResetCameraBehindPlayer(spawnPos, sp.transform.rotation);
         }
 
         pendingSpawnID = null;
     }
 
-    private void ResetCameraBehindPlayer(Transform targetTransform, Quaternion targetRotation, Vector3 previousPosition)
+    private void ResetCameraBehindPlayer(Vector3 targetPosition, Quaternion targetRotation)
     {
         if (freeLookCamera == null && playerMainCamera != null)
         {
@@ -492,9 +416,6 @@ public class GameManager : MonoBehaviour
 
         if (freeLookCamera != null)
         {
-            Vector3 deltaPosition = targetTransform.position - previousPosition;
-            freeLookCamera.OnTargetObjectWarped(targetTransform, deltaPosition);
-
             if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
             {
                 orbitalFollow.HorizontalAxis.Value = targetRotation.eulerAngles.y;
@@ -513,31 +434,16 @@ public class GameManager : MonoBehaviour
 
         GameData dataToLoad = SaveManager.loadedData[0];
 
-        if (PlayerController.Instance != null)
+        Vector3 targetPos = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
+        Quaternion targetRot = Quaternion.Euler(0, dataToLoad.playerRotation[1], 0);
+
+        if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
         {
-            Transform playerTransform = PlayerController.Instance.transform;
-            Vector3 previousPosition = playerTransform.position;
-
-            Animator anim = playerTransform.GetComponent<Animator>();
-            if (anim != null) anim.enabled = false;
-
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-
-            Vector3 targetPos = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
-            Quaternion targetRot = Quaternion.Euler(0, dataToLoad.playerRotation[1], 0);
-
-            // Ground snap raycast for saved position
-            if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
-            {
-                targetPos.y = hit.point.y;
-            }
-
-            playerTransform.position = targetPos;
-            playerTransform.rotation = targetRot;
-
-            ResetCameraBehindPlayer(playerTransform, targetRot, previousPosition);
+            targetPos.y = hit.point.y;
         }
+
+        GameEvents.Player.RequestTeleport(targetPos, targetRot);
+        ResetCameraBehindPlayer(targetPos, targetRot);
 
         totalPlayed = dataToLoad.totalTime;
         totalGold = dataToLoad.totalGold;
@@ -556,7 +462,7 @@ public class GameManager : MonoBehaviour
         }
 
         if (party.Count > 0) activeHero = party[0];
-        changeModelHero();
+        GameEvents.Player.RequestActiveHeroChange(activeHero);
 
         GameEvents.Inventory.RequestSyncWithParty();
 
@@ -709,12 +615,6 @@ public class GameManager : MonoBehaviour
             {
                 PsynergyWorldController.Instance.NotifyShortcutsChanged(activeHero);
             }
-        }
-
-        if (PlayerController.Instance != null)
-        {
-            Animator anim = PlayerController.Instance.GetComponent<Animator>();
-            if (anim != null) anim.enabled = true;
         }
 
         loadingData = false;

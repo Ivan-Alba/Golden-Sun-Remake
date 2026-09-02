@@ -32,7 +32,6 @@ public static class GameEvents
     {
         /// <summary>
         /// Triggered when an object requests the player to perform an interaction animation.
-        /// Params: animType (e.g., OpenChest, PickFloorItem, TouchObject)
         /// </summary>
         public static event Action<PlayerInteractionAnimType> OnPlayInteractionAnimation;
         public static void TriggerPlayInteractionAnimation(PlayerInteractionAnimType animType)
@@ -40,15 +39,21 @@ public static class GameEvents
 
         /// <summary>
         /// Request to relocate/teleport the player to a target position and rotation safely.
-        /// Params: targetPosition, targetRotation
         /// </summary>
         public static event Action<Vector3, Quaternion> OnRequestTeleport;
         public static void RequestTeleport(Vector3 position, Quaternion rotation)
             => OnRequestTeleport?.Invoke(position, rotation);
 
         /// <summary>
+        /// Request the player to smoothly rotate and face toward a target position in the world.
+        /// Params: targetPosition, duration
+        /// </summary>
+        public static event Action<Vector3, float> OnRequestLookAt;
+        public static void RequestLookAt(Vector3 targetPosition, float duration = 0.25f)
+            => OnRequestLookAt?.Invoke(targetPosition, duration);
+
+        /// <summary>
         /// Request the player to automatically walk toward a target destination.
-        /// Params: destinationPosition
         /// </summary>
         public static event Action<Vector3> OnRequestAutoWalk;
         public static void RequestAutoWalk(Vector3 destination)
@@ -60,6 +65,20 @@ public static class GameEvents
         public static event Action OnRequestStopAutoWalk;
         public static void RequestStopAutoWalk()
             => OnRequestStopAutoWalk?.Invoke();
+
+        /// <summary>
+        /// Request to change the active hero model and animator controller on the player GameObject.
+        /// </summary>
+        public static event Action<GameObject> OnActiveHeroChanged;
+        public static void RequestActiveHeroChange(GameObject newHero)
+            => OnActiveHeroChanged?.Invoke(newHero);
+
+        /// <summary>
+        /// Request to toggle the visibility of the player model mesh.
+        /// </summary>
+        public static event Action<bool> OnSetPlayerVisibilityRequested;
+        public static void RequestSetPlayerVisibility(bool visible)
+            => OnSetPlayerVisibilityRequested?.Invoke(visible);
     }
 
     // ==========================================

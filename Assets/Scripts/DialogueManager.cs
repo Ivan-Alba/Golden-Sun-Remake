@@ -14,6 +14,7 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private CinemachineTargetGroup targetGroup;
     [SerializeField] private int activeCameraPriority = 20;
     [SerializeField] private int inactiveCameraPriority = 0;
+    [SerializeField] private float eyeHeightOffset = 1.4f;
 
     [Header("Typewriter Settings")]
     [SerializeField] private float charactersPerSecond = 30f;
@@ -85,11 +86,7 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
-        }
-
+        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
         ContinueDialogue();
     }
 
@@ -141,8 +138,7 @@ public class DialogueManager : MonoBehaviour
                 PlayerUIManager.Instance.UpdateDialogueUI(currentNpcName, currentSubstring, currentNpcPortrait);
             }
 
-            // TODO: Play Golden Sun retro bleeps/voice SFX here
-            // e.g. AudioManager.Instance.PlayDialogueTextSound();
+            // TODO: Optional retro dialogue bleeps via GameEvents.Audio.RequestPlaySFX(...)
 
             yield return new WaitForSeconds(delay);
         }
@@ -208,16 +204,24 @@ public class DialogueManager : MonoBehaviour
     {
         if (dialogueCamera == null || npcTarget == null) return;
 
-        if (targetGroup != null && PlayerController.Instance != null)
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null) return;
+
+        Transform playerTransform = playerObj.transform;
+
+        if (targetGroup != null)
         {
             targetGroup.Targets.Clear();
+
+            // Add player target with height offset weighting
             targetGroup.Targets.Add(new CinemachineTargetGroup.Target
             {
-                Object = PlayerController.Instance.transform,
+                Object = playerTransform,
                 Weight = 1f,
                 Radius = 1.2f
             });
 
+            // Add NPC target
             targetGroup.Targets.Add(new CinemachineTargetGroup.Target
             {
                 Object = npcTarget.transform,
@@ -228,11 +232,15 @@ public class DialogueManager : MonoBehaviour
             dialogueCamera.Follow = targetGroup.transform;
             dialogueCamera.LookAt = targetGroup.transform;
 
-            Vector3 playerToNpc = (npcTarget.transform.position - PlayerController.Instance.transform.position).normalized;
+            // Calculate camera framing vector offset based on eye level midpoint
+            Vector3 playerEyePos = playerTransform.position + Vector3.up * eyeHeightOffset;
+            Vector3 npcEyePos = npcTarget.transform.position + Vector3.up * eyeHeightOffset;
+
+            Vector3 playerToNpc = (npcEyePos - playerEyePos).normalized;
             Vector3 sideVector = Vector3.Cross(Vector3.up, playerToNpc).normalized;
 
-            Vector3 midPoint = (PlayerController.Instance.transform.position + npcTarget.transform.position) * 0.5f;
-            Vector3 desiredCameraPos = midPoint + (sideVector * 2.5f) + (Vector3.up * 1.8f) - (playerToNpc * 2.0f);
+            Vector3 midPoint = (playerEyePos + npcEyePos) * 0.5f;
+            Vector3 desiredCameraPos = midPoint + (sideVector * 2.5f) - (playerToNpc * 2.0f);
 
             dialogueCamera.transform.position = desiredCameraPos;
         }

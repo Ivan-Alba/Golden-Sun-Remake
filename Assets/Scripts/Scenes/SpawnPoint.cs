@@ -59,9 +59,9 @@ public class SpawnPoint : MonoBehaviour
     /// </summary>
     public IEnumerator Routine_ExecuteArrivalSequence()
     {
-        if (PlayerController.Instance != null && arrivalWalkTarget != null)
+        if (arrivalWalkTarget != null)
         {
-            PlayerController.Instance.MoveToDestination(arrivalWalkTarget.position);
+            GameEvents.Player.RequestAutoWalk(arrivalWalkTarget.position);
         }
 
         // Wait a small fraction before presenting the zone banner mid-walk

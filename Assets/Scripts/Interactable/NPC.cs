@@ -20,6 +20,7 @@ public class NPC : Interactable
 
     private bool lookAtPlayer;
     private Quaternion initialRotation;
+    private Transform cachedPlayerTransform;
 
     #endregion
 
@@ -43,19 +44,16 @@ public class NPC : Interactable
 
     private void Update()
     {
-        if (lookAtPlayer)
+        if (lookAtPlayer && cachedPlayerTransform != null)
         {
-            if (PlayerController.Instance != null)
-            {
-                // Calculate horizontal direction to prevent vertical tilt on slopes
-                Vector3 direction = PlayerController.Instance.transform.position - transform.position;
-                direction.y = 0;
+            // Calculate horizontal direction to prevent vertical tilt on slopes
+            Vector3 direction = cachedPlayerTransform.position - transform.position;
+            direction.y = 0;
 
-                if (direction != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(direction);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-                }
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
         else
@@ -71,15 +69,21 @@ public class NPC : Interactable
 
     public override void Interact()
     {
-        // Cache rotation and start looking at player
+        // Cache rotation and player transform using Tag
         initialRotation = transform.rotation;
-        lookAtPlayer = true;
 
-        // Smoothly turn Player towards NPC
-        if (PlayerController.Instance != null)
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
         {
-            StartCoroutine(RotatePlayerToNpc(PlayerController.Instance.transform));
+            cachedPlayerTransform = playerObj.transform;
+            lookAtPlayer = true;
+
+            // Decoupled request: Tell player to face this NPC
+            GameEvents.Player.RequestLookAt(transform.position, 0.25f);
         }
+
+        // Trigger player interaction animation if needed
+        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.InteractNPC);
 
         // Trigger Dialogue System
         if (DialogueManager.Instance != null)
@@ -100,29 +104,7 @@ public class NPC : Interactable
     public void EndDialogueLook()
     {
         lookAtPlayer = false;
-    }
-
-    private IEnumerator RotatePlayerToNpc(Transform playerTransform)
-    {
-        Vector3 direction = transform.position - playerTransform.position;
-        direction.y = 0; // Prevent tilting on vertical axes
-
-        if (direction == Vector3.zero) yield break;
-
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        float elapsedTime = 0f;
-        float duration = 0.25f; // Fast, natural response time
-
-        Quaternion startRotation = playerTransform.rotation;
-
-        while (elapsedTime < duration)
-        {
-            playerTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        playerTransform.rotation = targetRotation;
+        cachedPlayerTransform = null;
     }
 
     #endregion
