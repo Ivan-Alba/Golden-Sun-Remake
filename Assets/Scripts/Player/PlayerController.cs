@@ -535,10 +535,7 @@ public class PlayerController : MonoBehaviour
             aimVirtualCamera.Priority.Value = activeAimPriority;
         }
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetAimUIVisible(true);
-        }
+        GameEvents.UI.RequestSetAimUIVisible(true);
 
         if (TryGetComponent<PlayerAiming>(out var aimingScript))
         {
@@ -568,11 +565,8 @@ public class PlayerController : MonoBehaviour
             aimingScript.Reset();
             aimingScript.enabled = false;
         }
-
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetAimUIVisible(false);
-        }
+        
+        GameEvents.UI.RequestSetAimUIVisible(false);
     }
 
     private void HandleAimRotation()

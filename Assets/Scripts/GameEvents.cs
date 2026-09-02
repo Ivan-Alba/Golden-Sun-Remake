@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class GameEvents
@@ -180,6 +181,44 @@ public static class GameEvents
         public static event Action<NotificationType, string, Sprite> OnShowNotification;
         public static void TriggerShowNotification(NotificationType type, string message, Sprite icon = null)
             => OnShowNotification?.Invoke(type, message, icon);
+
+        /// <summary>
+        /// Request to show or hide the aiming reticle UI overlay.
+        /// </summary>
+        public static event Action<bool> OnSetAimUIVisibleRequested;
+        public static void RequestSetAimUIVisible(bool visible)
+            => OnSetAimUIVisibleRequested?.Invoke(visible);
+
+        /// <summary>
+        /// Request to change the aiming reticle lock-on highlight state.
+        /// </summary>
+        public static event Action<bool> OnSetAimTargetLockedRequested;
+        public static void RequestSetAimTargetLocked(bool locked)
+            => OnSetAimTargetLockedRequested?.Invoke(locked);
+
+        /// <summary>
+        /// Request to initiate a dialogue conversation using DialogueSO.
+        /// Params: dialogueData, defaultSpeakerName, speakerGameObject, defaultPortrait
+        /// </summary>
+        public static event Action<DialogueSO, string, GameObject, Sprite> OnStartDialogueRequested;
+        public static void RequestStartDialogue(DialogueSO dialogue, string speakerName, GameObject speakerObj = null, Sprite portrait = null)
+            => OnStartDialogueRequested?.Invoke(dialogue, speakerName, speakerObj, portrait);
+
+        /// <summary>
+        /// Request to update active dialogue UI text, speaker name, portrait frame and optional choices.
+        /// Params: speakerName, text, portrait, choiceType, choicesList
+        /// </summary>
+        public static event Action<string, string, Sprite, DialogueChoiceType, List<DialogueChoiceData>> OnUpdateDialogueRequested;
+        public static void RequestUpdateDialogue(string speakerName, string text, Sprite portrait = null, DialogueChoiceType choiceType = DialogueChoiceType.StandardText, List<DialogueChoiceData> choices = null)
+            => OnUpdateDialogueRequested?.Invoke(speakerName, text, portrait, choiceType, choices);
+
+        /// <summary>
+        /// Request sent by UI elements when the player selects a dialogue choice index.
+        /// Listened by DialogueManager.
+        /// </summary>
+        public static event Action<int> OnSelectDialogueChoiceRequested;
+        public static void RequestSelectDialogueChoice(int choiceIndex)
+            => OnSelectDialogueChoiceRequested?.Invoke(choiceIndex);
     }
 
     // ==========================================

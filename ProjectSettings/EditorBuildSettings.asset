@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Resources/Scenes/Tale.unity
     guid: bf7a578c41a4413488d35fdfbe259bb2
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: fda8e8fe9fd56824189aef43bc7275ba, type: 2}
+    com.unity.localization.settings: {fileID: 11400000, guid: eb48d3b09a54a4a40b86166e3c2754e4, type: 2}
+  m_UseUCBPForAssetBundles: 0

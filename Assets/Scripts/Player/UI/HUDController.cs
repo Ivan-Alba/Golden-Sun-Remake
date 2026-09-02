@@ -7,11 +7,10 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Central manager for the player's 2D HUD overlays using UI Toolkit.
 /// Controls layer visibility, party status cards, dialogues, stamina, minimap integration, and notification streams.
+/// Listens exclusively to GameEvents for decoupled messaging.
 /// </summary>
-public class PlayerUIManager : MonoBehaviour
+public class HUDController : MonoBehaviour
 {
-    public static PlayerUIManager Instance { get; private set; }
-
     #region Serialized Fields & UI Toolkit Document
 
     [Header("UI Document Reference")]
@@ -52,8 +51,9 @@ public class PlayerUIManager : MonoBehaviour
     private VisualElement _dpadWheel;
     private VisualElement _notificationsStreamContainer;
 
-    // Party Member Controllers
-    private readonly List<HeroStatusCardController> _partyCardControllers = new List<HeroStatusCardController>();
+    // Presenters
+    private readonly List<HeroStatusCardPresenter> _partyCardPresenters = new List<HeroStatusCardPresenter>();
+    private NotificationPresenter _notificationPresenter;
 
     // Stamina Bar
     private VisualElement _staminaContainer;
@@ -78,11 +78,7 @@ public class PlayerUIManager : MonoBehaviour
     private VisualElement _dialoguePortraitFrame;
     private VisualElement _dialoguePortraitImg;
 
-    #endregion
-
-    #region Properties
-
-    public VisualTreeAsset NotificationCardTemplate => notificationCardTemplate;
+    // TODO: Add VisualElement references for Choice Boxes (Binary Yes/No & Standard Vertical List) once added to UXML
 
     #endregion
 
@@ -90,13 +86,6 @@ public class PlayerUIManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
         InitializeUIElements();
     }
 
@@ -114,13 +103,11 @@ public class PlayerUIManager : MonoBehaviour
 
     private void Start()
     {
-        // Solamente sincronizamos datos en la primera carga sin volver a suscribir eventos
         SyncInitialUIState();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Re-vinculamos los elementos por si el UIDocument fue reconstruido en la nueva escena
         InitializeUIElements();
         SyncInitialUIState();
     }
@@ -151,7 +138,7 @@ public class PlayerUIManager : MonoBehaviour
 
         if (uiDocument == null)
         {
-            Debug.LogError($"[{nameof(PlayerUIManager)}] CRITICAL: UIDocument reference is missing on {gameObject.name}!");
+            Debug.LogError($"[{nameof(HUDController)}] CRITICAL: UIDocument reference is missing on {gameObject.name}!");
             return;
         }
 
@@ -192,11 +179,12 @@ public class PlayerUIManager : MonoBehaviour
         _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
         _dpadWheel = _root.Q<VisualElement>("dpad_hud_wheel");
 
-        // Query Notifications Stream Container
+        // Query Notifications Stream Container & Initialize Presenter
         _notificationsStreamContainer = _root.Q<VisualElement>("notifications_stream_container");
         if (_notificationsStreamContainer != null)
         {
             _notificationsStreamContainer.Clear();
+            _notificationPresenter = new NotificationPresenter(_notificationsStreamContainer, notificationCardTemplate, this);
         }
 
         // Minimap Setup with Custom Render Texture
@@ -223,6 +211,8 @@ public class PlayerUIManager : MonoBehaviour
         _dialoguePortraitFrame = _root.Q<VisualElement>("dialogue_portrait_frame");
         _dialoguePortraitImg = _root.Q<VisualElement>("dialogue_portrait_img");
 
+        // TODO: Query choice container elements from UXML here
+
         // Query and Bind Party Cards
         InitializePartyCardControllers();
     }
@@ -232,27 +222,25 @@ public class PlayerUIManager : MonoBehaviour
         VisualElement minimapViewport = _root.Q<VisualElement>("minimap_viewport");
         if (minimapViewport == null || minimapCustomRenderTexture == null) return;
 
-        // Ensure the Custom Render Texture is initialized and actively rendering
         if (!minimapCustomRenderTexture.IsCreated())
         {
             minimapCustomRenderTexture.Create();
         }
 
-        // Assign Custom Render Texture directly to UI Toolkit background
         minimapViewport.style.backgroundImage = Background.FromRenderTexture(minimapCustomRenderTexture);
     }
 
     private void InitializePartyCardControllers()
     {
-        _partyCardControllers.Clear();
+        _partyCardPresenters.Clear();
 
         if (_bottomLeftPartyContainer == null) return;
 
         VisualElement card0 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_0");
         VisualElement card1 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_1");
 
-        if (card0 != null) _partyCardControllers.Add(new HeroStatusCardController(card0));
-        if (card1 != null) _partyCardControllers.Add(new HeroStatusCardController(card1));
+        if (card0 != null) _partyCardPresenters.Add(new HeroStatusCardPresenter(card0));
+        if (card1 != null) _partyCardPresenters.Add(new HeroStatusCardPresenter(card1));
     }
 
     #endregion
@@ -261,14 +249,27 @@ public class PlayerUIManager : MonoBehaviour
 
     private void SubscribeEvents()
     {
-        // GameEvents.GameState subscription
+        // GameEvents.GameState
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
 
+        // GameEvents.UI
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
 
-        // GameEvents.Player subscriptions
+        GameEvents.UI.OnShowNotification -= HandleShowNotification;
+        GameEvents.UI.OnShowNotification += HandleShowNotification;
+
+        GameEvents.UI.OnSetAimUIVisibleRequested -= SetAimUIVisible;
+        GameEvents.UI.OnSetAimUIVisibleRequested += SetAimUIVisible;
+
+        GameEvents.UI.OnSetAimTargetLockedRequested -= SetAimTargetLocked;
+        GameEvents.UI.OnSetAimTargetLockedRequested += SetAimTargetLocked;
+
+        GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
+        GameEvents.UI.OnUpdateDialogueRequested += UpdateDialogueUI;
+
+        // GameEvents.Player
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
         GameEvents.Player.OnStaminaChanged += UpdateStamina;
 
@@ -278,33 +279,26 @@ public class PlayerUIManager : MonoBehaviour
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
 
-        // GameEvents.Psynergy subscriptions
+        // GameEvents.Psynergy
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
         GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
-
-        // Local subscriptions (until migrated to GameEvents)
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
-            GameManager.Instance.OnPartyChanged += RefreshPartyInfo;
-        }
     }
 
     private void UnsubscribeEvents()
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
+        GameEvents.UI.OnShowNotification -= HandleShowNotification;
+        GameEvents.UI.OnSetAimUIVisibleRequested -= SetAimUIVisible;
+        GameEvents.UI.OnSetAimTargetLockedRequested -= SetAimTargetLocked;
+        GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
 
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
         GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
 
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnPartyChanged -= RefreshPartyInfo;
-        }
     }
 
     #endregion
@@ -354,6 +348,11 @@ public class PlayerUIManager : MonoBehaviour
     {
         RefreshPartyInfo();
         RefreshShortcuts();
+    }
+
+    private void HandleShowNotification(NotificationType type, string message, Sprite icon)
+    {
+        _notificationPresenter?.ShowNotification(type, message, icon);
     }
 
     #endregion
@@ -412,22 +411,22 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Layer Visibility Controls
 
-    public void SetExplorationUIVisible(bool visible)
+    private void SetExplorationUIVisible(bool visible)
     {
         SetElementDisplay(_explorationLayer, visible);
     }
 
-    public void SetDialogueUIVisible(bool visible)
+    private void SetDialogueUIVisible(bool visible)
     {
         SetElementDisplay(_dialogueLayer, visible);
     }
 
-    public void SetNotificationsUIVisible(bool visible)
+    private void SetNotificationsUIVisible(bool visible)
     {
         SetElementDisplay(_notificationsLayer, visible);
     }
 
-    public void SetPlayerUIVisible(bool visible)
+    private void SetPlayerUIVisible(bool visible)
     {
         SetElementDisplay(_root, visible);
     }
@@ -444,7 +443,7 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Dialogue UI Controls
 
-    public void UpdateDialogueUI(string speakerName, string text, Sprite portrait = null)
+    private void UpdateDialogueUI(string speakerName, string text, Sprite portrait, DialogueChoiceType choiceType, List<DialogueChoiceData> choices)
     {
         if (_labelSpeakerName != null)
         {
@@ -473,13 +472,20 @@ public class PlayerUIManager : MonoBehaviour
                 _dialoguePortraitFrame.style.display = DisplayStyle.None;
             }
         }
+
+        // TODO: Handle rendering choices UI based on choiceType and choices list
+        // e.g., Display Binary Yes/No UI or generate a dynamic vertical button list
+        if (choices != null && choices.Count > 0)
+        {
+            // Pending UXML elements creation for options container
+        }
     }
 
     #endregion
 
     #region Stamina Methods
 
-    public void UpdateStamina(float currentValue, float maxValue)
+    private void UpdateStamina(float currentValue, float maxValue)
     {
         if (_staminaFill == null) return;
 
@@ -492,7 +498,7 @@ public class PlayerUIManager : MonoBehaviour
         SetStaminaBarVisible(!isFull);
     }
 
-    public void SetStaminaBarVisible(bool visible)
+    private void SetStaminaBarVisible(bool visible)
     {
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
 
@@ -506,7 +512,7 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Party Info Methods
 
-    public void RefreshPartyInfo()
+    private void RefreshPartyInfo()
     {
         if (GameManager.Instance == null) return;
 
@@ -515,18 +521,18 @@ public class PlayerUIManager : MonoBehaviour
 
         if (party == null || party.Count == 0) return;
 
-        for (int i = 0; i < _partyCardControllers.Count; i++)
+        for (int i = 0; i < _partyCardPresenters.Count; i++)
         {
             if (i < party.Count && party[i] != null)
             {
                 HeroStats stats = party[i].GetComponent<HeroStats>();
                 bool isActive = (party[i] == activeHero);
 
-                _partyCardControllers[i].UpdateData(stats, party[i].name, keyNumber: i + 1, isActiveHero: isActive);
+                _partyCardPresenters[i].UpdateData(stats, party[i].name, keyNumber: i + 1, isActiveHero: isActive);
             }
             else
             {
-                _partyCardControllers[i].SetVisible(false);
+                _partyCardPresenters[i].SetVisible(false);
             }
         }
     }
@@ -543,7 +549,7 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    public void RefreshShortcuts()
+    private void RefreshShortcuts()
     {
         if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
         {
@@ -554,7 +560,7 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    public void UpdateShortcutsUI(PsynergySO[] shortcuts)
+    private void UpdateShortcutsUI(PsynergySO[] shortcuts)
     {
         VisualElement[] shortcutIcons = new VisualElement[]
         {
@@ -586,12 +592,12 @@ public class PlayerUIManager : MonoBehaviour
 
     #region Specific HUD Panel & Aiming Controls
 
-    public void SetMinimapVisible(bool visible)
+    private void SetMinimapVisible(bool visible)
     {
         SetElementDisplay(_topRightContainer, visible);
     }
 
-    public void SetAimUIVisible(bool visible)
+    private void SetAimUIVisible(bool visible)
     {
         if (_aimingReticle != null)
         {
@@ -618,7 +624,7 @@ public class PlayerUIManager : MonoBehaviour
         }
     }
 
-    public void SetAimTargetLocked(bool locked)
+    private void SetAimTargetLocked(bool locked)
     {
         if (_aimingReticle != null)
         {
@@ -631,15 +637,6 @@ public class PlayerUIManager : MonoBehaviour
             _aimingReticle.style.borderTopColor = targetColor;
             _aimingReticle.style.borderBottomColor = targetColor;
         }
-    }
-
-    #endregion
-
-    #region Public Getters
-
-    public VisualElement GetNotificationsContainer()
-    {
-        return _notificationsStreamContainer;
     }
 
     #endregion

@@ -86,11 +86,8 @@ public class PlayerAiming : MonoBehaviour
                 currentTarget.OnTargetGained();
             }
 
-            // Update UI Reticle feedback (e.g. highlight reticle when locked on)
-            if (PlayerUIManager.Instance != null)
-            {
-                PlayerUIManager.Instance.SetAimTargetLocked(currentTarget != null);
-            }
+            // Update UI Reticle feedback via GameEvents
+            GameEvents.UI.RequestSetAimTargetLocked(currentTarget != null);
         }
     }
 
@@ -110,10 +107,7 @@ public class PlayerAiming : MonoBehaviour
             currentTarget = null;
         }
 
-        if (PlayerUIManager.Instance != null)
-        {
-            PlayerUIManager.Instance.SetAimTargetLocked(false);
-        }
+        GameEvents.UI.RequestSetAimTargetLocked(false);
     }
 
     #endregion

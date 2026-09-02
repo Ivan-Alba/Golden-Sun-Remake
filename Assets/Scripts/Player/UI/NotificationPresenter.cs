@@ -15,53 +15,46 @@ public enum NotificationType
 }
 
 /// <summary>
-/// Controls the instantiation, styling, and lifecycle animations of notification cards in the HUD stream.
-/// Listens exclusively to GameEvents.UI.OnShowNotification for decoupled messaging.
+/// Pure C# Presenter that handles formatting, instantiation, and animations for HUD notification cards.
+/// Managed directly by PlayerUIManager.
 /// </summary>
-public class NotificationController : MonoBehaviour
+public class NotificationPresenter
 {
-    #region Unity Lifecycle
+    #region Private Fields
 
-    private void OnEnable()
-    {
-        // Event Subscriptions
-        GameEvents.UI.OnShowNotification -= HandleShowNotification;
-        GameEvents.UI.OnShowNotification += HandleShowNotification;
-    }
+    private readonly VisualElement _container;
+    private readonly VisualTreeAsset _cardTemplate;
+    private readonly MonoBehaviour _coroutineHost;
 
-    private void OnDisable()
+    #endregion
+
+    #region Constructor
+
+    public NotificationPresenter(VisualElement container, VisualTreeAsset cardTemplate, MonoBehaviour coroutineHost)
     {
-        // Event Unsubscriptions
-        GameEvents.UI.OnShowNotification -= HandleShowNotification;
+        _container = container;
+        _cardTemplate = cardTemplate;
+        _coroutineHost = coroutineHost;
     }
 
     #endregion
 
-    #region Event Handlers
+    #region Public API
 
-    private void HandleShowNotification(NotificationType type, string message, Sprite icon)
-    {
-        ShowNotification(type, message, icon);
-    }
-
-    #endregion
-
-    #region Public Notification API
-
-    /// <summary>
-    /// Displays a typed notification card with automatic formatting and styling based on NotificationType.
-    /// </summary>
     public void ShowNotification(NotificationType type, string message, Sprite icon = null)
     {
-        StartCoroutine(AddNotificationRoutine(type, message, icon));
+        if (_coroutineHost != null && _coroutineHost.isActiveAndEnabled)
+        {
+            _coroutineHost.StartCoroutine(AddNotificationRoutine(type, message, icon));
+        }
     }
 
-    /// <summary>
-    /// Spawns a custom-categorized notification card with a dynamic string category.
-    /// </summary>
     public void ShowNotification(string customCategory, string message, Sprite icon = null)
     {
-        StartCoroutine(AddNotificationRoutine(NotificationType.Info, message, icon, customCategory));
+        if (_coroutineHost != null && _coroutineHost.isActiveAndEnabled)
+        {
+            _coroutineHost.StartCoroutine(AddNotificationRoutine(NotificationType.Info, message, icon, customCategory));
+        }
     }
 
     #endregion
@@ -70,15 +63,10 @@ public class NotificationController : MonoBehaviour
 
     private IEnumerator AddNotificationRoutine(NotificationType type, string message, Sprite icon, string overrideCategory = null)
     {
-        if (PlayerUIManager.Instance == null) yield break;
-
-        VisualElement container = PlayerUIManager.Instance.GetNotificationsContainer();
-        VisualTreeAsset template = PlayerUIManager.Instance.NotificationCardTemplate;
-
-        if (container == null || template == null) yield break;
+        if (_container == null || _cardTemplate == null) yield break;
 
         // 1. Instantiate template
-        TemplateContainer cardInstance = template.Instantiate();
+        TemplateContainer cardInstance = _cardTemplate.Instantiate();
         VisualElement cardElement = cardInstance.Q<VisualElement>("hud_notification_card") ?? cardInstance;
 
         cardElement.pickingMode = PickingMode.Ignore;
@@ -122,7 +110,7 @@ public class NotificationController : MonoBehaviour
 
         // Initial transparent state
         cardElement.style.opacity = 0f;
-        container.Add(cardElement);
+        _container.Add(cardElement);
 
         // Wait 1 frame for UI Toolkit to register position and opacity state
         yield return null;
@@ -134,19 +122,19 @@ public class NotificationController : MonoBehaviour
             GameEvents.Audio.RequestPlaySFX(sfx);
         }
 
-        // 7. Fade In (Triggered natively by UI Toolkit)
+        // 7. Fade In
         cardElement.style.opacity = 1f;
         yield return new WaitForSeconds(0.4f);
 
         // 8. On-screen hold duration
         yield return new WaitForSeconds(4.0f);
 
-        // 9. Fade Out (Triggered natively by UI Toolkit)
+        // 9. Fade Out
         cardElement.style.opacity = 0f;
         yield return new WaitForSeconds(0.4f);
 
         // 10. Remove node from hierarchy
-        container.Remove(cardElement);
+        _container.Remove(cardElement);
     }
 
     #endregion
@@ -182,10 +170,6 @@ public class NotificationController : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// Maps notification types to their corresponding sound effect.
-    /// Returns SFXType.None if the notification type has no audio feedback.
-    /// </summary>
     private SFXType GetSFXForNotification(NotificationType type)
     {
         return type switch

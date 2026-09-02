@@ -2,6 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct NPCDialogueRule
+{
+    [Tooltip("Required story/game flag for this dialogue rule to activate.")]
+    public string requiredFlag;
+
+    [Tooltip("Dialogue ScriptableObject to assign when the flag condition is met.")]
+    public DialogueSO dialogue;
+}
+
+/// <summary>
+/// Controls world interaction for NPCs, smooth rotation towards the player, 
+/// and dynamic dialogue evaluation using localized DialogueSO assets and GameFlags.
+/// </summary>
 public class NPC : Interactable
 {
     #region Serialized Fields
@@ -11,12 +25,15 @@ public class NPC : Interactable
     [SerializeField] private float rotationSpeed = 4f;
     [SerializeField] private Sprite portraitSprite = null;
 
-    [Header("Dialogue Content")]
-    [SerializeField] private string[] dialogue;
+    [Header("Dynamic Dialogue Setup")]
+    [Tooltip("Fallback dialogue asset when no story flags are met.")]
+    [SerializeField] private DialogueSO defaultDialogue;
+
+    [Tooltip("Conditional dialogue rules evaluated in top-to-bottom order of priority.")]
+    [SerializeField] private List<NPCDialogueRule> conditionalDialogues = new List<NPCDialogueRule>();
 
     [Header("Camera Framing")]
     [SerializeField] private float eyeHeightOffset = 1.4f;
-    public float EyeHeightOffset => eyeHeightOffset;
 
     #endregion
 
@@ -31,8 +48,9 @@ public class NPC : Interactable
     #region Properties
 
     public string NpcName { get => npcName; set => npcName = value; }
-    public Sprite PortraitSprite { get => portraitSprite; }
+    public Sprite PortraitSprite => portraitSprite;
     public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
+    public float EyeHeightOffset => eyeHeightOffset;
 
     #endregion
 
@@ -73,7 +91,7 @@ public class NPC : Interactable
 
     public override void Interact()
     {
-        // Cache rotation and player transform using Tag
+        // Cache rotation and player transform
         initialRotation = transform.rotation;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -86,13 +104,15 @@ public class NPC : Interactable
             GameEvents.Player.RequestLookAt(transform.position, 0.25f);
         }
 
-        // Trigger player interaction animation if needed
+        // Trigger player interaction animation
         GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.InteractNPC);
 
-        // Trigger Dialogue System
-        if (DialogueManager.Instance != null)
+        // Evaluate and start active dialogue via decoupled event
+        DialogueSO activeDialogue = EvaluateActiveDialogue();
+
+        if (activeDialogue != null)
         {
-            DialogueManager.Instance.StartDialogue(dialogue, npcName, gameObject, portraitSprite);
+            GameEvents.UI.RequestStartDialogue(activeDialogue, npcName, gameObject, portraitSprite);
         }
 
         // Debug Command
@@ -100,6 +120,24 @@ public class NPC : Interactable
         {
             GameEvents.Inventory.RequestAllItems();
         }
+    }
+
+    /// <summary>
+    /// Evaluates story flags in top-to-bottom priority to select the current active dialogue.
+    /// </summary>
+    private DialogueSO EvaluateActiveDialogue()
+    {
+        foreach (var rule in conditionalDialogues)
+        {
+            if (string.IsNullOrEmpty(rule.requiredFlag)) continue;
+
+            if (GameManager.Instance != null && GameManager.Instance.HasFlag(rule.requiredFlag))
+            {
+                return rule.dialogue;
+            }
+        }
+
+        return defaultDialogue;
     }
 
     /// <summary>
@@ -121,7 +159,7 @@ public class NPC : Interactable
         // Calculate the world position of the eye pivot
         Vector3 eyePos = transform.position + Vector3.up * eyeHeightOffset;
 
-        // Draw a cyan wireframe sphere at the eye level
+        // Draw a cyan wireframe sphere at eye level
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(eyePos, 0.15f);
 

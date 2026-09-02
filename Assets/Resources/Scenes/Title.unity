@@ -1461,7 +1461,8 @@ PrefabInstance:
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8691245271201291964, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8459378967203041518, guid: a19744102be9ac7459c9135b44be0284, type: 3}

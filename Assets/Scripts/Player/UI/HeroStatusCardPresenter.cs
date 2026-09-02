@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class HeroStatusCardController
+public class HeroStatusCardPresenter
 {
     #region UI Elements References
 
@@ -24,13 +24,13 @@ public class HeroStatusCardController
     /// <summary>
     /// Constructor that queries and binds all UXML elements inside the HeroStatusCard template.
     /// </summary>
-    public HeroStatusCardController(VisualElement root)
+    public HeroStatusCardPresenter(VisualElement root)
     {
         _rootElement = root;
 
         if (_rootElement == null)
         {
-            Debug.LogError($"[{nameof(HeroStatusCardController)}] Root VisualElement is null!");
+            Debug.LogError($"[{nameof(HeroStatusCardPresenter)}] Root VisualElement is null!");
             return;
         }
 

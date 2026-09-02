@@ -762,7 +762,8 @@ public class BattleManager : MonoBehaviour
         }
 
         if (playerCanvas != null) playerCanvas.SetActive(true);
-        PlayerUIManager.Instance.RefreshPartyInfo();
+
+        GameEvents.Player.TriggerHeroStatusChanged();
 
         battleCameraController.SetOffBattleCamera();
 

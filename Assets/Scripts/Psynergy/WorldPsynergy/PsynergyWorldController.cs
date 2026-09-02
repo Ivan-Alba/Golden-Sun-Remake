@@ -130,7 +130,7 @@ public class PsynergyWorldController : MonoBehaviour
     /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
     /// Filters early if the lost psynergy is not usable in the world.
     /// </summary>
-    private void OnHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
+    private void    OnHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
     {
         if (hero == null || lostPsynergy == null) return;
 
@@ -193,14 +193,6 @@ public class PsynergyWorldController : MonoBehaviour
         shortcuts[slotIndex] = psynergy;
 
         NotifyShortcutsChanged(hero);
-    }
-
-    /// <summary>
-    /// Removes a shortcut from a specific slot.
-    /// </summary>
-    private void ClearShortcut(GameObject hero, int slotIndex)
-    {
-        SetShortcut(hero, null, slotIndex);
     }
 
     #endregion

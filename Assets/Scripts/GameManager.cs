@@ -49,10 +49,11 @@ public class GameManager : MonoBehaviour
     // PARTY INFO
     private List<GameObject> party = new List<GameObject>();
 
-    // GAME INFO
+    // GAME INFO & FLAGS
     private int totalGold;
     private float totalPlayed;
     private GameObject activeHero;
+    private readonly Dictionary<string, bool> gameFlags = new Dictionary<string, bool>();
 
     #endregion
 
@@ -122,6 +123,44 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.TitleScreen && currentState != GameState.Loading)
         {
             TotalPlayed += Time.deltaTime;
+        }
+    }
+
+    #endregion
+
+    #region Game Flags System
+
+    /// <summary>
+    /// Checks if a specific story/game flag is set to active.
+    /// </summary>
+    public bool HasFlag(string flagKey)
+    {
+        if (string.IsNullOrEmpty(flagKey)) return false;
+        return gameFlags.TryGetValue(flagKey, out bool value) && value;
+    }
+
+    /// <summary>
+    /// Sets the value of a story/game flag.
+    /// </summary>
+    public void SetFlag(string flagKey, bool value)
+    {
+        if (string.IsNullOrEmpty(flagKey)) return;
+
+        gameFlags[flagKey] = value;
+        Debug.Log($"[GameManager] GameFlag updated: '{flagKey}' => {value}");
+    }
+
+    /// <summary>
+    /// Removes a flag completely from memory.
+    /// </summary>
+    public void ClearFlag(string flagKey)
+    {
+        if (string.IsNullOrEmpty(flagKey)) return;
+
+        if (gameFlags.ContainsKey(flagKey))
+        {
+            gameFlags.Remove(flagKey);
+            Debug.Log($"[GameManager] GameFlag cleared: '{flagKey}'");
         }
     }
 
@@ -218,6 +257,7 @@ public class GameManager : MonoBehaviour
         totalGold = 0;
         totalPlayed = 0f;
         party.Clear();
+        gameFlags.Clear();
 
         GameEvents.Inventory.RequestClearAllInventories();
 
