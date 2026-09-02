@@ -14,6 +14,10 @@ public class NPC : Interactable
     [Header("Dialogue Content")]
     [SerializeField] private string[] dialogue;
 
+    [Header("Camera Framing")]
+    [SerializeField] private float eyeHeightOffset = 1.4f;
+    public float EyeHeightOffset => eyeHeightOffset;
+
     #endregion
 
     #region Private Fields
@@ -106,6 +110,26 @@ public class NPC : Interactable
         lookAtPlayer = false;
         cachedPlayerTransform = null;
     }
+
+    #endregion
+
+    #region Editor Gizmos
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        // Calculate the world position of the eye pivot
+        Vector3 eyePos = transform.position + Vector3.up * eyeHeightOffset;
+
+        // Draw a cyan wireframe sphere at the eye level
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(eyePos, 0.15f);
+
+        // Draw a vertical line from root position to the eye height
+        Gizmos.color = new Color(0f, 1f, 1f, 0.5f);
+        Gizmos.DrawLine(transform.position, eyePos);
+    }
+#endif
 
     #endregion
 }

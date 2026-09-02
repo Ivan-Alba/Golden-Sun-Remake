@@ -11809,8 +11809,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378965870332871}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.40200904, y: -0.27665147, z: -0.12882975, w: 0.8632819}
-  m_LocalPosition: {x: 32.84, y: 0.14499962, z: -34.2}
+  m_LocalRotation: {x: -0.0000000019361492, y: 0.9915228, z: -0.12993279, w: -0.00000001477484}
+  m_LocalPosition: {x: 0, y: 0.8, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11829,12 +11829,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
   Priority:
-    Enabled: 0
+    Enabled: 1
     m_Value: 0
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 20170927
-  m_LegacyPriority: 20
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 8459378966254215155}
     LookAtTarget: {fileID: 8459378966254215155}
@@ -11881,7 +11881,7 @@ MonoBehaviour:
       Size: {x: 0.8, y: 0.8}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
-  TargetOffset: {x: 0, y: 1.5, z: 0}
+  TargetOffset: {x: 0, y: 0, z: 0}
   Damping: {x: 0.5, y: 0.5}
   Lookahead:
     Enabled: 0
@@ -11901,13 +11901,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineGroupFraming
   FramingMode: 2
-  FramingSize: 0.6
-  CenterOffset: {x: 0, y: 0}
-  Damping: 2
-  SizeAdjustment: 2
-  LateralAdjustment: 1
+  FramingSize: 0.55
+  CenterOffset: {x: 0, y: -0.3}
+  Damping: 0.6
+  SizeAdjustment: 0
+  LateralAdjustment: 0
   FovRange: {x: 3, y: 60}
-  DollyRange: {x: -4, y: 20}
+  DollyRange: {x: 2, y: 8}
   OrthoSizeRange: {x: 1, y: 5000}
 --- !u!114 &2268531999062065131
 MonoBehaviour:
@@ -11923,11 +11923,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
     BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
+    PositionDamping: {x: 0.5, y: 0.5, z: 0.5}
     AngularDampingMode: 0
     RotationDamping: {x: 0, y: 0, z: 0}
     QuaternionDamping: 0
-  FollowOffset: {x: 2.5, y: 2, z: -3.5}
+  FollowOffset: {x: 0, y: 0.8, z: 3}
 --- !u!114 &8490861867400041978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11942,12 +11942,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineDeoccluder
   CollideAgainst:
     serializedVersion: 2
-    m_Bits: 25
+    m_Bits: 17
   IgnoreTag: 
   TransparentLayers:
     serializedVersion: 2
     m_Bits: 0
-  MinimumDistanceFromTarget: 0.1
+  MinimumDistanceFromTarget: 1.2
   AvoidObstacles:
     Enabled: 1
     DistanceLimit: 0
@@ -14009,8 +14009,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378965900201019}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 30.95, y: -1.9000002, z: -30.2}
+  m_LocalRotation: {x: 0.02497569, y: 0.008723781, z: -0.00021795876, w: 0.99965}
+  m_LocalPosition: {x: 29.525476, y: -1.8000002, z: -37.19848}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14048,7 +14048,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.1
-  far clip plane: 5000
+  far clip plane: 2000
   field of view: 55
   orthographic: 0
   orthographic size: 10
@@ -14091,7 +14091,7 @@ MonoBehaviour:
     DefaultMode: 2
   DefaultBlend:
     Style: 1
-    Time: 2
+    Time: 1.5
     CustomCurve:
       serializedVersion: 2
       m_Curve: []
@@ -17995,7 +17995,7 @@ MonoBehaviour:
   baseElement: 2
   baseProgression: {fileID: 11400000, guid: 28e7b6c41810c074ab43c48929488e8a, type: 2}
   level: 1
-  currentXp: 0
+  currentXp: 1550
   unlockedStoryPsynergies: []
 --- !u!114 &7159021585786953010
 MonoBehaviour:
@@ -18039,7 +18039,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   classDatabase: {fileID: 11400000, guid: bdb3db641c56da14488fe2b84e62eaca, type: 2}
-  initialDjinns: []
+  initialDjinns:
+  - {fileID: 11400000, guid: 72a6d0dc3f6be5246a941598988e64aa, type: 2}
+  - {fileID: 11400000, guid: 2ee0fb731a5748f449f6d83459044356, type: 2}
+  - {fileID: 11400000, guid: 5009e94fadf87db40a7e09c6dcb2e2b8, type: 2}
+  - {fileID: 11400000, guid: 1c1ee63e3eaa9204a899e069245e1c4f, type: 2}
   initialLeaderIndex: 0
 --- !u!114 &8459378965965534307
 MonoBehaviour:
@@ -24379,7 +24383,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8459378966069292772}
   - component: {fileID: 8459378966069292770}
-  - component: {fileID: 8459378966069292771}
+  - component: {fileID: 4272854323773183370}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -24417,7 +24421,7 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
---- !u!114 &8459378966069292771
+--- !u!114 &4272854323773183370
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -24426,17 +24430,28 @@ MonoBehaviour:
   m_GameObject: {fileID: 8459378966069292773}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
 --- !u!1 &8459378966069846628
 GameObject:
   m_ObjectHideFlags: 0
@@ -26870,7 +26885,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   playerMainCamera: {fileID: 8459378965900201019}
-  freeLookCamera: {fileID: 0}
+  freeLookCamera: {fileID: 3100800592091049275}
 --- !u!114 &8459378966118849750
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30583,6 +30598,7 @@ GameObject:
   - component: {fileID: 8459378966195427848}
   - component: {fileID: 8459378966195427847}
   - component: {fileID: 6147482466788152970}
+  - component: {fileID: 6903538537674537307}
   m_Layer: 6
   m_Name: PlayerHUD
   m_TagString: Untagged
@@ -30625,7 +30641,7 @@ MonoBehaviour:
   normalStaminaColor: {r: 0.94, g: 0.71, b: 0, a: 1}
   lowStaminaColor: {r: 1, g: 0, b: 0, a: 1}
   notificationCardTemplate: {fileID: 9197481963319205126, guid: b76923ad1c1c7c942b1bc8c645ae5864, type: 3}
-  minimapCustomRenderTexture: {fileID: 0}
+  minimapCustomRenderTexture: {fileID: 8600000, guid: d3b4ad743b9b60a4e9d632ec5832d6fb, type: 2}
 --- !u!114 &6147482466788152970
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30649,6 +30665,22 @@ MonoBehaviour:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_WorldSpaceCollider: {fileID: 0}
+--- !u!114 &6903538537674537307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8459378966195427849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a80fb080b92e924fbe2bd3d251c7256, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 6147482466788152970}
+  interactionPromptTemplate: {fileID: 9197481963319205126, guid: f47eab4e1c8feba4694cca1e640847b3, type: 3}
+  containerName: world_interaction_prompts_container
+  targetCamera: {fileID: 0}
 --- !u!1 &8459378966196940311
 GameObject:
   m_ObjectHideFlags: 0
@@ -36936,8 +36968,8 @@ MonoBehaviour:
   jupiterIcon: {fileID: 21300000, guid: 2921df73e30678745ba644923a130fa8, type: 3}
   mercuryIcon: {fileID: 21300000, guid: 94c258c31d4776f429f657c0a79b9112, type: 3}
   noElementalIcon: {fileID: 0}
-  venusElementCircle: {fileID: 1550070467213342, guid: c6069f67664a54b41bbd63bb34fa7f91, type: 3}
-  marsElementCircle: {fileID: 1550070467213342, guid: 361e45aed7992cc4bb337b04426e9982, type: 3}
+  venusElementCircle: {fileID: 1014003377299866, guid: b3580144580c2974a97bc9a13dcfcda6, type: 3}
+  marsElementCircle: {fileID: 1938559062727932, guid: 73dfabe99ff69c24ea921a5416a6598f, type: 3}
   jupiterElementCircle: {fileID: 1550070467213342, guid: 4d1d461a41d53264d9ceff97d5ae436a, type: 3}
   mercuryElementCircle: {fileID: 1550070467213342, guid: 29456a84c53c36b428654e5c58b27995, type: 3}
   noElementalCircle: {fileID: 1550070467213342, guid: 5dce100883223ce4499784b7ed326842, type: 3}
@@ -38874,7 +38906,7 @@ Transform:
   m_GameObject: {fileID: 8459378966254215156}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 30.34, y: -1.8550004, z: -30.7}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -52587,7 +52619,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378966427559358}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.40200904, y: -0.27665147, z: -0.12882975, w: 0.8632819}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 30.95, y: -1.9000002, z: -30.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -52611,8 +52643,8 @@ MonoBehaviour:
     m_Value: 0
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 20170927
-  m_LegacyPriority: 20
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 8459378965970709028}
     LookAtTarget: {fileID: 0}
@@ -52692,28 +52724,24 @@ MonoBehaviour:
       Owner: {fileID: 3526866620092773622}
       Enabled: 1
       Input:
-        InputAction: {fileID: -6016296538945203769, guid: ac40dc91866254e4bad38b6028116e8c, type: 3}
-        Gain: 1.2
-        LegacyInput: Mouse X
-        LegacyGain: 120
+        InputAction: {fileID: -5630151704836100654, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        Gain: 1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
-        AccelTime: 0.05
-        DecelTime: 0.05
+        AccelTime: 0.2
+        DecelTime: 0.2
     - Name: Look Y (Tilt)
       Owner: {fileID: 3526866620092773622}
       Enabled: 1
       Input:
-        InputAction: {fileID: -6016296538945203769, guid: ac40dc91866254e4bad38b6028116e8c, type: 3}
-        Gain: 1.2
-        LegacyInput: Mouse Y
-        LegacyGain: 120
+        InputAction: {fileID: -5630151704836100654, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        Gain: -1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
-        AccelTime: 0.05
-        DecelTime: 0.05
+        AccelTime: 0.2
+        DecelTime: 0.2
   PlayerIndex: -1
   AutoEnableInputs: 1
 --- !u!114 &1544131417561556296
@@ -71266,8 +71294,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378966764608676}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.5206834, y: -0.2555203, z: -0.16686068, w: 0.7973429}
-  m_LocalPosition: {x: 28.005852, y: -1.8000002, z: -17.344551}
+  m_LocalRotation: {x: 0.02497569, y: 0.008723782, z: -0.00021797618, w: 0.99965}
+  m_LocalPosition: {x: 29.525476, y: -1.8000002, z: -37.19848}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -71286,12 +71314,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
   Priority:
-    Enabled: 0
-    m_Value: 0
+    Enabled: 1
+    m_Value: 10
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 20170927
-  m_LegacyPriority: 10
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 8459378967203041517}
     LookAtTarget: {fileID: 8459378967203041517}
@@ -71330,11 +71358,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFreeLookModifier
   Easing: 0
   Modifiers:
-  - rid: 6310527177549414578
+  - rid: 6310527177549414577
   references:
     version: 2
     RefIds:
-    - rid: 6310527177549414578
+    - rid: 6310527177549414577
       type: {class: CinemachineFreeLookModifier/CompositionModifier, ns: Unity.Cinemachine, asm: Unity.Cinemachine}
       data:
         Composition:
@@ -71440,36 +71468,30 @@ MonoBehaviour:
       Owner: {fileID: 7883852450876697387}
       Enabled: 1
       Input:
-        InputAction: {fileID: -7494084303874077308, guid: ac40dc91866254e4bad38b6028116e8c, type: 3}
-        Gain: 2
-        LegacyInput: Mouse X
-        LegacyGain: 200
+        InputAction: {fileID: -5630151704836100654, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        Gain: 1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
-        AccelTime: 0.05
-        DecelTime: 0.05
+        AccelTime: 0.2
+        DecelTime: 0.2
     - Name: Look Orbit Y
       Owner: {fileID: 7883852450876697387}
       Enabled: 1
       Input:
-        InputAction: {fileID: -7494084303874077308, guid: ac40dc91866254e4bad38b6028116e8c, type: 3}
-        Gain: 0.02
-        LegacyInput: Mouse Y
-        LegacyGain: 2
+        InputAction: {fileID: -5630151704836100654, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        Gain: -1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
-        AccelTime: 0.05
-        DecelTime: 0.05
+        AccelTime: 0.2
+        DecelTime: 0.2
     - Name: Orbit Scale
       Owner: {fileID: 7883852450876697387}
       Enabled: 1
       Input:
         InputAction: {fileID: 5082991133974614888, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
         Gain: -1
-        LegacyInput: 
-        LegacyGain: 1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
@@ -90723,7 +90745,7 @@ MonoBehaviour:
   baseElement: 1
   baseProgression: {fileID: 11400000, guid: afb6123f5fb8203448273304cef8aa04, type: 2}
   level: 1
-  currentXp: 0
+  currentXp: 2500
   unlockedStoryPsynergies: []
 --- !u!114 &6342542899712295493
 MonoBehaviour:
@@ -90767,8 +90789,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   classDatabase: {fileID: 11400000, guid: bdb3db641c56da14488fe2b84e62eaca, type: 2}
-  initialDjinns: []
-  initialLeaderIndex: 0
+  initialDjinns:
+  - {fileID: 11400000, guid: 849e9dc677a02144a987c3d06b74bf10, type: 2}
+  - {fileID: 11400000, guid: 046b3a504735af84f818d645c85aaa73, type: 2}
+  - {fileID: 11400000, guid: 0cf1fb20ebe37c64eac637670d95e73d, type: 2}
+  - {fileID: 11400000, guid: be3a735dbb688c44e9021c73e7c54e51, type: 2}
+  initialLeaderIndex: 1
 --- !u!114 &8459378967019290831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101132,8 +101158,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   mainCamera: {fileID: 8459378965900201018}
-  freeLookCamera: {fileID: 0}
-  aimVirtualCamera: {fileID: 0}
+  freeLookCamera: {fileID: 3100800592091049275}
+  aimVirtualCamera: {fileID: 575090345836108460}
   aimRotationSpeed: 1200
   defaultAimPriority: 0
   activeAimPriority: 20
@@ -101299,11 +101325,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 220754ba52c86be468a608d652a22552, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRadius: 2.5
-  maxInteractionAngle: 60
+  detectionRadius: 1.5
+  maxInteractionAngle: 50
   interactableLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2048
   detectionCenterOffset: {x: 0, y: 1, z: 0}
   maxDetectedColliders: 8
 --- !u!1 &8459378967203617128
@@ -107388,10 +107414,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37ddc734bb706854fb40f6d8deedae12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueCamera: {fileID: 0}
+  dialogueCamera: {fileID: 8025452197950221508}
   targetGroup: {fileID: 8459378966254215154}
   activeCameraPriority: 20
   inactiveCameraPriority: 0
+  eyeHeightOffset: 1.4
   charactersPerSecond: 30
 --- !u!1 &8459378967318386842
 GameObject:
@@ -113645,9 +113672,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentMode: 0
-  playerTransform: {fileID: 0}
-  mainCameraTransform: {fileID: 0}
-  hudDocument: {fileID: 0}
+  playerTransform: {fileID: 8459378965970709028}
+  mainCameraTransform: {fileID: 8459378965900201018}
+  hudDocument: {fileID: 6147482466788152970}
   northIndicatorRingName: minimap_compass_ring
   playerArrowName: minimap_player_arrow
 --- !u!114 &8459378967438113739

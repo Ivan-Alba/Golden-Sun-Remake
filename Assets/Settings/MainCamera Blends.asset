@@ -12,24 +12,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36baaa8bdcb9d8b49b9199833965d2c3, type: 3}
   m_Name: MainCamera Blends
   m_EditorClassIdentifier: 
-  m_CustomBlends:
-  - m_From: ThirdPersonCamera
-    m_To: AimCamera
-    m_Blend:
-      m_Style: 1
-      m_Time: 0.4
-      m_CustomCurve:
+  CustomBlends:
+  - From: ThirdPersonCamera
+    To: AimCamera
+    Blend:
+      Style: 1
+      Time: 0.4
+      CustomCurve:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: AimCamera
-    m_To: ThirdPersonCamera
-    m_Blend:
-      m_Style: 1
-      m_Time: 0.4
-      m_CustomCurve:
+  - From: AimCamera
+    To: ThirdPersonCamera
+    Blend:
+      Style: 1
+      Time: 0.4
+      CustomCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 0
+        m_PostInfinity: 0
+        m_RotationOrder: 0
+  - From: ThirdPersonCamera
+    To: DialogueCamera
+    Blend:
+      Style: 1
+      Time: 1
+      CustomCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 0
+        m_PostInfinity: 0
+        m_RotationOrder: 0
+  - From: DialogueCamera
+    To: ThirdPersonCamera
+    Blend:
+      Style: 1
+      Time: 0.9
+      CustomCurve:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 0

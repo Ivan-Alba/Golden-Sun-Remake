@@ -3018,6 +3018,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
     - target: {fileID: 4782556760297396801, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
+      propertyPath: eyeHeightOffset
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4782556760297396801, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
       propertyPath: dialogue.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -8720,6 +8724,9 @@ MonoBehaviour:
   promptOffset: {x: 0, y: 0.8, z: 0}
   itemData: {fileID: 11400000, guid: 58626730dba3c8049b1e39344ed6c185, type: 2}
   itemQuantity: 1
+  playerPickDuration: 2.2
+  endSequenceDelay: 0.7
+  destroyDelay: 5
 --- !u!135 &449773572228179262
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -8995,6 +9002,9 @@ MonoBehaviour:
   promptOffset: {x: 0, y: 1.5, z: 0}
   itemData: {fileID: 11400000, guid: 258e47b7baa2ee04aa38db00c2e0d742, type: 2}
   itemQuantity: 1
+  playerPickDuration: 1
+  chestOpeningDuration: 2
+  endSequenceDelay: 0.5
 --- !u!1001 &4026299314029354013
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9055,6 +9065,10 @@ PrefabInstance:
       propertyPath: portraitSprite
       value: 
       objectReference: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
+    - target: {fileID: 4782556760297396801, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
+      propertyPath: eyeHeightOffset
+      value: 0.9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10170,6 +10184,9 @@ MonoBehaviour:
   promptOffset: {x: 0, y: 1.5, z: 0}
   itemData: {fileID: 11400000, guid: e70ac0d099c429843ab194ad1942e600, type: 2}
   itemQuantity: 1
+  playerPickDuration: 1
+  chestOpeningDuration: 2
+  endSequenceDelay: 0.5
 --- !u!114 &7128964440977121451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10188,6 +10205,9 @@ MonoBehaviour:
   promptOffset: {x: 0, y: 1.5, z: 0}
   itemData: {fileID: 11400000, guid: 4b208e754b409ca48b5dfd4ffe211b11, type: 2}
   itemQuantity: 1
+  playerPickDuration: 1
+  chestOpeningDuration: 2
+  endSequenceDelay: 0.5
 --- !u!1 &7204436303026603346
 GameObject:
   m_ObjectHideFlags: 0
