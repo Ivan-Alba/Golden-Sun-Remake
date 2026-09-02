@@ -1,8 +1,32 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnPoint : MonoBehaviour
 {
+    #region Static Registry ($O(1)$ Lookup)
+
+    // Global registry for all active SpawnPoints in the currently loaded scenes
+    public static readonly Dictionary<string, SpawnPoint> AllSpawnPoints = new Dictionary<string, SpawnPoint>();
+
+    private void Awake()
+    {
+        if (!string.IsNullOrEmpty(spawnPointID))
+        {
+            AllSpawnPoints[spawnPointID] = this;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (!string.IsNullOrEmpty(spawnPointID) && AllSpawnPoints.ContainsKey(spawnPointID))
+        {
+            AllSpawnPoints.Remove(spawnPointID);
+        }
+    }
+
+    #endregion
+
     #region Serialized Fields
 
     [SerializeField] private string spawnPointID;

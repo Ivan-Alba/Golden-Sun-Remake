@@ -8,8 +8,18 @@ using UnityEngine;
 public class FieldItem : Interactable
 {
     [Header("Item Configuration")]
-    [SerializeField] private string itemSlug;
+    [SerializeField] private ItemSO itemData;
     [SerializeField] private int itemQuantity = 1;
+
+    [Header("Timing Settings")]
+    [Tooltip("Duration to wait for the player's ground picking animation to complete before processing inventory.")]
+    [SerializeField] private float playerPickDuration = 2.2f;
+
+    [Tooltip("Delay after triggering the notification before restoring player movement state.")]
+    [SerializeField] private float endSequenceDelay = 0.7f;
+
+    [Tooltip("Delay before destroying the GameObject after hidden from the scene.")]
+    [SerializeField] private float destroyDelay = 5f;
 
     #region Private Fields
 
@@ -49,6 +59,12 @@ public class FieldItem : Interactable
     /// </summary>
     private IEnumerator PickItemRoutine()
     {
+        if (itemData == null)
+        {
+            Debug.LogError($"[FieldItem] No ItemSO assigned to field item '{gameObject.name}'!");
+            yield break;
+        }
+
         itemPicked = true;
 
         // Temporarily disable interaction detection via Layer change
@@ -58,20 +74,14 @@ public class FieldItem : Interactable
         // 1. Lock gameplay and camera via GameState event command
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
-        // 2. Play picking animation on Player
-        if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
-        {
-            PlayerController.Instance.PlayerAnim.SetTrigger("pickFloor");
-        }
+        // 2. Play picking animation on Player via decoupled event
+        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.PickFloor);
 
-        yield return new WaitForSeconds(2.2f);
-
-        // Retrieve item data from ItemDatabase for notification styling
-        ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
+        yield return new WaitForSeconds(playerPickDuration);
 
         // 3. Attempt to add item to Inventory via decoupled event transaction
         int remaining = -1;
-        GameEvents.Inventory.RequestAddItem(itemSlug, itemQuantity, (result) =>
+        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result) =>
         {
             remaining = result;
         });
@@ -79,7 +89,7 @@ public class FieldItem : Interactable
         // FALLBACK CASE A: System error / No active inventory listener responded
         if (remaining < 0)
         {
-            Debug.LogError($"[FieldItem] Transaction failed for item '{itemSlug}'. No inventory handler responded to RequestAddItem.");
+            Debug.LogError($"[FieldItem] Transaction failed for item '{itemData.ItemSlug}'. No inventory handler responded to RequestAddItem.");
 
             // Rollback interaction state
             gameObject.layer = originalLayer;
@@ -102,12 +112,6 @@ public class FieldItem : Interactable
             yield break; // Abort destruction routine
         }
 
-        // SUCCESS CASE (remaining == 0): Item successfully stored in inventory
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
-        }
-
         if (itemData != null)
         {
             string notificationText = itemQuantity > 1
@@ -120,12 +124,12 @@ public class FieldItem : Interactable
         // Hide world object visually while processing cleanup
         transform.position = new Vector3(0f, -1000f, 0f);
 
-        yield return new WaitForSeconds(0.7f);
+        yield return new WaitForSeconds(endSequenceDelay);
 
         // Restore game state back to free exploration
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
 
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, destroyDelay);
     }
 
     #endregion

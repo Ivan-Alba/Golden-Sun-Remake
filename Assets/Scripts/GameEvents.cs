@@ -21,7 +21,6 @@ public static class GameEvents
         /// Triggered AFTER the GameManager has validated and officially changed the state.
         /// </summary>
         public static event Action<GameManager.GameState, GameManager.GameState> OnGameStateChanged;
-        // Nota: Opcionalmente enviamos (previousState, newState) para dar más contexto a la UI
         public static void TriggerGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
             => OnGameStateChanged?.Invoke(previousState, newState);
     }
@@ -38,6 +37,49 @@ public static class GameEvents
         public static event Action<PlayerInteractionAnimType> OnPlayInteractionAnimation;
         public static void TriggerPlayInteractionAnimation(PlayerInteractionAnimType animType)
             => OnPlayInteractionAnimation?.Invoke(animType);
+
+        /// <summary>
+        /// Request to relocate/teleport the player to a target position and rotation safely.
+        /// Params: targetPosition, targetRotation
+        /// </summary>
+        public static event Action<Vector3, Quaternion> OnRequestTeleport;
+        public static void RequestTeleport(Vector3 position, Quaternion rotation)
+            => OnRequestTeleport?.Invoke(position, rotation);
+
+        /// <summary>
+        /// Request the player to automatically walk toward a target destination.
+        /// Params: destinationPosition
+        /// </summary>
+        public static event Action<Vector3> OnRequestAutoWalk;
+        public static void RequestAutoWalk(Vector3 destination)
+            => OnRequestAutoWalk?.Invoke(destination);
+
+        /// <summary>
+        /// Request to stop any active auto-walk operation on the player.
+        /// </summary>
+        public static event Action OnRequestStopAutoWalk;
+        public static void RequestStopAutoWalk()
+            => OnRequestStopAutoWalk?.Invoke();
+    }
+
+    // ==========================================
+    // AUDIO & SOUND EVENTS
+    // ==========================================
+    public static class Audio
+    {
+        /// <summary>
+        /// Request to play a sound effect using its database enum identifier.
+        /// </summary>
+        public static event Action<SFXType> OnPlaySFXRequested;
+        public static void RequestPlaySFX(SFXType type)
+            => OnPlaySFXRequested?.Invoke(type);
+
+        /// <summary>
+        /// Request to play an explicit AudioClip directly with optional volume scaling.
+        /// </summary>
+        public static event Action<AudioClip, float> OnPlaySFXClipRequested;
+        public static void RequestPlaySFXClip(AudioClip clip, float volume = 1.0f)
+            => OnPlaySFXClipRequested?.Invoke(clip, volume);
     }
 
     // ==========================================
@@ -46,18 +88,22 @@ public static class GameEvents
     public static class Inventory
     {
         /// <summary>
-        /// Request to add an item to the inventory. 
-        /// Sends slug, quantity and a callback action returning the remaining items count (0 = success, >0 = overflow).
+        /// Request to add an item to the inventory using its ScriptableObject reference. 
+        /// Sends ItemSO, quantity and a callback action returning the remaining items count (0 = success, >0 = overflow).
         /// </summary>
-        public static event Action<string, int, Action<int>> OnRequestAddItem;
+        public static event Action<ItemSO, int, Action<int>> OnRequestAddItem;
 
-        public static void RequestAddItem(string itemSlug, int quantity, Action<int> onResult)
-            => OnRequestAddItem?.Invoke(itemSlug, quantity, onResult);
+        public static void RequestAddItem(ItemSO item, int quantity, Action<int> onResult)
+            => OnRequestAddItem?.Invoke(item, quantity, onResult);
 
-        public static event Action<string, int, Action<bool>> OnRequestRemoveItem;
+        /// <summary>
+        /// Request to remove an item from the inventory using its ScriptableObject reference.
+        /// Sends ItemSO, quantity and a callback action returning success (true/false).
+        /// </summary>
+        public static event Action<ItemSO, int, Action<bool>> OnRequestRemoveItem;
 
-        public static void RequestRemoveItem(string itemSlug, int quantity, Action<bool> onResult)
-            => OnRequestRemoveItem?.Invoke(itemSlug, quantity, onResult);
+        public static void RequestRemoveItem(ItemSO item, int quantity, Action<bool> onResult)
+            => OnRequestRemoveItem?.Invoke(item, quantity, onResult);
 
         public static event Action OnSyncWithPartyRequested;
         public static void RequestSyncWithParty() => OnSyncWithPartyRequested?.Invoke();
@@ -65,9 +111,13 @@ public static class GameEvents
         public static event Action OnClearAllInventoriesRequested;
         public static void RequestClearAllInventories() => OnClearAllInventoriesRequested?.Invoke();
 
-        public static event Action<string, int, Action<bool>> OnCheckHasItem;
-        public static void CheckHasItem(string itemSlug, int amount, Action<bool> onResult)
-            => OnCheckHasItem?.Invoke(itemSlug, amount, onResult);
+        /// <summary>
+        /// Check if the inventory contains a specific amount of an item using its ScriptableObject reference.
+        /// </summary>
+        public static event Action<ItemSO, int, Action<bool>> OnCheckHasItem;
+
+        public static void CheckHasItem(ItemSO item, int amount, Action<bool> onResult)
+            => OnCheckHasItem?.Invoke(item, amount, onResult);
 
         // TESTING
 
@@ -132,15 +182,4 @@ public static class GameEvents
         public static event Action<string> OnCutsceneStart;
         public static event Action<string> OnCutsceneEnd;
     }
-}
-
-/// <summary>
-/// Strongly-typed interaction animation requests for the player character.
-/// </summary>
-public enum PlayerInteractionAnimType
-{
-    PickChest,
-    PickFloor,
-    InteractNPC,
-    TouchObject
 }

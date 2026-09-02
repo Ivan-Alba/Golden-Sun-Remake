@@ -8,8 +8,18 @@ using UnityEngine;
 public class Chest : Interactable
 {
     [Header("Chest Content")]
-    [SerializeField] private string itemSlug;
+    [SerializeField] private ItemSO itemData;
     [SerializeField] private int itemQuantity = 1;
+
+    [Header("Timing Settings")]
+    [Tooltip("Delay after player starts picking animation before opening the chest.")]
+    [SerializeField] private float playerPickDuration = 1.0f;
+
+    [Tooltip("Time required for the chest opening animation to settle.")]
+    [SerializeField] private float chestOpeningDuration = 2.0f;
+
+    [Tooltip("Pause duration after showing item notification before releasing game state.")]
+    [SerializeField] private float endSequenceDelay = 0.5f;
 
     #region Private Fields
 
@@ -51,6 +61,12 @@ public class Chest : Interactable
     /// </summary>
     private IEnumerator OpenChestRoutine()
     {
+        if (itemData == null)
+        {
+            Debug.LogError($"[Chest] No ItemSO assigned to chest '{gameObject.name}'!");
+            yield break;
+        }
+
         chestOpened = true;
 
         // Temporarily disable interaction detection via Layer change
@@ -60,16 +76,10 @@ public class Chest : Interactable
         // 1. Lock gameplay and camera via GameState event command
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
-        // Retrieve item data from ItemDatabase for notification styling
-        ItemSO itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItem(itemSlug) : null;
+        // Decoupled event request for player animation
+        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.PickChest);
 
-        // Trigger player picking animation
-        if (PlayerController.Instance != null && PlayerController.Instance.PlayerAnim != null)
-        {
-            PlayerController.Instance.PlayerAnim.SetTrigger("pickChest");
-        }
-
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(playerPickDuration);
 
         // Trigger chest opening animation
         if (chestAnimator != null)
@@ -78,11 +88,11 @@ public class Chest : Interactable
         }
 
         // Wait for chest opening animation to settle
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(chestOpeningDuration);
 
         // 2. Request item addition to inventory via decoupled event transaction
         int remaining = -1;
-        GameEvents.Inventory.RequestAddItem(itemSlug, itemQuantity, (result) =>
+        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result) =>
         {
             remaining = result;
         });
@@ -90,7 +100,7 @@ public class Chest : Interactable
         // FALLBACK CASE A: System error / No active inventory listener responded
         if (remaining < 0)
         {
-            Debug.LogError($"[Chest] Transaction failed for item '{itemSlug}'. No inventory handler responded to RequestAddItem.");
+            Debug.LogError($"[Chest] Transaction failed for item '{itemData.ItemSlug}'. No inventory handler responded to RequestAddItem.");
 
             // Rollback interaction state
             gameObject.layer = originalLayer;
@@ -125,12 +135,6 @@ public class Chest : Interactable
             yield break; // Abort remaining pickup flow
         }
 
-        // SUCCESS CASE (remaining == 0): Item successfully stored in inventory
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_ItemFound);
-        }
-
         // Show UI notification
         if (itemData != null)
         {
@@ -141,7 +145,7 @@ public class Chest : Interactable
             GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(endSequenceDelay);
 
         // 3. Restore game state back to free exploration (Chest remains in 'Default' layer permanently)
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);

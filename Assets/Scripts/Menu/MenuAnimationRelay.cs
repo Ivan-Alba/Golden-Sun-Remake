@@ -1,3 +1,4 @@
+#if false
 using UnityEngine;
 
 public class MenuAnimationRelay : MonoBehaviour
@@ -20,3 +21,4 @@ public class MenuAnimationRelay : MonoBehaviour
         }
     }
 }
+#endif

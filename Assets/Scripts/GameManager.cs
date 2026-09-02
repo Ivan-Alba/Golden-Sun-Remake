@@ -147,11 +147,6 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] Game State changed from {previousState} to {newState}");
         currentState = newState;
 
-        if (currentState != GameState.InMenu && MenuController.Instance != null)
-        {
-            MenuController.Instance.CloseMenu();
-        }
-
         switch (currentState)
         {
             case GameState.TitleScreen:
@@ -454,40 +449,35 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void RelocatePlayerToSpawnPoint()
     {
-        if (PlayerController.Instance == null) return;
+        if (PlayerController.Instance == null || string.IsNullOrEmpty(pendingSpawnID)) return;
 
-        SpawnPoint[] spawnPoints = FindObjectsOfType<SpawnPoint>();
         currentUsedSpawnPoint = null;
 
-        foreach (SpawnPoint sp in spawnPoints)
+        // Direct O(1) dictionary lookup replacing FindObjectsOfType
+        if (SpawnPoint.AllSpawnPoints.TryGetValue(pendingSpawnID, out SpawnPoint sp))
         {
-            if (sp.SpawnPointID == pendingSpawnID)
+            currentUsedSpawnPoint = sp;
+            UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+
+            Transform playerTransform = PlayerController.Instance.transform;
+            Vector3 previousPosition = playerTransform.position;
+
+            CharacterController cc = playerTransform.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+
+            // Safety ground snap raycast
+            Vector3 spawnPos = sp.transform.position;
+            if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
             {
-                currentUsedSpawnPoint = sp;
-                UpdateCurrentZone(sp.ZoneName, sp.RegionName);
-
-                Transform playerTransform = PlayerController.Instance.transform;
-                Vector3 previousPosition = playerTransform.position;
-
-                CharacterController cc = playerTransform.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-
-                // Safety ground snap raycast
-                Vector3 spawnPos = sp.transform.position;
-                if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
-                {
-                    spawnPos.y = hit.point.y;
-                }
-
-                playerTransform.position = spawnPos;
-                playerTransform.rotation = sp.transform.rotation;
-
-                if (cc != null) cc.enabled = true;
-
-                ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
-
-                break;
+                spawnPos.y = hit.point.y;
             }
+
+            playerTransform.position = spawnPos;
+            playerTransform.rotation = sp.transform.rotation;
+
+            if (cc != null) cc.enabled = true;
+
+            ResetCameraBehindPlayer(playerTransform, sp.transform.rotation, previousPosition);
         }
 
         pendingSpawnID = null;
@@ -575,7 +565,7 @@ public class GameManager : MonoBehaviour
             for (int i = GlobalBag.Instance.KeyItemSlots.Count - 1; i >= 0; i--)
             {
                 var slot = GlobalBag.Instance.KeyItemSlots[i];
-                if (!slot.IsEmpty) GlobalBag.Instance.RemoveKeyItem(slot.Item.ItemSlug, slot.Quantity);
+                if (!slot.IsEmpty) GlobalBag.Instance.RemoveKeyItem(slot.Item, slot.Quantity);
             }
 
             foreach (var savedItem in dataToLoad.globalBagItems)

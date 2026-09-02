@@ -4,6 +4,17 @@ using UnityEngine;
 using Unity.Cinemachine;
 
 /// <summary>
+/// Strongly-typed interaction animation requests for the player character.
+/// </summary>
+public enum PlayerInteractionAnimType
+{
+    PickChest,
+    PickFloor,
+    InteractNPC,
+    TouchObject
+}
+
+/// <summary>
 /// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
 /// </summary>
 public class PlayerController : MonoBehaviour
@@ -118,16 +129,18 @@ public class PlayerController : MonoBehaviour
     {
         SubscribeToInputEvents();
 
-        // Subscribe to GameManager state changes to handle transitions cleanly
+        // Subscribe to GameEvents
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+        GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
     }
 
     private void OnDisable()
     {
         UnsubscribeFromInputEvents();
 
-        // Unsubscribe from GameManager state changes
+        // Unsubscribe from GameEvents
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
 
         StopAutoWalk();
     }
@@ -158,7 +171,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region GameState Events
+    #region Event Handlers (GameState & Player Animations)
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
@@ -166,6 +179,30 @@ public class PlayerController : MonoBehaviour
         if (newState == GameManager.GameState.WorldExploration)
         {
             StopAutoWalk();
+        }
+    }
+
+    /// <summary>
+    /// Handles requests to play interaction animations via GameEvents.Player.
+    /// </summary>
+    private void HandlePlayInteractionAnimation(PlayerInteractionAnimType animType)
+    {
+        if (playerAnim == null) return;
+
+        switch (animType)
+        {
+            case PlayerInteractionAnimType.PickChest:
+                playerAnim.SetTrigger("pickChest");
+                break;
+            case PlayerInteractionAnimType.PickFloor:
+                playerAnim.SetTrigger("pickFloor");
+                break;
+            case PlayerInteractionAnimType.InteractNPC:
+                playerAnim.SetTrigger("interactNPC");
+                break;
+            case PlayerInteractionAnimType.TouchObject:
+                playerAnim.SetTrigger("touchObject");
+                break;
         }
     }
 
@@ -351,7 +388,7 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    public void ResetMovementAnimations()
+    private void ResetMovementAnimations()
     {
         if (playerAnim == null) return;
 
@@ -382,7 +419,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Cancels any active auto-walk operation and resets movement animations.
     /// </summary>
-    public void StopAutoWalk()
+    private void StopAutoWalk()
     {
         if (autoWalkCoroutine != null)
         {

@@ -1,3 +1,4 @@
+#if false
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -546,6 +547,5 @@ public class InventoryUI : MonoBehaviour
         //itemsList = new List<Item>();
         elementsList = new List<GameObject>();
     }
-
-
 }
+#endif

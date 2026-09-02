@@ -572,6 +572,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 668542233}
     m_Modifications:
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 5ceb22d8d5877f544b00e64fb1665bb0, type: 2}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Antidote
       objectReference: {fileID: 0}
@@ -644,6 +648,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 668542233}
     m_Modifications:
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 0c0e70d69376461419e9c59c6fd10a85, type: 2}
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Herb
@@ -2371,6 +2379,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 668542233}
     m_Modifications:
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Antidote
       objectReference: {fileID: 0}
@@ -3249,6 +3261,10 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 9726.05
       objectReference: {fileID: 0}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 69ae9763f72300d4fb7c33a05d44abab, type: 2}
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Herb
@@ -8702,7 +8718,7 @@ MonoBehaviour:
   keyPrompt: SPC
   promptAnchor: {fileID: 0}
   promptOffset: {x: 0, y: 0.8, z: 0}
-  itemSlug: antidote
+  itemData: {fileID: 11400000, guid: 58626730dba3c8049b1e39344ed6c185, type: 2}
   itemQuantity: 1
 --- !u!135 &449773572228179262
 SphereCollider:
@@ -8859,6 +8875,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 668542233}
     m_Modifications:
     - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 225b458a27b01b84fa8b9aad6edec0c7, type: 2}
+    - target: {fileID: 1572714192713929012, guid: 2fee37fbdfb1c9f489c4394c7f1edc4f, type: 3}
       propertyPath: itemName
       value: Herb
       objectReference: {fileID: 0}
@@ -8973,7 +8993,7 @@ MonoBehaviour:
   keyPrompt: SPC
   promptAnchor: {fileID: 0}
   promptOffset: {x: 0, y: 1.5, z: 0}
-  itemSlug: metal_bracelet
+  itemData: {fileID: 11400000, guid: 258e47b7baa2ee04aa38db00c2e0d742, type: 2}
   itemQuantity: 1
 --- !u!1001 &4026299314029354013
 PrefabInstance:
@@ -10112,6 +10132,10 @@ PrefabInstance:
       value: Chest
       objectReference: {fileID: 0}
     - target: {fileID: 4156739481176843908, guid: 6fdc462274658794db125f64872d5626, type: 3}
+      propertyPath: itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 5ceb22d8d5877f544b00e64fb1665bb0, type: 2}
+    - target: {fileID: 4156739481176843908, guid: 6fdc462274658794db125f64872d5626, type: 3}
       propertyPath: itemSlug
       value: life_water
       objectReference: {fileID: 0}
@@ -10144,7 +10168,7 @@ MonoBehaviour:
   keyPrompt: SPC
   promptAnchor: {fileID: 0}
   promptOffset: {x: 0, y: 1.5, z: 0}
-  itemSlug: spirit_ring
+  itemData: {fileID: 11400000, guid: e70ac0d099c429843ab194ad1942e600, type: 2}
   itemQuantity: 1
 --- !u!114 &7128964440977121451
 MonoBehaviour:
@@ -10162,7 +10186,7 @@ MonoBehaviour:
   keyPrompt: SPC
   promptAnchor: {fileID: 0}
   promptOffset: {x: 0, y: 1.5, z: 0}
-  itemSlug: great_axe
+  itemData: {fileID: 11400000, guid: 4b208e754b409ca48b5dfd4ffe211b11, type: 2}
   itemQuantity: 1
 --- !u!1 &7204436303026603346
 GameObject:

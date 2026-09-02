@@ -43,21 +43,21 @@ public class InventoryController : MonoBehaviour
 
     #region Event Handlers
 
-    private void HandleRequestAddItem(string itemSlug, int quantity, Action<int> onResult)
+    private void HandleRequestAddItem(ItemSO itemData, int quantity, Action<int> onResult)
     {
-        int remaining = AddItem(itemSlug, quantity);
+        int remaining = AddItem(itemData, quantity);
         onResult?.Invoke(remaining);
     }
 
-    private void HandleRequestRemoveItem(string itemSlug, int quantity, Action<bool> onResult)
+    private void HandleRequestRemoveItem(ItemSO itemData, int quantity, Action<bool> onResult)
     {
-        bool success = RemoveItem(itemSlug, quantity);
+        bool success = RemoveItem(itemData, quantity);
         onResult?.Invoke(success);
     }
 
-    private void HandleCheckHasItem(string itemSlug, int amount, Action<bool> onResult)
+    private void HandleCheckHasItem(ItemSO itemData, int amount, Action<bool> onResult)
     {
-        bool hasIt = HasItem(itemSlug, amount);
+        bool hasIt = HasItem(itemData, amount);
         onResult?.Invoke(hasIt);
     }
 
@@ -202,15 +202,12 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Removes a quantity of a specific item from the party (checks GlobalBag first, then hero backpacks).
     /// </summary>
-    private bool RemoveItem(string itemSlug, int quantity = 1)
+    private bool RemoveItem(ItemSO itemData, int quantity = 1)
     {
-        ItemSO item = ItemDatabase.Instance.GetItem(itemSlug);
-        if (item == null) return false;
-
         // KeyItem removal
-        if (item is KeyItemSO)
+        if (itemData is KeyItemSO)
         {
-            return GlobalBag.Instance.RemoveKeyItem(itemSlug, quantity);
+            return GlobalBag.Instance.RemoveKeyItem(itemData, quantity);
         }
 
         // Backpack removal
@@ -221,7 +218,7 @@ public class InventoryController : MonoBehaviour
             for (int i = 0; i < heroInv.Slots.Count; i++)
             {
                 var slot = heroInv.Slots[i];
-                if (!slot.IsEmpty && slot.Item.ItemSlug == itemSlug)
+                if (!slot.IsEmpty && slot.Item == itemData)
                 {
                     int qtyInSlot = slot.Quantity;
                     if (qtyInSlot <= remainingToRemove)
@@ -252,9 +249,9 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Checks if any party member (or GlobalBag) possesses a given item slug.
     /// </summary>
-    private bool HasItem(string itemSlug, int amount = 1)
+    private bool HasItem(ItemSO itemData, int amount = 1)
     {
-        if (GlobalBag.Instance != null && GlobalBag.Instance.HasKeyItem(itemSlug, amount))
+        if (GlobalBag.Instance != null && GlobalBag.Instance.HasKeyItem(itemData, amount))
         {
             return true;
         }
@@ -264,7 +261,7 @@ public class InventoryController : MonoBehaviour
         {
             foreach (var slot in heroInv.Slots)
             {
-                if (!slot.IsEmpty && slot.Item.ItemSlug == itemSlug)
+                if (!slot.IsEmpty && slot.Item == itemData)
                 {
                     totalFound += slot.Quantity;
                     if (totalFound >= amount) return true;
@@ -282,9 +279,9 @@ public class InventoryController : MonoBehaviour
     {
         if (ItemDatabase.Instance == null) return;
 
-        foreach (var item in ItemDatabase.Instance.GetAllItems())
+        foreach (ItemSO item in ItemDatabase.Instance.GetAllItems())
         {
-            AddItem(item.ItemSlug, 1);
+            AddItem(item, 1);
         }
     }
 

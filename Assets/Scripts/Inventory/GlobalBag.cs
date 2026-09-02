@@ -39,9 +39,9 @@ public class GlobalBag : MonoBehaviour
     /// <summary>
     /// Adds a KeyItem/QuestItem to the global bag. Auto-stacks if MaxStack > 1 or creates a new entry.
     /// </summary>
-    public void AddKeyItem(KeyItemSO keyItem, int amount = 1)
+    public void AddKeyItem(ItemSO item, int amount = 1)
     {
-        if (keyItem == null || amount <= 0) return;
+        if (item == null || item is not KeyItemSO keyItem || amount <= 0) return;
 
         int remaining = amount;
 
@@ -50,7 +50,7 @@ public class GlobalBag : MonoBehaviour
         {
             foreach (var slot in keyItemSlots)
             {
-                if (!slot.IsEmpty && slot.Item.ItemSlug == keyItem.ItemSlug && !slot.IsFull)
+                if (!slot.IsEmpty && slot.Item == keyItem && !slot.IsFull)
                 {
                     remaining = slot.AddQuantity(remaining);
                     if (remaining <= 0) break;
@@ -72,17 +72,17 @@ public class GlobalBag : MonoBehaviour
     /// <summary>
     /// Removes a quantity of a specific KeyItem by slug. Auto-removes slot when quantity hits 0.
     /// </summary>
-    public bool RemoveKeyItem(string itemSlug, int amount = 1)
+    public bool RemoveKeyItem(ItemSO item, int amount = 1)
     {
-        if (string.IsNullOrEmpty(itemSlug) || amount <= 0) return false;
+        if (item == null || item is not KeyItemSO keyItem || amount <= 0) return false;
 
-        if (!HasKeyItem(itemSlug, amount)) return false;
+        if (!HasKeyItem(keyItem, amount)) return false;
 
         int remainingToRemove = amount;
 
         for (int i = keyItemSlots.Count - 1; i >= 0; i--)
         {
-            if (!keyItemSlots[i].IsEmpty && keyItemSlots[i].Item.ItemSlug == itemSlug)
+            if (!keyItemSlots[i].IsEmpty && keyItemSlots[i].Item == keyItem)
             {
                 int currentQty = keyItemSlots[i].Quantity;
                 if (currentQty <= remainingToRemove)
@@ -107,14 +107,14 @@ public class GlobalBag : MonoBehaviour
     /// <summary>
     /// Checks if the group possesses a specific key item and quantity.
     /// </summary>
-    public bool HasKeyItem(string itemSlug, int requiredAmount = 1)
+    public bool HasKeyItem(ItemSO item, int requiredAmount = 1)
     {
-        if (string.IsNullOrEmpty(itemSlug)) return false;
+        if (item == null || item is not KeyItemSO keyItem) return false;
 
         int totalCount = 0;
         foreach (var slot in keyItemSlots)
         {
-            if (!slot.IsEmpty && slot.Item.ItemSlug == itemSlug)
+            if (!slot.IsEmpty && slot.Item == keyItem)
             {
                 totalCount += slot.Quantity;
                 if (totalCount >= requiredAmount) return true;
@@ -127,14 +127,14 @@ public class GlobalBag : MonoBehaviour
     /// <summary>
     /// Returns total quantity owned of a specific key item.
     /// </summary>
-    public int GetKeyItemQuantity(string itemSlug)
+    public int GetKeyItemQuantity(ItemSO item)
     {
-        if (string.IsNullOrEmpty(itemSlug)) return 0;
+        if (item == null || item is not KeyItemSO keyItem) return 0;
 
         int total = 0;
         foreach (var slot in keyItemSlots)
         {
-            if (!slot.IsEmpty && slot.Item.ItemSlug == itemSlug)
+            if (!slot.IsEmpty && slot.Item == keyItem)
             {
                 total += slot.Quantity;
             }

@@ -63,11 +63,15 @@ public class AudioManager : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        GameEvents.Audio.OnPlaySFXRequested += PlaySFX;
+        GameEvents.Audio.OnPlaySFXClipRequested += PlaySFXClip;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        GameEvents.Audio.OnPlaySFXRequested -= PlaySFX;
+        GameEvents.Audio.OnPlaySFXClipRequested -= PlaySFXClip;
     }
 
     #endregion

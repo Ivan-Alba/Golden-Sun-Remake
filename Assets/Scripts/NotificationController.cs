@@ -127,18 +127,25 @@ public class NotificationController : MonoBehaviour
         // Wait 1 frame for UI Toolkit to register position and opacity state
         yield return null;
 
-        // 6. Fade In (Triggered natively by UI Toolkit)
+        // 6. Reproduce sound effect for notification
+        SFXType sfx = GetSFXForNotification(type);
+        if (sfx != SFXType.None)
+        {
+            GameEvents.Audio.RequestPlaySFX(sfx);
+        }
+
+        // 7. Fade In (Triggered natively by UI Toolkit)
         cardElement.style.opacity = 1f;
         yield return new WaitForSeconds(0.4f);
 
-        // 7. On-screen hold duration
+        // 8. On-screen hold duration
         yield return new WaitForSeconds(4.0f);
 
-        // 8. Fade Out (Triggered natively by UI Toolkit)
+        // 9. Fade Out (Triggered natively by UI Toolkit)
         cardElement.style.opacity = 0f;
         yield return new WaitForSeconds(0.4f);
 
-        // 9. Remove node from hierarchy
+        // 10. Remove node from hierarchy
         container.Remove(cardElement);
     }
 
@@ -172,6 +179,20 @@ public class NotificationController : MonoBehaviour
             NotificationType.QuestUpdate => "accent-quest",
             NotificationType.Warning => "accent-warning",
             _ => "accent-info"
+        };
+    }
+
+    /// <summary>
+    /// Maps notification types to their corresponding sound effect.
+    /// Returns SFXType.None if the notification type has no audio feedback.
+    /// </summary>
+    private SFXType GetSFXForNotification(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.ItemObtained => SFXType.UI_ItemFound,
+            NotificationType.Warning => SFXType.UI_Error,
+            _ => SFXType.None
         };
     }
 

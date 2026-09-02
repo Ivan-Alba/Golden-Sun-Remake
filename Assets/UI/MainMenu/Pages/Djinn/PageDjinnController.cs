@@ -1796,7 +1796,9 @@ public class PageDjinnController
         ghostElement.style.top = 0;
 
         Vector3 targetPos = new Vector3(panelPosition.x - (width / 2f), panelPosition.y - (height / 2f), 0f);
-        ghostElement.transform.position = targetPos;
+
+        // Unity 6 UI Toolkit Standard
+        ghostElement.style.translate = new Translate(targetPos.x, targetPos.y, 0f);
     }
 
     private void DestroyGhostVisual()

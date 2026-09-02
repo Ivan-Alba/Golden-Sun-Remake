@@ -235,7 +235,7 @@ public class ResultsScreenController : MonoBehaviour
 
             // Automatically routes KeyItems to GlobalBag or regular items to Hero Backpacks
             int remaining = -1;
-            GameEvents.Inventory.RequestAddItem(item.ItemSlug, quantity, (result) =>
+            GameEvents.Inventory.RequestAddItem(item, quantity, (result) =>
             {
                 remaining = result;
             });
