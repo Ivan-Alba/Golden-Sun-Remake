@@ -1460,6 +1460,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378967317902001, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Name
+      value: DialogueController
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8691245271201291964, guid: a19744102be9ac7459c9135b44be0284, type: 3}

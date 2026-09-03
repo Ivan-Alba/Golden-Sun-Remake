@@ -9,7 +9,6 @@ public static class GameEvents
     // ==========================================
     public static class GameState
     {
-        // 1. COMMANDS / REQUESTS (Entidades piden al GameManager)
         /// <summary>
         /// Request to change the current game state. Listened exclusively by GameManager.
         /// </summary>
@@ -17,13 +16,58 @@ public static class GameEvents
         public static void RequestGameStateChange(GameManager.GameState newState)
             => OnChangeGameStateRequested?.Invoke(newState);
 
-        // 2. NOTIFICATIONS / EVENTS (GameManager informa al mundo)
         /// <summary>
         /// Triggered AFTER the GameManager has validated and officially changed the state.
         /// </summary>
         public static event Action<GameManager.GameState, GameManager.GameState> OnGameStateChanged;
         public static void TriggerGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
             => OnGameStateChanged?.Invoke(previousState, newState);
+    }
+
+    // ==========================================
+    // FIGHTER & STATS EVENTS
+    // ==========================================
+    public static class Fighter
+    {
+        // --- Cambios de Recursos (UI & Status) ---
+        public static event Action<GameObject, int, int> OnHpChanged;
+        public static void TriggerHpChanged(GameObject fighterObj, int currentHp, int maxHp)
+            => OnHpChanged?.Invoke(fighterObj, currentHp, maxHp);
+
+        public static event Action<GameObject, int, int> OnPpChanged;
+        public static void TriggerPpChanged(GameObject fighterObj, int currentPp, int maxPp)
+            => OnPpChanged?.Invoke(fighterObj, currentPp, maxPp);
+
+        // --- Eventos de Impacto & Daño (Floating Text, Animaciones & SFX) ---
+        public static event Action<GameObject, int, bool, ElementalType> OnDamaged;
+        public static void TriggerDamaged(GameObject fighterObj, int amount, bool isCritical, ElementalType element)
+            => OnDamaged?.Invoke(fighterObj, amount, isCritical, element);
+
+        public static event Action<GameObject, int> OnHealed;
+        public static void TriggerHealed(GameObject fighterObj, int amount)
+            => OnHealed?.Invoke(fighterObj, amount);
+
+        // --- Estados de Vida & Muerte ---
+        public static event Action<GameObject> OnFighterDied;
+        public static void TriggerFighterDied(GameObject fighterObj)
+            => OnFighterDied?.Invoke(fighterObj);
+
+        public static event Action<GameObject> OnFighterRevived;
+        public static void TriggerFighterRevived(GameObject fighterObj)
+            => OnFighterRevived?.Invoke(fighterObj);
+
+        // --- Estados Alterados & Modificadores ---
+        public static event Action<GameObject, ActiveStatusEffect> OnStatusEffectAdded;
+        public static void TriggerStatusEffectAdded(GameObject fighterObj, ActiveStatusEffect activeEffect)
+            => OnStatusEffectAdded?.Invoke(fighterObj, activeEffect);
+
+        public static event Action<GameObject, ActiveStatusEffect> OnStatusEffectRemoved;
+        public static void TriggerStatusEffectRemoved(GameObject fighterObj, ActiveStatusEffect activeEffect)
+            => OnStatusEffectRemoved?.Invoke(fighterObj, activeEffect);
+
+        public static event Action<GameObject> OnStatusEffectsCleared;
+        public static void TriggerStatusEffectsCleared(GameObject fighterObj)
+            => OnStatusEffectsCleared?.Invoke(fighterObj);
     }
 
     // ==========================================

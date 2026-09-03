@@ -172,10 +172,7 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     public IEnumerator PlayFullTransitionRoutine(System.Action onScreenCovered = null)
     {
-        if (GameManager.Instance != null)
-        {
-            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
-        }
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
 
         if (logoTransitionAnimator != null)
         {

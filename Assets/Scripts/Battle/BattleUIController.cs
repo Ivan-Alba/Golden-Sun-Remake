@@ -94,41 +94,28 @@ public class BattleUIController : MonoBehaviour
 
     private void SubscribeToPartyEvents()
     {
-        if (GameManager.Instance == null) return;
+        GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnHpChanged += HandleFighterResourceChanged;
 
-        List<GameObject> heroParty = GameManager.Instance.GetParty();
-        if (heroParty == null) return;
-
-        foreach (GameObject hero in heroParty)
-        {
-            if (hero != null && hero.TryGetComponent<FighterStats>(out var stats))
-            {
-                stats.OnHpChanged += HandleStatChanged;
-                stats.OnPpChanged += HandleStatChanged;
-            }
-        }
+        GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnPpChanged += HandleFighterResourceChanged;
     }
 
     private void UnsubscribeFromPartyEvents()
     {
-        if (GameManager.Instance == null) return;
-
-        List<GameObject> heroParty = GameManager.Instance.GetParty();
-        if (heroParty == null) return;
-
-        foreach (GameObject hero in heroParty)
-        {
-            if (hero != null && hero.TryGetComponent<FighterStats>(out var stats))
-            {
-                stats.OnHpChanged -= HandleStatChanged;
-                stats.OnPpChanged -= HandleStatChanged;
-            }
-        }
+        GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
     }
 
-    private void HandleStatChanged(int currentValue, int maxValue)
+    private void HandleFighterResourceChanged(GameObject fighterObj, int current, int max)
     {
-        RefreshHeroInfoPanel();
+        if (GameManager.Instance == null || fighterObj == null) return;
+
+        List<GameObject> heroParty = GameManager.Instance.GetParty();
+        if (heroParty != null && heroParty.Contains(fighterObj))
+        {
+            RefreshHeroInfoPanel();
+        }
     }
 
     public void SetHeroInfoPanel(int index)

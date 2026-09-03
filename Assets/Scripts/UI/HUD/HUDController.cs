@@ -279,6 +279,16 @@ public class HUDController : MonoBehaviour
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
 
+        // GameEvents.Fighter
+        GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnHpChanged += HandleFighterResourceChanged;
+
+        GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnPpChanged += HandleFighterResourceChanged;
+
+        GameEvents.Fighter.OnFighterDied -= HandleFighterDied;
+        GameEvents.Fighter.OnFighterDied += HandleFighterDied;
+
         // GameEvents.Psynergy
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
         GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
@@ -297,6 +307,10 @@ public class HUDController : MonoBehaviour
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
         GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+
+        GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
+        GameEvents.Fighter.OnFighterDied -= HandleFighterDied;
 
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
     }
@@ -354,6 +368,33 @@ public class HUDController : MonoBehaviour
     {
         _notificationPresenter?.ShowNotification(type, message, icon);
     }
+
+    #region Fighter Event Handlers
+
+    private void HandleFighterResourceChanged(GameObject fighterObj, int current, int max)
+    {
+        Debug.Log("HandleFighterResourceChanged called for " + fighterObj.name + " with current: " + current + ", max: " + max);
+        if (GameManager.Instance == null || fighterObj == null) return;
+
+        List<GameObject> party = GameManager.Instance.GetParty();
+        if (party != null && party.Contains(fighterObj))
+        {
+            RefreshPartyInfo();
+        }
+    }
+
+    private void HandleFighterDied(GameObject fighterObj)
+    {
+        if (GameManager.Instance == null || fighterObj == null) return;
+
+        List<GameObject> party = GameManager.Instance.GetParty();
+        if (party != null && party.Contains(fighterObj))
+        {
+            RefreshPartyInfo();
+        }
+    }
+
+    #endregion
 
     #endregion
 

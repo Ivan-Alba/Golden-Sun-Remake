@@ -2,19 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Core stats and status effect container for all combat entities (Heroes and Enemies).
+/// Acts as the Single Source of Truth for attributes, emitting state updates via GameEvents.Fighter.
+/// </summary>
 public class FighterStats : MonoBehaviour
 {
-    #region Events
-
-    public event Action<int, int> OnHpChanged;
-    public event Action<int, int> OnPpChanged;
-
-    public event Action<ActiveStatusEffect> OnStatusEffectAdded;
-    public event Action<ActiveStatusEffect> OnStatusEffectRemoved;
-    public event Action OnStatusEffectsCleared;
-
-    #endregion
-
     #region Serialized Fields
 
     [Header("Fighter Identity & Basic Info")]
@@ -54,6 +47,34 @@ public class FighterStats : MonoBehaviour
 
     #endregion
 
+    #region Centralized Resource Event Dispatchers
+
+    /// <summary>
+    /// Central pipeline for HP recalculation, boundary clamping, death state triggers, and UI notification.
+    /// </summary>
+    private void NotifyHpChanged()
+    {
+        currHp = Mathf.Clamp(currHp, 0, MaxHp);
+        GameEvents.Fighter.TriggerHpChanged(gameObject, currHp, MaxHp);
+
+        if (IsDead)
+        {
+            ClearAllStatusEffects();
+            GameEvents.Fighter.TriggerFighterDied(gameObject);
+        }
+    }
+
+    /// <summary>
+    /// Central pipeline for PP recalculation, boundary clamping, and UI notification.
+    /// </summary>
+    private void NotifyPpChanged()
+    {
+        currPp = Mathf.Clamp(currPp, 0, MaxPp);
+        GameEvents.Fighter.TriggerPpChanged(gameObject, currPp, MaxPp);
+    }
+
+    #endregion
+
     #region Properties - Identity & Resources
 
     public string Name { get => fighterName; set => fighterName = value; }
@@ -68,11 +89,10 @@ public class FighterStats : MonoBehaviour
         get => currHp;
         set
         {
-            int clampedHp = Mathf.Clamp(value, 0, MaxHp);
-            if (currHp != clampedHp)
+            if (currHp != value)
             {
-                currHp = clampedHp;
-                OnHpChanged?.Invoke(currHp, MaxHp);
+                currHp = value;
+                NotifyHpChanged();
             }
         }
     }
@@ -82,18 +102,17 @@ public class FighterStats : MonoBehaviour
         get => currPp;
         set
         {
-            int clampedPp = Mathf.Clamp(value, 0, MaxPp);
-            if (currPp != clampedPp)
+            if (currPp != value)
             {
-                currPp = clampedPp;
-                OnPpChanged?.Invoke(currPp, MaxPp);
+                currPp = value;
+                NotifyPpChanged();
             }
         }
     }
 
     #endregion
 
-    #region Properties - Core & Elemental Stats Accessors (Virtual for Polymorphic Overrides)
+    #region Properties - Core & Elemental Stats Accessors
 
     public virtual int MaxHp => GetStatValue(StatType.MaxHP);
     public virtual int MaxPp => GetStatValue(StatType.MaxPP);
@@ -126,13 +145,13 @@ public class FighterStats : MonoBehaviour
         currHp = MaxHp;
         currPp = MaxPp;
 
-        OnHpChanged?.Invoke(currHp, MaxHp);
-        OnPpChanged?.Invoke(currPp, MaxPp);
+        NotifyHpChanged();
+        NotifyPpChanged();
     }
 
     #endregion
 
-    #region Stats Initialization & Helper Methods
+    #region Stats Initialization & Base Operations
 
     protected virtual void InitializeStats()
     {
@@ -180,16 +199,8 @@ public class FighterStats : MonoBehaviour
         {
             stat.BaseValue = newBaseValue;
 
-            if (type == StatType.MaxHP)
-            {
-                CurrHp = Mathf.Clamp(CurrHp, 0, MaxHp);
-                OnHpChanged?.Invoke(CurrHp, MaxHp);
-            }
-            else if (type == StatType.MaxPP)
-            {
-                CurrPp = Mathf.Clamp(CurrPp, 0, MaxPp);
-                OnPpChanged?.Invoke(CurrPp, MaxPp);
-            }
+            if (type == StatType.MaxHP) NotifyHpChanged();
+            else if (type == StatType.MaxPP) NotifyPpChanged();
         }
     }
 
@@ -202,6 +213,7 @@ public class FighterStats : MonoBehaviour
         if (IsDead || amount <= 0 || CurrHp >= MaxHp) return false;
 
         CurrHp += amount;
+        GameEvents.Fighter.TriggerHealed(gameObject, amount);
         return true;
     }
 
@@ -224,7 +236,7 @@ public class FighterStats : MonoBehaviour
         return !IsDead && CurrPp >= amount;
     }
 
-    public void TakeDamage(int rawAmount)
+    public void TakeDamage(int rawAmount, bool isCritical = false, ElementalType element = ElementalType.None)
     {
         if (IsDead || rawAmount <= 0) return;
 
@@ -232,6 +244,8 @@ public class FighterStats : MonoBehaviour
         int finalDamage = Mathf.Max(1, Mathf.FloorToInt(rawAmount * (1f - (mitigationPct / 100f))));
 
         CurrHp -= finalDamage;
+        GameEvents.Fighter.TriggerDamaged(gameObject, finalDamage, isCritical, element);
+
         CheckDamageBreakStatusEffects();
     }
 
@@ -239,7 +253,9 @@ public class FighterStats : MonoBehaviour
     {
         if (!IsDead) return false;
 
-        CurrHp = Mathf.Clamp(healthAmount, 1, MaxHp);
+        currHp = Mathf.Clamp(healthAmount, 1, MaxHp);
+        NotifyHpChanged();
+        GameEvents.Fighter.TriggerFighterRevived(gameObject);
         return true;
     }
 
@@ -251,7 +267,7 @@ public class FighterStats : MonoBehaviour
             stat.BaseValue += amount;
 
             if (type == StatType.MaxHP) CurrHp += amount;
-            if (type == StatType.MaxPP) CurrPp += amount;
+            else if (type == StatType.MaxPP) CurrPp += amount;
         }
     }
 
@@ -286,7 +302,7 @@ public class FighterStats : MonoBehaviour
         activeStatusEffects.Add(newEffect);
         ApplyStatusStatModifiers(newEffect);
 
-        OnStatusEffectAdded?.Invoke(newEffect);
+        GameEvents.Fighter.TriggerStatusEffectAdded(gameObject, newEffect);
         Debug.Log($"[FighterStats] {fighterName} acquired status effect: '{effectSO.EffectName}'.");
         return true;
     }
@@ -300,7 +316,7 @@ public class FighterStats : MonoBehaviour
         {
             RemoveStatusStatModifiers(target);
             activeStatusEffects.Remove(target);
-            OnStatusEffectRemoved?.Invoke(target);
+            GameEvents.Fighter.TriggerStatusEffectRemoved(gameObject, target);
             Debug.Log($"[FighterStats] {fighterName} cured/lost status effect: '{effectSO.EffectName}'.");
             return true;
         }
@@ -332,7 +348,7 @@ public class FighterStats : MonoBehaviour
         {
             RemoveStatusStatModifiers(effect);
             activeStatusEffects.Remove(effect);
-            OnStatusEffectRemoved?.Invoke(effect);
+            GameEvents.Fighter.TriggerStatusEffectRemoved(gameObject, effect);
         }
 
         Debug.Log($"[FighterStats] Cleared {toRemove.Count} combat-only status effects on {fighterName}.");
@@ -340,13 +356,15 @@ public class FighterStats : MonoBehaviour
 
     public void ClearAllStatusEffects()
     {
+        if (activeStatusEffects.Count == 0) return;
+
         foreach (var effect in activeStatusEffects)
         {
             RemoveStatusStatModifiers(effect);
         }
 
         activeStatusEffects.Clear();
-        OnStatusEffectsCleared?.Invoke();
+        GameEvents.Fighter.TriggerStatusEffectsCleared(gameObject);
     }
 
     public bool HasStatusEffect(StatusEffectSO effectSO)
@@ -564,10 +582,12 @@ public class FighterStats : MonoBehaviour
     public void AddStatModifier(StatType type, StatModifier modifier)
     {
         var stat = GetStat(type);
-        stat?.AddModifier(modifier);
+        if (stat == null) return;
 
-        if (type == StatType.MaxHP) OnHpChanged?.Invoke(CurrHp, MaxHp);
-        if (type == StatType.MaxPP) OnPpChanged?.Invoke(CurrPp, MaxPp);
+        stat.AddModifier(modifier);
+
+        if (type == StatType.MaxHP) NotifyHpChanged();
+        else if (type == StatType.MaxPP) NotifyPpChanged();
     }
 
     public void RemoveModifiersFromSource(object source)
@@ -577,8 +597,8 @@ public class FighterStats : MonoBehaviour
             stat.RemoveAllModifiersFromSource(source);
         }
 
-        OnHpChanged?.Invoke(CurrHp, MaxHp);
-        OnPpChanged?.Invoke(CurrPp, MaxPp);
+        NotifyHpChanged();
+        NotifyPpChanged();
     }
 
     public void TickTurnModifiers()

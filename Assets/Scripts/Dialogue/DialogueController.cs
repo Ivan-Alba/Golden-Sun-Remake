@@ -7,7 +7,7 @@ using Unity.Cinemachine;
 /// Manages active dialogue execution, typewriter animations, Cinemachine camera framing, 
 /// story flag progression, and branching choice resolution.
 /// </summary>
-public class DialogueManager : MonoBehaviour
+public class DialogueController : MonoBehaviour
 {
     #region Serialized Fields
 
