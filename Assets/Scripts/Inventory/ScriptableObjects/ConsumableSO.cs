@@ -180,7 +180,7 @@ public class ConsumableSO : ItemSO
             else
             {
                 // Cannot use standard consumables on defeated fighters
-                AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
                 return false;
             }
         }
@@ -261,12 +261,12 @@ public class ConsumableSO : ItemSO
 
         if (anyEffectApplied)
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Cure);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cure);
             Debug.Log($"[Consumable] '{ItemName}' executed successfully on {target.Name}.");
         }
         else
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
         }
 
         return anyEffectApplied;

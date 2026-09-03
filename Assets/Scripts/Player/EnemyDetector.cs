@@ -67,7 +67,7 @@ public class EnemyDetector : MonoBehaviour
 
             // 4. Temporarily disable enemy AI and animator
             WorldEnemyAI enemyAi = other.gameObject.GetComponent<WorldEnemyAI>();
-            if (enemyAi != null) enemyAi.CollissionWithPlayer();
+            if (enemyAi != null) enemyAi.CollisionWithPlayer();
 
             Animator enemyAnim = other.gameObject.GetComponent<Animator>();
             if (enemyAnim != null) enemyAnim.enabled = false;
@@ -86,7 +86,7 @@ public class EnemyDetector : MonoBehaviour
 
         if (bm != null && enemyTouched != null)
         {
-            bm.AwakeBatlle(enemyTouched.gameObject, enemyTouched.transform.parent.gameObject);
+            bm.AwakeBattle(enemyTouched.gameObject, enemyTouched.transform.parent.gameObject);
         }
 
         battleLaunched = false;

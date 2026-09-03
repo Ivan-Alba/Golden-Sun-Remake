@@ -289,7 +289,7 @@ public class MainMenuController : MonoBehaviour
         if (itemsPageController != null && itemsPageController.IsTargetingItem)
         {
             itemsPageController.CancelItemTargeting();
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
             return;
         }
 
@@ -318,7 +318,7 @@ public class MainMenuController : MonoBehaviour
 
         if (visible)
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Confirm);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
 
             timeUpdateTimer = 0f;
             UpdatePlayTimeText();
@@ -329,7 +329,7 @@ public class MainMenuController : MonoBehaviour
         }
         else
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
 
             itemsPageController?.CancelItemTargeting();
             psynergyPageController?.CancelPsynergyTargeting();
@@ -341,7 +341,7 @@ public class MainMenuController : MonoBehaviour
     {
         if (playSound && currentTab != tab)
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Move);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
         }
 
         itemsPageController?.CancelItemTargeting();
@@ -378,7 +378,7 @@ public class MainMenuController : MonoBehaviour
 
         if (selectedHeroIndex != targetIndex)
         {
-            AudioManager.Instance?.PlaySFX(SFXType.UI_Move);
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
         }
 
         selectedHeroIndex = targetIndex;

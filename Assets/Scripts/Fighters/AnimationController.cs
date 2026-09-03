@@ -1,42 +1,59 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Bridge component attached to the visual model containing the Animator.
+/// Relays Animation Events (attack completion, footsteps) to parent combat and audio controllers.
+/// </summary>
 public class AnimationController : MonoBehaviour
 {
+    #region Private Fields
 
-    FighterController fighterController;
-    private AudioSource audioSource;
+    private FighterController fighterController;
+    private FootstepAudioEmitter footstepEmitter;
 
-    // Start is called before the first frame update
-    void Awake()
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
     {
-        if (GetComponent<FighterController>() != null)
-        {
-            fighterController = GetComponent<FighterController>();
-        }
-        else
-        {
-            fighterController = transform.parent.GetComponent<FighterController>();
-        }
+        // Safely retrieve references from this GameObject or parent hierarchy
+        fighterController = GetComponentInParent<FighterController>();
+        footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
 
-        audioSource = GetComponent<AudioSource>();
-
+        if (fighterController == null)
+        {
+            Debug.LogWarning($"[AnimationController] No FighterController found in hierarchy for {gameObject.name}.", this);
+        }
     }
 
+    #endregion
 
+    #region Animation Event Callbacks
+
+    /// <summary>
+    /// Invoked by Animation Events at the end of an attack animation sequence.
+    /// Signals the FighterController to complete the current combat turn action.
+    /// </summary>
     public void AttackAnimationDone()
     {
-        fighterController.AttackDone();
+        if (fighterController != null)
+        {
+            fighterController.AttackDone();
+        }
     }
 
+    /// <summary>
+    /// Invoked directly by Unity Animation Events on character walk/run animations.
+    /// Delegates footstep audio detection and execution to FootstepAudioEmitter.
+    /// </summary>
     public void playFootprints()
     {
-        if (audioSource == null) return;
-
-        audioSource.pitch = Random.Range(0.9f, 1.1f);
-
-        audioSource.PlayOneShot(audioSource.clip);
+        if (footstepEmitter != null)
+        {
+            footstepEmitter.OnFootstep();
+        }
     }
 
+    #endregion
 }

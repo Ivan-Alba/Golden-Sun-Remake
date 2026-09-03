@@ -303,10 +303,7 @@ public class BattleUIController : MonoBehaviour
         SetInfoText();
         RefreshButtonAnimation();
 
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_Move);
-        }
+        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
     }
 
     public void ShowOrdersPanel(bool choice)
@@ -515,12 +512,12 @@ public class BattleUIController : MonoBehaviour
 
             if (itemText != null && itemText.color != Color.grey && !string.IsNullOrEmpty(contentItems[contentCursorIndex].name))
             {
-                AudioManager.Instance?.PlaySFX(SFXType.UI_Confirm);
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
                 return contentItems[contentCursorIndex].name;
             }
             else
             {
-                AudioManager.Instance?.PlaySFX(SFXType.UI_Cancel);
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
                 return null;
             }
         }

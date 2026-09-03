@@ -36,10 +36,7 @@ public class ResultsScreenController : MonoBehaviour
     {
         if (waitingConfirmation)
         {
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
-            }
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
 
             waitingConfirmation = false;
             ResultsFinished = true;
@@ -124,10 +121,7 @@ public class ResultsScreenController : MonoBehaviour
         WaitForSeconds Wait = new WaitForSeconds(duration / countFPS);
 
         // ------------------- XP --------------------
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_Count);
-        }
+        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Count);
 
         stepAmount = Mathf.CeilToInt((float)(xpEarned - previousValue) / (countFPS * duration));
 

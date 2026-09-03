@@ -3,10 +3,12 @@ using UnityEngine;
 
 /// <summary>
 /// Handles treasure chest interactions, opening animations, inventory additions via event transactions,
-/// and full-inventory/error fallbacks.
+/// full-inventory/error fallbacks, and 3D audio emission.
 /// </summary>
 public class Chest : Interactable
 {
+    #region Serialized Fields
+
     [Header("Chest Content")]
     [SerializeField] private ItemSO itemData;
     [SerializeField] private int itemQuantity = 1;
@@ -20,6 +22,8 @@ public class Chest : Interactable
 
     [Tooltip("Pause duration after showing item notification before releasing game state.")]
     [SerializeField] private float endSequenceDelay = 0.5f;
+
+    #endregion
 
     #region Private Fields
 
@@ -49,6 +53,19 @@ public class Chest : Interactable
         if (chestOpened) return;
 
         StartCoroutine(OpenChestRoutine());
+    }
+
+    #endregion
+
+    #region Animation Events (Audio)
+
+    /// <summary>
+    /// Invoked directly by Unity Animation Events on the chest opening animation clip.
+    /// Emits a spatialized 3D audio request to the AudioController Pool via GameEvents.Audio.
+    /// </summary>
+    public void PlayChestOpenSFX()
+    {
+        GameEvents.Audio.RequestPlaySFXAtPosition(SFXType.World_ChestOpen, transform.position);
     }
 
     #endregion
@@ -83,7 +100,7 @@ public class Chest : Interactable
 
         yield return new WaitForSeconds(playerPickDuration);
 
-        // Trigger chest opening animation
+        // Trigger chest opening animation (This animation invokes PlayChestOpenSFX via Animation Event)
         if (chestAnimator != null)
         {
             chestAnimator.SetTrigger("openChest");

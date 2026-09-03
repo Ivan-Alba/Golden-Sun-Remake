@@ -7,7 +7,6 @@ public class FighterController : MonoBehaviour
     #region Private Fields & References
 
     private Animator fighterAnim;
-    private Sounds sounds;
     private FighterStats stats;
 
     private Vector3 startPosition;
@@ -34,7 +33,6 @@ public class FighterController : MonoBehaviour
     private void Awake()
     {
         fighterAnim = GetComponentInChildren<Animator>();
-        sounds = GetComponent<Sounds>();
         stats = GetComponent<FighterStats>();
     }
 
@@ -92,7 +90,6 @@ public class FighterController : MonoBehaviour
 
         // 3. Play Attack Animation
         if (fighterAnim != null) fighterAnim.SetTrigger("attack");
-        sounds?.PlaySound(1);
 
         yield return new WaitForSeconds(0.4f);
 
@@ -204,7 +201,6 @@ public class FighterController : MonoBehaviour
     public void ReceiveDamage(int damageAmount, bool isCritical = false)
     {
         if (fighterAnim != null) fighterAnim.SetTrigger("receiveHit");
-        sounds?.PlaySound(2);
 
         stats.CurrHp -= damageAmount;
 

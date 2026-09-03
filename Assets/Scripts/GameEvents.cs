@@ -147,19 +147,110 @@ public static class GameEvents
     // ==========================================
     public static class Audio
     {
+        // --- Sound Effects (SFX 2D) ---
+
         /// <summary>
-        /// Request to play a sound effect using its database enum identifier.
+        /// Request to play a sound effect using its database enum identifier (2D UI/Global).
         /// </summary>
         public static event Action<SFXType> OnPlaySFXRequested;
         public static void RequestPlaySFX(SFXType type)
             => OnPlaySFXRequested?.Invoke(type);
 
         /// <summary>
-        /// Request to play an explicit AudioClip directly with optional volume scaling.
+        /// Request to play an explicit AudioClip directly with optional volume and pitch scaling (2D UI/Global).
+        /// Params: clip, volume, pitch
         /// </summary>
-        public static event Action<AudioClip, float> OnPlaySFXClipRequested;
-        public static void RequestPlaySFXClip(AudioClip clip, float volume = 1.0f)
-            => OnPlaySFXClipRequested?.Invoke(clip, volume);
+        public static event Action<AudioClip, float, float> OnPlaySFXClipRequested;
+        public static void RequestPlaySFXClip(AudioClip clip, float volume = 1.0f, float pitch = 1.0f)
+            => OnPlaySFXClipRequested?.Invoke(clip, volume, pitch);
+
+
+        // --- Spatialized Sound Effects (SFX 3D Object Pool) ---
+
+        /// <summary>
+        /// Request to play a sound effect in 3D world space using its database enum identifier.
+        /// Params: type, position
+        /// </summary>
+        public static event Action<SFXType, Vector3> OnPlaySFXAtPositionRequested;
+        public static void RequestPlaySFXAtPosition(SFXType type, Vector3 position)
+            => OnPlaySFXAtPositionRequested?.Invoke(type, position);
+
+        /// <summary>
+        /// Request to play an explicit AudioClip in 3D world space at a given position.
+        /// Params: clip, position, volume, pitch
+        /// </summary>
+        public static event Action<AudioClip, Vector3, float, float> OnPlaySFXClipAtPositionRequested;
+        public static void RequestPlaySFXClipAtPosition(AudioClip clip, Vector3 position, float volume = 1.0f, float pitch = 1.0f)
+            => OnPlaySFXClipAtPositionRequested?.Invoke(clip, position, volume, pitch);
+
+
+        // --- Background Music (BGM) & Music States ---
+
+        /// <summary>
+        /// Request to play a BGM track assigned to a specific scene name in the AudioDatabase.
+        /// </summary>
+        public static event Action<string> OnPlayBGMForSceneRequested;
+        public static void RequestPlayBGMForScene(string sceneName)
+            => OnPlayBGMForSceneRequested?.Invoke(sceneName);
+
+        /// <summary>
+        /// Request to play a specific BGM AudioClip directly with custom target volume and fade duration.
+        /// </summary>
+        public static event Action<AudioClip, float, float, float> OnPlayBGMRequested;
+        public static void RequestPlayBGM(AudioClip clip, float targetVolume = 1.0f, float fadeDuration = 1.0f, float startTime = 0f)
+            => OnPlayBGMRequested?.Invoke(clip, targetVolume, fadeDuration, startTime);
+
+        /// <summary>
+        /// Request to stop the currently active BGM with a fade duration in seconds.
+        /// </summary>
+        public static event Action<float> OnStopBGMRequested;
+        public static void RequestStopBGM(float fadeDuration = 1.0f)
+            => OnStopBGMRequested?.Invoke(fadeDuration);
+
+        /// <summary>
+        /// Request to push current BGM to state stack and play battle theme (normal or boss).
+        /// Params: isBossBattle, fadeDuration
+        /// </summary>
+        public static event Action<bool, float> OnPlayBattleBGMRequested;
+        public static void RequestPlayBattleBGM(bool isBossBattle = false, float fadeDuration = 0.5f)
+            => OnPlayBattleBGMRequested?.Invoke(isBossBattle, fadeDuration);
+
+        /// <summary>
+        /// Request to play victory theme (intro + loop scheduling supported).
+        /// </summary>
+        public static event Action<float> OnPlayVictoryBGMRequested;
+        public static void RequestPlayVictoryBGM(float fadeDuration = 0.5f)
+            => OnPlayVictoryBGMRequested?.Invoke(fadeDuration);
+
+        /// <summary>
+        /// Request to play Game Over theme.
+        /// </summary>
+        public static event Action<float> OnPlayGameOverBGMRequested;
+        public static void RequestPlayGameOverBGM(float fadeDuration = 1.0f)
+            => OnPlayGameOverBGMRequested?.Invoke(fadeDuration);
+
+        /// <summary>
+        /// Request to pop previous BGM state from stack and resume exploration/event music from its exact timestamp.
+        /// </summary>
+        public static event Action<float> OnResumeBGMRequested;
+        public static void RequestResumeBGM(float fadeDuration = 1.0f)
+            => OnResumeBGMRequested?.Invoke(fadeDuration);
+
+        // --- Dynamic Volume Settings (Options Menu) ---
+
+        /// <summary>
+        /// Request to adjust master BGM volume scale (0.0 to 1.0) in real time.
+        /// </summary>
+        public static event Action<float> OnSetBGMVolumeRequested;
+        public static void RequestSetBGMVolume(float volume)
+            => OnSetBGMVolumeRequested?.Invoke(volume);
+
+        /// <summary>
+        /// Request to adjust master SFX volume scale (0.0 to 1.0) in real time.
+        /// </summary>
+        public static event Action<float> OnSetSFXVolumeRequested;
+        public static void RequestSetSFXVolume(float volume)
+            => OnSetSFXVolumeRequested?.Invoke(volume);
     }
 
     // ==========================================

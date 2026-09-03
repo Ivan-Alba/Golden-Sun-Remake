@@ -283,7 +283,7 @@ public class GameManager : MonoBehaviour
 
         GameEvents.Inventory.RequestSyncWithParty();
 
-        NotifyPartyChanged();
+        NotifyPartyChanged(activeHero);
 
         ChangeScene(firstSceneName, initialSpawnID, GameState.WorldExploration);
     }
@@ -327,7 +327,7 @@ public class GameManager : MonoBehaviour
             RelocatePlayerToSpawnPoint();
         }
 
-        NotifyPartyChanged();
+        NotifyPartyChanged(activeHero);
 
         StartCoroutine(Routine_HandlePostLoadSequence());
     }
@@ -391,9 +391,21 @@ public class GameManager : MonoBehaviour
 
     #region Party & Hero Management
 
-    public void NotifyPartyChanged()
+    public void NotifyPartyChanged(GameObject activeHero = null)
     {
+        // 1. Notificamos que la composición de la party ha cambiado
         OnPartyChanged?.Invoke();
+
+        // 2. Si no hay party, no se puede activar ningún héroe
+        if (party == null || party.Count == 0) return;
+
+        // 3. Seleccionamos el héroe: el pasado por parámetro (si está en la party) o el primero de la lista
+        GameObject heroToActivate = (activeHero != null && party.Contains(activeHero))
+            ? activeHero
+            : party[0];
+
+        // 4. Notificamos al sistema global cuál es el héroe activo
+        GameEvents.Player.RequestActiveHeroChange(heroToActivate);
     }
 
     public void ChangeGameSpeed()
@@ -409,7 +421,7 @@ public class GameManager : MonoBehaviour
             activeHero = party[index];
 
             GameEvents.Player.RequestActiveHeroChange(activeHero);
-            NotifyPartyChanged();
+            NotifyPartyChanged(activeHero);
         }
     }
 
@@ -640,7 +652,7 @@ public class GameManager : MonoBehaviour
         loadingData = false;
         SaveManager.loadedData = null;
 
-        NotifyPartyChanged();
+        NotifyPartyChanged(activeHero);
     }
 
     #endregion

@@ -261,10 +261,7 @@ public class TurnController : MonoBehaviour
             battleUIController.ShowTurnsPanel(true);
         }
 
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(SFXType.UI_Confirm);
-        }
+        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
     }
 
     public void HideTurnCamera()

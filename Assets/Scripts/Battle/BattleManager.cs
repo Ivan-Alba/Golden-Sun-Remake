@@ -44,7 +44,7 @@ public class BattleManager : MonoBehaviour
     private int currentAreaRange = 0;
 
     // RESPAWN CONTROLLER
-    private RespawnController respawnController;
+    private EnemySpawnZone respawnController;
 
     // LISTS WITH FIGHTERS
     private List<GameObject> enemiesList = new List<GameObject>();
@@ -344,13 +344,13 @@ public class BattleManager : MonoBehaviour
 
     #region Battle Lifecycle & Setup
 
-    public void AwakeBatlle(GameObject enemyInitiator = null, GameObject respawnZone = null,
+    public void AwakeBattle(GameObject enemyInitiator = null, GameObject respawnZone = null,
         List<GameObject> preSetEnemies = null)
     {
         ResetBattleVariables();
 
         // BATTLE MUSIC VIA AUDIO MANAGER
-        AudioManager.Instance?.PlayBattleBGM();
+        GameEvents.Audio.RequestPlayBattleBGM();
 
         // --- EXTERNAL SCENE / CORE REFERENCES ---
         if (mainCamera == null)
@@ -379,7 +379,7 @@ public class BattleManager : MonoBehaviour
 
         // RESPAWN OBJECTS
         if (respawnZone != null)
-            respawnController = respawnZone.GetComponent<RespawnController>();
+            respawnController = respawnZone.GetComponent<EnemySpawnZone>();
 
         if (player != null) player.GetComponent<Animator>().enabled = false;
 
@@ -471,17 +471,18 @@ public class BattleManager : MonoBehaviour
             if (i == 0) // FIRST ENEMY LIKE WORLD ENEMY
             {
                 enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = respawnController.GetEnemyLike(firstEnemy);
+                newEnemy = respawnController.GetMatchingEnemyPrefab(firstEnemy);
             }
             else // NEXT RANDOM FROM RESPAWN CONTROLLER ENEMY LIST
             {
                 enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = respawnController.GetRandomEnemy();
+                newEnemy = respawnController.GetRandomEnemyPrefab();
             }
 
             enemyPositions[i] = enemyPlace;
             enemiesList.Add(Instantiate(newEnemy, enemyPlace.transform.position, Quaternion.identity));
-            enemiesList[i].GetComponent<AudioSource>().spatialBlend = 0;
+            // TODO AUDIOSOURCE MISSING CHECK
+            //enemiesList[i].GetComponent<AudioSource>().spatialBlend = 0;
             fighters.Add(enemiesList[i]);
 
             pointerOriginalY[i] = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").position.y;
@@ -716,7 +717,7 @@ public class BattleManager : MonoBehaviour
         currentBattleState = BattleState.ResultsScreen;
         battleUIController.ShowBattleCanvas(false);
 
-        AudioManager.Instance?.PlayVictoryBGM();
+        GameEvents.Audio.RequestPlayVictoryBGM();
 
         yield return new WaitForSeconds(0.5f);
 
@@ -779,7 +780,7 @@ public class BattleManager : MonoBehaviour
         if (player != null) player.GetComponent<Animator>().enabled = true;
 
         // RESTORE WORLD MUSIC VIA AUDIO MANAGER
-        AudioManager.Instance?.ResumeBGM();
+        GameEvents.Audio.RequestResumeBGM();
 
         for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
         {
@@ -811,7 +812,7 @@ public class BattleManager : MonoBehaviour
         crossfade.transform.Find("GameOver").gameObject.SetActive(true);
         crossfade.GetComponent<Animator>().SetTrigger("start");
 
-        AudioManager.Instance?.PlayGameOverBGM();
+        GameEvents.Audio.RequestPlayGameOverBGM();
 
         Debug.Log("GAMEOVER");
     }
@@ -829,7 +830,7 @@ public class BattleManager : MonoBehaviour
 
     private void PlaySFX(SFXType sfx)
     {
-        AudioManager.Instance?.PlaySFX(sfx);
+        GameEvents.Audio.RequestPlaySFX(sfx);
     }
 
     private void HideAllPointers()

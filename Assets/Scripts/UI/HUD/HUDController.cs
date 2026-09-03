@@ -373,7 +373,6 @@ public class HUDController : MonoBehaviour
 
     private void HandleFighterResourceChanged(GameObject fighterObj, int current, int max)
     {
-        Debug.Log("HandleFighterResourceChanged called for " + fighterObj.name + " with current: " + current + ", max: " + max);
         if (GameManager.Instance == null || fighterObj == null) return;
 
         List<GameObject> party = GameManager.Instance.GetParty();

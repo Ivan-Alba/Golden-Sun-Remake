@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour
 
     private CharacterController controller;
     private Animator playerAnim;
-    private AudioSource audioSource;
+    private FootstepAudioEmitter footstepEmitter;
     private CinemachinePanTilt aimPanTilt;
     private PlayerInteractionDetector interactionDetector;
 
@@ -73,9 +73,9 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        audioSource = GetComponent<AudioSource>();
         playerAnim = GetComponent<Animator>();
         interactionDetector = GetComponent<PlayerInteractionDetector>();
+        footstepEmitter = GetComponent<FootstepAudioEmitter>();
 
         currentStamina = maxStamina;
     }
@@ -565,7 +565,7 @@ public class PlayerController : MonoBehaviour
             aimingScript.Reset();
             aimingScript.enabled = false;
         }
-        
+
         GameEvents.UI.RequestSetAimUIVisible(false);
     }
 
@@ -584,7 +584,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Stamina & Audio Helpers
+    #region Stamina & Audio Animation Events
 
     private void ModifyStamina(float amount)
     {
@@ -603,12 +603,16 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
     }
 
+    /// <summary>
+    /// Invoked directly by Unity Animation Events on character walk/run animations.
+    /// Delegates footstep audio detection and execution to FootstepAudioEmitter.
+    /// </summary>
     public void playFootprints()
     {
-        if (audioSource == null || audioSource.clip == null) return;
-
-        audioSource.pitch = Random.Range(0.9f, 1.1f);
-        audioSource.PlayOneShot(audioSource.clip);
+        if (footstepEmitter != null)
+        {
+            footstepEmitter.OnFootstep();
+        }
     }
 
     #endregion

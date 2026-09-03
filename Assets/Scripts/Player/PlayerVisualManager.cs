@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,27 +14,30 @@ public enum PlayerInteractionAnimType
 }
 
 /// <summary>
-/// Container for inspector-assigned visual references of a playable hero in the world map.
+/// Container for inspector-assigned visual and audio references of a playable hero in the world map.
 /// </summary>
-[System.Serializable]
+[Serializable]
 public class HeroVisualData
 {
-    [Tooltip("Unique Identifier matching the hero name or ID (e.g. 'Isaac', 'Garet')")]
+    [Tooltip("Unique Identifier matching the hero name or ID (e.g. 'Isaac', 'Garet').")]
     public string heroId;
 
-    [Tooltip("Reference to the world model GameObject inside Player/Model hierarchy")]
+    [Tooltip("Reference to the world model GameObject inside Player/Model hierarchy.")]
     public GameObject worldModelObject;
 
-    [Tooltip("Direct reference to the world AnimatorController asset")]
+    [Tooltip("Direct reference to the world AnimatorController asset.")]
     public RuntimeAnimatorController animatorController;
 
-    [Tooltip("Direct reference to the world Humanoid Avatar asset")]
+    [Tooltip("Direct reference to the world Humanoid Avatar asset.")]
     public Avatar avatar;
+
+    [Tooltip("Footstep audio profile assigned to this specific hero.")]
+    public HeroFootstepProfileSO footstepProfile;
 }
 
 /// <summary>
 /// Manages player model swapping, mesh visibility, animator controller assignments,
-/// and interaction animation execution in world exploration.
+/// interaction animations, and active footstep audio profile synchronization.
 /// </summary>
 public class PlayerVisualManager : MonoBehaviour
 {
@@ -48,8 +52,10 @@ public class PlayerVisualManager : MonoBehaviour
 
     #region Serialized Fields
 
-    [Header("Model Container")]
+    [Header("Model Container & Components")]
     [SerializeField] private GameObject modelContainer;
+    [SerializeField] private Animator playerAnimator;
+    [SerializeField] private FootstepAudioEmitter footstepEmitter;
 
     [Header("Hero Visual Configurations")]
     [SerializeField] private List<HeroVisualData> heroVisuals = new List<HeroVisualData>();
@@ -58,8 +64,7 @@ public class PlayerVisualManager : MonoBehaviour
 
     #region Private Fields
 
-    private Animator playerAnimator;
-    private Dictionary<string, HeroVisualData> visualLookup = new Dictionary<string, HeroVisualData>();
+    private readonly Dictionary<string, HeroVisualData> visualLookup = new Dictionary<string, HeroVisualData>(StringComparer.OrdinalIgnoreCase);
     private string currentActiveHeroId;
 
     #endregion
@@ -68,13 +73,29 @@ public class PlayerVisualManager : MonoBehaviour
 
     private void Awake()
     {
-        playerAnimator = GetComponentInParent<Animator>();
+        if (playerAnimator == null)
+        {
+            playerAnimator = GetComponent<Animator>();
+            if (playerAnimator == null)
+            {
+                playerAnimator = GetComponentInParent<Animator>();
+            }
+        }
+
+        if (footstepEmitter == null)
+        {
+            footstepEmitter = GetComponent<FootstepAudioEmitter>();
+            if (footstepEmitter == null)
+            {
+                footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
+            }
+        }
+
         InitializeLookupDictionary();
     }
 
     private void OnEnable()
     {
-        // Subscribe to Player GameEvents
         GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested += SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
@@ -82,7 +103,6 @@ public class PlayerVisualManager : MonoBehaviour
 
     private void OnDisable()
     {
-        // Unsubscribe from Player GameEvents
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested -= SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
@@ -96,8 +116,9 @@ public class PlayerVisualManager : MonoBehaviour
     {
         visualLookup.Clear();
 
-        foreach (var visualData in heroVisuals)
+        for (int i = 0; i < heroVisuals.Count; i++)
         {
+            var visualData = heroVisuals[i];
             if (visualData == null || string.IsNullOrEmpty(visualData.heroId))
             {
                 Debug.LogWarning("[PlayerVisualManager] Found an unassigned or empty HeroVisualData element.", this);
@@ -117,10 +138,10 @@ public class PlayerVisualManager : MonoBehaviour
 
     #endregion
 
-    #region Visual Management Logic
+    #region Visual & Audio Swap Logic
 
     /// <summary>
-    /// Swaps active model mesh and updates AnimatorController + Avatar dynamically.
+    /// Swaps active model mesh, updates AnimatorController + Avatar, and synchronizes footstep audio profile.
     /// </summary>
     public void SwapToHero(string heroId)
     {
@@ -145,7 +166,7 @@ public class PlayerVisualManager : MonoBehaviour
         {
             if (kvp.Value.worldModelObject != null)
             {
-                bool isTarget = (kvp.Key == heroId);
+                bool isTarget = string.Equals(kvp.Key, heroId, StringComparison.OrdinalIgnoreCase);
                 kvp.Value.worldModelObject.SetActive(isTarget);
             }
         }
@@ -163,6 +184,12 @@ public class PlayerVisualManager : MonoBehaviour
                 playerAnimator.avatar = visualData.avatar;
             }
         }
+
+        // 4. Synchronize footstep audio profile
+        if (footstepEmitter != null)
+        {
+            footstepEmitter.SetActiveProfile(visualData.footstepProfile);
+        }
     }
 
     private void HandleActiveHeroChanged(GameObject activeHero)
@@ -172,7 +199,7 @@ public class PlayerVisualManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Toggles the main Model container visibility and ensures active hero model state.
+    /// Toggles main Model container visibility and ensures active hero model state.
     /// </summary>
     public void SetModelVisibility(bool visible)
     {

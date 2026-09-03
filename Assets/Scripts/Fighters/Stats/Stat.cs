@@ -222,8 +222,6 @@ public class Stat
         // 4. % Total Level (Global combat buffs/debuffs or % total passives, e.g., 0.10f for +10%)
         float valorFlotanteFinal = subtotalClase * (1f + sumPercentTotal);
 
-        Debug.Log($"[Real Stat] Base: {BaseValue}, Mult: {classMultiplier}, Flat: {sumFlat}, %Base: {sumPercentBase}, %Tot: {sumPercentTotal} => Final: {valorFlotanteFinal}");
-
         // 5. Single truncation using FloorToInt + Epsilon tolerance
         return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal + 0.0001f));
     }
