@@ -32,6 +32,10 @@ public class HeroStats : FighterStats
     private int nextLevelXp;
     private HeroDjinnController djinnController;
 
+    // Cache Engine State
+    private StatBlock cachedBlock;
+    private bool isDirty = true;
+
     #endregion
 
     #region Properties
@@ -48,91 +52,48 @@ public class HeroStats : FighterStats
 
     #endregion
 
-    #region Live Calculated Stats Overrides (StatCalculator Brain)
+    #region Live Calculated Stats Engine (Dirty Caching via StatCalculator)
 
     /// <summary>
-    /// Builds a live evaluation context for this hero including base stats, class multipliers,
-    /// Djinn flat modifiers, Leader Passive modifiers, and equipment modifiers across all Core and Elemental stats,
-    /// then evaluates them via StatCalculator.
+    /// Builds an evaluation context directly from FighterStats' single source of truth (statsMap).
     /// </summary>
-    public StatBlock GetCalculatedStats()
+    public StatEvaluationContext BuildCurrentContext()
     {
         StatEvaluationContext context = new StatEvaluationContext();
 
-        // 1. Set Base Stats (Core & Elemental)
-        foreach (StatType statType in Enum.GetValues(typeof(StatType)))
+        if (statsMap == null) return context;
+
+        foreach (var kvp in statsMap)
         {
-            context.SetBaseStat(statType, GetStat(statType)?.BaseValue ?? 0);
+            StatType type = kvp.Key;
+            Stat statInstance = kvp.Value;
+
+            if (statInstance == null) continue;
+
+            context.SetBaseStat(type, statInstance.BaseValue);
+            context.SetClassMultiplier(type, statInstance.ClassMultiplier);
+            context.AddModifiers(type, statInstance.StatModifiers);
         }
 
-        // 2. Set Class Multipliers
-        CharacterClassSO activeClass = CurrentClass;
-        if (activeClass != null)
-        {
-            foreach (StatType statType in Enum.GetValues(typeof(StatType)))
-            {
-                context.SetClassMultiplier(statType, activeClass.GetStatMultiplier(statType));
-            }
-        }
-
-        // 3. Set Djinn Modifiers & Active Leader Passive Modifiers
-        if (djinnController == null) djinnController = GetComponent<HeroDjinnController>();
-
-        if (djinnController != null)
-        {
-            if (djinnController.AssignedDjinns != null)
-            {
-                foreach (var djinn in djinnController.AssignedDjinns)
-                {
-                    if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.SetStatModifiers != null)
-                    {
-                        foreach (var mod in djinn.DjinnData.SetStatModifiers)
-                        {
-                            if (mod == null) continue;
-                            context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, djinn));
-                        }
-                    }
-                }
-            }
-
-            // Active Leader Passive Modifiers
-            DjinnInstance leader = djinnController.LeaderDjinn;
-            if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffect != null)
-            {
-                var leaderModifiers = leader.DjinnData.LeaderPassiveEffect.StatModifiers;
-                if (leaderModifiers != null)
-                {
-                    foreach (var bonus in leaderModifiers)
-                    {
-                        if (bonus == null) continue;
-                        context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType, leader));
-                    }
-                }
-            }
-        }
-
-        // 4. Set Equipment Modifiers
-        HeroEquipment equipment = GetComponent<HeroEquipment>();
-        if (equipment != null && equipment.EquippedItems != null)
-        {
-            foreach (var item in equipment.EquippedItems.Values)
-            {
-                if (item != null && item.StatModifiers != null)
-                {
-                    foreach (var mod in item.StatModifiers)
-                    {
-                        if (mod == null) continue;
-                        context.AddModifier(mod.statType, new StatModifier(mod.value, mod.modifierType, item));
-                    }
-                }
-            }
-        }
-
-        // 5. Delegate to StatCalculator Core Engine
-        return StatCalculator.Evaluate(context);
+        return context;
     }
 
-    // Public Core Stat Properties Redirecting to Live Evaluated StatBlock
+    /// <summary>
+    /// Retrieves the live calculated StatBlock using lazy caching. 
+    /// Only re-evaluates via StatCalculator if statsMap or class multipliers marked it dirty.
+    /// </summary>
+    public StatBlock GetCalculatedStats()
+    {
+        if (isDirty || cachedBlock == null)
+        {
+            cachedBlock = StatCalculator.Evaluate(BuildCurrentContext());
+            isDirty = false;
+        }
+
+        return cachedBlock;
+    }
+
+    // Public Core Stat Properties Redirecting to Cached StatBlock
     public override int MaxHp => GetCalculatedStats().MaxHP;
     public override int MaxPp => GetCalculatedStats().MaxPP;
     public override int Attack => GetCalculatedStats().Attack;
@@ -140,7 +101,7 @@ public class HeroStats : FighterStats
     public override int Agility => GetCalculatedStats().Agility;
     public override int Luck => GetCalculatedStats().Luck;
 
-    // Public Elemental Stat Properties Redirecting to Live Evaluated StatBlock
+    // Public Elemental Stat Properties Redirecting to Cached StatBlock
     public override int PowerVenus => GetCalculatedStats().PowerVenus;
     public override int PowerMars => GetCalculatedStats().PowerMars;
     public override int PowerJupiter => GetCalculatedStats().PowerJupiter;
@@ -160,37 +121,27 @@ public class HeroStats : FighterStats
         base.Awake();
         djinnController = GetComponent<HeroDjinnController>();
         CalculateNextLevelXp();
-        SubscribeToStatEvents();
+
+        // Subscribe to FighterStats base mutations for automatic dirtying
+        OnStatsChanged += MarkDirty;
+
         SubscribeToEquipmentEvents();
     }
 
     private void OnDestroy()
     {
-        UnsubscribeFromStatEvents();
+        OnStatsChanged -= MarkDirty;
         UnsubscribeFromEquipmentEvents();
+    }
+
+    private void MarkDirty()
+    {
+        isDirty = true;
     }
 
     #endregion
 
     #region Event Subscriptions
-
-    private void SubscribeToStatEvents()
-    {
-        Stat maxHpStat = GetStat(StatType.MaxHP);
-        if (maxHpStat != null) maxHpStat.OnValueChanged += ClampCurrentHp;
-
-        Stat maxPpStat = GetStat(StatType.MaxPP);
-        if (maxPpStat != null) maxPpStat.OnValueChanged += ClampCurrentPp;
-    }
-
-    private void UnsubscribeFromStatEvents()
-    {
-        Stat maxHpStat = GetStat(StatType.MaxHP);
-        if (maxHpStat != null) maxHpStat.OnValueChanged -= ClampCurrentHp;
-
-        Stat maxPpStat = GetStat(StatType.MaxPP);
-        if (maxPpStat != null) maxPpStat.OnValueChanged -= ClampCurrentPp;
-    }
 
     private void SubscribeToEquipmentEvents()
     {
@@ -339,17 +290,21 @@ public class HeroStats : FighterStats
 
     /// <summary>
     /// Master refresh method triggered whenever equipment, Djinns, or classes change.
-    /// Updates class multipliers directly on Stat.cs instances and consolidates active psynergies.
+    /// Updates class multipliers directly on Stat.cs instances, consolidates active psynergies, and emits UI events.
     /// </summary>
     public void RecalculateStatsAndPsynergies()
     {
         UpdateClassMultipliers();
         ReevaluatePsynergies();
+
+        // Force a dirty recalculation and emit centralized event state
+        MarkDirty();
+        NotifyHpChanged();
+        NotifyPpChanged();
     }
 
     /// <summary>
     /// Inject canonical Class Percentage Multipliers directly into each Stat.cs ClassMultiplier property.
-    /// Formula executed inside Stat.cs: Floor((Base + Flat Equipment + Flat Djinn) * ClassMultiplier * (1 + SumPercentTotal))
     /// </summary>
     private void UpdateClassMultipliers()
     {

@@ -8,6 +8,16 @@ using UnityEngine;
 /// </summary>
 public class FighterStats : MonoBehaviour
 {
+    #region Events & Signals
+
+    /// <summary>
+    /// Raised whenever any stat modifier or base value changes.
+    /// Used by derived classes (like HeroStats) to invalidate their calculation caches.
+    /// </summary>
+    public event Action OnStatsChanged;
+
+    #endregion
+
     #region Serialized Fields
 
     [Header("Fighter Identity & Basic Info")]
@@ -52,7 +62,7 @@ public class FighterStats : MonoBehaviour
     /// <summary>
     /// Central pipeline for HP recalculation, boundary clamping, death state triggers, and UI notification.
     /// </summary>
-    private void NotifyHpChanged()
+    public virtual void NotifyHpChanged()
     {
         currHp = Mathf.Clamp(currHp, 0, MaxHp);
         GameEvents.Fighter.TriggerHpChanged(gameObject, currHp, MaxHp);
@@ -67,7 +77,7 @@ public class FighterStats : MonoBehaviour
     /// <summary>
     /// Central pipeline for PP recalculation, boundary clamping, and UI notification.
     /// </summary>
-    private void NotifyPpChanged()
+    public virtual void NotifyPpChanged()
     {
         currPp = Mathf.Clamp(currPp, 0, MaxPp);
         GameEvents.Fighter.TriggerPpChanged(gameObject, currPp, MaxPp);
@@ -89,9 +99,10 @@ public class FighterStats : MonoBehaviour
         get => currHp;
         set
         {
-            if (currHp != value)
+            int clampedHp = Mathf.Clamp(value, 0, MaxHp);
+            if (currHp != clampedHp)
             {
-                currHp = value;
+                currHp = clampedHp;
                 NotifyHpChanged();
             }
         }
@@ -102,9 +113,10 @@ public class FighterStats : MonoBehaviour
         get => currPp;
         set
         {
-            if (currPp != value)
+            int clampedPp = Mathf.Clamp(value, 0, MaxPp);
+            if (currPp != clampedPp)
             {
-                currPp = value;
+                currPp = clampedPp;
                 NotifyPpChanged();
             }
         }
@@ -198,6 +210,7 @@ public class FighterStats : MonoBehaviour
         if (stat != null)
         {
             stat.BaseValue = newBaseValue;
+            OnStatsChanged?.Invoke();
 
             if (type == StatType.MaxHP) NotifyHpChanged();
             else if (type == StatType.MaxPP) NotifyPpChanged();
@@ -265,6 +278,7 @@ public class FighterStats : MonoBehaviour
         if (stat != null)
         {
             stat.BaseValue += amount;
+            OnStatsChanged?.Invoke();
 
             if (type == StatType.MaxHP) CurrHp += amount;
             else if (type == StatType.MaxPP) CurrPp += amount;
@@ -585,20 +599,24 @@ public class FighterStats : MonoBehaviour
         if (stat == null) return;
 
         stat.AddModifier(modifier);
-
-        if (type == StatType.MaxHP) NotifyHpChanged();
-        else if (type == StatType.MaxPP) NotifyPpChanged();
+        OnStatsChanged?.Invoke();
     }
 
     public void RemoveModifiersFromSource(object source)
     {
+        bool removedAny = false;
         foreach (var stat in statsMap.Values)
         {
-            stat.RemoveAllModifiersFromSource(source);
+            if (stat.RemoveAllModifiersFromSource(source))
+            {
+                removedAny = true;
+            }
         }
 
-        NotifyHpChanged();
-        NotifyPpChanged();
+        if (removedAny)
+        {
+            OnStatsChanged?.Invoke();
+        }
     }
 
     public void TickTurnModifiers()
@@ -607,6 +625,7 @@ public class FighterStats : MonoBehaviour
         {
             stat.TickTurnModifiers();
         }
+        OnStatsChanged?.Invoke();
     }
 
     public void RemoveAllTemporaryModifiers()
@@ -615,6 +634,7 @@ public class FighterStats : MonoBehaviour
         {
             stat.RemoveAllTemporaryModifiers();
         }
+        OnStatsChanged?.Invoke();
     }
 
     #endregion

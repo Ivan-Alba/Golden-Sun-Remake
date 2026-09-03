@@ -64,6 +64,7 @@ public class Stat
 
     public event Action OnValueChanged;
 
+    public IReadOnlyList<StatModifier> StatModifiers => statModifiers;
     public StatType StatType => statType;
 
     public int BaseValue
