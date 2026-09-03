@@ -22,6 +22,7 @@ public class PsynergyWorldController : MonoBehaviour
         GameEvents.Psynergy.OnAssignShortcutRequested += HandleAssignShortcutRequested;
         GameEvents.Psynergy.OnGetShortcutsRequested += HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested += HandleUseShortcutRequested;
+        GameEvents.Psynergy.OnPsynergyLost += HandleHeroLostPsynergy;
         GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
     }
 
@@ -30,8 +31,8 @@ public class PsynergyWorldController : MonoBehaviour
         GameEvents.Psynergy.OnAssignShortcutRequested -= HandleAssignShortcutRequested;
         GameEvents.Psynergy.OnGetShortcutsRequested -= HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested -= HandleUseShortcutRequested;
+        GameEvents.Psynergy.OnPsynergyLost -= HandleHeroLostPsynergy;
         GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
-        UnsubscribeFromPartyEvents();
     }
 
     private void Start()
@@ -39,17 +40,11 @@ public class PsynergyWorldController : MonoBehaviour
         Initialize();
     }
 
-    private void OnDestroy()
-    {
-        UnsubscribeFromPartyEvents();
-    }
-
     /// <summary>
-    /// Resets all shortcut data, unbinds previous listeners, and re-initializes empty slots for the current party.
+    /// Resets all shortcut data and initializes empty slots for the current party.
     /// </summary>
     private void Initialize()
     {
-        UnsubscribeFromPartyEvents();
         heroShortcuts.Clear();
 
         if (GameManager.Instance == null) return;
@@ -65,36 +60,11 @@ public class PsynergyWorldController : MonoBehaviour
             {
                 heroShortcuts.Add(hero, new PsynergySO[4]);
             }
-
-            // Subscribe to Psynergy loss events on HeroStats
-            HeroStats stats = hero.GetComponent<HeroStats>();
-            if (stats != null)
-            {
-                stats.OnPsynergyLost += (lostPsynergy) => OnHeroLostPsynergy(hero, lostPsynergy);
-            }
         }
 
         if (GameManager.Instance.ActiveHero != null)
         {
             NotifyShortcutsChanged(GameManager.Instance.ActiveHero);
-        }
-    }
-
-    /// <summary>
-    /// Unsubscribes event listeners from all registered party members to prevent memory leaks.
-    /// </summary>
-    private void UnsubscribeFromPartyEvents()
-    {
-        foreach (var heroKey in heroShortcuts.Keys)
-        {
-            if (heroKey != null)
-            {
-                HeroStats stats = heroKey.GetComponent<HeroStats>();
-                if (stats != null)
-                {
-                    stats.OnPsynergyLost -= (lostPsynergy) => OnHeroLostPsynergy(heroKey, lostPsynergy);
-                }
-            }
         }
     }
 
@@ -130,12 +100,16 @@ public class PsynergyWorldController : MonoBehaviour
     /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
     /// Filters early if the lost psynergy is not usable in the world.
     /// </summary>
-    private void    OnHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
+    /// <summary>
+    /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
+    /// Filters early if the lost psynergy is not usable in the world.
+    /// </summary>
+    private void HandleHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
     {
         if (hero == null || lostPsynergy == null) return;
 
-        // Optimization check: If the lost psynergy is not a world psynergy, it could never be assigned to a shortcut.
-        if (lostPsynergy.WorldData.CanBeUsedInWorld == false)
+        // Correct check: WorldData is a struct, so we check the property directly
+        if (!lostPsynergy.WorldData.CanBeUsedInWorld)
         {
             return;
         }
@@ -222,7 +196,6 @@ public class PsynergyWorldController : MonoBehaviour
             {
                 Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
                 GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, activeHero.transform);
-                // TODO: Deduct PP cost from activeHero stats if needed
             }
             else
             {
@@ -232,7 +205,6 @@ public class PsynergyWorldController : MonoBehaviour
         else
         {
             Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} without an active target.");
-            // Logic for non-targeted world psynergies (e.g., Heal in map, Reveal)
             GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, activeHero.transform);
         }
     }

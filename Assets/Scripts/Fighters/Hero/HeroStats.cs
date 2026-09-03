@@ -4,12 +4,6 @@ using UnityEngine;
 
 public class HeroStats : FighterStats
 {
-    #region Events
-
-    public event Action<PsynergySO> OnPsynergyLost;
-
-    #endregion
-
     #region Serialized Fields
 
     [Header("Hero Base Element")]
@@ -66,7 +60,6 @@ public class HeroStats : FighterStats
     /// </summary>
     public StatEvaluationContext BuildCurrentContext()
     {
-        // Reutilización del contexto local para no instanciar 'new' en cada recálculo
         reusableContext.BaseStats.Clear();
         reusableContext.ClassMultipliers.Clear();
         reusableContext.Modifiers.Clear();
@@ -371,7 +364,7 @@ public class HeroStats : FighterStats
         foreach (var lost in lostPsynergiesCache)
         {
             Debug.Log($"[HeroStats] {fighterName} lost access to psynergy: '{lost.PsynergyName}'.");
-            OnPsynergyLost?.Invoke(lost);
+            GameEvents.Psynergy.TriggerPsynergyLost(gameObject, lost);
         }
     }
 

@@ -284,6 +284,14 @@ public static class GameEvents
     public static class Psynergy
     {
         /// <summary>
+        /// Triggered when a hero loses access to a Psynergy (e.g. class change, unequipped relic, Djinn state swap).
+        /// Params: heroGameObject, lostPsynergySO
+        /// </summary>
+        public static event Action<GameObject, PsynergySO> OnPsynergyLost;
+        public static void TriggerPsynergyLost(GameObject hero, PsynergySO psynergy)
+            => OnPsynergyLost?.Invoke(hero, psynergy);
+
+        /// <summary>
         /// Triggered when the player casts a Psynergy ability in the world.
         /// Params: psynergySlug, casterTransform
         /// </summary>
