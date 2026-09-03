@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-English (en)
   m_GUID: 0479ac0cc25f5454f9992d33b33fb35c
   m_SerializeEntries:
+  - m_GUID: 07c7aad7caba87d4789e01832d35c3b1
+    m_Address: DjinnUnleashSO_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 83dd84eb93eeb694694e77b976e07a6a
     m_Address: Dialogue_Strings_en
     m_ReadOnly: 1
@@ -24,6 +30,13 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a633d50b3d52e5343bc0b93d63cd4e31
     m_Address: UI_Strings_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    - Preload
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e27f7775ffb0aca46aa5099f9971958f
+    m_Address: DjinnSO_en
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en

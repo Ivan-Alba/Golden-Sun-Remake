@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: DjinnSO Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: DjinnSO
+  m_TableCollectionNameGuidString: 256fecfc61d85cd4e94a3914e7f223c3
+  m_Entries:
+  - m_Id: 21087260672
+    m_Key: flint_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 52615843840
+    m_Key: flint_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 591164477440
+    m_Key: granite_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 626707009536
+    m_Key: granite_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 777529987072
+    m_Key: forge_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 816725757952
+    m_Key: forge_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940721967104
+    m_Key: "fever_name\t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 941854429184
+    m_Key: fever_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1185908396032
+    m_Key: gust_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1187514814464
+    m_Key: gust_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1331878563840
+    m_Key: breeze_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1333082329088
+    m_Key: breeze_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1447024791552
+    m_Key: fizz_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448337608704
+    m_Key: fizz_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1849279516672
+    m_Key: sleet_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1850420367360
+    m_Key: sleet_description
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 6310527221113553022
+  references:
+    version: 2
+    RefIds:
+    - rid: 6310527221113553022
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1788451107637

@@ -2,7 +2,8 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Runtime wrapper instance encapsulating a DjinnSO data asset, its current state, and recovery turn timers.
+/// Runtime wrapper instance encapsulating a DjinnSO data asset, its active state, and recovery turn timers.
+/// Manages state transitions (Set, Standby, Recovery) for combat calculations and summoning mechanics.
 /// </summary>
 [Serializable]
 public class DjinnInstance
@@ -11,14 +12,14 @@ public class DjinnInstance
 
     [SerializeField] private DjinnSO djinnData;
     [SerializeField] private DjinnState currentState = DjinnState.Set;
-    [SerializeField] private int currentRecoveryTurns = 0;
+    [SerializeField] private int currentRecoveryTurns;
 
     #endregion
 
     #region Events
 
     /// <summary>
-    /// Event triggered whenever this Djinn's state changes (e.g. Set -> Standby, Recovery -> Set).
+    /// Event triggered whenever this Djinn's state changes (e.g., Set -> Standby, Recovery -> Set).
     /// </summary>
     public event Action<DjinnInstance, DjinnState> OnStateChanged;
 
@@ -30,15 +31,20 @@ public class DjinnInstance
     public DjinnState CurrentState => currentState;
     public int CurrentRecoveryTurns => currentRecoveryTurns;
 
+    // Helper state evaluation shortcuts for UI and Combat logic
+    public bool IsSet => currentState == DjinnState.Set;
+    public bool IsStandby => currentState == DjinnState.Standby;
+    public bool IsRecovery => currentState == DjinnState.Recovery;
+
     #endregion
 
-    #region Constructor
+    #region Constructors
 
     public DjinnInstance(DjinnSO data, DjinnState initialState = DjinnState.Set)
     {
-        djinnData = data;
+        djinnData = data != null ? data : throw new ArgumentNullException(nameof(data), "[DjinnInstance] Cannot initialize with null DjinnSO asset.");
         currentState = initialState;
-        currentRecoveryTurns = 0;
+        currentRecoveryTurns = (initialState == DjinnState.Recovery) ? GetBaseRecoveryTurns() : 0;
     }
 
     #endregion
@@ -46,37 +52,51 @@ public class DjinnInstance
     #region State Mutation Methods
 
     /// <summary>
-    /// Sets the Djinn to Set state, making it active for stat/class calculation and leader passive.
+    /// Sets the Djinn to Set state, making it active for hero stat/class calculations and passives.
     /// </summary>
     public void SetReady()
     {
+        if (currentState == DjinnState.Set && currentRecoveryTurns == 0) return;
+
         currentState = DjinnState.Set;
         currentRecoveryTurns = 0;
         OnStateChanged?.Invoke(this, currentState);
     }
 
     /// <summary>
-    /// Puts the Djinn into Standby state (unleashed or ready for summons).
+    /// Puts the Djinn into Standby state (unleashed or available as currency for Summons).
     /// </summary>
     public void PutOnStandby()
     {
+        if (currentState == DjinnState.Standby && currentRecoveryTurns == 0) return;
+
         currentState = DjinnState.Standby;
         currentRecoveryTurns = 0;
         OnStateChanged?.Invoke(this, currentState);
     }
 
     /// <summary>
-    /// Consumes the Djinn into Recovery state after performing a Summon.
+    /// Consumes the Djinn into Recovery state after executing a Summon.
     /// </summary>
     public void EnterRecovery()
     {
         currentState = DjinnState.Recovery;
-        currentRecoveryTurns = (djinnData != null) ? djinnData.BaseRecoveryTurns : 2;
+        currentRecoveryTurns = GetBaseRecoveryTurns();
         OnStateChanged?.Invoke(this, currentState);
     }
 
     /// <summary>
-    /// Ticks down recovery turns at the end/start of the individual hero's turn.
+    /// Forces a specific state and recovery duration (useful for saved game loading or story events).
+    /// </summary>
+    public void ForceState(DjinnState newState, int recoveryTurns = 0)
+    {
+        currentState = newState;
+        currentRecoveryTurns = Mathf.Max(0, recoveryTurns);
+        OnStateChanged?.Invoke(this, currentState);
+    }
+
+    /// <summary>
+    /// Ticks down recovery turns at turn resolution.
     /// Automatically transitions to Set state when reaching zero.
     /// </summary>
     /// <returns>True if the Djinn recovered to Set state during this tick; otherwise false.</returns>
@@ -84,7 +104,7 @@ public class DjinnInstance
     {
         if (currentState != DjinnState.Recovery) return false;
 
-        currentRecoveryTurns--;
+        currentRecoveryTurns = Mathf.Max(0, currentRecoveryTurns - 1);
 
         if (currentRecoveryTurns <= 0)
         {
@@ -93,6 +113,30 @@ public class DjinnInstance
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Reduces active recovery turns by a custom amount (e.g., via status recovery items or abilities).
+    /// </summary>
+    public void ReduceRecoveryTurns(int amount)
+    {
+        if (currentState != DjinnState.Recovery || amount <= 0) return;
+
+        currentRecoveryTurns = Mathf.Max(0, currentRecoveryTurns - amount);
+
+        if (currentRecoveryTurns <= 0)
+        {
+            SetReady();
+        }
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    private int GetBaseRecoveryTurns()
+    {
+        return (djinnData != null) ? djinnData.BaseRecoveryTurns : 2;
     }
 
     #endregion

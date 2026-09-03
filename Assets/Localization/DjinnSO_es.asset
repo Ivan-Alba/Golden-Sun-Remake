@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DjinnSO_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: 256fecfc61d85cd4e94a3914e7f223c3, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 52615843840
+    m_Localized: "Impulsado a la acci\xF3n tras el despertar del Templo Sonne en
+      Tale. Es el primer esp\xEDritu de la tierra que decide prestar su fuerza a
+      la causa de los Adeptos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21087260672
+    m_Localized: "S\xEDlex"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 591164477440
+    m_Localized: Granito
+    m_Metadata:
+      m_Items: []
+  - m_Id: 626707009536
+    m_Localized: "Encontrado en las misteriosas tierras de Kolima. Encarna la dureza
+      inquebrantable de las ra\xEDces ancestrales que protegen a los suyos frente
+      a cualquier peligro."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 777529987072
+    m_Localized: Fragua
+    m_Metadata:
+      m_Items: []
+  - m_Id: 816725757952
+    m_Localized: Morador de la Cueva de Noma, donde avivaba el calor de las profundidades
+      de la tierra. Su llama interna despierta el fervor combativo de quien lucha
+      a su lado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940721967104
+    m_Localized: Fiebre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 941854429184
+    m_Localized: "Descubierto en las g\xE9lidas tierras de Imil, donde su ardiente
+      calor contrastaba con el hielo eterno. Su fuego abrasador es capaz de confundir
+      la mente de sus rivales."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1185908396032
+    m_Localized: "R\xE1faga"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1187514814464
+    m_Localized: "Procedente de la pr\xF3spera Bilibin, este inquieto Djinn representa
+      las brisas impredecibles del norte, capaces de golpear dos veces antes de que
+      el enemigo lo perciba."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1331878563840
+    m_Localized: Brisa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1333082329088
+    m_Localized: Vinculado a la naturaleza del Bosque de Tret. Trae consigo una suave
+      y purificadora corriente de aire fresco que envuelve a los aliados para escudar
+      sus almas.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1447024791552
+    m_Localized: Burbuja
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448337608704
+    m_Localized: "Fiel compa\xF1ero vinculado al linaje protector del Faro de Mercury.
+      Su esencia mana como una fuente curativa capaz de aliviar las heridas m\xE1s
+      profundas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1849279516672
+    m_Localized: Granizo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1850420367360
+    m_Localized: "Un Djinn nacido del fr\xEDo de la corriente sagrada del Faro de
+      Mercurio. Domina la escarcha invernal para entumecer los m\xFAsculos de sus
+      oponentes y mermar su fuerza."
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Container for Psynergy skills unlocked at specific level thresholds within a class.
+/// Container for Psynergy skills unlocked at specific hero level thresholds within a character class.
 /// </summary>
 [Serializable]
 public struct ClassPsynergyEntry
@@ -80,36 +80,75 @@ public class CharacterClassSO : ScriptableObject
 
     #endregion
 
-    #region Helper Methods
+    #region Public Evaluation Methods
 
     /// <summary>
-    /// Gets the class multiplier for a specific StatType.
+    /// Returns the class multiplier scale corresponding to a given StatType.
     /// </summary>
     public float GetStatMultiplier(StatType statType)
     {
-        switch (statType)
+        return statType switch
         {
-            case StatType.MaxHP: return hpMultiplier;
-            case StatType.MaxPP: return ppMultiplier;
-            case StatType.Attack: return atkMultiplier;
-            case StatType.Defense: return defMultiplier;
-            case StatType.Agility: return agiMultiplier;
-            case StatType.Luck: return lckMultiplier;
-            default: return 1.0f;
-        }
+            StatType.MaxHP => hpMultiplier,
+            StatType.MaxPP => ppMultiplier,
+            StatType.Attack => atkMultiplier,
+            StatType.Defense => defMultiplier,
+            StatType.Agility => agiMultiplier,
+            StatType.Luck => lckMultiplier,
+            _ => 1.0f
+        };
     }
 
+    /// <summary>
+    /// Retrieves all Psynergies currently unlocked at or below the given level.
+    /// </summary>
+    public List<PsynergySO> GetLearnedPsynergies(int currentLevel)
+    {
+        var learned = new List<PsynergySO>();
+        for (int i = 0; i < grantedPsynergies.Count; i++)
+        {
+            var entry = grantedPsynergies[i];
+            if (entry.psynergy != null && entry.requiredLevel <= currentLevel)
+            {
+                learned.Add(entry.psynergy);
+            }
+        }
+        return learned;
+    }
+
+    /// <summary>
+    /// Retrieves upcoming Psynergies that will be learned above the current level.
+    /// </summary>
     public List<ClassPsynergyEntry> GetFuturePsynergies(int currentLevel)
     {
-        List<ClassPsynergyEntry> futurePsynergies = new List<ClassPsynergyEntry>();
-        foreach (var entry in grantedPsynergies)
+        var futurePsynergies = new List<ClassPsynergyEntry>();
+        for (int i = 0; i < grantedPsynergies.Count; i++)
         {
+            var entry = grantedPsynergies[i];
             if (entry.requiredLevel > currentLevel)
             {
                 futurePsynergies.Add(entry);
             }
         }
         return futurePsynergies;
+    }
+
+    /// <summary>
+    /// Zero-allocation variant to populate an existing list with future unlockable Psynergies.
+    /// </summary>
+    public void GetFuturePsynergiesNonAlloc(int currentLevel, List<ClassPsynergyEntry> resultsContainer)
+    {
+        if (resultsContainer == null) return;
+        resultsContainer.Clear();
+
+        for (int i = 0; i < grantedPsynergies.Count; i++)
+        {
+            var entry = grantedPsynergies[i];
+            if (entry.requiredLevel > currentLevel)
+            {
+                resultsContainer.Add(entry);
+            }
+        }
     }
 
     #endregion

@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Flint
   m_EditorClassIdentifier: 
-  djinnName: Flint
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 21087260672
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: flint
   element: 1
   icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
-  description: "Impulsado a la acci\xF3n tras el despertar del Templo Sonne en Tale.
-    Es el primer esp\xEDritu de la tierra que decide prestar su fuerza a la causa
-    de los Adeptos."
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 52615843840
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -29,6 +43,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: be8e5aa35b4e24941b7341d35842d4c9, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 11400000, guid: c8643129b21db7e4bbeebad50f45edb3, type: 2}
-  leaderPassiveDescription: '
-
-'
+  references:
+    version: 2
+    RefIds: []

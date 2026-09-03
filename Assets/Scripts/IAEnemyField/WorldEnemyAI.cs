@@ -72,32 +72,30 @@ public class WorldEnemyAI : MonoBehaviour
 
     private void OnEnable()
     {
-        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void OnDisable()
     {
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         StopActiveRoaming();
     }
 
     private void Start()
     {
-        if (playerTransform == null)
-        {
-            var playerObj = GameObject.FindWithTag("Player");
-            if (playerObj != null)
-            {
-                playerTransform = playerObj.transform;
-            }
-        }
+        LocatePlayerTransform();
     }
 
     private void Update()
     {
         if (!isWorldExplorationActive || agent == null || !agent.enabled) return;
+
+        // Fallback in case player was spawned after scene start
+        if (playerTransform == null)
+        {
+            LocatePlayerTransform();
+            if (playerTransform == null) return;
+        }
 
         EvaluateAIBehavior();
         UpdateAnimator();
@@ -115,11 +113,12 @@ public class WorldEnemyAI : MonoBehaviour
         spawnZone = zone;
     }
 
-    private void HandleActiveHeroChanged(GameObject hero)
+    private void LocatePlayerTransform()
     {
-        if (hero != null)
+        var playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
         {
-            playerTransform = hero.transform;
+            playerTransform = playerObj.transform;
         }
     }
 

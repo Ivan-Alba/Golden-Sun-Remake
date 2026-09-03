@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DjinnSO_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 256fecfc61d85cd4e94a3914e7f223c3, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 52615843840
+    m_Localized: Stirred to action following the awakening of Sol Sanctum in Vale.
+      It is the first Earth spirit to willingly pledge its power to the Adepts' cause.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21087260672
+    m_Localized: Flint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 591164477440
+    m_Localized: Granite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 626707009536
+    m_Localized: Found within the mysterious lands of Kolima. It embodies the unbreakable
+      resilience of ancient roots that shield their allies from harm.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 777529987072
+    m_Localized: Forge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 816725757952
+    m_Localized: Dweller of Goma Cave, where it stoked the heat from the depths of
+      the earth. Its inner flame kindles the battle fervor of those fighting by its
+      side.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940721967104
+    m_Localized: Fever
+    m_Metadata:
+      m_Items: []
+  - m_Id: 941854429184
+    m_Localized: Discovered in the frozen village of Imil, where its blazing warmth
+      stood out against eternal ice. Its scorching fire can daze and confuse the
+      minds of foes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1185908396032
+    m_Localized: Gust
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1187514814464
+    m_Localized: Originating from prosperous Bilibin, this restless Djinn embodies
+      the unpredictable northern breezes, capable of striking twice before foes can
+      react.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1331878563840
+    m_Localized: Breeze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1333082329088
+    m_Localized: Bound to the natural realm of Tret Tree. It carries a gentle, purifying
+      gust of fresh air that envelops allies to shield their spirits.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1447024791552
+    m_Localized: Fizz
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448337608704
+    m_Localized: A loyal companion bound to the protective lineage of Mercury Lighthouse.
+      Its essence flows like a restorative spring capable of soothing deep wounds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1849279516672
+    m_Localized: Sleet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1850420367360
+    m_Localized: A Djinn born from the chill of Mercury Lighthouse's sacred waters.
+      It commands winter frost to numb opponents' muscles and weaken their physical
+      strength.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

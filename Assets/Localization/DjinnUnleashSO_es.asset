@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DjinnUnleashSO_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: d36e97cb918451845a64052ce24a19e8, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 33322045440
+    m_Localized: "Impacto Tel\xFArico"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027328
+    m_Localized: "Ataca con un golpe elemental capaz de partir la roca e incrementa
+      el da\xF1o del ataque f\xEDsico."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36253863936
+    m_Localized: Escudo Terrestre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027330
+    m_Localized: "Despliega una barrera de tierra que reduce a la mitad todo el da\xF1o
+      recibido por el grupo durante ese turno."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027332
+    m_Localized: Aliento Abrasador
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027333
+    m_Localized: Aumenta el Ataque de todo el grupo usando la furia de las llamas.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027335
+    m_Localized: Llama Delirante
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027336
+    m_Localized: "Inflige da\xF1o de fuego al enemigo con probabilidad de provocar
+      Desorientaci\xF3n."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027338
+    m_Localized: Corte Huracanado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027339
+    m_Localized: "Golpea al enemigo con un vendaval, a\xF1adiendo da\xF1o de viento
+      y con opci\xF3n de realizar un segundo impacto."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027341
+    m_Localized: "Manto Et\xE9reo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027342
+    m_Localized: Canaliza una suave corriente de aire para aumentar la Resistencia
+      Elemental de todo el grupo.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027344
+    m_Localized: Manantial Vital
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027345
+    m_Localized: Utiliza el poder del agua para restaurar una cantidad moderada de
+      PV a un aliado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027347
+    m_Localized: Ventisca Entumecedora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027348
+    m_Localized: "Lanza una r\xE1faga de hielo que da\xF1a al enemigo y reduce su
+      capacidad de Ataque."
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

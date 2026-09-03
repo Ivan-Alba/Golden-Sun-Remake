@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Forge
   m_EditorClassIdentifier: 
-  djinnName: Fragua
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 777529987072
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: forge
   element: 2
   icon: {fileID: 21300000, guid: b412287db8e3e374da751c63fc800a67, type: 3}
-  description: Morador de la Cueva de Noma, donde avivaba el calor de las profundidades
-    de la tierra. Su llama interna despierta el fervor combativo de quien lucha a
-    su lado.
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 816725757952
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -35,4 +49,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: 4aaffd3b7dace724893152e259ea30f4, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 11400000, guid: 4e105adc945f95c4a9b80a7522432b76, type: 2}
-  leaderPassiveDescription: 
+  references:
+    version: 2
+    RefIds: []

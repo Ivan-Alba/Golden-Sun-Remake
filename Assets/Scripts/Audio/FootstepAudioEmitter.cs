@@ -1,33 +1,38 @@
 using UnityEngine;
 
 /// <summary>
-/// Attached to character/enemy root or model hierarchy. Performs ground raycasts to detect surface tags
-/// and plays 3D spatialized footstep audio directly at the entity position.
+/// Attached to character or enemy root/model hierarchies. Performs ground raycasts to detect surface tags
+/// and emits 3D spatialized footstep audio requests via GameEvents.Audio to the central AudioController Object Pool.
 /// </summary>
-[RequireComponent(typeof(AudioSource))]
 public class FootstepAudioEmitter : MonoBehaviour
 {
     #region Serialized Fields
 
     [Header("Raycast Ground Detection")]
+    [Tooltip("Layer mask filtering valid walkable ground surfaces.")]
     [SerializeField] private LayerMask groundLayerMask = ~0;
+
+    [Tooltip("Raycast check length extending downward from offset origin.")]
     [SerializeField] private float raycastDistance = 1.5f;
+
+    [Tooltip("Vertical position offset from origin to initiate ground raycast.")]
     [SerializeField] private Vector3 raycastOffset = Vector3.up * 0.5f;
 
     [Header("Pitch & Volume Variation")]
-    [Range(0.8f, 1.2f)][SerializeField] private float minPitch = 0.95f;
-    [Range(0.8f, 1.2f)][SerializeField] private float maxPitch = 1.05f;
-    [Range(0.1f, 1.0f)][SerializeField] private float baseVolume = 0.8f;
-    [Range(0.0f, 0.2f)][SerializeField] private float volumeVariance = 0.05f;
+    [Range(0.8f, 1.2f)]
+    [SerializeField] private float minPitch = 0.95f;
 
-    [Header("3D Audio Distance Settings")]
-    [Tooltip("Distance within which the footstep volume is at 100%.")]
-    [SerializeField] private float minAudioDistance = 1f;
+    [Range(0.8f, 1.2f)]
+    [SerializeField] private float maxPitch = 1.05f;
 
-    [Tooltip("Maximum distance where footsteps can still be heard.")]
-    [SerializeField] private float maxAudioDistance = 18f;
+    [Range(0.1f, 1.0f)]
+    [SerializeField] private float baseVolume = 0.8f;
+
+    [Range(0.0f, 0.2f)]
+    [SerializeField] private float volumeVariance = 0.05f;
 
     [Header("Default Profile (Fallback)")]
+    [Tooltip("Fallback footstep audio profile used if no custom hero/enemy profile is assigned.")]
     [SerializeField] private HeroFootstepProfileSO defaultProfile;
 
     #endregion
@@ -35,7 +40,6 @@ public class FootstepAudioEmitter : MonoBehaviour
     #region Private Fields
 
     private Transform cachedTransform;
-    private AudioSource spatialAudioSource;
     private HeroFootstepProfileSO currentProfile;
 
     #endregion
@@ -46,31 +50,6 @@ public class FootstepAudioEmitter : MonoBehaviour
     {
         cachedTransform = transform;
         currentProfile = defaultProfile;
-
-        ConfigureSpatialAudioSource();
-    }
-
-    #endregion
-
-    #region AudioSource Setup
-
-    /// <summary>
-    /// Configures the local AudioSource for zero-allocation 3D spatial attenuation.
-    /// </summary>
-    private void ConfigureSpatialAudioSource()
-    {
-        spatialAudioSource = GetComponent<AudioSource>();
-        if (spatialAudioSource == null)
-        {
-            spatialAudioSource = gameObject.AddComponent<AudioSource>();
-        }
-
-        spatialAudioSource.playOnAwake = false;
-        spatialAudioSource.spatialBlend = 1.0f; // 100% 3D sound
-        spatialAudioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-        spatialAudioSource.minDistance = minAudioDistance;
-        spatialAudioSource.maxDistance = maxAudioDistance;
-        spatialAudioSource.dopplerLevel = 0f;
     }
 
     #endregion
@@ -91,6 +70,7 @@ public class FootstepAudioEmitter : MonoBehaviour
 
     /// <summary>
     /// Called directly by Unity Animation Events during walk/run animation cycles.
+    /// Emits a spatial 3D audio request to the AudioController Object Pool.
     /// </summary>
     public void OnFootstep()
     {
@@ -102,6 +82,7 @@ public class FootstepAudioEmitter : MonoBehaviour
         float randomizedPitch = Random.Range(minPitch, maxPitch);
         float randomizedVolume = Mathf.Clamp01(baseVolume + Random.Range(-volumeVariance, volumeVariance));
 
+        // Decoupled 3D spatial SFX request handled by central AudioController Object Pool
         GameEvents.Audio.RequestPlaySFXClipAtPosition(clip, cachedTransform.position, randomizedVolume, randomizedPitch);
     }
 
@@ -109,6 +90,9 @@ public class FootstepAudioEmitter : MonoBehaviour
 
     #region Ground Detection Logic
 
+    /// <summary>
+    /// Performs downward raycast to resolve surface tag and fetch matching AudioClip from active profile.
+    /// </summary>
     private AudioClip DetectAndSelectClip()
     {
         Vector3 origin = cachedTransform.position + raycastOffset;
@@ -124,7 +108,7 @@ public class FootstepAudioEmitter : MonoBehaviour
 
     #endregion
 
-    #region Gizmos
+    #region Editor Debugging Gizmos
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
@@ -132,9 +116,6 @@ public class FootstepAudioEmitter : MonoBehaviour
         Gizmos.color = Color.yellow;
         Vector3 origin = transform.position + raycastOffset;
         Gizmos.DrawRay(origin, Vector3.down * raycastDistance);
-
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, maxAudioDistance);
     }
 #endif
 

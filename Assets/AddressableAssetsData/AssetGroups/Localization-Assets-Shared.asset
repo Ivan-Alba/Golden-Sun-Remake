@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Localization-Assets-Shared
   m_GUID: 2b6e3a85534553f478f9dd85cc9e67e0
   m_SerializeEntries:
+  - m_GUID: 256fecfc61d85cd4e94a3914e7f223c3
+    m_Address: Assets/Localization/DjinnSO Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 31ddc9679bab30a44985a82ade0cfd13
     m_Address: Assets/Localization/UI_Strings Shared Data.asset
     m_ReadOnly: 1
@@ -22,6 +27,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 35a14b5ec0594e848b9e7cfc06aefea5
     m_Address: Assets/Localization/Dialogue_Strings Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d36e97cb918451845a64052ce24a19e8
+    m_Address: Assets/Localization/DjinnUnleashSO Shared Data.asset
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

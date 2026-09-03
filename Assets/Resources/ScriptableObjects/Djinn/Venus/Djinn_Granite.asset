@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Granite
   m_EditorClassIdentifier: 
-  djinnName: Granite
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 591164477440
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: granite
   element: 1
   icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
-  description: "Encontrado en las misteriosas tierras de Kolima. Encarna la dureza
-    inquebrantable de las ra\xEDces ancestrales que protegen a los suyos frente a
-    cualquier peligro."
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 626707009536
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -32,4 +46,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: 52c6a1aabc59aba4384b72df889520fe, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 11400000, guid: 4157abea7d062b543a5de5153186dd23, type: 2}
-  leaderPassiveDescription: 
+  references:
+    version: 2
+    RefIds: []

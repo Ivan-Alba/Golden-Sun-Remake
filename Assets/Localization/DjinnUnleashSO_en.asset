@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DjinnUnleashSO_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: d36e97cb918451845a64052ce24a19e8, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 33322045440
+    m_Localized: Teluric Strike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027328
+    m_Localized: Attacks with an elemental strike capable of shattering rock and
+      increases physical attack damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36253863936
+    m_Localized: Earthen Shield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027330
+    m_Localized: Creates a barrier of earth that halves all damage received by the
+      party for that turn.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027332
+    m_Localized: Scorching Breath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027333
+    m_Localized: Boosts the Attack of the entire party using the fury of flames.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027335
+    m_Localized: Delirious Flame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027336
+    m_Localized: Deals fire damage to the enemy with a chance to inflict Delusion.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027338
+    m_Localized: Gale Slash
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027339
+    m_Localized: Strikes the enemy with a gale, adding wind damage and a chance to
+      perform a second hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027341
+    m_Localized: Ethereal Shroud
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027342
+    m_Localized: Channels a gentle air current to raise the Elemental Resistance
+      of the entire party.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027344
+    m_Localized: Vital Spring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027345
+    m_Localized: Uses the power of water to restore a moderate amount of HP to an
+      ally.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027347
+    m_Localized: Numbing Blizzard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1375277027348
+    m_Localized: Unleashes a blast of ice that damages the enemy and lowers their
+      Attack power.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

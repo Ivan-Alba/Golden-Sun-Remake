@@ -1,18 +1,32 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Localization;
 
+/// <summary>
+/// ScriptableObject defining an individual Djinn asset in Golden Sun.
+/// Holds elemental attributes, base stat modifiers granted in SET state,
+/// combat unleash effects, and leader passive status effects.
+/// </summary>
 [CreateAssetMenu(fileName = "Djinn_", menuName = "GoldenSun/Djinn/Djinn Asset")]
 public class DjinnSO : ScriptableObject
 {
     #region Basic Identity Properties
 
     [Header("Basic Identity")]
-    [SerializeField] private string djinnName = "Flint";
+    [Tooltip("Localized name of the Djinn displayed in menus and combat.")]
+    [SerializeField] private LocalizedString djinnName;
+
+    [Tooltip("Unique string identifier used for database lookups and save data transactions.")]
     [SerializeField] private string djinnSlug = "flint";
+
+    [Tooltip("Elemental alignment of this Djinn (Venus, Mars, Jupiter, Mercury).")]
     [SerializeField] private ElementalType element = ElementalType.Venus;
+
+    [Tooltip("UI Icon displayed in party status, Djinn management, and battle menus.")]
     [SerializeField] private Sprite icon;
-    [TextArea(2, 4)]
-    [SerializeField] private string description;
+
+    [Tooltip("Localized detailed lore/description of this Djinn.")]
+    [SerializeField] private LocalizedString description;
 
     #endregion
 
@@ -41,48 +55,81 @@ public class DjinnSO : ScriptableObject
     [Tooltip("Unique passive status effect applied to the hero ONLY when this Djinn is chosen as Leader AND is in SET state.")]
     [SerializeField] private StatusEffectSO leaderPassiveEffect;
 
-    [TextArea(2, 3)]
-    [SerializeField] private string leaderPassiveDescription;
-
     #endregion
 
     #region Public Properties
 
-    public string DjinnName => djinnName;
+    public LocalizedString DjinnNameLocalizedString => djinnName;
+    public string DjinnName => djinnName != null ? djinnName.GetLocalizedString() : string.Empty;
+
     public string DjinnSlug => djinnSlug;
     public ElementalType Element => element;
     public Sprite Icon => icon;
-    public string Description => description;
+
+    public LocalizedString DescriptionLocalizedString => description;
+    public string Description => description != null ? description.GetLocalizedString() : string.Empty;
 
     public IReadOnlyList<StatBonus> SetStatModifiers => setStatModifiers;
 
     public int BaseRecoveryTurns => baseRecoveryTurns;
 
     public StatusEffectSO LeaderPassiveEffect => leaderPassiveEffect;
-    public string LeaderPassiveDescription => leaderPassiveDescription;
 
     public DjinnUnleashSO UnleashEffect => unleashEffect;
 
     #endregion
 
-    #region Helper Methods
+    #region Unity Editor Validation
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // Enforce minimum recovery turn threshold
+        if (baseRecoveryTurns < 1)
+        {
+            baseRecoveryTurns = 1;
+        }
+
+        // Auto-generate fallback slug if empty
+        if (string.IsNullOrWhiteSpace(djinnSlug) && djinnName != null)
+        {
+            djinnSlug = name.Replace("Djinn_", string.Empty).ToLowerInvariant();
+        }
+    }
+#endif
+
+    #endregion
+
+    #region Helper & Calculation Methods
 
     /// <summary>
-    /// Devuelve la lista de StatModifiers generados por este Djinn para inyectar en Stat.cs o StatCalculator.
+    /// Generates a list of tuples containing StatType and instantiated StatModifier for injection into StatCalculator.
     /// </summary>
     public List<(StatType statType, StatModifier modifier)> GetStatModifiers()
     {
         var result = new List<(StatType, StatModifier)>();
-        if (setStatModifiers == null) return result;
+        GetStatModifiersNonAlloc(result);
+        return result;
+    }
+
+    /// <summary>
+    /// Zero-allocation variant to populate an existing container with generated StatModifiers.
+    /// </summary>
+    public void GetStatModifiersNonAlloc(List<(StatType statType, StatModifier modifier)> resultsContainer)
+    {
+        if (resultsContainer == null) return;
+        resultsContainer.Clear();
+
+        if (setStatModifiers == null) return;
 
         for (int i = 0; i < setStatModifiers.Count; i++)
         {
-            if (setStatModifiers[i] != null)
+            var bonus = setStatModifiers[i];
+            if (bonus != null)
             {
-                result.Add((setStatModifiers[i].statType, setStatModifiers[i].ToStatModifier(this, isTemporary: false)));
+                resultsContainer.Add((bonus.statType, bonus.ToStatModifier(this, isTemporary: false)));
             }
         }
-        return result;
     }
 
     #endregion

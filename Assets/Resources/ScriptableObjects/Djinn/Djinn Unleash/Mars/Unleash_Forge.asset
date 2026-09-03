@@ -12,9 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cb274ac509a3049813737a782853fa, type: 3}
   m_Name: Unleash_Forge
   m_EditorClassIdentifier: 
-  unleashName: Aliento Abrasador
+  unleashName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d36e97cb918451845a64052ce24a19e8
+    m_TableEntryReference:
+      m_KeyId: 1375277027332
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   slugName: forge_unleash
-  description: Aumenta el Ataque de todo el grupo usando la furia de las llamas.
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:d36e97cb918451845a64052ce24a19e8
+    m_TableEntryReference:
+      m_KeyId: 1375277027333
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   element: 2
   targetsAlly: 1
@@ -29,3 +45,6 @@ MonoBehaviour:
   casterAuraVFX: {fileID: 0}
   unleashMainVFX: {fileID: 0}
   soundEffect: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

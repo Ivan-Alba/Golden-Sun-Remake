@@ -36,6 +36,8 @@ public struct ClassRequirementEntry
 [CreateAssetMenu(fileName = "ClassDatabase", menuName = "GoldenSun/Djinn/Class Database")]
 public class ClassDatabaseSO : ScriptableObject
 {
+    #region Serialized Fields
+
     [Header("Default Base Classes")]
     [Tooltip("Fallback base classes when 0 Djinns are equipped (Venus -> Squire, Mars -> Guard, Jupiter -> Wind Seer, Mercury -> Water Seer).")]
     [SerializeField] private CharacterClassSO defaultVenusClass;
@@ -44,8 +46,25 @@ public class ClassDatabaseSO : ScriptableObject
     [SerializeField] private CharacterClassSO defaultMercuryClass;
 
     [Header("Class Requirement Table")]
-    [Tooltip("List of all class mappings ordered or evaluated by priority.")]
+    [Tooltip("List of all class mappings evaluated by priority order.")]
     [SerializeField] private List<ClassRequirementEntry> classEntries = new List<ClassRequirementEntry>();
+
+    #endregion
+
+    #region Unity Editor Validation
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // Auto-sort entries by priority descending to optimize evaluation loops in runtime
+        if (classEntries != null && classEntries.Count > 1)
+        {
+            classEntries.Sort((a, b) => b.priority.CompareTo(a.priority));
+        }
+    }
+#endif
+
+    #endregion
 
     #region Public Evaluation Methods
 
@@ -54,9 +73,6 @@ public class ClassDatabaseSO : ScriptableObject
     /// </summary>
     public CharacterClassSO EvaluateClass(ElementalType baseElement, int venusSet, int marsSet, int jupiterSet, int mercurySet)
     {
-        CharacterClassSO bestMatch = null;
-        int highestPriority = -1;
-
         for (int i = 0; i < classEntries.Count; i++)
         {
             var entry = classEntries[i];
@@ -67,21 +83,28 @@ public class ClassDatabaseSO : ScriptableObject
                 entry.jupiterCount == jupiterSet &&
                 entry.mercuryCount == mercurySet)
             {
-                if (entry.priority > highestPriority)
-                {
-                    highestPriority = entry.priority;
-                    bestMatch = entry.targetClass;
-                }
+                // Returns immediately on highest priority match (since list is sorted by priority)
+                return entry.targetClass;
             }
         }
 
         // Fallback to elemental default class if no specific entry matched
-        if (bestMatch == null)
-        {
-            bestMatch = GetDefaultClassForElement(baseElement);
-        }
+        return GetDefaultClassForElement(baseElement);
+    }
 
-        return bestMatch;
+    /// <summary>
+    /// Overload evaluating class match using an elemental count dictionary.
+    /// </summary>
+    public CharacterClassSO EvaluateClass(ElementalType baseElement, IReadOnlyDictionary<ElementalType, int> setDjinnCounts)
+    {
+        if (setDjinnCounts == null) return GetDefaultClassForElement(baseElement);
+
+        setDjinnCounts.TryGetValue(ElementalType.Venus, out int venus);
+        setDjinnCounts.TryGetValue(ElementalType.Mars, out int mars);
+        setDjinnCounts.TryGetValue(ElementalType.Jupiter, out int jupiter);
+        setDjinnCounts.TryGetValue(ElementalType.Mercury, out int mercury);
+
+        return EvaluateClass(baseElement, venus, mars, jupiter, mercury);
     }
 
     /// <summary>
@@ -89,14 +112,14 @@ public class ClassDatabaseSO : ScriptableObject
     /// </summary>
     public CharacterClassSO GetDefaultClassForElement(ElementalType element)
     {
-        switch (element)
+        return element switch
         {
-            case ElementalType.Venus: return defaultVenusClass;
-            case ElementalType.Mars: return defaultMarsClass;
-            case ElementalType.Jupiter: return defaultJupiterClass;
-            case ElementalType.Mercury: return defaultMercuryClass;
-            default: return defaultVenusClass;
-        }
+            ElementalType.Venus => defaultVenusClass,
+            ElementalType.Mars => defaultMarsClass,
+            ElementalType.Jupiter => defaultJupiterClass,
+            ElementalType.Mercury => defaultMercuryClass,
+            _ => defaultVenusClass
+        };
     }
 
     #endregion

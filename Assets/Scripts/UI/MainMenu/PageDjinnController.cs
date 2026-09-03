@@ -1111,7 +1111,6 @@ public class PageDjinnController
     {
         if (psynergyCardAsset == null)
         {
-            Debug.LogError("[PageDjinn] psynergyCardTemplate is null. Cannot instantiate card.");
             return new VisualElement();
         }
 
@@ -1598,8 +1597,6 @@ public class PageDjinnController
 
         if (TryGetDropTarget(panelPointerPosition, out DjinnDropTargetInfo targetInfo))
         {
-            Debug.Log($"<color=cyan>✨ [TINKLE TINKLE] ✨ Slot Detectado:</color> Heroe = {targetInfo.TargetHero?.Name}, Djinn = {targetInfo.TargetDjinn?.DjinnData?.DjinnName ?? "Vacío"}");
-
             bool validDrop = CanDropOnTarget(currentDragContext.SourceHero, targetInfo.TargetHero, targetInfo.TargetDjinn);
 
             if (validDrop)
@@ -1611,14 +1608,6 @@ public class PageDjinnController
 
                 OpenSwapConfirmationModal();
             }
-            else
-            {
-                Debug.LogWarning("⚠️ [PageDjinn] Drop rechazado: No cumple las reglas de intercambio/mínimos.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("❌ [PageDjinn] Drop fallido: No se detectó ninguna casilla válida bajo el cursor.");
         }
     }
 
@@ -1637,15 +1626,12 @@ public class PageDjinnController
 
                 if (cardPanelBounds.Contains(panelPointerPosition))
                 {
-                    Debug.Log($"<color=green>🎯 [DROP DETECTADO CON ÉXITO]:</color> Target Hero = {target.ownerHero.Name}, Djinn = {target.djinnInstance?.DjinnData?.DjinnName ?? "Vacío"}");
-
                     targetInfo = new DjinnDropTargetInfo(target.ownerHero, target.djinnInstance, target.element);
                     return true;
                 }
             }
         }
 
-        Debug.LogWarning($"<color=red>❌ [DROP FALLIDO]:</color> El puntero en espacio Panel {panelPointerPosition} no colisionó con ninguna casilla. (Tarjetas evaluadas: {dragTargetSlots.Count})");
         return false;
     }
 
@@ -1885,7 +1871,6 @@ public class PageDjinnController
     {
         if (swapSourceHero == null || swapTargetHero == null || swapSourceDjinn == null)
         {
-            Debug.LogWarning("⚠️ [PageDjinn] No se puede ejecutar el intercambio/transferencia: Datos insuficientes.");
             return;
         }
 
@@ -1915,12 +1900,6 @@ public class PageDjinnController
             {
                 sourceCtrl.AssignDjinn(targetData, targetState);
             }
-
-            Debug.Log($"<color=green>✓ [PageDjinn]</color> {(isSwap ? "Intercambio" : "Transferencia")} ejecutada correctamente entre {swapSourceHero.Name} y {swapTargetHero.Name}.");
-        }
-        else
-        {
-            Debug.LogError($"❌ [PageDjinn] Fallo al desasignar {sourceData?.DjinnName} de {swapSourceHero.Name}.");
         }
 
         RefreshAllData();

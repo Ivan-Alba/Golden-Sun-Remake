@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Sleet
   m_EditorClassIdentifier: 
-  djinnName: Granizo
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1849279516672
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: sleet
   element: 4
   icon: {fileID: 21300000, guid: e45c3409db645454eb9516f68cb8ed31, type: 3}
-  description: "Un Djinn nacido del fr\xEDo de la corriente sagrada del Faro de Mercurio.
-    Domina la escarcha invernal para entumecer los m\xFAsculos de sus oponentes y
-    mermar su fuerza."
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1850420367360
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -32,4 +46,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: 1f773a0f7c8afd64695a1d0444bcd087, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 0}
-  leaderPassiveDescription: 
+  references:
+    version: 2
+    RefIds: []

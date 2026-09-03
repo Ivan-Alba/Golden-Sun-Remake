@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Gust
   m_EditorClassIdentifier: 
-  djinnName: "R\xE1faga"
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1185908396032
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: gust
   element: 3
   icon: {fileID: 21300000, guid: da1e22c8361a81640b6e692fbb189445, type: 3}
-  description: "Procedente de la pr\xF3spera Bilibin, este inquieto Djinn representa
-    las brisas impredecibles del norte, capaces de golpear dos veces antes de que
-    el enemigo lo perciba."
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1187514814464
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -32,4 +46,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: 71b69fbfa2fd3424094dc936a9df3c5f, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 0}
-  leaderPassiveDescription: 
+  references:
+    version: 2
+    RefIds: []

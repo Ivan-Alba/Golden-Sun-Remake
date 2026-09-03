@@ -12,10 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cb274ac509a3049813737a782853fa, type: 3}
   m_Name: Unleash_Breeze
   m_EditorClassIdentifier: 
-  unleashName: "Manto Et\xE9reo"
+  unleashName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d36e97cb918451845a64052ce24a19e8
+    m_TableEntryReference:
+      m_KeyId: 1375277027341
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   slugName: breeze_unleash
-  description: Canaliza una suave corriente de aire para aumentar la Resistencia
-    Elemental de todo el grupo.
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:d36e97cb918451845a64052ce24a19e8
+    m_TableEntryReference:
+      m_KeyId: 1375277027342
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   element: 3
   targetsAlly: 1
@@ -29,3 +44,6 @@ MonoBehaviour:
   casterAuraVFX: {fileID: 0}
   unleashMainVFX: {fileID: 0}
   soundEffect: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

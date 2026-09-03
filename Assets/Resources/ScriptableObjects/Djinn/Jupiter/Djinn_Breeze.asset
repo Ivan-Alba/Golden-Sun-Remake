@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aec0c0a01b103c49855fbc149e7e355, type: 3}
   m_Name: Djinn_Breeze
   m_EditorClassIdentifier: 
-  djinnName: Brisa
+  djinnName:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1331878563840
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   djinnSlug: breeze
   element: 3
   icon: {fileID: 21300000, guid: da1e22c8361a81640b6e692fbb189445, type: 3}
-  description: Vinculado a la naturaleza del Bosque de Tret. Trae consigo una suave
-    y purificadora corriente de aire fresco que envuelve a los aliados para escudar
-    sus almas.
+  description:
+    m_TableReference:
+      m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
+    m_TableEntryReference:
+      m_KeyId: 1333082329088
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   setStatModifiers:
   - statType: 0
     modifierType: 0
@@ -41,4 +55,6 @@ MonoBehaviour:
   unleashEffect: {fileID: 11400000, guid: 99663638340c5234c95240c7e2a5c2fc, type: 2}
   baseRecoveryTurns: 2
   leaderPassiveEffect: {fileID: 0}
-  leaderPassiveDescription: 
+  references:
+    version: 2
+    RefIds: []

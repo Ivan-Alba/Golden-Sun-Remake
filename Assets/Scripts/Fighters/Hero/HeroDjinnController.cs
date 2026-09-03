@@ -4,7 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// MonoBehaviour attached to heroes. Manages assigned Djinns, resolves current CharacterClassSO,
-/// controls the Leader Djinn passive perk, applies Djinn stat modifiers, and notifies HeroStats for stat/psynergy recalculations.
+/// controls the Leader Djinn passive perk, applies zero-allocation Djinn stat modifiers, 
+/// and notifies HeroStats for stat and Psynergy recalculations.
 /// </summary>
 [RequireComponent(typeof(HeroStats))]
 public class HeroDjinnController : MonoBehaviour
@@ -26,13 +27,16 @@ public class HeroDjinnController : MonoBehaviour
     #region Private Fields & Runtime State
 
     private HeroStats heroStats;
-    private List<DjinnInstance> assignedDjinns = new List<DjinnInstance>();
+    private readonly List<DjinnInstance> assignedDjinns = new List<DjinnInstance>();
 
     private DjinnInstance leaderDjinn = null;
     private CharacterClassSO currentClass = null;
 
     // Track active leader status effect instance applied to HeroStats
     private StatusEffectSO activeLeaderEffectSO = null;
+
+    // Zero-allocation reusable container for stat modifiers extraction
+    private readonly List<(StatType statType, StatModifier modifier)> cachedModifiersList = new List<(StatType, StatModifier)>();
 
     #endregion
 
@@ -55,7 +59,6 @@ public class HeroDjinnController : MonoBehaviour
     public IReadOnlyList<DjinnInstance> AssignedDjinns => assignedDjinns;
     public DjinnInstance LeaderDjinn => leaderDjinn;
     public CharacterClassSO CurrentClass => currentClass;
-
     public ClassDatabaseSO ClassDatabase => classDatabase;
 
     #endregion
@@ -77,18 +80,22 @@ public class HeroDjinnController : MonoBehaviour
     #region Initialization
 
     /// <summary>
-    /// Populates initial Djinn instances and resolves initial class and leader passive.
+    /// Populates initial Djinn instances, resolves initial class, and guarantees Leader passive application on boot.
     /// </summary>
     public void InitializeDjinns()
     {
-        // Unsubscribe existing instances if re-initializing
-        foreach (var djinn in assignedDjinns)
+        // Unsubscribe existing instances if re-initializing at runtime
+        for (int i = 0; i < assignedDjinns.Count; i++)
         {
-            if (djinn != null) djinn.OnStateChanged -= HandleDjinnStateChanged;
+            if (assignedDjinns[i] != null)
+            {
+                assignedDjinns[i].OnStateChanged -= HandleDjinnStateChanged;
+            }
         }
 
         assignedDjinns.Clear();
 
+        // 1. Instantiate runtime Djinn wrappers
         for (int i = 0; i < initialDjinns.Count; i++)
         {
             if (initialDjinns[i] != null)
@@ -99,6 +106,7 @@ public class HeroDjinnController : MonoBehaviour
             }
         }
 
+        // 2. Assign initial Leader Djinn
         if (initialLeaderIndex >= 0 && initialLeaderIndex < assignedDjinns.Count)
         {
             leaderDjinn = assignedDjinns[initialLeaderIndex];
@@ -108,12 +116,39 @@ public class HeroDjinnController : MonoBehaviour
             leaderDjinn = (assignedDjinns.Count > 0) ? assignedDjinns[0] : null;
         }
 
+        // 3. Force full evaluation including initial leader passive injection
         EvaluateClassAndStats(forceRefresh: true);
     }
 
     #endregion
 
     #region Djinn Management API
+
+    /// <summary>
+    /// Single-pass evaluation counting active SET Djinns across all elements simultaneously.
+    /// </summary>
+    public void GetSetDjinnCountsSinglePass(out int venus, out int mars, out int jupiter, out int mercury)
+    {
+        venus = 0;
+        mars = 0;
+        jupiter = 0;
+        mercury = 0;
+
+        for (int i = 0; i < assignedDjinns.Count; i++)
+        {
+            DjinnInstance djinn = assignedDjinns[i];
+            if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null)
+            {
+                switch (djinn.DjinnData.Element)
+                {
+                    case ElementalType.Venus: venus++; break;
+                    case ElementalType.Mars: mars++; break;
+                    case ElementalType.Jupiter: jupiter++; break;
+                    case ElementalType.Mercury: mercury++; break;
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Returns the total number of assigned Djinns of a specific element that are currently in SET state.
@@ -133,7 +168,7 @@ public class HeroDjinnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the total number of assigned Djinns of a specific element that are currently in SET state.
+    /// Returns the total count of assigned Djinns matching an element regardless of state.
     /// </summary>
     public int GetTotalCountByElement(ElementalType element)
     {
@@ -150,24 +185,30 @@ public class HeroDjinnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Designates a new Leader Djinn from the hero's assigned list (Out of combat feature).
+    /// Designates a new Leader Djinn and updates passive perks atomically.
     /// </summary>
     public bool SetLeaderDjinn(DjinnInstance djinn)
     {
         if (djinn != null && !assignedDjinns.Contains(djinn))
         {
-            Debug.LogWarning($"[HeroDjinnController] Cannot set {djinn.DjinnData.DjinnName} as leader. Not assigned to {heroStats.Name}.");
+            Debug.LogWarning($"[HeroDjinnController] Cannot set {djinn.DjinnData?.DjinnName} as leader. Not assigned to {heroStats?.Name}.");
             return false;
         }
 
         leaderDjinn = djinn;
         UpdateLeaderPassivePerk();
         OnDjinnSetupUpdated?.Invoke();
+
+        if (heroStats != null)
+        {
+            heroStats.RecalculateStatsAndPsynergies();
+        }
+
         return true;
     }
 
     /// <summary>
-    /// Adds a new Djinn to this hero.
+    /// Adds a new Djinn to this hero and triggers setup recalculations.
     /// </summary>
     public void AssignDjinn(DjinnSO djinnSO, DjinnState initialState = DjinnState.Set)
     {
@@ -216,7 +257,7 @@ public class HeroDjinnController : MonoBehaviour
     #region Turn Progression (Recovery Loop)
 
     /// <summary>
-    /// Ticks down recovery turns for all Djinns in RECOVERY state at the start/end of individual hero turn.
+    /// Ticks down recovery turns for all Djinns in RECOVERY state at turn resolution.
     /// </summary>
     public void TickDjinnRecovery()
     {
@@ -246,15 +287,13 @@ public class HeroDjinnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Evaluates active SET Djinns by element, queries ClassDatabaseSO, updates Djinn StatModifiers, and notifies HeroStats.
+    /// Evaluates active SET Djinns by element via single pass, queries ClassDatabaseSO, 
+    /// updates zero-alloc Djinn StatModifiers, and notifies HeroStats.
     /// </summary>
     public void EvaluateClassAndStats(bool forceRefresh = false)
     {
-        // Uso del nuevo helper para mantener el código limpio y conciso
-        int venusSet = GetSetCountByElement(ElementalType.Venus);
-        int marsSet = GetSetCountByElement(ElementalType.Mars);
-        int jupiterSet = GetSetCountByElement(ElementalType.Jupiter);
-        int mercurySet = GetSetCountByElement(ElementalType.Mercury);
+        // 1. Single-pass elemental count for maximum efficiency
+        GetSetDjinnCountsSinglePass(out int venusSet, out int marsSet, out int jupiterSet, out int mercurySet);
 
         ElementalType heroBaseElement = (heroStats != null) ? heroStats.BaseElement : ElementalType.Venus;
 
@@ -265,6 +304,7 @@ public class HeroDjinnController : MonoBehaviour
         bool classHasChanged = (newClass != currentClass) || forceRefresh;
         currentClass = newClass;
 
+        // 2. Synchronize modifiers and leader passive
         UpdateDjinnStatModifiers();
         UpdateLeaderPassivePerk();
 
@@ -282,14 +322,13 @@ public class HeroDjinnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Synchronizes StatModifiers on FighterStats for all Djinns currently in SET state.
-    /// Removes modifiers for Djinns in Standby or Recovery.
+    /// Synchronizes StatModifiers on HeroStats using zero-allocation containers.
     /// </summary>
     private void UpdateDjinnStatModifiers()
     {
         if (heroStats == null) return;
 
-        // 1. Clear previous Djinn stat modifiers for all assigned Djinns
+        // 1. Clear previous Djinn stat modifiers
         for (int i = 0; i < assignedDjinns.Count; i++)
         {
             if (assignedDjinns[i]?.DjinnData != null)
@@ -298,16 +337,16 @@ public class HeroDjinnController : MonoBehaviour
             }
         }
 
-        // 2. Apply stat modifiers ONLY for Djinns currently in SET state
+        // 2. Apply stat modifiers ONLY for Djinns currently in SET state (Zero-Alloc)
         for (int i = 0; i < assignedDjinns.Count; i++)
         {
             DjinnInstance djinn = assignedDjinns[i];
             if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null)
             {
-                var modifiers = djinn.DjinnData.GetStatModifiers();
-                for (int j = 0; j < modifiers.Count; j++)
+                djinn.DjinnData.GetStatModifiersNonAlloc(cachedModifiersList);
+                for (int j = 0; j < cachedModifiersList.Count; j++)
                 {
-                    heroStats.AddStatModifier(modifiers[j].statType, modifiers[j].modifier);
+                    heroStats.AddStatModifier(cachedModifiersList[j].statType, cachedModifiersList[j].modifier);
                 }
             }
         }
@@ -328,7 +367,7 @@ public class HeroDjinnController : MonoBehaviour
         }
 
         // 2. Apply new leader passive effect ONLY IF Leader Djinn is set AND in SET state
-        if (leaderDjinn != null && leaderDjinn.CurrentState == DjinnState.Set)
+        if (leaderDjinn != null && leaderDjinn.CurrentState == DjinnState.Set && leaderDjinn.DjinnData != null)
         {
             StatusEffectSO passiveEffect = leaderDjinn.DjinnData.LeaderPassiveEffect;
             if (passiveEffect != null)
