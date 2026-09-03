@@ -27,14 +27,20 @@ public class HeroStats : FighterStats
 
     #endregion
 
-    #region Private Fields
+    #region Private Fields & Cached Components
 
     private int nextLevelXp;
     private HeroDjinnController djinnController;
+    private HeroEquipment heroEquipment;
 
     // Cache Engine State
     private StatBlock cachedBlock;
     private bool isDirty = true;
+
+    // Zero-Allocation Reusable Collections for Recalculation Engine
+    private readonly StatEvaluationContext reusableContext = new StatEvaluationContext();
+    private readonly HashSet<PsynergySO> consolidatedPsynergySet = new HashSet<PsynergySO>();
+    private readonly List<PsynergySO> lostPsynergiesCache = new List<PsynergySO>();
 
     #endregion
 
@@ -56,12 +62,16 @@ public class HeroStats : FighterStats
 
     /// <summary>
     /// Builds an evaluation context directly from FighterStats' single source of truth (statsMap).
+    /// Uses a zero-allocation reusable context object.
     /// </summary>
     public StatEvaluationContext BuildCurrentContext()
     {
-        StatEvaluationContext context = new StatEvaluationContext();
+        // Reutilización del contexto local para no instanciar 'new' en cada recálculo
+        reusableContext.BaseStats.Clear();
+        reusableContext.ClassMultipliers.Clear();
+        reusableContext.Modifiers.Clear();
 
-        if (statsMap == null) return context;
+        if (statsMap == null) return reusableContext;
 
         foreach (var kvp in statsMap)
         {
@@ -70,12 +80,12 @@ public class HeroStats : FighterStats
 
             if (statInstance == null) continue;
 
-            context.SetBaseStat(type, statInstance.BaseValue);
-            context.SetClassMultiplier(type, statInstance.ClassMultiplier);
-            context.AddModifiers(type, statInstance.StatModifiers);
+            reusableContext.SetBaseStat(type, statInstance.BaseValue);
+            reusableContext.SetClassMultiplier(type, statInstance.ClassMultiplier);
+            reusableContext.AddModifiers(type, statInstance.StatModifiers);
         }
 
-        return context;
+        return reusableContext;
     }
 
     /// <summary>
@@ -120,6 +130,8 @@ public class HeroStats : FighterStats
     {
         base.Awake();
         djinnController = GetComponent<HeroDjinnController>();
+        heroEquipment = GetComponent<HeroEquipment>();
+
         CalculateNextLevelXp();
 
         // Subscribe to FighterStats base mutations for automatic dirtying
@@ -145,30 +157,18 @@ public class HeroStats : FighterStats
 
     private void SubscribeToEquipmentEvents()
     {
-        HeroEquipment equipment = GetComponent<HeroEquipment>();
-        if (equipment != null)
+        if (heroEquipment != null)
         {
-            equipment.OnEquipmentChanged += RecalculateStatsAndPsynergies;
+            heroEquipment.OnEquipmentChanged += RecalculateStatsAndPsynergies;
         }
     }
 
     private void UnsubscribeFromEquipmentEvents()
     {
-        HeroEquipment equipment = GetComponent<HeroEquipment>();
-        if (equipment != null)
+        if (heroEquipment != null)
         {
-            equipment.OnEquipmentChanged -= RecalculateStatsAndPsynergies;
+            heroEquipment.OnEquipmentChanged -= RecalculateStatsAndPsynergies;
         }
-    }
-
-    private void ClampCurrentHp()
-    {
-        if (CurrHp > MaxHp) CurrHp = MaxHp;
-    }
-
-    private void ClampCurrentPp()
-    {
-        if (CurrPp > MaxPp) CurrPp = MaxPp;
     }
 
     #endregion
@@ -321,28 +321,25 @@ public class HeroStats : FighterStats
             float multiplier = (activeClass != null) ? activeClass.GetStatMultiplier(statType) : 1f;
             statInstance.ClassMultiplier = multiplier;
         }
-
-        ClampCurrentHp();
-        ClampCurrentPp();
     }
 
     public void ReevaluatePsynergies()
     {
-        HashSet<PsynergySO> newConsolidatedSet = new HashSet<PsynergySO>();
+        consolidatedPsynergySet.Clear();
 
         List<PsynergySO> innateAndStory = GetInnateAndStoryPsynergies();
         foreach (var p in innateAndStory)
         {
-            if (p != null) newConsolidatedSet.Add(p);
+            if (p != null) consolidatedPsynergySet.Add(p);
         }
 
-        HeroEquipment equipment = GetComponent<HeroEquipment>();
-        if (equipment != null)
+        if (heroEquipment == null) heroEquipment = GetComponent<HeroEquipment>();
+        if (heroEquipment != null)
         {
-            List<PsynergySO> relicPsynergies = equipment.GetEquippedRelicPsynergies();
+            List<PsynergySO> relicPsynergies = heroEquipment.GetEquippedRelicPsynergies();
             foreach (var p in relicPsynergies)
             {
-                if (p != null) newConsolidatedSet.Add(p);
+                if (p != null) consolidatedPsynergySet.Add(p);
             }
         }
 
@@ -354,24 +351,24 @@ public class HeroStats : FighterStats
             {
                 if (classEntries[i].psynergy != null && level >= classEntries[i].requiredLevel)
                 {
-                    newConsolidatedSet.Add(classEntries[i].psynergy);
+                    consolidatedPsynergySet.Add(classEntries[i].psynergy);
                 }
             }
         }
 
-        List<PsynergySO> lostPsynergies = new List<PsynergySO>();
+        lostPsynergiesCache.Clear();
         foreach (var oldPsynergy in psynergies)
         {
-            if (oldPsynergy != null && !newConsolidatedSet.Contains(oldPsynergy))
+            if (oldPsynergy != null && !consolidatedPsynergySet.Contains(oldPsynergy))
             {
-                lostPsynergies.Add(oldPsynergy);
+                lostPsynergiesCache.Add(oldPsynergy);
             }
         }
 
         psynergies.Clear();
-        psynergies.AddRange(newConsolidatedSet);
+        psynergies.AddRange(consolidatedPsynergySet);
 
-        foreach (var lost in lostPsynergies)
+        foreach (var lost in lostPsynergiesCache)
         {
             Debug.Log($"[HeroStats] {fighterName} lost access to psynergy: '{lost.PsynergyName}'.");
             OnPsynergyLost?.Invoke(lost);

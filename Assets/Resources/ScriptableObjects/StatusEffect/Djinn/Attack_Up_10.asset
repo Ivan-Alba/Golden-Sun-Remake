@@ -31,8 +31,7 @@ MonoBehaviour:
   doomTurnCount: 3
   statModifiers:
   - statType: 2
-    valueType: 1
-    value: 0.1
-  elementalModifiers: []
+    modifierType: 0
+    value: 10
   resourceRegens: []
   damagesOverTime: []

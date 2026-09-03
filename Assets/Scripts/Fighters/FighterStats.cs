@@ -200,8 +200,11 @@ public class FighterStats : MonoBehaviour
 
     public int GetStatValue(StatType type)
     {
-        var stat = GetStat(type);
-        return stat != null ? stat.Value : 0;
+        if (statsMap.TryGetValue(type, out var stat) && stat != null)
+        {
+            return stat.Value;
+        }
+        return 0;
     }
 
     public void SetStatBaseValue(StatType type, int newBaseValue)
@@ -519,14 +522,11 @@ public class FighterStats : MonoBehaviour
         {
             if (bonus == null) continue;
 
-            StatBonus scaledBonus = new StatBonus
-            {
-                statType = bonus.statType,
-                modifierType = bonus.modifierType,
-                value = bonus.value * activeEffect.CurrentStacks
-            };
+            // Zero-allocation modifier construction
+            float scaledValue = bonus.value * activeEffect.CurrentStacks;
+            StatModifier mod = new StatModifier(scaledValue, bonus.modifierType, activeEffect, isTemporary: true);
 
-            AddStatModifier(bonus.statType, scaledBonus.ToStatModifier(activeEffect, isTemporary: true));
+            AddStatModifier(bonus.statType, mod);
         }
     }
 

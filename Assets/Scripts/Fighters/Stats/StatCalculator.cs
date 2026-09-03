@@ -5,8 +5,8 @@ using UnityEngine;
 #region Data Transfer Objects (DTOs) for Simulation
 
 /// <summary>
-/// Contenedor de entrada para simular y evaluar el cálculo de estadísticas
-/// sin alterar el estado real del personaje.
+/// Input container to simulate and evaluate stat calculations
+/// without altering the actual character state.
 /// </summary>
 public class StatEvaluationContext
 {
@@ -17,7 +17,7 @@ public class StatEvaluationContext
     public StatEvaluationContext() { }
 
     /// <summary>
-    /// Asigna el valor base de un StatType específico.
+    /// Sets the base value for a specific StatType.
     /// </summary>
     public void SetBaseStat(StatType type, int value)
     {
@@ -25,7 +25,7 @@ public class StatEvaluationContext
     }
 
     /// <summary>
-    /// Asigna el multiplicador de clase para un StatType (1.0 = 100%).
+    /// Sets the class multiplier for a StatType (1.0 = 100%, 1.1 = 110%).
     /// </summary>
     public void SetClassMultiplier(StatType type, float multiplier)
     {
@@ -33,7 +33,7 @@ public class StatEvaluationContext
     }
 
     /// <summary>
-    /// Asigna multiplicadores de clase para todos los Core Stats a la vez.
+    /// Sets class multipliers for all Core Stats simultaneously.
     /// </summary>
     public void SetUniformClassMultipliers(float hp, float pp, float atk, float def, float agi, float lck)
     {
@@ -46,7 +46,7 @@ public class StatEvaluationContext
     }
 
     /// <summary>
-    /// Agrega un modificador asociado a un StatType objetivo.
+    /// Adds a modifier associated with a target StatType.
     /// </summary>
     public void AddModifier(StatType statType, StatModifier modifier)
     {
@@ -61,7 +61,7 @@ public class StatEvaluationContext
     }
 
     /// <summary>
-    /// Agrega una lista de modificadores asociados a un StatType objetivo.
+    /// Adds a list of modifiers associated with a target StatType.
     /// </summary>
     public void AddModifiers(StatType statType, IEnumerable<StatModifier> modifiers)
     {
@@ -75,7 +75,7 @@ public class StatEvaluationContext
 }
 
 /// <summary>
-/// Representa el conjunto consolidado y evaluado de todos los stats de un personaje.
+/// Represents the consolidated and evaluated set of all stats for a character.
 /// </summary>
 public class StatBlock
 {
@@ -114,13 +114,13 @@ public class StatBlock
 #region Stat Calculator Core Engine
 
 /// <summary>
-/// Evaluador puro e independiente para el cálculo centralizado de estadísticas.
-/// Aplica el pipeline canónico de 5 niveles (Golden Sun Spec) sin efectos secundarios.
+/// Pure and independent evaluator for centralized stat calculations.
+/// Strictly applies the canonical 5-level pipeline (Golden Sun Spec) without side effects.
 /// </summary>
 public static class StatCalculator
 {
     /// <summary>
-    /// Evalúa un contexto completo y devuelve un StatBlock con todos los stats calculados.
+    /// Evaluates a full context and returns a StatBlock with all calculated stats.
     /// </summary>
     public static StatBlock Evaluate(StatEvaluationContext context)
     {
@@ -138,7 +138,7 @@ public static class StatCalculator
     }
 
     /// <summary>
-    /// Evalúa un StatType individual siguiendo de forma estricta la fórmula de 5 niveles.
+    /// Evaluates an individual StatType strictly following the 5-level formula.
     /// </summary>
     public static int EvaluateSingleStat(StatType statType, StatEvaluationContext context)
     {
@@ -150,20 +150,6 @@ public static class StatCalculator
         float sumFlat = 0f;
         float sumPercentBase = 0f;
         float sumPercentTotal = 0f;
-
-        if (context.Modifiers.TryGetValue(StatType.Attack, out var attackMods))
-        {
-            //Debug.Log($"[StatCalculator Test] Attack Modifiers Count: {attackMods.Count}");
-            foreach (var mod in attackMods)
-            {
-                //Debug.Log($"[StatCalculator Test] Source: {mod.Source}, Value: {mod.Value}, Type: {mod.Type}");
-            }
-        }
-        else
-        {
-            //Debug.LogWarning("[StatCalculator Test] No Attack Modifiers found in context!");
-        }
-
 
         if (context.Modifiers.TryGetValue(statType, out var modifierList) && modifierList != null)
         {
@@ -178,10 +164,10 @@ public static class StatCalculator
                         sumFlat += mod.Value;
                         break;
                     case StatModifierType.PercentBase:
-                        sumPercentBase += mod.Value;
+                        sumPercentBase += mod.Value; // Direct decimal scalar (e.g., 0.10f for +10%)
                         break;
                     case StatModifierType.PercentTotal:
-                        sumPercentTotal += mod.Value;
+                        sumPercentTotal += mod.Value; // Direct decimal scalar (e.g., 0.10f for +10%)
                         break;
                 }
             }
@@ -191,7 +177,7 @@ public static class StatCalculator
     }
 
     /// <summary>
-    /// Pipeline de Cálculo Canónico de 5 Niveles (Golden Sun Spec).
+    /// Canonical 5-Level Calculation Pipeline (Golden Sun Spec).
     /// </summary>
     public static int CalculateCanonicalFormula(
         int baseValue,
@@ -200,20 +186,22 @@ public static class StatCalculator
         float sumPercentBase,
         float sumPercentTotal)
     {
-        // 1. Nivel Base Modificada (% Base sobre el BaseValue puro)
+        // 1. Modified Base Level (% Base over pure BaseValue)
         float baseModificada = baseValue + (baseValue * sumPercentBase);
 
-        // 2. Nivel Suma Plana (BaseMod + Equipos / Djinns / Pasivas planas)
+        // 2. Flat Addition Level (BaseMod + Equipment / Djinns / Flat Passives)
         float subtotalPlano = baseModificada + sumFlat;
 
-        // 3. Nivel Multiplicador de Clase (Escalado canónico GS)
+        // 3. Class Multiplier Level (Direct GS Spec scaling, e.g., 1.1f for Knight)
         float subtotalClase = subtotalPlano * classMultiplier;
 
-        // 4. Nivel % Total (Bufos / Debuffs globales de combate o pasivas de % total)
+        // 4. % Total Level (Global combat buffs/debuffs or % total passives, e.g., 0.10f for +10%)
         float valorFlotanteFinal = subtotalClase * (1f + sumPercentTotal);
 
-        // 5. Truncamiento único con FloorToInt (Elimina Banker's Rounding)
-        return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal));
+        Debug.Log($"[Virtual Stat] Base: {baseValue}, Mult: {classMultiplier}, Flat: {sumFlat}, %Base: {sumPercentBase}, %Tot: {sumPercentTotal} => Final: {valorFlotanteFinal}");
+
+        // 5. Single truncation using FloorToInt + Epsilon tolerance
+        return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal + 0.0001f));
     }
 }
 

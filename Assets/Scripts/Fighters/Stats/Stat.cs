@@ -3,45 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Definición modular de un bono de estadística para inspeccionadores y ScriptableObjects.
-/// Mapea de forma limpia a un StatModifier del motor de stats.
+/// Modular definition of a stat bonus for inspectors and ScriptableObjects.
+/// Maps directly to a StatModifier in the stat engine using raw float values.
 /// </summary>
 [Serializable]
 public class StatBonus
 {
-    [Tooltip("Estadística o resistencia/poder elemental a modificar.")]
+    [Tooltip("Stat or elemental power/resistance to modify.")]
     public StatType statType = StatType.Attack;
 
-    [Tooltip("Tipo de cálculo canónico: Flat, PercentBase o PercentTotal.")]
+    [Tooltip("Canonical calculation type: Flat, PercentBase, or PercentTotal.")]
     public StatModifierType modifierType = StatModifierType.Flat;
 
-    [Tooltip("Valor numérico. Para porcentajes, introduce el valor directo (ej: 20 para +20%, -15 para -15%).")]
-    public float value = 10f;
+    [Tooltip("Raw numeric value. Flat: direct integer (e.g., 15). Percentages: decimal scalar (e.g., 0.10 for +10%, 0.05 for +5%).")]
+    public float value = 0.1f;
 
     /// <summary>
-    /// Devuelve el valor numérico ajustado a la matemática de punto flotante.
-    /// Si es un porcentaje, convierte 20 en 0.20f.
-    /// </summary>
-    public float NormalizedValue
-    {
-        get
-        {
-            if (modifierType == StatModifierType.Flat)
-            {
-                return value;
-            }
-            // Convierte valores de inspector (ej. 20%) a multiplicadores flotantes (0.20f)
-            return value / 100f;
-        }
-    }
-
-    /// <summary>
-    /// Instancia un StatModifier válido para inyectar en Stat.cs o StatCalculator.
+    /// Instantiates a valid StatModifier to inject into Stat.cs or StatCalculator.
+    /// Passes the raw decimal value directly.
     /// </summary>
     public StatModifier ToStatModifier(object source = null, bool isTemporary = false, int durationInTurns = -1)
     {
         return new StatModifier(
-            NormalizedValue,
+            value,
             modifierType,
             source,
             isTemporary,
@@ -58,7 +42,7 @@ public class Stat
 
     private readonly List<StatModifier> statModifiers = new List<StatModifier>();
 
-    private float classMultiplier = 1f;
+    private float classMultiplier = 1f; // Direct scalar (1.0 = 100%, 1.1 = 110%, 1.3 = 130%)
     private bool isDirty = true;
     private int cachedValue;
 
@@ -81,7 +65,7 @@ public class Stat
     }
 
     /// <summary>
-    /// Multiplicador de clase activo para este stat (1.0 = 100%).
+    /// Active class multiplier for this stat (1.0 = 100%, 1.1 = 110%).
     /// </summary>
     public float ClassMultiplier
     {
@@ -199,7 +183,7 @@ public class Stat
     }
 
     /// <summary>
-    /// Pipeline canónico de cálculo de 5 niveles (Golden Sun Spec).
+    /// Canonical 5-level calculation pipeline (Golden Sun Spec).
     /// </summary>
     private int CalculateFinalValue()
     {
@@ -210,33 +194,37 @@ public class Stat
         for (int i = 0; i < statModifiers.Count; i++)
         {
             StatModifier mod = statModifiers[i];
+            if (mod == null) continue;
+
             switch (mod.Type)
             {
                 case StatModifierType.Flat:
                     sumFlat += mod.Value;
                     break;
                 case StatModifierType.PercentBase:
-                    sumPercentBase += mod.Value;
+                    sumPercentBase += mod.Value; // Direct decimal scalar (e.g., 0.10f for +10%)
                     break;
                 case StatModifierType.PercentTotal:
-                    sumPercentTotal += mod.Value;
+                    sumPercentTotal += mod.Value; // Direct decimal scalar (e.g., 0.10f for +10%)
                     break;
             }
         }
 
-        // 1. Nivel Base Modificada (% Base sobre BaseValue puro)
+        // 1. Modified Base Level (% Base over pure BaseValue)
         float baseModificada = BaseValue + (BaseValue * sumPercentBase);
 
-        // 2. Nivel Suma Plana (BaseMod + Equipos/Djinns/Pasivas planas)
+        // 2. Flat Addition Level (BaseMod + Flat Equipment/Djinns/Passives)
         float subtotalPlano = baseModificada + sumFlat;
 
-        // 3. Nivel Multiplicador de Clase (Escalado canónico GS)
+        // 3. Class Multiplier Level (Direct GS Spec scaling, e.g., 1.1f for Knight)
         float subtotalClase = subtotalPlano * classMultiplier;
 
-        // 4. Nivel % Total (Bufos/Debuffs globales de combate o pasivas de % total)
+        // 4. % Total Level (Global combat buffs/debuffs or % total passives, e.g., 0.10f for +10%)
         float valorFlotanteFinal = subtotalClase * (1f + sumPercentTotal);
 
-        // 5. Truncamiento único con FloorToInt (Evita Banker's Rounding)
-        return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal));
+        Debug.Log($"[Real Stat] Base: {BaseValue}, Mult: {classMultiplier}, Flat: {sumFlat}, %Base: {sumPercentBase}, %Tot: {sumPercentTotal} => Final: {valorFlotanteFinal}");
+
+        // 5. Single truncation using FloorToInt + Epsilon tolerance
+        return Mathf.Max(0, Mathf.FloorToInt(valorFlotanteFinal + 0.0001f));
     }
 }

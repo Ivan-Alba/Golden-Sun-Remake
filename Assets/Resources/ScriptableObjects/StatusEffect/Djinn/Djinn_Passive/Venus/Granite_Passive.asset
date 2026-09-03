@@ -32,6 +32,6 @@ MonoBehaviour:
   statModifiers:
   - statType: 3
     modifierType: 2
-    value: 0.1
+    value: 10
   resourceRegens: []
   damagesOverTime: []
