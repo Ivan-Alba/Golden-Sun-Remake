@@ -1774,9 +1774,15 @@ public class PageItemsController
                     cardIcon.style.backgroundImage = new StyleBackground(relic.GrantedPsynergy.Icon);
                 }
 
-                if (elemMiniIcon != null && relic.GrantedPsynergy.ElemIcon != null)
+                if (elemMiniIcon != null && relic != null && relic.GrantedPsynergy != null)
                 {
-                    elemMiniIcon.style.backgroundImage = new StyleBackground(relic.GrantedPsynergy.ElemIcon);
+                    GameEvents.Database.RequestElementIcon(relic.GrantedPsynergy.Element, (elementIcon) =>
+                    {
+                        if (elementIcon != null)
+                        {
+                            elemMiniIcon.style.backgroundImage = new StyleBackground(elementIcon);
+                        }
+                    });
                 }
 
                 if (badgeUsageType != null)

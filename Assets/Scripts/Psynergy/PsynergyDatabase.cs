@@ -1,9 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Central database repository for all PsynergySO assets loaded from Resources and elemental UI/VFX assets.
+/// Fully decoupled via GameEvents.Database, zero-alloc loop iterations, and Save System ready.
+/// </summary>
 public class PsynergyDatabase : MonoBehaviour
 {
-    public static PsynergyDatabase Instance { get; private set; }
+    #region Serialized Fields
 
     [Header("Resources Settings")]
     [Tooltip("Path inside Resources folder where PsynergySO assets are located.")]
@@ -23,50 +28,74 @@ public class PsynergyDatabase : MonoBehaviour
     [SerializeField] private GameObject mercuryElementCircle;
     [SerializeField] private GameObject noElementalCircle;
 
-    // Loaded Assets & Fast O(1) Lookup
+    #endregion
+
+    #region Private Fields
+
     private readonly List<PsynergySO> allPsynergies = new List<PsynergySO>();
     private readonly Dictionary<string, PsynergySO> psynergyDictionary = new Dictionary<string, PsynergySO>();
 
-    #region Unity Lifecycle
+    #endregion
+
+    #region Public Properties
+
+    public IReadOnlyList<PsynergySO> AllPsynergies => allPsynergies;
+
+    #endregion
+
+    #region Unity Lifecycle & Event Subscriptions
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
         InitializeDatabase();
+    }
+
+    private void OnEnable()
+    {
+        GameEvents.Database.OnRequestPsynergyBySlug += HandleRequestPsynergyBySlug;
+        GameEvents.Database.OnRequestAllPsynergies += HandleRequestAllPsynergies;
+        GameEvents.Database.OnRequestElementIcon += HandleRequestElementIcon;
+        GameEvents.Database.OnRequestElementVFX += HandleRequestElementVFX;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.Database.OnRequestPsynergyBySlug -= HandleRequestPsynergyBySlug;
+        GameEvents.Database.OnRequestAllPsynergies -= HandleRequestAllPsynergies;
+        GameEvents.Database.OnRequestElementIcon -= HandleRequestElementIcon;
+        GameEvents.Database.OnRequestElementVFX -= HandleRequestElementVFX;
     }
 
     #endregion
 
-    #region Initialization
+    #region Initialization Logic
 
-    private void InitializeDatabase()
+    /// <summary>
+    /// Clears existing caches and populates the database from Resources using non-alloc loops.
+    /// </summary>
+    public void InitializeDatabase()
     {
         psynergyDictionary.Clear();
         allPsynergies.Clear();
 
-        // 1. Automatically load all PsynergySO assets from Resources/Psynergies
+        // Load all PsynergySO assets from Resources
         PsynergySO[] loadedPsynergies = Resources.LoadAll<PsynergySO>(psynergiesResourcePath);
 
         if (loadedPsynergies == null || loadedPsynergies.Length == 0)
         {
-            Debug.LogWarning($"[PsynergyDatabase] No PsynergySO assets found at Resources/{psynergiesResourcePath}.");
+            Debug.LogWarning($"[PsynergyDatabase] No PsynergySO assets found at Resources/{psynergiesResourcePath}.", this);
             return;
         }
 
-        // 2. Register assets into list and fast lookup dictionary
-        foreach (PsynergySO psynergy in loadedPsynergies)
+        // Non-alloc index loop iteration for cache building
+        for (int i = 0; i < loadedPsynergies.Length; i++)
         {
+            PsynergySO psynergy = loadedPsynergies[i];
             if (psynergy == null) continue;
 
-            if (string.IsNullOrEmpty(psynergy.SlugName))
+            if (string.IsNullOrWhiteSpace(psynergy.SlugName))
             {
-                Debug.LogWarning($"[PsynergyDatabase] Psynergy '{psynergy.PsynergyName}' has an empty or null SlugName.");
+                Debug.LogWarning($"[PsynergyDatabase] Psynergy '{psynergy.PsynergyName}' has an empty or null SlugName.", this);
                 continue;
             }
 
@@ -77,7 +106,7 @@ public class PsynergyDatabase : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[PsynergyDatabase] Duplicate SlugName detected: '{psynergy.SlugName}'. Skipping duplicate asset '{psynergy.name}'.");
+                Debug.LogWarning($"[PsynergyDatabase] Duplicate SlugName detected: '{psynergy.SlugName}'. Skipping duplicate asset '{psynergy.name}'.", this);
             }
         }
 
@@ -86,7 +115,34 @@ public class PsynergyDatabase : MonoBehaviour
 
     #endregion
 
-    #region Public API
+    #region Event Handlers
+
+    private void HandleRequestPsynergyBySlug(string slug, Action<PsynergySO> onResult)
+    {
+        PsynergySO psynergy = GetPsynergy(slug);
+        onResult?.Invoke(psynergy);
+    }
+
+    private void HandleRequestAllPsynergies(Action<IReadOnlyList<PsynergySO>> onResult)
+    {
+        onResult?.Invoke(allPsynergies);
+    }
+
+    private void HandleRequestElementIcon(ElementalType element, Action<Sprite> onResult)
+    {
+        Sprite icon = GetElementIcon(element);
+        onResult?.Invoke(icon);
+    }
+
+    private void HandleRequestElementVFX(ElementalType element, Action<GameObject> onResult)
+    {
+        GameObject vfx = GetElementAnimation(element);
+        onResult?.Invoke(vfx);
+    }
+
+    #endregion
+
+    #region Public Query API
 
     /// <summary>
     /// Retrieves a PsynergySO by its unique SlugName in O(1) time.
@@ -125,7 +181,7 @@ public class PsynergyDatabase : MonoBehaviour
     }
 
     /// <summary>
-    /// Helper method to retrieve elemental animation directly from a PsynergySO.
+    /// Helper overload to retrieve elemental animation directly from a PsynergySO.
     /// </summary>
     public GameObject GetElementAnimation(PsynergySO psynergy)
     {

@@ -125,14 +125,22 @@ public class FighterController : MonoBehaviour
         if (fighterAnim != null) fighterAnim.SetTrigger("usePsynergy");
 
         // 1. Instantiate Elemental Circle Cast VFX
-        GameObject castVfxPrefab = PsynergyDatabase.Instance?.GetElementAnimation(psynergyToUse);
+        GameObject castVfxPrefab = null;
+        if (psynergyToUse != null)
+        {
+            GameEvents.Database.RequestElementVFX(psynergyToUse.Element, (vfx) =>
+            {
+                castVfxPrefab = vfx;
+            });
+        }
+
         GameObject castVfxInstance = null;
         if (castVfxPrefab != null)
         {
             castVfxInstance = Instantiate(castVfxPrefab, transform);
         }
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(3.0f);
 
         if (castVfxInstance != null) Destroy(castVfxInstance);
 

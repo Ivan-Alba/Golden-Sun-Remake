@@ -24,7 +24,9 @@ public enum StatusEffectType
     DamageOverTime,         // Deals physical or elemental damage at start/end of turn (e.g., Poison)
     Incapacitate,           // Restricts actions (e.g., Stun, Sleep, Freeze)
     DamageMitigation,       // Reduces incoming damage by percentage (e.g., Granite, Protection)
-    DoomCountdown           // Decrements a counter each turn; causes instant K.O. when reaching 0
+    DoomCountdown,          // Decrements a counter each turn; causes instant K.O. when reaching 0
+    Delusion,               // Accuracy penalty causing physical or Psynergy attacks to miss
+    CommandSeal             // Blocks specific action commands (Psynergy, Basic Attacks, Items, Djinn)
 }
 
 /// <summary>
@@ -37,15 +39,6 @@ public enum ResourceTarget
 }
 
 /// <summary>
-/// Determines how numerical values are calculated (Flat value vs. Percentage of base/max stat).
-/// </summary>
-public enum StatusValueType
-{
-    Flat,
-    Percentage
-}
-
-/// <summary>
 /// Defines specific crowd control restrictions when Incapacitated.
 /// </summary>
 public enum IncapacitateType
@@ -54,7 +47,8 @@ public enum IncapacitateType
     Stun,       // Cannot perform any action
     Sleep,      // Cannot act; wakes up when taking physical damage or via chance
     Freeze,     // Cannot act; frozen in ice
-    Silence     // Can attack or use items, but cannot cast Psynergy
+    Silence,    // Can attack or use items, but cannot cast Psynergy
+    Paralysis   // Cannot perform any action; periodic chance to break per turn
 }
 
 #endregion
@@ -62,39 +56,97 @@ public enum IncapacitateType
 #region Serializable Feature Structures
 
 /// <summary>
-/// Configuración para regeneración o drenaje de recursos (HP/PP) por turno.
+/// Encapsulates a status effect application payload with an explicit trigger probability.
+/// Embedded in Psynergies, Weapon Unleashes, Djinn abilities, and Consumables.
+/// </summary>
+[Serializable]
+public struct StatusEffectApplication
+{
+    [Tooltip("Target status effect template to apply.")]
+    [SerializeField] private StatusEffectSO statusEffect;
+
+    [Range(0f, 1f)]
+    [Tooltip("Probability of successfully applying this status effect on hit (0.0 = 0%, 1.0 = 100%).")]
+    [SerializeField] private float applicationChance;
+
+    public StatusEffectSO StatusEffect => statusEffect;
+    public float ApplicationChance => applicationChance;
+
+    public StatusEffectApplication(StatusEffectSO statusEffect, float applicationChance = 1.0f)
+    {
+        this.statusEffect = statusEffect;
+        this.applicationChance = Mathf.Clamp01(applicationChance);
+    }
+}
+
+/// <summary>
+/// Configuration for resource regeneration or drain over time (HP/PP per turn).
 /// </summary>
 [Serializable]
 public class StatusResourceRegen
 {
-    [Tooltip("Recurso objetivo (HP o PP).")]
+    [Tooltip("Target resource (HP or PP).")]
     public ResourceTarget targetResource = ResourceTarget.HP;
 
-    [Tooltip("Tipo de cálculo: Flat (puntos fijos) o PercentTotal (% de MaxHP/MaxPP).")]
+    [Tooltip("Calculation type: Flat points or Percentage of Max Resource.")]
     public StatModifierType valueType = StatModifierType.Flat;
 
-    [Tooltip("Cantidad por turno (positivo para regenerar, negativo para drenar).")]
+    [Tooltip("Amount per turn (positive to restore, negative to drain).")]
     public float amountPerTurn = 10f;
 
     public float NormalizedAmount => (valueType == StatModifierType.Flat) ? amountPerTurn : (amountPerTurn / 100f);
 }
 
 /// <summary>
-/// Configuración para daño periódico por turno (Poison, Haunt, etc.).
+/// Defines periodic damage over time values with separated battle (per turn) and overworld (per steps tick) configurations.
 /// </summary>
 [Serializable]
-public class StatusDamageOverTime
+public struct StatusDamageOverTime
 {
-    [Tooltip("Alineación elemental del daño por turno.")]
-    public ElementalType element = ElementalType.None;
+    [Header("Elemental Alignment")]
+    [Tooltip("Elemental type of the damage tick.")]
+    [SerializeField] private ElementalType damageElement;
 
-    [Tooltip("Tipo de cálculo: Flat (puntos fijos) o PercentTotal (% de MaxHP).")]
-    public StatModifierType damageType = StatModifierType.PercentTotal;
+    [Header("Battle Damage Settings (Per Turn)")]
+    [Tooltip("Base damage value dealt at the start/end of each turn in combat.")]
+    [SerializeField] private float battleDamage;
 
-    [Tooltip("Cantidad de daño recibido por turno.")]
-    public float damagePerTurn = 10f;
+    [Tooltip("Calculation type for combat: Flat points or Percentage of Max HP.")]
+    [SerializeField] private StatModifierType battleDamageType;
 
-    public float NormalizedDamage => (damageType == StatModifierType.Flat) ? damagePerTurn : (damagePerTurn / 100f);
+    [Header("Overworld Damage Settings (Per Step Tick)")]
+    [Tooltip("Base damage value dealt every X steps in the overworld.")]
+    [SerializeField] private float overworldDamage;
+
+    [Tooltip("Calculation type for overworld: Flat points or Percentage of Max HP.")]
+    [SerializeField] private StatModifierType overworldDamageType;
+
+    #region Properties
+
+    public ElementalType DamageElement => damageElement;
+    public float BattleDamage => battleDamage;
+    public StatModifierType BattleDamageType => battleDamageType;
+    public float OverworldDamage => overworldDamage;
+    public StatModifierType OverworldDamageType => overworldDamageType;
+
+    public float NormalizedBattleDamage => (battleDamageType == StatModifierType.Flat) ? battleDamage : (battleDamage / 100f);
+    public float NormalizedOverworldDamage => (overworldDamageType == StatModifierType.Flat) ? overworldDamage : (overworldDamage / 100f);
+
+    #endregion
+
+    public StatusDamageOverTime(
+        float battleDamage,
+        StatModifierType battleDamageType,
+        float overworldDamage,
+        StatModifierType overworldDamageType,
+        ElementalType damageElement = ElementalType.None)
+    {
+        this.battleDamage = battleDamage;
+        this.battleDamageType = battleDamageType;
+        this.overworldDamage = overworldDamage;
+        this.overworldDamageType = overworldDamageType;
+        this.damageElement = damageElement;
+    }
 }
 
 #endregion

@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ScriptableObject defining support and tactical Psynergies (e.g., Impact, High Impact, Guard, Resistance, Break, Delude).
-/// Utilizes the central StatusEffect system to apply buffs, debuffs, crowd control, shields, or purge target categories.
+/// ScriptableObject defining tactical support Psynergies (e.g., Impact, High Impact, Guard, Resistance, Break, Delude).
+/// Utilizes the modular StatusEffect system with application probabilities to apply buffs, debuffs, crowd control,
+/// shields, or purge target effect categories in combat.
 /// </summary>
 [CreateAssetMenu(fileName = "NewSupportPsynergy", menuName = "Psynergy/Support Psynergy")]
 public class SupportPsynergySO : PsynergySO
@@ -11,8 +12,8 @@ public class SupportPsynergySO : PsynergySO
     #region Serialized Fields
 
     [Header("Status Effect Application (Buffs / Debuffs / CC)")]
-    [Tooltip("Status effect templates applied to targets upon executing this psynergy.")]
-    [SerializeField] private List<StatusEffectSO> statusEffectsToApply = new List<StatusEffectSO>();
+    [Tooltip("Status effect templates with individual application probabilities applied to targets.")]
+    [SerializeField] private List<StatusEffectApplication> statusEffectsToApply = new List<StatusEffectApplication>();
 
     [Tooltip("Optional custom duration override in turns. Set to -2 to use default duration defined inside each StatusEffectSO.")]
     [SerializeField] private int overrideDurationTurns = -2;
@@ -31,7 +32,7 @@ public class SupportPsynergySO : PsynergySO
 
     #region Public Properties
 
-    public IReadOnlyList<StatusEffectSO> StatusEffectsToApply => statusEffectsToApply;
+    public IReadOnlyList<StatusEffectApplication> StatusEffectsToApply => statusEffectsToApply;
     public int OverrideDurationTurns => overrideDurationTurns;
     public bool DispelsEnemyBuffs => dispelsEnemyBuffs;
     public IReadOnlyList<StatusEffectCategory> CategoriesToPurge => categoriesToPurge;
@@ -39,13 +40,22 @@ public class SupportPsynergySO : PsynergySO
 
     #endregion
 
+    #region Editor Validation
+
+    private void OnValidate()
+    {
+        if (overrideDurationTurns < -2) overrideDurationTurns = -2;
+    }
+
+    #endregion
+
     #region Execution Methods Override
 
-    public override bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    public override bool ExecuteBattleEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!IsBattlePsynergy)
         {
-            Debug.LogWarning($"[Psynergy] '{PsynergyName}' no es una psinergía de combate.");
+            Debug.LogWarning($"[Psynergy] '{PsynergyName}' is marked as a non-battle Psynergy and cannot be used in combat.");
             return false;
         }
 
@@ -53,8 +63,9 @@ public class SupportPsynergySO : PsynergySO
 
         bool anyEffectApplied = false;
 
-        foreach (FighterStats target in targets)
+        for (int i = 0; i < targets.Count; i++)
         {
+            FighterStats target = targets[i];
             if (target == null || target.IsDead) continue;
 
             // 1. Dispel Enemy Buffs (Break / Anular logic)
@@ -64,44 +75,46 @@ public class SupportPsynergySO : PsynergySO
                 if (purgedBuffs > 0)
                 {
                     anyEffectApplied = true;
-                    Debug.Log($"[Psynergy] '{PsynergyName}' disipó {purgedBuffs} potenciador(es) en {target.Name}.");
+                    Debug.Log($"[Psynergy] '{PsynergyName}' dispelled {purgedBuffs} buff(s) on {target.Name}.");
                 }
             }
 
             // 2. Purge Additional Categories (e.g., Debuffs on allies)
-            foreach (var category in categoriesToPurge)
+            for (int c = 0; c < categoriesToPurge.Count; c++)
             {
+                StatusEffectCategory category = categoriesToPurge[c];
                 int purged = target.PurgeCategory(category);
                 if (purged > 0)
                 {
                     anyEffectApplied = true;
-                    Debug.Log($"[Psynergy] '{PsynergyName}' eliminó {purged} efecto(s) de categoría '{category}' en {target.Name}.");
+                    Debug.Log($"[Psynergy] '{PsynergyName}' purged {purged} effect(s) of category '{category}' on {target.Name}.");
                 }
             }
 
             // 3. Purge Specific Status Effects
-            foreach (var statusSO in specificStatusToPurge)
+            for (int s = 0; s < specificStatusToPurge.Count; s++)
             {
+                StatusEffectSO statusSO = specificStatusToPurge[s];
                 if (statusSO != null && target.RemoveStatusEffect(statusSO))
                 {
                     anyEffectApplied = true;
-                    Debug.Log($"[Psynergy] '{PsynergyName}' eliminó el estado '{statusSO.EffectName}' en {target.Name}.");
+                    Debug.Log($"[Psynergy] '{PsynergyName}' purged status '{statusSO.EffectName}' on {target.Name}.");
                 }
             }
 
-            // 4. Apply Status Effects / Buffs / Debuffs
-            if (statusEffectsToApply != null)
+            // 4. Apply Status Effects / Buffs / Debuffs using non-alloc probability rolls
+            for (int e = 0; e < statusEffectsToApply.Count; e++)
             {
-                foreach (var statusSO in statusEffectsToApply)
+                StatusEffectApplication app = statusEffectsToApply[e];
+                if (app.StatusEffect == null) continue;
+
+                if (Random.value <= app.ApplicationChance)
                 {
-                    if (statusSO != null)
+                    bool applied = target.ApplyStatusEffect(app.StatusEffect, caster, overrideDurationTurns);
+                    if (applied)
                     {
-                        bool applied = target.ApplyStatusEffect(statusSO, caster, overrideDurationTurns);
-                        if (applied)
-                        {
-                            anyEffectApplied = true;
-                            Debug.Log($"[Psynergy] '{PsynergyName}' aplicó el estado '{statusSO.EffectName}' en {target.Name}.");
-                        }
+                        anyEffectApplied = true;
+                        Debug.Log($"[Psynergy] '{PsynergyName}' applied status '{app.StatusEffect.EffectName}' to {target.Name}.");
                     }
                 }
             }
@@ -110,9 +123,9 @@ public class SupportPsynergySO : PsynergySO
         return anyEffectApplied;
     }
 
-    public override bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    public override bool ExecuteMenuEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
-        Debug.LogWarning($"[Psynergy] '{PsynergyName}' es una psinergía de soporte de combate y no puede usarse desde el menú.");
+        Debug.LogWarning($"[Psynergy] '{PsynergyName}' is a tactical combat support Psynergy and cannot be used from the pause menu.");
         return false;
     }
 

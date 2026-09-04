@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
+  m_Name: Damage_Mitigation_50
+  m_EditorClassIdentifier: 
+  effectSlug: damage_mitigation_50
+  effectName: "Da\xF1o reducido 50%"
+  icon: {fileID: 0}
+  description: "Reduce el da\xF1o recibido un 50% durante un turno."
+  category: 0
+  effectType: 5
+  persistsAfterBattle: 0
+  ticksInOverworld: 0
+  stepsPerOverworldTick: 4
+  baseDurationTurns: 1
+  isStackable: 0
+  maxStacks: 1
+  autoCureChancePerTurn: 0
+  cureOnPhysicalDamage: 0
+  missChancePhysical: 0
+  missChancePsynergy: 0
+  sealPsynergy: 0
+  sealPhysicalAttacks: 0
+  sealItemUsage: 0
+  sealDjinnUsage: 0
+  incapacitateType: 0
+  damageMitigationPercentage: 1
+  aggroMultiplier: 1
+  reflectChance: 0
+  elementalAbsorb: 0
+  doomTurnCount: 3
+  statModifiers: []
+  resourceRegens: []
+  damagesOverTime: []

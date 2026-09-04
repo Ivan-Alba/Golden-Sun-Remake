@@ -196,7 +196,14 @@ public class BattleManager : MonoBehaviour
 
             case BattleState.SubMenuSelection:
                 string selectedContent = battleUIController.GetContentItem();
-                if ((nextPsynergy = PsynergyDatabase.Instance.GetPsynergy(selectedContent)) != null)
+
+                nextPsynergy = null;
+                GameEvents.Database.RequestPsynergyBySlug(selectedContent, (psy) =>
+                {
+                    nextPsynergy = psy;
+                });
+
+                if (nextPsynergy != null)
                 {
                     PlaySFX(SFXType.UI_Confirm);
                     currentBattleState = BattleState.TargetSelection;

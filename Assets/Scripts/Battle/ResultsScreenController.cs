@@ -245,7 +245,12 @@ public class ResultsScreenController : MonoBehaviour
 
         abilityLearnedName = abilityLearnedPanel.Find("AbilityName").GetComponent<TextMeshProUGUI>();
 
-        PsynergySO psy = PsynergyDatabase.Instance?.GetPsynergy(psynergySlugName);
+        PsynergySO psy = null;
+        GameEvents.Database.RequestPsynergyBySlug(psynergySlugName, (result) =>
+        {
+            psy = result;
+        });
+
         if (psy != null)
         {
             abilityLearnedPanel.GetComponent<Image>().sprite = psy.Icon;

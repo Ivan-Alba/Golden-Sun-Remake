@@ -37,8 +37,21 @@ MonoBehaviour:
   isAreaOfEffect: 1
   damageMultiplier: 1
   flatBonusDamage: 0
-  statusEffects: []
-  statusChance: 1
+  hasSecondaryHit: 0
+  secondaryHitChance: 0.5
+  secondaryDamageMultiplier: 1
+  secondaryFlatBonusDamage: 0
+  restoresHp: 0
+  healValue: 0
+  isHpPercentage: 0
+  restoresPp: 0
+  ppHealValue: 0
+  isPpPercentage: 0
+  canRevive: 0
+  reviveSuccessChance: 1
+  secondaryEffects:
+  - statusEffect: {fileID: 11400000, guid: 33f3850b4e8883e4eb4700af9e1459fe, type: 2}
+    applicationChance: 1
   hitFXType: 0
   customHitVFX: {fileID: 0}
   casterAuraVFX: {fileID: 0}

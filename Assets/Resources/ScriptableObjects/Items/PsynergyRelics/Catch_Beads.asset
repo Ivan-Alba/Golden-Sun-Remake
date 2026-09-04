@@ -42,19 +42,24 @@ MonoBehaviour:
     m_LocalVariables: []
   icon: {fileID: 21300000, guid: b3ee1577533e62c4f8a6d669102dca03, type: 3}
   itemType: 2
+  isQuestDeliverable: 0
   buyPrice: 0
   sellPrice: 0
   canSell: 0
   maxStack: 1
   equipmentSlot: 8
+  equipmentSubtype: 18
   statModifiers:
   - statType: 6
     modifierType: 0
     value: 5
   element: 1
   elementalPowerBonus: 0
+  isCursed: 0
   useInBattle: 0
   battleUseEffect: {fileID: 0}
+  equipSFX: {fileID: 0}
+  fallbackEquipSFX: 7
   grantedPsynergy: {fileID: 11400000, guid: ca4682f4b3119d343b85ee6ee594e656, type: 2}
   references:
     version: 2

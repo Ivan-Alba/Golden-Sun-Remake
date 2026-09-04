@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4f1012de4f4fba4587d1906e59be35f, type: 3}
+  m_Name: SpiritRing
+  m_EditorClassIdentifier: Assembly-CSharp::ItemBattleEffectSO
+  element: 0
+  targetsAlly: 1
+  isAreaOfEffect: 0
+  restoresHp: 0
+  hpAmount: 0
+  isHpPercentage: 0
+  restoresPp: 0
+  ppAmount: 0
+  isPpPercentage: 0
+  cureAllStatusEffects: 0
+  categoriesToCure: 
+  specificStatusToCure: []
+  statusEffectsToApply: []
+  canBreakOnUse: 0
+  breakChance: 0.1
+  hitFXType: 0
+  customHitVFX: {fileID: 0}
+  casterAuraVFX: {fileID: 0}
+  effectMainVFX: {fileID: 0}
+  soundEffect: {fileID: 0}

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Attack_Up_10
+  m_Name: ElementalResistance_Up_30
   m_EditorClassIdentifier: 
-  effectSlug: attack_up_10
-  effectName: Ataque 10%
+  effectSlug: elemental_resist_up_20
+  effectName: Resistencia Elemental 20%
   icon: {fileID: 0}
-  description: Aumenta el ataque un 10%.
+  description: Aumenta la Resistencia Elemental a todos los elementos un 20%.
   category: 0
   effectType: 0
   persistsAfterBattle: 0
@@ -26,12 +26,30 @@ MonoBehaviour:
   maxStacks: 1
   autoCureChancePerTurn: 0
   cureOnPhysicalDamage: 0
+  missChancePhysical: 0
+  missChancePsynergy: 0
+  sealPsynergy: 0
+  sealPhysicalAttacks: 0
+  sealItemUsage: 0
+  sealDjinnUsage: 0
   incapacitateType: 0
   damageMitigationPercentage: 0
+  aggroMultiplier: 1
+  reflectChance: 0
+  elementalAbsorb: 0
   doomTurnCount: 3
   statModifiers:
-  - statType: 2
-    modifierType: 0
-    value: 10
+  - statType: 10
+    modifierType: 2
+    value: 20
+  - statType: 11
+    modifierType: 2
+    value: 20
+  - statType: 12
+    modifierType: 2
+    value: 20
+  - statType: 13
+    modifierType: 2
+    value: 20
   resourceRegens: []
   damagesOverTime: []

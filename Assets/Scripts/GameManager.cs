@@ -570,7 +570,10 @@ public class GameManager : MonoBehaviour
                         {
                             string slug = savedSlugs[p];
                             if (string.IsNullOrEmpty(slug)) continue;
-                            PsynergySO psynergy = PsynergyDatabase.Instance.GetPsynergy(slug);
+
+                            PsynergySO psynergy = null;
+                            GameEvents.Database.RequestPsynergyBySlug(slug, (res) => psynergy = res);
+
                             if (psynergy != null) loadedPsynergies.Add(psynergy);
                         }
                     }
@@ -663,7 +666,13 @@ public class GameManager : MonoBehaviour
                     for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
                     {
                         string slug = savedSlugs[slotIdx];
-                        PsynergySO psynergy = !string.IsNullOrEmpty(slug) ? PsynergyDatabase.Instance.GetPsynergy(slug) : null;
+                        PsynergySO psynergy = null;
+
+                        if (!string.IsNullOrEmpty(slug))
+                        {
+                            GameEvents.Database.RequestPsynergyBySlug(slug, (res) => psynergy = res);
+                        }
+
                         GameEvents.Psynergy.RequestAssignShortcut(heroObj, psynergy, slotIdx);
                     }
                 }

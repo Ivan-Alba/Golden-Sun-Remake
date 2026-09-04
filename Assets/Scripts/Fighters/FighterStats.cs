@@ -565,16 +565,14 @@ public class FighterStats : MonoBehaviour
 
     private void ApplyDamageOverTime(StatusDamageOverTime dot, int stacks)
     {
-        if (dot == null) return;
-
-        int damage = (dot.damageType == StatModifierType.PercentTotal)
-            ? Mathf.FloorToInt((MaxHp * dot.NormalizedDamage) * stacks)
-            : Mathf.FloorToInt(dot.damagePerTurn * stacks);
+        int damage = (dot.BattleDamageType == StatModifierType.Flat)
+            ? Mathf.FloorToInt(dot.BattleDamage * stacks)
+            : Mathf.FloorToInt((MaxHp * dot.NormalizedBattleDamage) * stacks);
 
         if (damage > 0)
         {
             TakeDamage(damage);
-            Debug.Log($"[FighterStats] {fighterName} suffered {damage} DoT damage.");
+            Debug.Log($"[FighterStats] {fighterName} suffered {damage} DoT damage ({dot.DamageElement}).");
         }
     }
 

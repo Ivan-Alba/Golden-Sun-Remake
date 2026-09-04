@@ -42,11 +42,13 @@ MonoBehaviour:
     m_LocalVariables: []
   icon: {fileID: 21300000, guid: 2b5dfdba4120e914082b06f924b6d5e3, type: 3}
   itemType: 1
+  isQuestDeliverable: 0
   buyPrice: 1500
   sellPrice: 750
   canSell: 1
   maxStack: 1
   equipmentSlot: 1
+  equipmentSubtype: 14
   statModifiers:
   - statType: 2
     modifierType: 0
@@ -56,12 +58,16 @@ MonoBehaviour:
     value: 5
   element: 3
   elementalPowerBonus: 10
+  isCursed: 0
   useInBattle: 0
   battleUseEffect: {fileID: 0}
+  equipSFX: {fileID: 0}
+  fallbackEquipSFX: 7
   weaponModelPrefab: {fileID: 0}
   hitFXType: 1
   customHitVFX: {fileID: 0}
-  swingSoundEffect: {fileID: 0}
+  swingSoundEffect: {fileID: 8300000, guid: f44ec8f6031c11b4dac8e73dc455a08b, type: 3}
+  fallbackSwingSFX: 14
   hasUnleash: 1
   unleashProcRate: 0.2
   unleashEffect: {fileID: 11400000, guid: 7788fd845d44cc142b7eda6a979792af, type: 2}

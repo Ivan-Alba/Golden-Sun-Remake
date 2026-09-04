@@ -10,25 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
-  m_Name: Paralysis
+  m_Name: Poison
   m_EditorClassIdentifier: 
-  effectSlug: paralysis
-  effectName: Paralysis
-  icon: {fileID: 21300000, guid: 645d966e5591dc74486ae22ed7794b8a, type: 3}
+  effectSlug: poison
+  effectName: Poison
+  icon: {fileID: 21300000, guid: e52452bcd12862f4fa0d663e6ab96252, type: 3}
   description: 
   category: 2
-  effectType: 4
-  persistsAfterBattle: 0
-  ticksInOverworld: 0
+  effectType: 3
+  persistsAfterBattle: 1
+  ticksInOverworld: 1
   stepsPerOverworldTick: 4
   baseDurationTurns: -1
   isStackable: 0
   maxStacks: 1
-  autoCureChancePerTurn: 20
+  autoCureChancePerTurn: 0
   cureOnPhysicalDamage: 0
-  incapacitateType: 1
+  missChancePhysical: 0
+  missChancePsynergy: 0
+  sealPsynergy: 0
+  sealPhysicalAttacks: 0
+  sealItemUsage: 0
+  sealDjinnUsage: 0
+  incapacitateType: 0
   damageMitigationPercentage: 0
+  aggroMultiplier: 1
+  reflectChance: 0
+  elementalAbsorb: 0
   doomTurnCount: 0
   statModifiers: []
   resourceRegens: []
-  damagesOverTime: []
+  damagesOverTime:
+  - damageElement: 0
+    battleDamage: 20
+    battleDamageType: 2
+    overworldDamage: 2
+    overworldDamageType: 0

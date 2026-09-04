@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e148ca53b445f64690291e3429adff2, type: 3}
+  m_Name: Delusion
+  m_EditorClassIdentifier: 
+  effectSlug: delusion
+  effectName: Delusion
+  icon: {fileID: 21300000, guid: c41874171c0a590419680c798e31fbf4, type: 3}
+  description: 
+  category: 2
+  effectType: 7
+  persistsAfterBattle: 0
+  ticksInOverworld: 0
+  stepsPerOverworldTick: 4
+  baseDurationTurns: -1
+  isStackable: 0
+  maxStacks: 1
+  autoCureChancePerTurn: 0.25
+  cureOnPhysicalDamage: 0
+  missChancePhysical: 0.75
+  missChancePsynergy: 0
+  sealPsynergy: 0
+  sealPhysicalAttacks: 0
+  sealItemUsage: 0
+  sealDjinnUsage: 0
+  incapacitateType: 0
+  damageMitigationPercentage: 0
+  aggroMultiplier: 1
+  reflectChance: 0
+  elementalAbsorb: 0
+  doomTurnCount: 0
+  statModifiers: []
+  resourceRegens: []
+  damagesOverTime: []

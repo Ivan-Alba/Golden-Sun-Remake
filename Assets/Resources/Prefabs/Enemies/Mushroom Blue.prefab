@@ -267,6 +267,8 @@ MonoBehaviour:
   possibleDrops:
   - itemSlug: Herb
     dropChancePercentage: 5
+  - itemSlug: Metal_Bracelet
+    dropChancePercentage: 1
 --- !u!114 &4134038173637326608
 MonoBehaviour:
   m_ObjectHideFlags: 0

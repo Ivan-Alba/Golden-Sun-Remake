@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Represents a weapon's special passive attack (Unleash/Desatado) triggered probabilistically on basic physical attacks.
+/// Encapsulates elemental scaling, damage multipliers, visual/audio FX, and a modular list of secondary status effect applications.
 /// </summary>
 [CreateAssetMenu(fileName = "New_WeaponUnleash", menuName = "Inventory/Combat/Weapon Unleash")]
 public class WeaponUnleashSO : ScriptableObject
@@ -29,15 +30,11 @@ public class WeaponUnleashSO : ScriptableObject
 
     #endregion
 
-    #region Status & Secondary Effects
+    #region Secondary Status Effects
 
-    [Header("Status & Secondary Effects")]
-    [Tooltip("List of status effects applied to the target upon hitting with this unleash.")]
-    [SerializeField] private List<StatusEffectSO> statusEffects = new List<StatusEffectSO>();
-
-    [Range(0f, 1f)]
-    [Tooltip("Probability (0.0 to 1.0) of applying the secondary status conditions upon hitting the target.")]
-    [SerializeField] private float statusChance = 0.2f;
+    [Header("Secondary Status Effects")]
+    [Tooltip("List of status effects with independent application probabilities triggered on target hit.")]
+    [SerializeField] private List<StatusEffectApplication> secondaryEffects = new List<StatusEffectApplication>();
 
     #endregion
 
@@ -68,14 +65,27 @@ public class WeaponUnleashSO : ScriptableObject
     public float DamageMultiplier => damageMultiplier;
     public int FlatBonusDamage => flatBonusDamage;
 
-    public IReadOnlyList<StatusEffectSO> StatusEffects => statusEffects;
-    public float StatusChance => statusChance;
+    public IReadOnlyList<StatusEffectApplication> SecondaryEffects => secondaryEffects;
 
     public HitFXType HitFXType => hitFXType;
     public GameObject CustomHitVFX => customHitVFX;
     public GameObject CasterAuraVFX => casterAuraVFX;
     public GameObject UnleashMainVFX => unleashMainVFX;
     public AudioClip SoundEffect => soundEffect;
+
+    #endregion
+
+    #region Editor Validation
+
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(slugName) && !string.IsNullOrWhiteSpace(unleashName))
+        {
+            slugName = unleashName.ToLowerInvariant().Replace(" ", "_");
+        }
+
+        if (damageMultiplier < 0f) damageMultiplier = 0f;
+    }
 
     #endregion
 }

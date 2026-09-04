@@ -94,8 +94,14 @@ public struct MenuInteractionData
 
 #endregion
 
+/// <summary>
+/// Abstract base ScriptableObject representing a Psynergy ability in the game.
+/// Provides pure data definitions for combat, world interactions, and party menu usage.
+/// </summary>
 public abstract class PsynergySO : ScriptableObject
 {
+    #region Serialized Fields
+
     [Header("Core Identification")]
     [SerializeField] private string psynergyName;
     [SerializeField] private string slugName;
@@ -131,6 +137,8 @@ public abstract class PsynergySO : ScriptableObject
     [Header("Menu Rules")]
     [SerializeField] private MenuInteractionData menuData;
 
+    #endregion
+
     #region Public Properties
 
     public string PsynergyName => psynergyName;
@@ -157,8 +165,17 @@ public abstract class PsynergySO : ScriptableObject
     public WorldInteractionData WorldData => worldData;
     public MenuInteractionData MenuData => menuData;
 
-    // Computed UI Shortcut Property
-    public Sprite ElemIcon => PsynergyDatabase.Instance != null ? PsynergyDatabase.Instance.GetElementIcon(element) : null;
+    #endregion
+
+    #region Editor Validation
+
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(slugName) && !string.IsNullOrWhiteSpace(psynergyName))
+        {
+            slugName = psynergyName.ToLowerInvariant().Replace(" ", "_");
+        }
+    }
 
     #endregion
 
@@ -169,7 +186,7 @@ public abstract class PsynergySO : ScriptableObject
     /// Derived classes (Attack, Heal, Support) override this method to supply specific logic.
     /// </summary>
     /// <returns>True if the battle effect succeeded/applied to at least one target; otherwise false (e.g. miss, immune).</returns>
-    public virtual bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    public virtual bool ExecuteBattleEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!isBattlePsynergy)
         {
@@ -198,7 +215,7 @@ public abstract class PsynergySO : ScriptableObject
     /// Executes pause/party menu logic out of combat if applicable.
     /// </summary>
     /// <returns>True if the menu effect was successfully applied to at least one target; otherwise false.</returns>
-    public virtual bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    public virtual bool ExecuteMenuEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!menuData.CanBeUsedInMenu)
         {

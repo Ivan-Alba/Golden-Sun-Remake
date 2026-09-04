@@ -376,7 +376,13 @@ public class BattleUIController : MonoBehaviour
                         Transform elemTrans = newItem.transform.Find("ElementIcon");
                         if (elemTrans != null && elemTrans.TryGetComponent<Image>(out var elemImg))
                         {
-                            elemImg.sprite = PsynergyDatabase.Instance.GetElementIcon(psynergy);
+                            if (psynergy != null)
+                            {
+                                GameEvents.Database.RequestElementIcon(psynergy.Element, (iconSprite) =>
+                                {
+                                    elemImg.sprite = iconSprite;
+                                });
+                            }
                         }
 
                         // Grey out text if not enough PP

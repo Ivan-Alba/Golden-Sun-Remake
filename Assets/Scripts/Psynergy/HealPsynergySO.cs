@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ScriptableObject defining healing and cleansing Psynergies (e.g., Cure, Ply, Aura, Restore).
+/// ScriptableObject defining healing, restoration, revival, and cleansing Psynergies (e.g., Cure, Ply, Aura, Restore).
 /// Supports HP/PP restoration, revival, category-based status purges, specific status removals,
-/// and optional bonus status applications (shields/buffs).
+/// and optional bonus status applications (shields/buffs) exclusively during battle.
 /// </summary>
 [CreateAssetMenu(fileName = "NewHealPsynergy", menuName = "Psynergy/Heal Psynergy")]
 public class HealPsynergySO : PsynergySO
@@ -23,10 +23,13 @@ public class HealPsynergySO : PsynergySO
 
     [Header("Revive Properties")]
     [SerializeField] private bool canRevive = false;
+    [Range(0f, 1f)]
+    [Tooltip("Probability of successfully reviving a fallen ally (0.0 = 0%, 1.0 = 100%).")]
+    [SerializeField] private float reviveSuccessChance = 1.0f;
 
-    [Header("Status Effect Application (Buffs / Shields)")]
-    [Tooltip("Optional status effects or shields applied to targets alongside healing.")]
-    [SerializeField] private List<StatusEffectSO> statusEffectsToApply = new List<StatusEffectSO>();
+    [Header("Status Effect Application (Battle Only Buffs / Shields)")]
+    [Tooltip("Optional status effects or shields potentially applied to targets alongside healing during combat.")]
+    [SerializeField] private List<StatusEffectApplication> statusEffectsToApply = new List<StatusEffectApplication>();
 
     [Header("Status & Debuff Cleansing")]
     [Tooltip("If true, clears ALL active status effects on the target unconditionally.")]
@@ -50,19 +53,29 @@ public class HealPsynergySO : PsynergySO
     public bool IsPpPercentage => isPpPercentage;
     public bool CanRevive => canRevive;
     public bool CureAllStatusEffects => cureAllStatusEffects;
-    public IReadOnlyList<StatusEffectSO> StatusEffectsToApply => statusEffectsToApply;
+    public IReadOnlyList<StatusEffectApplication> StatusEffectsToApply => statusEffectsToApply;
     public IReadOnlyList<StatusEffectCategory> CategoriesToCure => categoriesToCure;
     public IReadOnlyList<StatusEffectSO> SpecificStatusToCure => specificStatusToCure;
 
     #endregion
 
+    #region Editor Validation
+
+    private void OnValidate()
+    {
+        if (healValue < 0) healValue = 0;
+        if (ppHealValue < 0) ppHealValue = 0;
+    }
+
+    #endregion
+
     #region Execution Methods Override
 
-    public override bool ExecuteBattleEffect(FighterStats caster, List<FighterStats> targets)
+    public override bool ExecuteBattleEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!IsBattlePsynergy)
         {
-            Debug.LogWarning($"[Psynergy] '{PsynergyName}' no es una psinergía de combate.");
+            Debug.LogWarning($"[Psynergy] '{PsynergyName}' is marked as a non-battle Psynergy and cannot be used in combat.");
             return false;
         }
 
@@ -70,11 +83,12 @@ public class HealPsynergySO : PsynergySO
 
         bool anyEffectApplied = false;
 
-        foreach (FighterStats target in targets)
+        for (int i = 0; i < targets.Count; i++)
         {
+            FighterStats target = targets[i];
             if (target == null) continue;
 
-            if (ApplyHealEffectToTarget(caster, target))
+            if (ApplyHealEffectToTarget(caster, target, applyBuffs: true))
             {
                 anyEffectApplied = true;
             }
@@ -83,11 +97,11 @@ public class HealPsynergySO : PsynergySO
         return anyEffectApplied;
     }
 
-    public override bool ExecuteMenuEffect(FighterStats caster, List<FighterStats> targets)
+    public override bool ExecuteMenuEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!MenuData.CanBeUsedInMenu)
         {
-            Debug.LogWarning($"[Psynergy] '{PsynergyName}' no se puede usar desde el menú.");
+            Debug.LogWarning($"[Psynergy] '{PsynergyName}' cannot be executed from the party menu.");
             return false;
         }
 
@@ -95,11 +109,13 @@ public class HealPsynergySO : PsynergySO
 
         bool anyEffectApplied = false;
 
-        foreach (FighterStats target in targets)
+        for (int i = 0; i < targets.Count; i++)
         {
+            FighterStats target = targets[i];
             if (target == null) continue;
 
-            if (ApplyHealEffectToTarget(caster, target))
+            // In menu execution, we set applyBuffs to false to avoid triggering combat status effects/shields out of battle
+            if (ApplyHealEffectToTarget(caster, target, applyBuffs: false))
             {
                 anyEffectApplied = true;
             }
@@ -115,8 +131,9 @@ public class HealPsynergySO : PsynergySO
     /// <summary>
     /// Evaluates and applies composite healing, revival, status cleansing, and optional status application logic onto a target.
     /// </summary>
+    /// <param name="applyBuffs">If true, iterates and applies statusEffectsToApply (battle context only).</param>
     /// <returns>True if at least one effect succeeded on the target; otherwise false.</returns>
-    private bool ApplyHealEffectToTarget(FighterStats caster, FighterStats target)
+    private bool ApplyHealEffectToTarget(FighterStats caster, FighterStats target, bool applyBuffs)
     {
         bool effectApplied = false;
 
@@ -125,20 +142,22 @@ public class HealPsynergySO : PsynergySO
         {
             if (canRevive)
             {
-                int reviveHp = isPercentage
-                    ? Mathf.RoundToInt(target.MaxHp * (healValue / 100f))
-                    : healValue;
-
-                if (target.Revive(reviveHp))
+                if (Random.value <= reviveSuccessChance)
                 {
-                    effectApplied = true;
-                    Debug.Log($"[Psynergy] '{PsynergyName}' resucitó a {target.Name} con {reviveHp} PV.");
+                    int reviveHp = isPercentage
+                        ? Mathf.RoundToInt(target.MaxHp * (healValue / 100f))
+                        : healValue;
+
+                    if (target.Revive(reviveHp))
+                    {
+                        effectApplied = true;
+                        Debug.Log($"[Psynergy] '{PsynergyName}' revived {target.Name} with {reviveHp} HP.");
+                    }
                 }
-            }
-            else
-            {
-                // Defeated targets cannot be healed by standard healing psynergies
-                return false;
+                else
+                {
+                    Debug.Log($"[Psynergy] '{PsynergyName}' failed to revive {target.Name}.");
+                }
             }
         }
 
@@ -152,7 +171,7 @@ public class HealPsynergySO : PsynergySO
             if (target.RestoreHP(amountToHeal))
             {
                 effectApplied = true;
-                Debug.Log($"[Psynergy] '{PsynergyName}' restauró {amountToHeal} PV a {target.Name}.");
+                Debug.Log($"[Psynergy] '{PsynergyName}' restored {amountToHeal} HP to {target.Name}.");
             }
         }
 
@@ -166,7 +185,7 @@ public class HealPsynergySO : PsynergySO
             if (target.RestorePP(amountToRestore))
             {
                 effectApplied = true;
-                Debug.Log($"[Psynergy] '{PsynergyName}' restauró {amountToRestore} PP a {target.Name}.");
+                Debug.Log($"[Psynergy] '{PsynergyName}' restored {amountToRestore} PP to {target.Name}.");
             }
         }
 
@@ -177,42 +196,50 @@ public class HealPsynergySO : PsynergySO
             {
                 target.ClearAllStatusEffects();
                 effectApplied = true;
-                Debug.Log($"[Psynergy] '{PsynergyName}' limpió TODOS los estados alterados en {target.Name}.");
+                Debug.Log($"[Psynergy] '{PsynergyName}' cleared ALL active status effects on {target.Name}.");
             }
             else
             {
-                // Purge by category (e.g. Ailments for Cure, Debuffs for Dispel)
-                foreach (var category in categoriesToCure)
+                // Purge by category using non-alloc index loops
+                for (int c = 0; c < categoriesToCure.Count; c++)
                 {
+                    StatusEffectCategory category = categoriesToCure[c];
                     int purgedCount = target.PurgeCategory(category);
                     if (purgedCount > 0)
                     {
                         effectApplied = true;
-                        Debug.Log($"[Psynergy] '{PsynergyName}' eliminó {purgedCount} efecto(s) de categoría '{category}' en {target.Name}.");
+                        Debug.Log($"[Psynergy] '{PsynergyName}' purged {purgedCount} effect(s) of category '{category}' on {target.Name}.");
                     }
                 }
 
                 // Purge specific status effects
-                foreach (var statusSO in specificStatusToCure)
+                for (int s = 0; s < specificStatusToCure.Count; s++)
                 {
-                    if (target.RemoveStatusEffect(statusSO))
+                    StatusEffectSO statusSO = specificStatusToCure[s];
+                    if (statusSO != null && target.RemoveStatusEffect(statusSO))
                     {
                         effectApplied = true;
-                        Debug.Log($"[Psynergy] '{PsynergyName}' curó '{statusSO.EffectName}' en {target.Name}.");
+                        Debug.Log($"[Psynergy] '{PsynergyName}' cured status '{statusSO.EffectName}' on {target.Name}.");
                     }
                 }
             }
         }
 
-        // 5. Apply Bonus Status Effects / Shields (Opción A)
-        if (!target.IsDead && statusEffectsToApply != null)
+        // 5. Apply Bonus Status Effects / Shields (Combat Context Only)
+        if (applyBuffs && !target.IsDead && statusEffectsToApply != null && statusEffectsToApply.Count > 0)
         {
-            foreach (var statusSO in statusEffectsToApply)
+            for (int e = 0; e < statusEffectsToApply.Count; e++)
             {
-                if (statusSO != null && target.ApplyStatusEffect(statusSO, caster))
+                StatusEffectApplication app = statusEffectsToApply[e];
+                if (app.StatusEffect == null) continue;
+
+                if (Random.value <= app.ApplicationChance)
                 {
-                    effectApplied = true;
-                    Debug.Log($"[Psynergy] '{PsynergyName}' aplicó el estado bonus '{statusSO.EffectName}' en {target.Name}.");
+                    if (target.ApplyStatusEffect(app.StatusEffect, caster))
+                    {
+                        effectApplied = true;
+                        Debug.Log($"[Psynergy] '{PsynergyName}' applied bonus status '{app.StatusEffect.EffectName}' to {target.Name}.");
+                    }
                 }
             }
         }

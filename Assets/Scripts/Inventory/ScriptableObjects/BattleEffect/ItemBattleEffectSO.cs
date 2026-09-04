@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ScriptableObject defining battle-use effects for non-consumable items, equipment, or artifacts (e.g. Hermes' Wand, Healing Ring).
-/// Supports damage, healing, status cures, buff applications, VFX/SFX playback, and item break chance mechanics upon use.
+/// ScriptableObject defining battle-use effects for non-consumable items, equipment, or artifacts (e.g., Hermes' Wand, Healing Ring).
+/// Supports damage, healing, status cures, buff applications, VFX/SFX playback, and item degradation (break chance) upon use.
 /// </summary>
 [CreateAssetMenu(fileName = "BattleEffect_", menuName = "GoldenSun/Items/Item Battle Effect")]
 public class ItemBattleEffectSO : ScriptableObject
@@ -49,7 +49,7 @@ public class ItemBattleEffectSO : ScriptableObject
     [Tooltip("If true, clears ALL active status effects on target.")]
     [SerializeField] private bool cureAllStatusEffects = false;
 
-    [Tooltip("Categories of status effects cured by this item effect (e.g. Ailments, Debuffs).")]
+    [Tooltip("Categories of status effects cured by this item effect (e.g., Ailments, Debuffs).")]
     [SerializeField] private List<StatusEffectCategory> categoriesToCure = new List<StatusEffectCategory>();
 
     [Tooltip("Specific status effect templates cured by this item effect.")]
@@ -60,8 +60,8 @@ public class ItemBattleEffectSO : ScriptableObject
     #region Status Effect Application (Buffs / Ailments)
 
     [Header("Status Effect Application")]
-    [Tooltip("Status effects, buffs, or ailments applied to the target upon activation.")]
-    [SerializeField] private List<StatusEffectSO> statusEffectsToApply = new List<StatusEffectSO>();
+    [Tooltip("Status effects with application probabilities applied to target upon activation.")]
+    [SerializeField] private List<StatusEffectApplication> statusEffectsToApply = new List<StatusEffectApplication>();
 
     #endregion
 
@@ -71,9 +71,9 @@ public class ItemBattleEffectSO : ScriptableObject
     [Tooltip("Can this item break or crack when used in battle?")]
     [SerializeField] private bool canBreakOnUse = false;
 
-    [Range(0f, 100f)]
-    [Tooltip("Percentage chance (0-100%) that using this item breaks it in the user's inventory.")]
-    [SerializeField] private float breakChancePercentage = 10f;
+    [Range(0f, 1f)]
+    [Tooltip("Normalized probability (0.0 to 1.0) that using this item breaks it in inventory.")]
+    [SerializeField] private float breakChance = 0.1f;
 
     #endregion
 
@@ -110,10 +110,10 @@ public class ItemBattleEffectSO : ScriptableObject
     public bool CureAllStatusEffects => cureAllStatusEffects;
     public IReadOnlyList<StatusEffectCategory> CategoriesToCure => categoriesToCure;
     public IReadOnlyList<StatusEffectSO> SpecificStatusToCure => specificStatusToCure;
-    public IReadOnlyList<StatusEffectSO> StatusEffectsToApply => statusEffectsToApply;
+    public IReadOnlyList<StatusEffectApplication> StatusEffectsToApply => statusEffectsToApply;
 
     public bool CanBreakOnUse => canBreakOnUse;
-    public float BreakChancePercentage => breakChancePercentage;
+    public float BreakChance => breakChance;
 
     public HitFXType HitFXType => hitFXType;
     public GameObject CustomHitVFX => customHitVFX;
@@ -123,12 +123,22 @@ public class ItemBattleEffectSO : ScriptableObject
 
     #endregion
 
+    #region Editor Validation
+
+    private void OnValidate()
+    {
+        if (hpAmount < 0) hpAmount = 0;
+        if (ppAmount < 0) ppAmount = 0;
+    }
+
+    #endregion
+
     #region Execution API
 
     /// <summary>
     /// Executes the special battle effect on a single target.
     /// </summary>
-    /// <returns>True if the effect was successfully applied; otherwise false.</returns>
+    /// <returns>True if at least one effect succeeded; otherwise false.</returns>
     public virtual bool ExecuteEffect(FighterStats user, FighterStats target, out bool itemBroke)
     {
         itemBroke = false;
@@ -171,25 +181,38 @@ public class ItemBattleEffectSO : ScriptableObject
         }
         else
         {
-            foreach (var category in categoriesToCure)
+            for (int c = 0; c < categoriesToCure.Count; c++)
             {
-                if (target.PurgeCategory(category) > 0) effectApplied = true;
+                if (target.PurgeCategory(categoriesToCure[c]) > 0)
+                {
+                    effectApplied = true;
+                }
             }
 
-            foreach (var statusSO in specificStatusToCure)
+            for (int s = 0; s < specificStatusToCure.Count; s++)
             {
-                if (target.RemoveStatusEffect(statusSO)) effectApplied = true;
+                StatusEffectSO statusSO = specificStatusToCure[s];
+                if (statusSO != null && target.RemoveStatusEffect(statusSO))
+                {
+                    effectApplied = true;
+                }
             }
         }
 
-        // 4. Apply Status Effects or Buffs
+        // 4. Apply Status Effects or Buffs using non-alloc probability rolls
         if (statusEffectsToApply != null)
         {
-            foreach (var statusSO in statusEffectsToApply)
+            for (int e = 0; e < statusEffectsToApply.Count; e++)
             {
-                if (statusSO != null && target.ApplyStatusEffect(statusSO, user))
+                StatusEffectApplication app = statusEffectsToApply[e];
+                if (app.StatusEffect == null) continue;
+
+                if (Random.value <= app.ApplicationChance)
                 {
-                    effectApplied = true;
+                    if (target.ApplyStatusEffect(app.StatusEffect, user))
+                    {
+                        effectApplied = true;
+                    }
                 }
             }
         }
@@ -197,11 +220,10 @@ public class ItemBattleEffectSO : ScriptableObject
         // 5. Evaluate Item Break Chance (Golden Sun mechanic)
         if (effectApplied && canBreakOnUse)
         {
-            float roll = Random.Range(0f, 100f);
-            if (roll <= breakChancePercentage)
+            if (Random.value <= breakChance)
             {
                 itemBroke = true;
-                Debug.LogWarning($"[ItemBattleEffect] Item effect triggered and item BROKE! Roll: {roll:F1}% <= {breakChancePercentage}%");
+                Debug.LogWarning($"[ItemBattleEffect] Item effect triggered and item BROKE!");
             }
         }
 

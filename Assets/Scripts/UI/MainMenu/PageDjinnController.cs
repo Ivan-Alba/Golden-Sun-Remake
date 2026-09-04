@@ -916,13 +916,16 @@ public class PageDjinnController
             boxUnleashStatusEffectInfo.Add(damageBadge);
         }
 
-        if (unleash.StatusEffects != null && unleash.StatusEffects.Count > 0)
+        if (unleash.SecondaryEffects != null && unleash.SecondaryEffects.Count > 0)
         {
-            foreach (StatusEffectSO status in unleash.StatusEffects)
+            for (int i = 0; i < unleash.SecondaryEffects.Count; i++)
             {
+                StatusEffectApplication app = unleash.SecondaryEffects[i];
+                StatusEffectSO status = app.StatusEffect;
+
                 if (status == null) continue;
 
-                string chancePrefix = (unleash.StatusChance < 1.0f) ? $" {(int)(unleash.StatusChance * 100)}%" : "";
+                string chancePrefix = (app.ApplicationChance < 1.0f) ? $" ({(int)(app.ApplicationChance * 100)}%)" : "";
                 string categoryPrefix = "";
                 string categoryClass = "badge-target";
                 Sprite effectIcon = null;

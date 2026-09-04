@@ -9,6 +9,8 @@ public static class GameEvents
     // ==========================================
     public static class Database
     {
+        // --- ITEM DATABASE QUERIES ---
+
         /// <summary>
         /// Request to retrieve an ItemSO by its unique slug. 
         /// Sends slug and a callback action returning the ItemSO (or null if not found).
@@ -31,6 +33,37 @@ public static class GameEvents
         public static event Action<ItemType, List<ItemSO>> OnRequestItemsByType;
         public static void RequestItemsByType(ItemType itemType, List<ItemSO> resultsBuffer)
             => OnRequestItemsByType?.Invoke(itemType, resultsBuffer);
+
+        // --- PSYNERGY DATABASE QUERIES ---
+
+        /// <summary>
+        /// Request to retrieve a PsynergySO by its unique SlugName.
+        /// Callback returns the PsynergySO (or null if not found).
+        /// </summary>
+        public static event Action<string, Action<PsynergySO>> OnRequestPsynergyBySlug;
+        public static void RequestPsynergyBySlug(string slug, Action<PsynergySO> onResult)
+            => OnRequestPsynergyBySlug?.Invoke(slug, onResult);
+
+        /// <summary>
+        /// Request to retrieve the complete read-only list of all registered Psynergies.
+        /// </summary>
+        public static event Action<Action<IReadOnlyList<PsynergySO>>> OnRequestAllPsynergies;
+        public static void RequestAllPsynergies(Action<IReadOnlyList<PsynergySO>> onResult)
+            => OnRequestAllPsynergies?.Invoke(onResult);
+
+        /// <summary>
+        /// Request to retrieve the elemental UI Icon Sprite for a given ElementalType.
+        /// </summary>
+        public static event Action<ElementalType, Action<Sprite>> OnRequestElementIcon;
+        public static void RequestElementIcon(ElementalType element, Action<Sprite> onResult)
+            => OnRequestElementIcon?.Invoke(element, onResult);
+
+        /// <summary>
+        /// Request to retrieve the elemental circle VFX prefab for a given ElementalType.
+        /// </summary>
+        public static event Action<ElementalType, Action<GameObject>> OnRequestElementVFX;
+        public static void RequestElementVFX(ElementalType element, Action<GameObject> onResult)
+            => OnRequestElementVFX?.Invoke(element, onResult);
     }
 
     // ==========================================
