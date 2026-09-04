@@ -90,13 +90,9 @@ public class PageStatusController
                 : "Sin Clase";
         }
 
-
-
         PopulateElementPips(card, djinnController);
 
         // --- 2. EXP & HEALTH BARS ---
-        
-
         var labelHp = card.Q<Label>($"label_hp_text_{index}") ?? card.Q<Label>("label_hp_text");
         if (labelHp != null) labelHp.text = $"PV {stats.CurrHp} / {stats.MaxHp}";
 
@@ -189,19 +185,32 @@ public class PageStatusController
 
             UpdateDjinnElementStyles(djinnBody, djinnElementIcon, data.Element);
 
-            StatusEffectSO passiveEffect = data.LeaderPassiveEffect;
-            if (passiveEffect != null)
+            // English comment: Check if Leader Djinn defines at least one valid passive status effect application.
+            bool hasLeaderPassive = false;
+            if (data.LeaderPassiveEffects != null && data.LeaderPassiveEffects.Count > 0)
+            {
+                for (int i = 0; i < data.LeaderPassiveEffects.Count; i++)
+                {
+                    if (data.LeaderPassiveEffects[i].StatusEffect != null)
+                    {
+                        hasLeaderPassive = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasLeaderPassive)
             {
                 if (passiveDivider != null) passiveDivider.style.display = DisplayStyle.Flex;
                 if (passiveTitleLabel != null)
                 {
                     passiveTitleLabel.style.display = DisplayStyle.Flex;
-                    passiveTitleLabel.text = passiveEffect.EffectName;
+                    passiveTitleLabel.text = data.LeaderPassiveName;
                 }
                 if (passiveDescLabel != null)
                 {
                     passiveDescLabel.style.display = DisplayStyle.Flex;
-                    passiveDescLabel.text = passiveEffect.Description;
+                    passiveDescLabel.text = data.LeaderPassiveDescription;
                 }
             }
             else

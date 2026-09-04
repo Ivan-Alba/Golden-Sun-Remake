@@ -146,6 +146,8 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!IsWorldExploration()) return;
+
         if (InputManager.Instance != null && InputManager.Instance.IsAiming)
         {
             HandleAimRotation();
@@ -571,7 +573,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleAimRotation()
     {
-        if (mainCamera == null) return;
+        if (mainCamera == null || !IsWorldExploration()) return;
 
         Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
 

@@ -819,7 +819,6 @@ public class PageItemsController
                         currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
                         RefreshAllData();
 
-                        // Actualizamos la selección hacia el slot de reliquia equipado
                         if (targetRelicIndex >= 0 && targetRelicIndex < relicSlots.Length && relicSlots[targetRelicIndex] != null)
                         {
                             SetSelectedSlotUI(relicSlots[targetRelicIndex]);
@@ -831,7 +830,6 @@ public class PageItemsController
                     currentEquipment?.EquipFromBackpack(slotIndex);
                     RefreshAllData();
 
-                    // Buscamos el slot de equipamiento correspondiente para mantener el active ahí
                     for (int i = 0; i < gearSlotTypes.Length; i++)
                     {
                         if (gearSlotTypes[i] == equipable.EquipmentSlot && gearSlots[i] != null)
@@ -865,7 +863,6 @@ public class PageItemsController
             {
                 RefreshAllData();
 
-                // Movemos el active al slot recién desequipado en el inventario
                 if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
                 {
                     SetSelectedSlotUI(spawnedInventorySlots[targetInvIndex]);
@@ -888,7 +885,6 @@ public class PageItemsController
             {
                 RefreshAllData();
 
-                // Movemos el active al slot recién desequipado en el inventario
                 if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
                 {
                     SetSelectedSlotUI(spawnedInventorySlots[targetInvIndex]);
@@ -2119,12 +2115,14 @@ public class PageItemsController
                 }
 
                 DjinnInstance leader = djinnCtrl.LeaderDjinn;
-                if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffect != null)
+                if (leader != null && leader.CurrentState == DjinnState.Set && leader.DjinnData != null && leader.DjinnData.LeaderPassiveEffects != null)
                 {
-                    var leaderModifiers = leader.DjinnData.LeaderPassiveEffect.StatModifiers;
-                    if (leaderModifiers != null)
+                    var leaderEffects = leader.DjinnData.LeaderPassiveEffects;
+                    foreach (var app in leaderEffects)
                     {
-                        foreach (var bonus in leaderModifiers)
+                        if (app.StatusEffect == null || app.StatusEffect.StatModifiers == null) continue;
+
+                        foreach (var bonus in app.StatusEffect.StatModifiers)
                         {
                             if (bonus == null) continue;
                             context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType));

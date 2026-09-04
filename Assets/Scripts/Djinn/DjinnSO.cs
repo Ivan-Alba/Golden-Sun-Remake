@@ -5,7 +5,7 @@ using UnityEngine.Localization;
 /// <summary>
 /// ScriptableObject defining an individual Djinn asset in Golden Sun.
 /// Holds elemental attributes, base stat modifiers granted in SET state,
-/// combat unleash effects, and leader passive status effects.
+/// combat unleash effects, and leader passive status effects with custom localized lore.
 /// </summary>
 [CreateAssetMenu(fileName = "Djinn_", menuName = "GoldenSun/Djinn/Djinn Asset")]
 public class DjinnSO : ScriptableObject
@@ -49,11 +49,15 @@ public class DjinnSO : ScriptableObject
 
     #endregion
 
-    #region Leader Djinn Passive Perk
+    #region Leader Djinn Passive Perks
 
-    [Header("Leader Djinn Passive Perk")]
-    [Tooltip("Unique passive status effect applied to the hero ONLY when this Djinn is chosen as Leader AND is in SET state.")]
-    [SerializeField] private StatusEffectSO leaderPassiveEffect;
+    [Header("Leader Djinn Passive Perks")]
+    [SerializeField] private LocalizedString leaderPassiveName;
+    [Tooltip("Localized summary description explaining the combined leader passive perk for UI display.")]
+    [SerializeField] private LocalizedString leaderPassiveDescription;
+
+    [Tooltip("Passive status effects applied to the hero ONLY when this Djinn is chosen as Leader AND is in SET state.")]
+    [SerializeField] private List<StatusEffectApplication> leaderPassiveEffects = new List<StatusEffectApplication>();
 
     #endregion
 
@@ -70,33 +74,32 @@ public class DjinnSO : ScriptableObject
     public string Description => description != null ? description.GetLocalizedString() : string.Empty;
 
     public IReadOnlyList<StatBonus> SetStatModifiers => setStatModifiers;
-
     public int BaseRecoveryTurns => baseRecoveryTurns;
-
-    public StatusEffectSO LeaderPassiveEffect => leaderPassiveEffect;
-
     public DjinnUnleashSO UnleashEffect => unleashEffect;
+
+    // Leader Perks
+    public LocalizedString LeaderPassiveNameLocalizedString => leaderPassiveName;
+    public string LeaderPassiveName => leaderPassiveName != null ? leaderPassiveName.GetLocalizedString() : string.Empty;
+    public LocalizedString LeaderPassiveDescriptionLocalizedString => leaderPassiveDescription;
+    public string LeaderPassiveDescription => leaderPassiveDescription != null ? leaderPassiveDescription.GetLocalizedString() : string.Empty;
+    public IReadOnlyList<StatusEffectApplication> LeaderPassiveEffects => leaderPassiveEffects;
 
     #endregion
 
     #region Unity Editor Validation
 
-#if UNITY_EDITOR
     private void OnValidate()
     {
-        // Enforce minimum recovery turn threshold
         if (baseRecoveryTurns < 1)
         {
             baseRecoveryTurns = 1;
         }
 
-        // Auto-generate fallback slug if empty
         if (string.IsNullOrWhiteSpace(djinnSlug) && djinnName != null)
         {
             djinnSlug = name.Replace("Djinn_", string.Empty).ToLowerInvariant();
         }
     }
-#endif
 
     #endregion
 

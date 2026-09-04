@@ -314,7 +314,6 @@ public class PageDjinnController
             djinnSummarySection = rootViewA.Q<VisualElement>("djinn_summary_section");
             djinnInfoPanel = rootViewA.Q<VisualElement>("djinn_info_panel");
 
-
             heroAvatarIcon = rootViewA.Q<VisualElement>("hero_avatar_icon");
             labelHeroName = rootViewA.Q<Label>("label_hero_name");
             labelHeroLevel = rootViewA.Q<Label>("label_hero_level");
@@ -339,7 +338,6 @@ public class PageDjinnController
             labelDeltaAgi = rootViewA.Q<Label>("label_delta_agi");
             labelDeltaSue = rootViewA.Q<Label>("label_delta_sue");
 
-
             labelPowVenus = djinnSummarySection.Q<Label>("elem_power_venus");
             labelResVenus = djinnSummarySection.Q<Label>("elem_resistance_venus");
             labelPowMars = djinnSummarySection.Q<Label>("elem_power_mars");
@@ -348,7 +346,6 @@ public class PageDjinnController
             labelResJupiter = djinnSummarySection.Q<Label>("elem_resistance_jupiter");
             labelPowMercury = djinnSummarySection.Q<Label>("elem_power_mercury");
             labelResMercury = djinnSummarySection.Q<Label>("elem_resistance_mercury");
-
 
             scrollClassPsynergies = rootViewA.Q<ScrollView>("scroll_class_psynergies");
 
@@ -484,9 +481,9 @@ public class PageDjinnController
         ui.labelPowVenusB = panelRoot.Q<Label>("elem_power_venus");
         ui.labelResVenusB = panelRoot.Q<Label>("elem_resistance_venus");
         ui.labelPowMarsB = panelRoot.Q<Label>("elem_power_mars");
-        ui.labelResMarsB = panelRoot.Q<Label>("elem_resistance_mars"); 
+        ui.labelResMarsB = panelRoot.Q<Label>("elem_resistance_mars");
         ui.labelPowJupiterB = panelRoot.Q<Label>("elem_power_jupiter");
-        ui.labelResJupiterB = panelRoot.Q<Label>("elem_resistance_jupiter"); 
+        ui.labelResJupiterB = panelRoot.Q<Label>("elem_resistance_jupiter");
         ui.labelPowMercuryB = panelRoot.Q<Label>("elem_power_mercury");
         ui.labelResMercuryB = panelRoot.Q<Label>("elem_resistance_mercury");
 
@@ -613,7 +610,6 @@ public class PageDjinnController
         if (labelResJupiter != null) labelResJupiter.text = currentHero.ResistJupiter.ToString();
         if (labelPowMercury != null) labelPowMercury.text = currentHero.PowerMercury.ToString();
         if (labelResMercury != null) labelResMercury.text = currentHero.ResistMercury.ToString();
-
 
         HideStatDeltas();
 
@@ -878,15 +874,31 @@ public class PageDjinnController
             }
         }
 
+        // Checks if Leader Djinn defines at least one valid passive status effect application.
+        bool hasLeaderPassive = false;
+        if (data.LeaderPassiveEffects != null && data.LeaderPassiveEffects.Count > 0)
+        {
+            for (int i = 0; i < data.LeaderPassiveEffects.Count; i++)
+            {
+                if (data.LeaderPassiveEffects[i].StatusEffect != null)
+                {
+                    hasLeaderPassive = true;
+                    break;
+                }
+            }
+        }
+
         if (labelLeaderPassiveTitle != null)
         {
-            labelLeaderPassiveTitle.text = (data.LeaderPassiveEffect != null) ? data.LeaderPassiveEffect.EffectName : "Sin Pasiva";
+            labelLeaderPassiveTitle.text = hasLeaderPassive
+                ? data.LeaderPassiveName
+                : "Sin Pasiva";
         }
 
         if (labelLeaderPassiveDesc != null)
         {
-            labelLeaderPassiveDesc.text = (data.LeaderPassiveEffect != null && !string.IsNullOrEmpty(data.LeaderPassiveEffect.Description))
-                ? data.LeaderPassiveEffect.Description
+            labelLeaderPassiveDesc.text = (hasLeaderPassive && !string.IsNullOrEmpty(data.LeaderPassiveDescription))
+                ? data.LeaderPassiveDescription
                 : "Este Djinn no posee una pasiva de líder.";
         }
 
@@ -2236,14 +2248,19 @@ public class PageDjinnController
             }
         }
 
-        // 5. Collect Modifiers from Leader Passive Effect
-        IReadOnlyList<StatBonus> simulatedLeaderModifiers = SimulateLeaderPassiveModifier(djinnCtrl, djinnToRemove, simulatedDjinns);
-        if (simulatedLeaderModifiers != null)
+        // 5. Collect Modifiers from Leader Passive Effects
+        IReadOnlyList<StatusEffectApplication> simulatedLeaderEffects = SimulateLeaderPassiveApplications(djinnCtrl, djinnToRemove, simulatedDjinns);
+        if (simulatedLeaderEffects != null)
         {
-            foreach (var bonus in simulatedLeaderModifiers)
+            foreach (var app in simulatedLeaderEffects)
             {
-                if (bonus == null) continue;
-                context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType));
+                if (app.StatusEffect == null || app.StatusEffect.StatModifiers == null) continue;
+
+                foreach (var bonus in app.StatusEffect.StatModifiers)
+                {
+                    if (bonus == null) continue;
+                    context.AddModifier(bonus.statType, new StatModifier(bonus.value, bonus.modifierType));
+                }
             }
         }
 
@@ -2269,9 +2286,9 @@ public class PageDjinnController
     }
 
     /// <summary>
-    /// Evaluates which Leader Djinn passive modifier will be active in the projected state.
+    /// Evaluates which Leader Djinn passive applications will be active in the projected state.
     /// </summary>
-    private IReadOnlyList<StatBonus> SimulateLeaderPassiveModifier(
+    private IReadOnlyList<StatusEffectApplication> SimulateLeaderPassiveApplications(
         HeroDjinnController djinnCtrl,
         DjinnInstance djinnToRemove,
         List<DjinnInstance> simulatedDjinns)
@@ -2291,9 +2308,9 @@ public class PageDjinnController
             projectedLeaderState = simulatedDjinns[0].CurrentState;
         }
 
-        if (projectedLeaderData != null && projectedLeaderState == DjinnState.Set && projectedLeaderData.LeaderPassiveEffect != null)
+        if (projectedLeaderData != null && projectedLeaderState == DjinnState.Set && projectedLeaderData.LeaderPassiveEffects != null)
         {
-            return projectedLeaderData.LeaderPassiveEffect.StatModifiers;
+            return projectedLeaderData.LeaderPassiveEffects;
         }
 
         return null;

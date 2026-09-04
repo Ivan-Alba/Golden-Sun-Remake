@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// MonoBehaviour attached to heroes. Manages assigned Djinns, resolves current CharacterClassSO,
-/// controls the Leader Djinn passive perk, applies zero-allocation Djinn stat modifiers, 
+/// controls the Leader Djinn passive perks, applies zero-allocation Djinn stat modifiers, 
 /// and notifies HeroStats for stat and Psynergy recalculations.
 /// </summary>
 [RequireComponent(typeof(HeroStats))]
@@ -32,8 +33,8 @@ public class HeroDjinnController : MonoBehaviour
     private DjinnInstance leaderDjinn = null;
     private CharacterClassSO currentClass = null;
 
-    // Track active leader status effect instance applied to HeroStats
-    private StatusEffectSO activeLeaderEffectSO = null;
+    // Reusable list tracking active leader status effect instances applied to HeroStats
+    private readonly List<StatusEffectSO> activeLeaderEffects = new List<StatusEffectSO>();
 
     // Zero-allocation reusable container for stat modifiers extraction
     private readonly List<(StatType statType, StatModifier modifier)> cachedModifiersList = new List<(StatType, StatModifier)>();
@@ -353,27 +354,43 @@ public class HeroDjinnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies or removes the Leader Djinn passive StatusEffectSO based on whether the Leader Djinn is in SET state.
+    /// Applies or removes all active Leader Djinn passive StatusEffectSO instances based on whether the Leader Djinn is in SET state.
     /// </summary>
     private void UpdateLeaderPassivePerk()
     {
         if (heroStats == null) return;
 
-        // 1. Remove previous leader passive effect if applied
-        if (activeLeaderEffectSO != null)
+        // 1. Remove all previously applied leader passive effects
+        for (int i = 0; i < activeLeaderEffects.Count; i++)
         {
-            heroStats.RemoveStatusEffect(activeLeaderEffectSO);
-            activeLeaderEffectSO = null;
+            if (activeLeaderEffects[i] != null)
+            {
+                heroStats.RemoveStatusEffect(activeLeaderEffects[i]);
+            }
         }
+        activeLeaderEffects.Clear();
 
-        // 2. Apply new leader passive effect ONLY IF Leader Djinn is set AND in SET state
+        // 2. Apply new leader passive effects ONLY IF Leader Djinn is set AND in SET state
         if (leaderDjinn != null && leaderDjinn.CurrentState == DjinnState.Set && leaderDjinn.DjinnData != null)
         {
-            StatusEffectSO passiveEffect = leaderDjinn.DjinnData.LeaderPassiveEffect;
-            if (passiveEffect != null)
+            IReadOnlyList<StatusEffectApplication> passiveApplications = leaderDjinn.DjinnData.LeaderPassiveEffects;
+
+            if (passiveApplications != null && passiveApplications.Count > 0)
             {
-                heroStats.ApplyStatusEffect(passiveEffect);
-                activeLeaderEffectSO = passiveEffect;
+                for (int i = 0; i < passiveApplications.Count; i++)
+                {
+                    StatusEffectApplication app = passiveApplications[i];
+                    if (app.StatusEffect == null) continue;
+
+                    // Roll probability (usually 1.0f for Leader Passives)
+                    if (Random.value <= app.ApplicationChance)
+                    {
+                        if (heroStats.ApplyStatusEffect(app.StatusEffect))
+                        {
+                            activeLeaderEffects.Add(app.StatusEffect);
+                        }
+                    }
+                }
             }
         }
     }

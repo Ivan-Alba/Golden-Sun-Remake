@@ -92,6 +92,7 @@ public class InputManager : MonoBehaviour
                 break;
 
             case GameManager.GameState.Cutscene:
+            case GameManager.GameState.Interacting:
                 ProcessCutsceneState();
                 break;
         }
