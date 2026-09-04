@@ -492,10 +492,12 @@ public class GameManager : MonoBehaviour
 
         party.Clear();
 
+        // Clears both Hero Inventories AND GlobalBag safely via decoupled event
         GameEvents.Inventory.RequestClearAllInventories();
 
-        foreach (string heroName in dataToLoad.party)
+        for (int i = 0; i < dataToLoad.party.Count; i++)
         {
+            string heroName = dataToLoad.party[i];
             GameObject heroObj = GameObject.Find(heroName);
             if (heroObj != null)
             {
@@ -508,25 +510,27 @@ public class GameManager : MonoBehaviour
 
         GameEvents.Inventory.RequestSyncWithParty();
 
-        if (GlobalBag.Instance != null && dataToLoad.globalBagItems != null)
+        // -----------------------------------------------------------------------------
+        // Restores Global Key Item Bag via Decoupled Events (No GlobalBag.Instance!)
+        // -----------------------------------------------------------------------------
+        if (dataToLoad.globalBagItems != null)
         {
-            for (int i = GlobalBag.Instance.KeyItemSlots.Count - 1; i >= 0; i--)
+            for (int i = 0; i < dataToLoad.globalBagItems.Count; i++)
             {
-                var slot = GlobalBag.Instance.KeyItemSlots[i];
-                if (!slot.IsEmpty) GlobalBag.Instance.RemoveKeyItem(slot.Item, slot.Quantity);
-            }
+                var savedItem = dataToLoad.globalBagItems[i];
+                if (savedItem == null || string.IsNullOrEmpty(savedItem.itemSlug)) continue;
 
-            foreach (var savedItem in dataToLoad.globalBagItems)
-            {
-                if (string.IsNullOrEmpty(savedItem.itemSlug)) continue;
-                ItemSO item = ItemDatabase.Instance.GetItem(savedItem.itemSlug);
+                ItemSO item = null;
+                GameEvents.Database.RequestItemBySlug(savedItem.itemSlug, (res) => item = res);
+
                 if (item is KeyItemSO keyItem)
                 {
-                    GlobalBag.Instance.AddKeyItem(keyItem, savedItem.quantity);
+                    GameEvents.Inventory.RequestAddKeyItem(keyItem, savedItem.quantity, null);
                 }
             }
         }
 
+        // Restore individual hero stats, inventories and equipment
         for (int i = 0; i < party.Count; i++)
         {
             GameObject heroObj = party[i];
@@ -536,8 +540,10 @@ public class GameManager : MonoBehaviour
             {
                 if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
                 {
-                    foreach (Stat savedStat in dataToLoad.heroStats[i])
+                    var savedStats = dataToLoad.heroStats[i];
+                    for (int s = 0; s < savedStats.Count; s++)
                     {
+                        Stat savedStat = savedStats[s];
                         Stat currentStat = heroStats.GetStat(savedStat.StatType);
                         if (currentStat != null)
                         {
@@ -560,8 +566,9 @@ public class GameManager : MonoBehaviour
 
                     if (savedSlugs != null)
                     {
-                        foreach (string slug in savedSlugs)
+                        for (int p = 0; p < savedSlugs.Count; p++)
                         {
+                            string slug = savedSlugs[p];
                             if (string.IsNullOrEmpty(slug)) continue;
                             PsynergySO psynergy = PsynergyDatabase.Instance.GetPsynergy(slug);
                             if (psynergy != null) loadedPsynergies.Add(psynergy);
@@ -575,14 +582,15 @@ public class GameManager : MonoBehaviour
             if (heroObj.TryGetComponent<HeroInventory>(out var heroInventory))
             {
                 var savedInvData = dataToLoad.heroesInventories?.Find(x => x.heroName == currentHeroName);
-                if (savedInvData != null)
+                if (savedInvData != null && savedInvData.slots != null)
                 {
                     for (int slotIdx = 0; slotIdx < savedInvData.slots.Count && slotIdx < heroInventory.Slots.Count; slotIdx++)
                     {
                         var savedSlotData = savedInvData.slots[slotIdx];
                         if (!string.IsNullOrEmpty(savedSlotData.itemSlug))
                         {
-                            ItemSO item = ItemDatabase.Instance.GetItem(savedSlotData.itemSlug);
+                            ItemSO item = null;
+                            GameEvents.Database.RequestItemBySlug(savedSlotData.itemSlug, (res) => item = res);
                             heroInventory.GetSlot(slotIdx).SetSlot(item, savedSlotData.quantity);
                         }
                         else
@@ -598,24 +606,37 @@ public class GameManager : MonoBehaviour
                 var eqData = dataToLoad.heroesEquipment?.Find(x => x.heroName == currentHeroName);
                 if (eqData != null)
                 {
-                    foreach (var eqSlotData in eqData.standardEquipment)
+                    if (eqData.standardEquipment != null)
                     {
-                        if (string.IsNullOrEmpty(eqSlotData.itemSlug)) continue;
-                        ItemSO item = ItemDatabase.Instance.GetItem(eqSlotData.itemSlug);
-                        if (item is EquipableSO equipable)
+                        for (int eqIdx = 0; eqIdx < eqData.standardEquipment.Count; eqIdx++)
                         {
-                            heroEquipment.LoadEquippedItem(equipable);
+                            var eqSlotData = eqData.standardEquipment[eqIdx];
+                            if (string.IsNullOrEmpty(eqSlotData.itemSlug)) continue;
+
+                            ItemSO item = null;
+                            GameEvents.Database.RequestItemBySlug(eqSlotData.itemSlug, (res) => item = res);
+
+                            if (item is EquipableSO equipable)
+                            {
+                                heroEquipment.LoadEquippedItem(equipable);
+                            }
                         }
                     }
 
-                    for (int relicIdx = 0; relicIdx < eqData.relicSlugs.Count; relicIdx++)
+                    if (eqData.relicSlugs != null)
                     {
-                        string relicSlug = eqData.relicSlugs[relicIdx];
-                        if (string.IsNullOrEmpty(relicSlug)) continue;
-                        ItemSO item = ItemDatabase.Instance.GetItem(relicSlug);
-                        if (item is PsynergyRelicSO relic)
+                        for (int relicIdx = 0; relicIdx < eqData.relicSlugs.Count; relicIdx++)
                         {
-                            heroEquipment.LoadEquippedRelic(relic, relicIdx);
+                            string relicSlug = eqData.relicSlugs[relicIdx];
+                            if (string.IsNullOrEmpty(relicSlug)) continue;
+
+                            ItemSO item = null;
+                            GameEvents.Database.RequestItemBySlug(relicSlug, (res) => item = res);
+
+                            if (item is PsynergyRelicSO relic)
+                            {
+                                heroEquipment.LoadEquippedRelic(relic, relicIdx);
+                            }
                         }
                     }
                 }

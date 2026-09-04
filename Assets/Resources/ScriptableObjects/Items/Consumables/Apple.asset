@@ -13,11 +13,33 @@ MonoBehaviour:
   m_Name: Apple
   m_EditorClassIdentifier: 
   itemSlug: apple
-  itemName: Manzana
-  itemDescription: "Fruta imbuida de esencia m\xEDstica que incrementa permanentemente
-    el Ataque de un aliado."
-  flavorText: Cosechada en huertos impregnados de Psinergia, se dice que sus jugos
-    transmiten la fuerza implacable de la tierra.
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660225
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660226
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660227
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: dfbd1296b76bf0143904f04dabf8c232, type: 3}
   itemType: 0
   buyPrice: 0
@@ -42,3 +64,8 @@ MonoBehaviour:
   isPermanentStatBoost: 1
   statToBonus: 2
   statBonusAmount: 3
+  customUseSFX: {fileID: 0}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

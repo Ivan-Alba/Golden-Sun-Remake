@@ -13,12 +13,33 @@ MonoBehaviour:
   m_Name: Mars Star
   m_EditorClassIdentifier: 
   itemSlug: mars_star
-  itemName: Estrella Marte
-  itemDescription: Estrella Elemental impregnada del poder del Fuego. Es necesaria
-    para encender el Faro de Marte.
-  flavorText: '"Una de las cuatro gemas elementales custodiadas en las profundidades
-    del Templo Sonne. En su interior arde la furia durmiente del fuego primordial
-    de Marte."'
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660249
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660250
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660251
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: d75ac57233a81214e9c86f0c78f40f1e, type: 3}
   itemType: 3
   buyPrice: 0
@@ -27,3 +48,6 @@ MonoBehaviour:
   maxStack: 1
   questId: 
   isStoryMandatory: 1
+  references:
+    version: 2
+    RefIds: []

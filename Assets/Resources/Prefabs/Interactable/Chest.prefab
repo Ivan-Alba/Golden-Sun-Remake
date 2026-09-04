@@ -80,6 +80,18 @@ MonoBehaviour:
   playerPickDuration: 1
   chestOpeningDuration: 2
   endSequenceDelay: 0.5
+  inventoryFullMessage:
+    m_TableReference:
+      m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+    m_TableEntryReference:
+      m_KeyId: 320795417382912
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  references:
+    version: 2
+    RefIds: []
 --- !u!65 &2130500362905459358
 BoxCollider:
   m_ObjectHideFlags: 0

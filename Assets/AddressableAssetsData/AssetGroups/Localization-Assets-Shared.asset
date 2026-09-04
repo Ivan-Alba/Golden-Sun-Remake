@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d00ab532958a15840a37f8ccd752f912
+    m_Address: Assets/Localization/ItemSO Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d36e97cb918451845a64052ce24a19e8
     m_Address: Assets/Localization/DjinnUnleashSO Shared Data.asset
     m_ReadOnly: 1

@@ -35,6 +35,13 @@ MonoBehaviour:
     - Locale-es
     - Preload
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b50cc39f8cf82c941855d5443ecb5c7d
+    m_Address: ItemSO_es
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-es
+    - Preload
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ddfe89bfae56af741bbfdb89665476df
     m_Address: DjinnSO_es
     m_ReadOnly: 1

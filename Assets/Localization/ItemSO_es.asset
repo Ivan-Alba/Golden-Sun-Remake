@@ -1,0 +1,188 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: ItemSO_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: d00ab532958a15840a37f8ccd752f912, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 24870522880
+    m_Localized: "Ant\xEDdoto"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24912465920
+    m_Localized: Un brebaje herbal medicinal que cura el envenenamiento de un aliado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660224
+    m_Localized: "Un remedio b\xE1sico vendido en las tiendas de Tale y Vault para
+      contener a las bestias salvajes."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660225
+    m_Localized: Manzana
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660226
+    m_Localized: Una fruta dulce que aumenta permanentemente el Ataque de un aliado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660227
+    m_Localized: "Cosechada en regiones f\xE9rtiles como Kolima antes de que la maldici\xF3n
+      de Tret asolara el bosque."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660228
+    m_Localized: Hierba
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660229
+    m_Localized: "Una hierba curativa b\xE1sica que restaura 50 PV a un solo aliado."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660230
+    m_Localized: Recogida en las laderas del Monte Aleph conocida por todos los Adeptos
+      por su savia reconfortante.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660231
+    m_Localized: Avellana
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660232
+    m_Localized: Una avellana crujiente que restaura 200 PV a un solo aliado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660233
+    m_Localized: "El aperitivo favorito de los viajeros de Bilibin preciado por su
+      concentrada energ\xEDa."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660234
+    m_Localized: Agua de Vida
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660235
+    m_Localized: "Revive a un aliado ca\xEDdo y restaura por completo sus PV."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660236
+    m_Localized: "Agua bendita recogida en lo m\xE1s profundo de santuarios sagrados
+      como el manantial de Imil."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660237
+    m_Localized: Brazal Metal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660238
+    m_Localized: Un resistente brazalete de metal que aumenta la Defensa.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660239
+    m_Localized: "Equipo defensivo est\xE1ndar forjado por h\xE1biles herreros en
+      el pueblo de Xian."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660240
+    m_Localized: "Anillo Esp\xEDritu"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660241
+    m_Localized: "Un anillo m\xEDstico que puede usarse en batalla para restaurar
+      PV a todos los aliados."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660242
+    m_Localized: "Imbuido de Psinerg\xEDa pura se dice que fue forjado cerca del
+      sagrado Pico de Altin."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660243
+    m_Localized: Gran Hacha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660244
+    m_Localized: Un hacha pesada de dos manos con gran poder de Ataque.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660245
+    m_Localized: "Empu\xF1ada por antiguos guerreros que defend\xEDan el continente
+      de Angara de los monstruos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660246
+    m_Localized: "Espada R\xE1pida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660247
+    m_Localized: Una hoja ligera que desata ataques imbuidos con el elemento Viento.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660248
+    m_Localized: "Forjada con Psinerg\xEDa de Jupiter evoca la velocidad de los vientos
+      de Lalivero."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660249
+    m_Localized: Estrella Marte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660250
+    m_Localized: "Una joya elemental que refulge con un intenso carmes\xED. Otorga
+      un inconmensurable poder de fuego y constituye la llave m\xEDstica necesaria
+      para encender la llama sagrada en la cima del Faro de Marte."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660251
+    m_Localized: "Una de las cuatro Estrellas Elementales custodiadas celosamente
+      durante siglos en el Templo Sol de Tale. Su robo por parte de Saturos y Menardi
+      desencaden\xF3 el cataclismo de Alquimia que amenaz\xF3 con cambiar para siempre
+      el destino de Weyard."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660252
+    m_Localized: Gema Llama
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660253
+    m_Localized: "Un peque\xF1o accesorio m\xEDstico que imbuye al portador de la
+      psinerg\xEDa Coger, permiti\xE9ndole alcanzar y coger frutas u objetos ligeros
+      que se encuentren fuera de su alcance."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660254
+    m_Localized: "Un valioso recuerdo maternal entregado con cari\xF1o por la madre
+      de Hans antes de partir de Tale. Calma el coraz\xF3n del viajero con la suave
+      promesa de un hogar al que regresar: \xABLl\xE9valo contigo, hijo m\xEDo...
+      que la tierra te gu\xEDe y esta gema te proteja en el camino\xBB."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660255
+    m_Localized: "Telara\xF1a"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660256
+    m_Localized: "Un viscoso recurso de crafteo soltado por monstruos ar\xE1cnidos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660257
+    m_Localized: "Recogida de las ara\xF1as gigantes del Paso de Gondowan muy apreciada
+      por los tejedores."
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

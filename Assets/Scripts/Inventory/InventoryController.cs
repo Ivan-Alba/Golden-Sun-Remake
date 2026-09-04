@@ -4,12 +4,17 @@ using UnityEngine;
 
 /// <summary>
 /// Controls item routing, backpack distribution, and global bag operations for the active party.
-/// Listens exclusively to GameEvents.Inventory for decoupled transactional messaging.
+/// Listens exclusively to GameEvents.Inventory for decoupled transactional messaging with zero GC allocations.
 /// </summary>
 public class InventoryController : MonoBehaviour
 {
+    #region Serialized Fields
+
     [Header("Active Party References")]
+    [Tooltip("List of registered hero inventories corresponding to the active party members.")]
     [SerializeField] private List<HeroInventory> partyInventories = new List<HeroInventory>();
+
+    #endregion
 
     #region Properties
 
@@ -17,26 +22,26 @@ public class InventoryController : MonoBehaviour
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Unity Lifecycle & Event Subscriptions
 
     private void OnEnable()
     {
         GameEvents.Inventory.OnRequestAddItem += HandleRequestAddItem;
+        GameEvents.Inventory.OnRequestRemoveItem += HandleRequestRemoveItem;
+        GameEvents.Inventory.OnCheckHasItem += HandleCheckHasItem;
         GameEvents.Inventory.OnSyncWithPartyRequested += SyncWithParty;
         GameEvents.Inventory.OnClearAllInventoriesRequested += ClearAllInventories;
-        GameEvents.Inventory.OnCheckHasItem += HandleCheckHasItem;
         GameEvents.Inventory.OnAllItemsRequested += AllItems;
-        GameEvents.Inventory.OnRequestRemoveItem += HandleRequestRemoveItem;
     }
 
     private void OnDisable()
     {
         GameEvents.Inventory.OnRequestAddItem -= HandleRequestAddItem;
+        GameEvents.Inventory.OnRequestRemoveItem -= HandleRequestRemoveItem;
+        GameEvents.Inventory.OnCheckHasItem -= HandleCheckHasItem;
         GameEvents.Inventory.OnSyncWithPartyRequested -= SyncWithParty;
         GameEvents.Inventory.OnClearAllInventoriesRequested -= ClearAllInventories;
-        GameEvents.Inventory.OnCheckHasItem -= HandleCheckHasItem;
         GameEvents.Inventory.OnAllItemsRequested -= AllItems;
-        GameEvents.Inventory.OnRequestRemoveItem -= HandleRequestRemoveItem;
     }
 
     #endregion
@@ -74,8 +79,12 @@ public class InventoryController : MonoBehaviour
 
         if (GameManager.Instance == null) return;
 
-        foreach (GameObject heroObj in GameManager.Instance.GetParty())
+        var partyList = GameManager.Instance.GetParty();
+        if (partyList == null) return;
+
+        for (int i = 0; i < partyList.Count; i++)
         {
+            GameObject heroObj = partyList[i];
             if (heroObj != null && heroObj.TryGetComponent<HeroInventory>(out var heroInv))
             {
                 RegisterHeroInventory(heroInv);
@@ -110,14 +119,20 @@ public class InventoryController : MonoBehaviour
     #region Smart Item Routing (AddItem & RemoveItem)
 
     /// <summary>
-    /// Adds an item by slug. Automatically targets active hero first (or specific targetHeroIndex if provided).
+    /// Adds an item by slug via GameEvents.Database. Automatically targets active hero first (or specific targetHeroIndex if provided).
     /// </summary>
     private int AddItem(string itemSlug, int quantity = 1, int targetHeroIndex = -1)
     {
-        ItemSO itemToAdd = ItemDatabase.Instance.GetItem(itemSlug);
+        ItemSO itemToAdd = null;
+
+        GameEvents.Database.RequestItemBySlug(itemSlug, (item) =>
+        {
+            itemToAdd = item;
+        });
+
         if (itemToAdd == null)
         {
-            Debug.LogWarning($"[InventoryController] Cannot add item. Slug '{itemSlug}' not found.");
+            Debug.LogWarning($"[InventoryController] Cannot add item. Slug '{itemSlug}' not found.", this);
             return quantity;
         }
 
@@ -125,24 +140,38 @@ public class InventoryController : MonoBehaviour
     }
 
     /// <summary>
-    /// Adds an ItemSO instance. Routes KeyItems to GlobalBag, or places in active hero's backpack (overflowing to party).
+    /// Adds an ItemSO instance. Routes KeyItems to GlobalBag via decoupled events, 
+    /// or places standard items in the target hero's backpack (overflowing to party members).
     /// </summary>
     private int AddItem(ItemSO item, int quantity = 1, int targetHeroIndex = -1)
     {
         if (item == null || quantity <= 0) return quantity;
 
-        // 1. Route KeyItems / QuestItems to the Infinite Global Bag
+        // 1. Route KeyItems / QuestItems to GlobalBag via Decoupled Event Callback
         if (item is KeyItemSO keyItem)
         {
-            GlobalBag.Instance.AddKeyItem(keyItem, quantity);
-            Debug.Log($"<color=cyan>[GlobalBag] Added {quantity}x {keyItem.ItemName}</color>");
-            return 0; // Always successful
+            int remainingOverflow = quantity;
+            GameEvents.Inventory.RequestAddKeyItem(keyItem, quantity, (int remaining) =>
+            {
+                remainingOverflow = remaining;
+            });
+
+            if (remainingOverflow == 0)
+            {
+                Debug.Log($"<color=cyan>[GlobalBag] Added {quantity}x {keyItem.ItemName}</color>");
+            }
+            else
+            {
+                Debug.LogWarning($"[GlobalBag] Could not fully fit {remainingOverflow}x {keyItem.ItemName}.");
+            }
+
+            return remainingOverflow;
         }
 
         // 2. Route standard items to Hero Backpacks
         if (partyInventories == null || partyInventories.Count == 0)
         {
-            Debug.LogError("[InventoryController] No party inventories registered!");
+            Debug.LogError("[InventoryController] No party inventories registered!", this);
             return quantity;
         }
 
@@ -159,12 +188,12 @@ public class InventoryController : MonoBehaviour
         HeroInventory primaryHero = partyInventories[startingIndex];
         remaining = primaryHero.AddItem(item, remaining);
 
-        // Step 2b: If primary hero was full, attempt to route remaining quantity to other heroes
+        // Step 2b: If primary hero was full, attempt to route remaining quantity to other party members
         if (remaining > 0)
         {
             for (int i = 0; i < partyInventories.Count; i++)
             {
-                if (i == startingIndex) continue; // Skip primary, already tried
+                if (i == startingIndex) continue; // Skip primary, already processed
 
                 remaining = partyInventories[i].AddItem(item, remaining);
                 if (remaining <= 0) break;
@@ -200,35 +229,45 @@ public class InventoryController : MonoBehaviour
     }
 
     /// <summary>
-    /// Removes a quantity of a specific item from the party (checks GlobalBag first, then hero backpacks).
+    /// Removes a quantity of a specific item from the party (routes KeyItems to GlobalBag, otherwise checks hero backpacks).
     /// </summary>
     private bool RemoveItem(ItemSO itemData, int quantity = 1)
     {
-        // KeyItem removal
-        if (itemData is KeyItemSO)
+        if (itemData == null || quantity <= 0) return false;
+
+        // 1. KeyItem removal via Decoupled Event Callback
+        if (itemData is KeyItemSO keyItem)
         {
-            return GlobalBag.Instance.RemoveKeyItem(itemData, quantity);
+            bool removalSuccess = false;
+            GameEvents.Inventory.RequestRemoveKeyItem(keyItem, quantity, (bool success) =>
+            {
+                removalSuccess = success;
+            });
+            return removalSuccess;
         }
 
-        // Backpack removal
+        // 2. Standard item backpack removal using Non-Alloc index loops
         int remainingToRemove = quantity;
 
-        foreach (var heroInv in partyInventories)
+        for (int i = 0; i < partyInventories.Count; i++)
         {
-            for (int i = 0; i < heroInv.Slots.Count; i++)
+            HeroInventory heroInv = partyInventories[i];
+            if (heroInv == null || heroInv.Slots == null) continue;
+
+            for (int j = 0; j < heroInv.Slots.Count; j++)
             {
-                var slot = heroInv.Slots[i];
-                if (!slot.IsEmpty && slot.Item == itemData)
+                var slot = heroInv.Slots[j];
+                if (slot != null && !slot.IsEmpty && slot.Item == itemData)
                 {
                     int qtyInSlot = slot.Quantity;
                     if (qtyInSlot <= remainingToRemove)
                     {
                         remainingToRemove -= qtyInSlot;
-                        heroInv.RemoveFromSlot(i, qtyInSlot);
+                        heroInv.RemoveFromSlot(j, qtyInSlot);
                     }
                     else
                     {
-                        heroInv.RemoveFromSlot(i, remainingToRemove);
+                        heroInv.RemoveFromSlot(j, remainingToRemove);
                         remainingToRemove = 0;
                     }
 
@@ -247,21 +286,35 @@ public class InventoryController : MonoBehaviour
     #region Queries & Debug Helpers
 
     /// <summary>
-    /// Checks if any party member (or GlobalBag) possesses a given item slug.
+    /// Checks if any party member's backpack (or the GlobalBag via events) possesses a given item quantity.
     /// </summary>
     private bool HasItem(ItemSO itemData, int amount = 1)
     {
-        if (GlobalBag.Instance != null && GlobalBag.Instance.HasKeyItem(itemData, amount))
+        if (itemData == null || amount <= 0) return false;
+
+        // 1. Query KeyItem possession from GlobalBag via Decoupled Event Callback
+        if (itemData is KeyItemSO keyItem)
         {
-            return true;
+            bool hasKeyItem = false;
+            GameEvents.Inventory.CheckHasKeyItem(keyItem, amount, (bool result) =>
+            {
+                hasKeyItem = result;
+            });
+
+            if (hasKeyItem) return true;
         }
 
+        // 2. Query standard item possession across hero backpacks using Non-Alloc index loops
         int totalFound = 0;
-        foreach (var heroInv in partyInventories)
+        for (int i = 0; i < partyInventories.Count; i++)
         {
-            foreach (var slot in heroInv.Slots)
+            HeroInventory heroInv = partyInventories[i];
+            if (heroInv == null || heroInv.Slots == null) continue;
+
+            for (int j = 0; j < heroInv.Slots.Count; j++)
             {
-                if (!slot.IsEmpty && slot.Item == itemData)
+                var slot = heroInv.Slots[j];
+                if (slot != null && !slot.IsEmpty && slot.Item == itemData)
                 {
                     totalFound += slot.Quantity;
                     if (totalFound >= amount) return true;
@@ -273,30 +326,41 @@ public class InventoryController : MonoBehaviour
     }
 
     /// <summary>
-    /// Debug utility: Adds 1 instance of every item in ItemDatabase to the party.
+    /// Debug utility: Adds 1 instance of every item in ItemDatabase to the party via GameEvents.Database.
     /// </summary>
     private void AllItems()
     {
-        if (ItemDatabase.Instance == null) return;
+        IReadOnlyList<ItemSO> allItems = null;
 
-        foreach (ItemSO item in ItemDatabase.Instance.GetAllItems())
+        GameEvents.Database.RequestAllItems((items) =>
         {
-            AddItem(item, 1);
+            allItems = items;
+        });
+
+        if (allItems == null) return;
+
+        for (int i = 0; i < allItems.Count; i++)
+        {
+            AddItem(allItems[i], 1);
         }
     }
 
     /// <summary>
-    /// Clears all hero inventories and global bag.
+    /// Clears all registered hero inventories and requests global bag wipe via events.
     /// </summary>
     private void ClearAllInventories()
     {
-        foreach (var heroInv in partyInventories)
+        for (int i = 0; i < partyInventories.Count; i++)
         {
-            if (heroInv != null)
+            HeroInventory heroInv = partyInventories[i];
+            if (heroInv != null && heroInv.Slots != null)
             {
-                for (int i = 0; i < heroInv.Slots.Count; i++)
+                for (int j = 0; j < heroInv.Slots.Count; j++)
                 {
-                    heroInv.RemoveFromSlot(i, heroInv.Slots[i].Quantity);
+                    if (heroInv.Slots[j] != null)
+                    {
+                        heroInv.RemoveFromSlot(j, heroInv.Slots[j].Quantity);
+                    }
                 }
             }
         }

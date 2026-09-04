@@ -3,7 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Flexible ScriptableObject defining consumable items (Potions, Antidotes, Stat Boosters, Elixirs).
-/// Supports composite actions combining resource restoration, status cures, status applications, and permanent stat boosts.
+/// Supports composite actions combining resource restoration, status cures, status applications, 
+/// and permanent stat boosts with zero-allocation loops and custom SFX playback.
 /// </summary>
 [CreateAssetMenu(fileName = "Consumable_", menuName = "GoldenSun/Items/Consumable")]
 public class ConsumableSO : ItemSO
@@ -93,6 +94,17 @@ public class ConsumableSO : ItemSO
 
     #endregion
 
+    #region Audio Settings
+
+    [Header("Audio Settings")]
+    [Tooltip("Optional custom audio clip played upon successful usage. If unassigned, defaults to fallback SFX.")]
+    [SerializeField] private AudioClip customUseSFX;
+
+    [Tooltip("Fallback system SFX triggered if no custom AudioClip is provided.")]
+    [SerializeField] private SFXType fallbackUseSFX = SFXType.UI_Cure;
+
+    #endregion
+
     #region Public Properties
 
     public bool UseInMenu => useInMenu;
@@ -120,6 +132,9 @@ public class ConsumableSO : ItemSO
     public StatType StatToBonus => statToBonus;
     public int StatBonusAmount => statBonusAmount;
 
+    public AudioClip CustomUseSFX => customUseSFX;
+    public SFXType FallbackUseSFX => fallbackUseSFX;
+
     #endregion
 
     #region Execution API
@@ -131,7 +146,7 @@ public class ConsumableSO : ItemSO
     {
         if (!useInMenu)
         {
-            Debug.LogWarning($"[Consumable] '{ItemName}' is not marked for menu usage.");
+            Debug.LogWarning($"[Consumable] '{ItemName}' is not marked for menu usage.", this);
             return false;
         }
 
@@ -145,7 +160,7 @@ public class ConsumableSO : ItemSO
     {
         if (!useInBattle)
         {
-            Debug.LogWarning($"[Consumable] '{ItemName}' cannot be used in battle.");
+            Debug.LogWarning($"[Consumable] '{ItemName}' cannot be used in battle.", this);
             return false;
         }
 
@@ -157,7 +172,7 @@ public class ConsumableSO : ItemSO
     #region Internal Unified Execution Logic
 
     /// <summary>
-    /// Core processing method executing all composite effects defined in this consumable asset.
+    /// Core processing method executing all composite effects defined in this consumable asset with zero allocation overhead.
     /// </summary>
     /// <returns>True if at least one effect succeeded on the target; otherwise false.</returns>
     protected virtual bool ExecuteEffectOnFighter(FighterStats target)
@@ -211,7 +226,7 @@ public class ConsumableSO : ItemSO
             }
         }
 
-        // 4. Handle Status Cures & Removal
+        // 4. Handle Status Cures & Removal (Non-Alloc index-based loops)
         if (!target.IsDead)
         {
             if (cureAllStatusEffects && target.ActiveStatusEffects.Count > 0)
@@ -222,16 +237,17 @@ public class ConsumableSO : ItemSO
             else
             {
                 // Cure by categories (e.g. Elixir clearing Ailments)
-                foreach (var category in categoriesToCure)
+                for (int i = 0; i < categoriesToCure.Count; i++)
                 {
-                    int purgedCount = target.PurgeCategory(category);
+                    int purgedCount = target.PurgeCategory(categoriesToCure[i]);
                     if (purgedCount > 0) anyEffectApplied = true;
                 }
 
                 // Cure specific statuses (e.g. Antidote clearing Poison)
-                foreach (var statusSO in specificStatusToCure)
+                for (int i = 0; i < specificStatusToCure.Count; i++)
                 {
-                    if (target.RemoveStatusEffect(statusSO))
+                    StatusEffectSO statusSO = specificStatusToCure[i];
+                    if (statusSO != null && target.RemoveStatusEffect(statusSO))
                     {
                         anyEffectApplied = true;
                     }
@@ -239,11 +255,12 @@ public class ConsumableSO : ItemSO
             }
         }
 
-        // 5. Apply New Status Effects / Buffs
+        // 5. Apply New Status Effects / Buffs (Non-Alloc index-based loop)
         if (!target.IsDead && statusEffectsToApply != null)
         {
-            foreach (var statusSO in statusEffectsToApply)
+            for (int i = 0; i < statusEffectsToApply.Count; i++)
             {
+                StatusEffectSO statusSO = statusEffectsToApply[i];
                 if (statusSO != null)
                 {
                     bool applied = target.ApplyStatusEffect(statusSO);
@@ -259,10 +276,17 @@ public class ConsumableSO : ItemSO
             anyEffectApplied = true;
         }
 
+        // 7. Decoupled Audio Resolution
         if (anyEffectApplied)
         {
-            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cure);
-            Debug.Log($"[Consumable] '{ItemName}' executed successfully on {target.Name}.");
+            if (customUseSFX != null)
+            {
+                GameEvents.Audio.RequestPlaySFXClip(customUseSFX);
+            }
+            else
+            {
+                GameEvents.Audio.RequestPlaySFX(fallbackUseSFX);
+            }
         }
         else
         {
@@ -271,6 +295,24 @@ public class ConsumableSO : ItemSO
 
         return anyEffectApplied;
     }
+
+    #endregion
+
+    #region Unity Editor Validation
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (hpAmount < 0) hpAmount = 0;
+        if (ppAmount < 0) ppAmount = 0;
+        if (reviveHpAmount < 0) reviveHpAmount = 0;
+        if (statBonusAmount < 0) statBonusAmount = 0;
+
+        if (isHpPercentage) hpAmount = Mathf.Clamp(hpAmount, 0, 100);
+        if (isPpPercentage) ppAmount = Mathf.Clamp(ppAmount, 0, 100);
+        if (isRevivePercentage) reviveHpAmount = Mathf.Clamp(reviveHpAmount, 0, 100);
+    }
+#endif
 
     #endregion
 }

@@ -17,7 +17,11 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: 31ddc9679bab30a44985a82ade0cfd13, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 320795417382912
+    m_Localized: Your inventory is full.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

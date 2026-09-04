@@ -13,11 +13,33 @@ MonoBehaviour:
   m_Name: Herb
   m_EditorClassIdentifier: 
   itemSlug: herb
-  itemName: Hierba
-  itemDescription: "Planta silvestre reconfortante que restaura una peque\xF1a cantidad
-    de salud."
-  flavorText: Abunda en los campos que rodean Vale. Los ancianos del pueblo la recomiendan
-    para sanar las magulladuras del viaje.
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660228
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660229
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660230
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: 8abf2aa83d89ddd46982d5b011364717, type: 3}
   itemType: 0
   buyPrice: 50
@@ -27,7 +49,7 @@ MonoBehaviour:
   useInMenu: 1
   useInBattle: 1
   restoresHp: 1
-  hpAmount: 30
+  hpAmount: 50
   isHpPercentage: 0
   restoresPp: 0
   ppAmount: 20
@@ -42,3 +64,8 @@ MonoBehaviour:
   isPermanentStatBoost: 0
   statToBonus: 0
   statBonusAmount: 1
+  customUseSFX: {fileID: 0}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

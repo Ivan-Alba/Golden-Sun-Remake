@@ -576,9 +576,15 @@ public class PageItemsController
 
     private void RefreshGlobalBagSlots()
     {
-        if (GlobalBag.Instance == null) return;
+        IReadOnlyList<InventorySlot> keySlots = null;
 
-        IReadOnlyList<InventorySlot> keySlots = GlobalBag.Instance.KeyItemSlots;
+        // Request current key item slots via event callback instead of GlobalBag.Instance
+        GameEvents.Inventory.RequestKeyItemSlots((slots) =>
+        {
+            keySlots = slots;
+        });
+
+        if (keySlots == null) return;
 
         for (int i = 0; i < spawnedGlobalBagSlots.Count; i++)
         {
@@ -2261,9 +2267,16 @@ public class PageItemsController
 
     private void SelectGlobalBagSlot(int index, VisualElement slotUI)
     {
-        if (GlobalBag.Instance == null) return;
+        IReadOnlyList<InventorySlot> keySlots = null;
 
-        IReadOnlyList<InventorySlot> keySlots = GlobalBag.Instance.KeyItemSlots;
+        // Request current key item slots via event callback instead of GlobalBag.Instance
+        GameEvents.Inventory.RequestKeyItemSlots((slots) =>
+        {
+            keySlots = slots;
+        });
+
+        if (keySlots == null) return;
+
         if (index >= 0 && index < keySlots.Count)
         {
             InventorySlot slot = keySlots[index];

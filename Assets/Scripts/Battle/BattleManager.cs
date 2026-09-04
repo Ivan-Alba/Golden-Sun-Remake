@@ -674,7 +674,8 @@ public class BattleManager : MonoBehaviour
         {
             if (string.IsNullOrEmpty(droppedItem.itemSlug)) continue;
 
-            ItemSO item = ItemDatabase.Instance.GetItem(droppedItem.itemSlug);
+            ItemSO item = null;
+            GameEvents.Database.RequestItemBySlug(droppedItem.itemSlug, (foundItem) => item = foundItem);
             if (item == null) continue;
 
             if (totalItemsObtained.ContainsKey(item))

@@ -1,0 +1,186 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: ItemSO_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: d00ab532958a15840a37f8ccd752f912, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 24870522880
+    m_Localized: Antidote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24912465920
+    m_Localized: A medicinal herb concoction that cures poison from an ally.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660224
+    m_Localized: A staple remedy sold in the shops of Vale and Vault to counter wild
+      beasts.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660225
+    m_Localized: Apple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660226
+    m_Localized: A sweet fruit that permanently increases an ally's Attack power.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660227
+    m_Localized: Harvested in fertile regions like Kolima before Tret's curse swept
+      through the forest.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660228
+    m_Localized: Herb
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660229
+    m_Localized: A basic healing herb that restores 50 HP to a single ally.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660230
+    m_Localized: Plucked from the hillsides of Mount Aleph known by all Adepts for
+      its soothing sap.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660231
+    m_Localized: Nut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660232
+    m_Localized: A crunchy nut that restores 200 HP to a single ally.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660233
+    m_Localized: A favorite snack among Bilibin travelers prized for its dense concentration
+      of energy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660234
+    m_Localized: Water of Life
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660235
+    m_Localized: Revives a fallen ally and fully restores their HP.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660236
+    m_Localized: Blessed water gathered from deep within sacred sanctuaries like
+      Imil's holy spring.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660237
+    m_Localized: Metal Armlet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660238
+    m_Localized: A sturdy armlet crafted from metal that raises Defense.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660239
+    m_Localized: Standard defensive gear forged by skilled blacksmiths in the town
+      of Xian.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660240
+    m_Localized: Spirit Ring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660241
+    m_Localized: A mystical ring that can be used in battle to restore HP to all
+      allies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660242
+    m_Localized: Infused with pure Psynergy said to have been crafted near the sacred
+      Altin Peak.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660243
+    m_Localized: Great Axe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660244
+    m_Localized: A heavy two-handed axe with high Attack power.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660245
+    m_Localized: Wielded by ancient warriors who defended the Angara continent from
+      rogue monsters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660246
+    m_Localized: Swift Sword
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660247
+    m_Localized: A lightweight blade that unleashes wind-aligned strikes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660248
+    m_Localized: Forged with Jupiter Psynergy carrying the speed of the winds over
+      Lalivero.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660249
+    m_Localized: Mars Star
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660250
+    m_Localized: An elemental jewel glowing with a deep crimson light. It harbors
+      immense fire power and serves as the mystical key required to rekindle the
+      sacred flame atop Mars Lighthouse.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660251
+    m_Localized: One of the four Elemental Stars zealously guarded for centuries
+      deep within Vale's Sol Sanctum. Its theft by Saturos and Menardi triggered
+      the Alchemy cataclysm, threatening to alter Weyard's destiny forever.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660252
+    m_Localized: Catch Beads
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660253
+    m_Localized: A small mystical accessory that imbues its wearer with Catch Psynergy,
+      allowing them to reach and snatch fruit or light objects from afar.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660254
+    m_Localized: 'A cherished maternal keepsake lovingly handed down by Isaac''s
+      mother before leaving Vale. It warms the traveler''s heart with the gentle
+      promise of a home to return to: "Take this with you, my son... may the earth
+      guide you and this bead protect you on your journey."'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660255
+    m_Localized: Spiderweb
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660256
+    m_Localized: A sticky crafting resource dropped by arachnid monsters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24916660257
+    m_Localized: Harvested from giant spiders roaming the Gondowan Passage highly
+      prized by weavers.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

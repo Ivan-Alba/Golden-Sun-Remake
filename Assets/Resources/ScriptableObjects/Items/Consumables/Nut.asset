@@ -13,10 +13,33 @@ MonoBehaviour:
   m_Name: Nut
   m_EditorClassIdentifier: 
   itemSlug: nut
-  itemName: Avellana
-  itemDescription: Fruto seco revitalizante que restituye una gran cantidad de salud.
-  flavorText: "Un alimento nutritivo apreciado por los caminantes que cruzan el Lejano
-    Norte, ideal para recuperar energ\xEDas en momentos cr\xEDticos."
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660231
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660232
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660233
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: 78e7f184325ea164fae38f624ff12e66, type: 3}
   itemType: 0
   buyPrice: 200
@@ -26,10 +49,10 @@ MonoBehaviour:
   useInMenu: 1
   useInBattle: 1
   restoresHp: 1
-  hpAmount: 100
+  hpAmount: 200
   isHpPercentage: 0
   restoresPp: 0
-  ppAmount: 20
+  ppAmount: 0
   isPpPercentage: 0
   canRevive: 0
   reviveHpAmount: 100
@@ -41,3 +64,8 @@ MonoBehaviour:
   isPermanentStatBoost: 0
   statToBonus: 0
   statBonusAmount: 1
+  customUseSFX: {fileID: 0}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

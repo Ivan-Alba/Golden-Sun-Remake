@@ -13,11 +13,33 @@ MonoBehaviour:
   m_Name: Lightning Sword
   m_EditorClassIdentifier: 
   itemSlug: lightning_sword
-  itemName: Espada rayo
-  itemDescription: "Hoja elemental impregnada del poder del viento que desata ataques
-    rel\xE1mpago."
-  flavorText: "Forjada en las cumbres azotadas por las tormentas de J\xFApiter. Su
-    filo chisporrotea con el furor de los truenos de la meseta de Karagol."
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660246
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660247
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660248
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: 2b5dfdba4120e914082b06f924b6d5e3, type: 3}
   itemType: 1
   buyPrice: 1500
@@ -44,3 +66,6 @@ MonoBehaviour:
   unleashProcRate: 0.2
   unleashEffect: {fileID: 11400000, guid: 7788fd845d44cc142b7eda6a979792af, type: 2}
   criticalRateBonus: 4
+  references:
+    version: 2
+    RefIds: []

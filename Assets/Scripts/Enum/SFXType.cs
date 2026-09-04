@@ -12,6 +12,7 @@ public enum SFXType
     UI_Error,
     UI_Cure,
     UI_ItemFound,
+    UI_Equip,
     UI_Count,
 
     // World & Exploration Sound Effects
@@ -19,5 +20,8 @@ public enum SFXType
     World_DoorOpen,
     World_PsynergyCast,
     World_PsynergySuccess,
-    World_PsynergyFail
+    World_PsynergyFail,
+
+    // Combat Sound Effects
+    Combat_AttackSwing,
 }

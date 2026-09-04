@@ -13,11 +13,33 @@ MonoBehaviour:
   m_Name: Life Water
   m_EditorClassIdentifier: 
   itemSlug: life_water
-  itemName: Agua de vida
-  itemDescription: "El\xEDxir sagrado capaz de revivir a un aliado ca\xEDdo y devolverle
-    las fuerzas."
-  flavorText: "Extra\xEDda de los manantiales ocultos del Santuario de Vale, sus
-    gotas contienen el destello vital que despierta a las almas durmientes."
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660234
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660235
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660236
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: 7bfa7c6e33a01b447ace2f8cad9f0a31, type: 3}
   itemType: 0
   buyPrice: 1000
@@ -33,7 +55,7 @@ MonoBehaviour:
   ppAmount: 20
   isPpPercentage: 0
   canRevive: 1
-  reviveHpAmount: 50
+  reviveHpAmount: 100
   isRevivePercentage: 1
   cureAllStatusEffects: 0
   categoriesToCure: 
@@ -42,3 +64,8 @@ MonoBehaviour:
   isPermanentStatBoost: 0
   statToBonus: 0
   statBonusAmount: 1
+  customUseSFX: {fileID: 0}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

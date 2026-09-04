@@ -1,35 +1,45 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Localization;
 
 /// <summary>
-/// Handles treasure chest interactions, opening animations, inventory additions via event transactions,
-/// full-inventory/error fallbacks, and 3D audio emission.
+/// Handles treasure chest interactions, opening/closing animation sequences, 
+/// decoupled inventory transactions, localization-aware notifications, and 3D spatialized SFX.
 /// </summary>
 public class Chest : Interactable
 {
     #region Serialized Fields
 
     [Header("Chest Content")]
+    [Tooltip("Item asset granted to the player upon opening the chest.")]
     [SerializeField] private ItemSO itemData;
+
+    [Tooltip("Quantity of items rewarded from this chest.")]
     [SerializeField] private int itemQuantity = 1;
 
     [Header("Timing Settings")]
-    [Tooltip("Delay after player starts picking animation before opening the chest.")]
+    [Tooltip("Delay in seconds after player initiates pick interaction before opening chest lid.")]
     [SerializeField] private float playerPickDuration = 1.0f;
 
-    [Tooltip("Time required for the chest opening animation to settle.")]
+    [Tooltip("Duration in seconds required for chest opening animation sequence to settle.")]
     [SerializeField] private float chestOpeningDuration = 2.0f;
 
-    [Tooltip("Pause duration after showing item notification before releasing game state.")]
+    [Tooltip("Pause duration in seconds after displaying item notification before releasing game state lock.")]
     [SerializeField] private float endSequenceDelay = 0.5f;
+
+    [Header("Localization Table Entries (UI_Strings Table)")]
+    [Tooltip("Localized entry for full inventory warning (e.g. 'Your inventory is full').")]
+    [SerializeField] private LocalizedString inventoryFullMessage;
 
     #endregion
 
-    #region Private Fields
+    #region Private Fields & Runtime State
 
     private bool chestOpened;
     private Animator chestAnimator;
     private int originalLayer;
+    private static readonly int OpenChestHash = Animator.StringToHash("openChest");
+    private static readonly int CloseChestHash = Animator.StringToHash("closeChest");
 
     #endregion
 
@@ -46,7 +56,7 @@ public class Chest : Interactable
     #region Interactable Overrides
 
     /// <summary>
-    /// Triggers the chest opening routine if it hasn't been opened yet.
+    /// Initiates the chest interaction sequence if not already opened.
     /// </summary>
     public override void Interact()
     {
@@ -57,11 +67,35 @@ public class Chest : Interactable
 
     #endregion
 
+    #region Save System & Persistence Preparation
+
+    /// <summary>
+    /// Sets the chest to an already opened state without triggering animations or item grants.
+    /// Used by Save/Load systems when reloading an explored scene.
+    /// </summary>
+    public void SetChestOpenedState(bool opened)
+    {
+        chestOpened = opened;
+
+        if (chestOpened)
+        {
+            // Set interaction layer to Default to prevent future raycasts/prompts
+            gameObject.layer = LayerMask.NameToLayer("Default");
+
+            if (chestAnimator != null)
+            {
+                chestAnimator.Play(OpenChestHash, 0, 1.0f); // Jump directly to opened pose
+            }
+        }
+    }
+
+    #endregion
+
     #region Animation Events (Audio)
 
     /// <summary>
     /// Invoked directly by Unity Animation Events on the chest opening animation clip.
-    /// Emits a spatialized 3D audio request to the AudioController Pool via GameEvents.Audio.
+    /// Emits a spatialized 3D audio request to the central AudioController Object Pool.
     /// </summary>
     public void PlayChestOpenSFX()
     {
@@ -73,14 +107,14 @@ public class Chest : Interactable
     #region Interaction Coroutine
 
     /// <summary>
-    /// Coroutine sequence that handles state locks, opening animations, 
-    /// inventory addition callbacks, and transactional rollback logic.
+    /// Coroutine sequence handling state locks, animation sync, 
+    /// inventory transaction verification, and transactional rollbacks.
     /// </summary>
     private IEnumerator OpenChestRoutine()
     {
         if (itemData == null)
         {
-            Debug.LogError($"[Chest] No ItemSO assigned to chest '{gameObject.name}'!");
+            Debug.LogError($"[Chest] No ItemSO assigned to chest '{gameObject.name}'!", this);
             yield break;
         }
 
@@ -100,10 +134,10 @@ public class Chest : Interactable
 
         yield return new WaitForSeconds(playerPickDuration);
 
-        // Trigger chest opening animation (This animation invokes PlayChestOpenSFX via Animation Event)
+        // Trigger chest opening animation (Invokes PlayChestOpenSFX via Animation Event)
         if (chestAnimator != null)
         {
-            chestAnimator.SetTrigger("openChest");
+            chestAnimator.SetTrigger(OpenChestHash);
         }
 
         // Wait for chest opening animation to settle
@@ -119,7 +153,7 @@ public class Chest : Interactable
         // FALLBACK CASE A: System error / No active inventory listener responded
         if (remaining < 0)
         {
-            Debug.LogError($"[Chest] Transaction failed for item '{itemData.ItemSlug}'. No inventory handler responded to RequestAddItem.");
+            Debug.LogError($"[Chest] Transaction failed for item '{itemData.ItemSlug}'. No inventory handler responded to RequestAddItem.", this);
 
             // Rollback interaction state
             gameObject.layer = originalLayer;
@@ -127,17 +161,18 @@ public class Chest : Interactable
 
             if (chestAnimator != null)
             {
-                chestAnimator.SetTrigger("closeChest");
+                chestAnimator.SetTrigger(CloseChestHash);
             }
 
             GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
             yield break; // Abort remaining pickup flow
         }
 
-        // FALLBACK CASE B: Backpacks are full (Overflow scenario)
+        // FALLBACK CASE B: Backpacks/Inventory full (Overflow scenario)
         if (remaining > 0)
         {
-            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, "Tus mochilas están llenas");
+            string fullMsg = inventoryFullMessage != null ? inventoryFullMessage.GetLocalizedString() : "Inventory Full";
+            GameEvents.UI.TriggerShowNotification(NotificationType.Warning, fullMsg);
 
             // Restore interactable layer state and re-allow interaction
             gameObject.layer = originalLayer;
@@ -146,27 +181,28 @@ public class Chest : Interactable
             // Re-close chest animation
             if (chestAnimator != null)
             {
-                chestAnimator.SetTrigger("closeChest");
-                yield return new WaitForSeconds(1f);
+                chestAnimator.SetTrigger(CloseChestHash);
+                yield return new WaitForSeconds(1.0f);
             }
 
             GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
             yield break; // Abort remaining pickup flow
         }
 
-        // Show UI notification
-        if (itemData != null)
-        {
-            string notificationMessage = itemQuantity > 1
-                ? $"Has obtenido: {itemData.ItemName} x{itemQuantity}"
-                : $"Has obtenido: {itemData.ItemName}";
+        // 3. Display item obtained notification using localized item name
+        string localizedItemName = itemData.ItemNameLocalizedString != null
+            ? itemData.ItemNameLocalizedString.GetLocalizedString()
+            : itemData.ItemName;
 
-            GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
-        }
+        string notificationMessage = itemQuantity > 1
+            ? $"{localizedItemName} x{itemQuantity}"
+            : $"{localizedItemName}";
+
+        GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
 
         yield return new WaitForSeconds(endSequenceDelay);
 
-        // 3. Restore game state back to free exploration (Chest remains in 'Default' layer permanently)
+        // 4. Restore game state back to free exploration (Chest remains opened in 'Default' layer permanently)
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 

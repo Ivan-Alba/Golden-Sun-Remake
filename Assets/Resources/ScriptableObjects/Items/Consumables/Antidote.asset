@@ -13,11 +13,33 @@ MonoBehaviour:
   m_Name: Antidote
   m_EditorClassIdentifier: 
   itemSlug: antidote
-  itemName: "Ant\xEDdoto"
-  itemDescription: Bebida medicinal que purifica la sangre y elimina el veneno del
-    cuerpo.
-  flavorText: "Preparado tradicional de los bot\xE1nicos de Bilibin, extra\xEDdo
-    de ra\xEDces amargas capaces de neutralizar toxinas letales."
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24870522880
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24912465920
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660224
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: c6d48b794de980b4dad1aa1a190c8347, type: 3}
   itemType: 0
   buyPrice: 30
@@ -43,3 +65,8 @@ MonoBehaviour:
   isPermanentStatBoost: 0
   statToBonus: 0
   statBonusAmount: 1
+  customUseSFX: {fileID: 8300000, guid: aad606139da728744916e3aa275b7afd, type: 3}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

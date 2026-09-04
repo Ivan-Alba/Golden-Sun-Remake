@@ -92,16 +92,19 @@ public class GameData
         playerRotation[2] = player.rotation.eulerAngles.z;
 
         // ---- GLOBAL BAG DATA ----
-        if (GlobalBag.Instance != null)
+        GameEvents.Inventory.RequestKeyItemSlots((keySlots) =>
         {
-            foreach (var slot in GlobalBag.Instance.KeyItemSlots)
+            if (keySlots == null) return;
+
+            for (int i = 0; i < keySlots.Count; i++)
             {
-                if (!slot.IsEmpty)
+                InventorySlot slot = keySlots[i];
+                if (slot != null && !slot.IsEmpty && slot.Item != null)
                 {
                     globalBagItems.Add(new InventorySlotData(slot.Item.ItemSlug, slot.Quantity));
                 }
             }
-        }
+        });
 
         // ---- GAME & PARTY DATA ----
         if (GameManager.Instance != null)

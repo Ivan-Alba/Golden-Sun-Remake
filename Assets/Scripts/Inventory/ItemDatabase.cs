@@ -1,31 +1,66 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Central database repository for all ItemSO assets loaded from Resources.
+/// Resolves slug-to-object deserialization for Save Systems and provides zero-alloc database queries.
+/// Fully decoupled via GameEvents.Database and GameEvents.Inventory.
+/// </summary>
 public class ItemDatabase : MonoBehaviour
 {
-    public static ItemDatabase Instance { get; private set; }
+    #region Serialized Fields
 
     [Header("Resource Path Settings")]
     [Tooltip("Folder path inside Resources where ItemSO assets are stored.")]
     [SerializeField] private string itemsResourcePath = "ScriptableObjects/Items";
 
-    private List<ItemSO> itemList = new List<ItemSO>();
-    private Dictionary<string, ItemSO> itemDictionary = new Dictionary<string, ItemSO>();
+    #endregion
+
+    #region Private Fields
+
+    private readonly List<ItemSO> itemList = new List<ItemSO>();
+    private readonly Dictionary<string, ItemSO> itemDictionary = new Dictionary<string, ItemSO>();
+
+    #endregion
+
+    #region Public Properties
+
+    public IReadOnlyList<ItemSO> ItemList => itemList;
+
+    #endregion
+
+    #region Unity Lifecycle & Event Subscriptions
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            BuildDatabase();
-        }
+        BuildDatabase();
     }
 
-    private void BuildDatabase()
+    private void OnEnable()
+    {
+        // Database bus subscriptions
+        GameEvents.Database.OnRequestItemBySlug += HandleRequestItemBySlug;
+        GameEvents.Database.OnRequestAllItems += HandleRequestAllItems;
+        GameEvents.Database.OnRequestItemsByType += HandleRequestItemsByType;
+    }
+
+    private void OnDisable()
+    {
+        // Database bus unsubscriptions
+        GameEvents.Database.OnRequestItemBySlug -= HandleRequestItemBySlug;
+        GameEvents.Database.OnRequestAllItems -= HandleRequestAllItems;
+        GameEvents.Database.OnRequestItemsByType -= HandleRequestItemsByType;
+    }
+
+    #endregion
+
+    #region Initialization Logic
+
+    /// <summary>
+    /// Clears existing caches and populates the database from Resources using non-alloc loops.
+    /// </summary>
+    public void BuildDatabase()
     {
         itemList.Clear();
         itemDictionary.Clear();
@@ -33,19 +68,26 @@ public class ItemDatabase : MonoBehaviour
         // Load all ItemSO assets (including derived ScriptableObjects) from Resources
         ItemSO[] loadedItems = Resources.LoadAll<ItemSO>(itemsResourcePath);
 
-        foreach (ItemSO item in loadedItems)
+        if (loadedItems == null || loadedItems.Length == 0)
         {
+            Debug.LogWarning($"[ItemDatabase] No items found at path Resources/{itemsResourcePath}.", this);
+            return;
+        }
+
+        for (int i = 0; i < loadedItems.Length; i++)
+        {
+            ItemSO item = loadedItems[i];
             if (item == null) continue;
 
-            if (string.IsNullOrEmpty(item.ItemSlug))
+            if (string.IsNullOrWhiteSpace(item.ItemSlug))
             {
-                Debug.LogWarning($"[ItemDatabase] Item '{item.name}' has an empty or null ItemSlug.");
+                Debug.LogWarning($"[ItemDatabase] Item '{item.name}' has an empty or null ItemSlug.", this);
                 continue;
             }
 
             if (itemDictionary.ContainsKey(item.ItemSlug))
             {
-                Debug.LogError($"[ItemDatabase] Duplicate ItemSlug detected: '{item.ItemSlug}'. Item '{item.name}' skipped.");
+                Debug.LogError($"[ItemDatabase] Duplicate ItemSlug detected: '{item.ItemSlug}'. Item '{item.name}' skipped.", this);
                 continue;
             }
 
@@ -56,10 +98,41 @@ public class ItemDatabase : MonoBehaviour
         Debug.Log($"[ItemDatabase] Successfully loaded {itemList.Count} items from Resources/{itemsResourcePath}.");
     }
 
-    #region Database Query Methods
+    #endregion
+
+    #region Event Handlers
+
+    private void HandleRequestItemBySlug(string slug, Action<ItemSO> onResult)
+    {
+        ItemSO item = GetItem(slug);
+        onResult?.Invoke(item);
+    }
+
+    private void HandleRequestAllItems(Action<IReadOnlyList<ItemSO>> onResult)
+    {
+        onResult?.Invoke(itemList);
+    }
+
+    private void HandleRequestItemsByType(ItemType itemType, List<ItemSO> resultsBuffer)
+    {
+        GetItemsByType(itemType, resultsBuffer);
+    }
+
+    private void HandleAllItemsRequested()
+    {
+        // Debug handler: Pushes 1 instance of every item in database to party inventories
+        for (int i = 0; i < itemList.Count; i++)
+        {
+            GameEvents.Inventory.RequestAddItem(itemList[i], 1, null);
+        }
+    }
+
+    #endregion
+
+    #region Database Query Methods (Non-Alloc)
 
     /// <summary>
-    /// Retrieves a base ItemSO by its unique ItemSlug.
+    /// Retrieves a base ItemSO by its unique ItemSlug. Essential for save game deserialization.
     /// </summary>
     public ItemSO GetItem(string itemSlug)
     {
@@ -94,25 +167,27 @@ public class ItemDatabase : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns all items belonging to a specific ItemType (Consumable, Equipment, KeyItem, etc.).
+    /// Zero-allocation query: Fills a provided buffer list with items matching the specified ItemType.
     /// </summary>
-    public List<ItemSO> GetItemsByType(ItemType type)
+    public void GetItemsByType(ItemType type, List<ItemSO> resultsBuffer)
     {
-        List<ItemSO> filteredList = new List<ItemSO>();
-        foreach (ItemSO item in itemList)
+        if (resultsBuffer == null) return;
+        resultsBuffer.Clear();
+
+        for (int i = 0; i < itemList.Count; i++)
         {
-            if (item.ItemType == type)
+            ItemSO item = itemList[i];
+            if (item != null && item.ItemType == type)
             {
-                filteredList.Add(item);
+                resultsBuffer.Add(item);
             }
         }
-        return filteredList;
     }
 
     /// <summary>
-    /// Returns an enumerable list of all registered items in the database.
+    /// Returns a read-only list of all registered items in the database for zero-alloc index iteration.
     /// </summary>
-    public IEnumerable<ItemSO> GetAllItems()
+    public IReadOnlyList<ItemSO> GetAllItems()
     {
         return itemList;
     }

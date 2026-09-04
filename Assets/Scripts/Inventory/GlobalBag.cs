@@ -1,56 +1,117 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages the shared global bag for key/quest items (e.g. Dungeon Keys, Elemental Stars, Quest Relics).
+/// Fully decoupled via GameEvents.Inventory, zero-alloc loop iterations, and Save System ready.
+/// </summary>
 public class GlobalBag : MonoBehaviour
 {
-    public static GlobalBag Instance { get; private set; }
+    #region Serialized Fields
 
     [Header("Global Key/Quest Items State")]
+    [Tooltip("List of inventory slots holding key items shared by the entire party.")]
     [SerializeField] private List<InventorySlot> keyItemSlots = new List<InventorySlot>();
 
-    // Fired whenever key items are added, removed, or updated
-    public event Action OnGlobalBagUpdated;
+    #endregion
 
-    #region Properties
+    #region Public Properties
 
     public IReadOnlyList<InventorySlot> KeyItemSlots => keyItemSlots;
 
     #endregion
 
+    #region Unity Lifecycle & Event Subscriptions
+
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (keyItemSlots == null)
         {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            if (keyItemSlots == null)
-            {
-                keyItemSlots = new List<InventorySlot>();
-            }
+            keyItemSlots = new List<InventorySlot>();
         }
     }
 
-    #region Add, Remove & Query Operations
+    private void OnEnable()
+    {
+        GameEvents.Inventory.OnRequestAddKeyItem += HandleRequestAddKeyItem;
+        GameEvents.Inventory.OnRequestRemoveKeyItem += HandleRequestRemoveKeyItem;
+        GameEvents.Inventory.OnCheckHasKeyItem += HandleCheckHasKeyItem;
+        GameEvents.Inventory.OnRequestKeyItemQuantity += HandleRequestKeyItemQuantity;
+        GameEvents.Inventory.OnRequestKeyItemSlots += HandleRequestKeyItemSlots;
+        GameEvents.Inventory.OnClearAllInventoriesRequested += HandleClearAllInventories;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.Inventory.OnRequestAddKeyItem -= HandleRequestAddKeyItem;
+        GameEvents.Inventory.OnRequestRemoveKeyItem -= HandleRequestRemoveKeyItem;
+        GameEvents.Inventory.OnCheckHasKeyItem -= HandleCheckHasKeyItem;
+        GameEvents.Inventory.OnRequestKeyItemQuantity -= HandleRequestKeyItemQuantity;
+        GameEvents.Inventory.OnRequestKeyItemSlots -= HandleRequestKeyItemSlots;
+        GameEvents.Inventory.OnClearAllInventoriesRequested -= HandleClearAllInventories;
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void HandleRequestAddKeyItem(ItemSO item, int amount, System.Action<int> onResult)
+    {
+        int remaining = AddKeyItem(item, amount);
+        onResult?.Invoke(remaining);
+    }
+
+    private void HandleRequestRemoveKeyItem(ItemSO item, int amount, System.Action<bool> onResult)
+    {
+        bool success = RemoveKeyItem(item, amount);
+        onResult?.Invoke(success);
+    }
+
+    private void HandleCheckHasKeyItem(ItemSO item, int amount, System.Action<bool> onResult)
+    {
+        bool hasItem = HasKeyItem(item, amount);
+        onResult?.Invoke(hasItem);
+    }
+
+    private void HandleRequestKeyItemQuantity(ItemSO item, System.Action<int> onResult)
+    {
+        int quantity = GetKeyItemQuantity(item);
+        onResult?.Invoke(quantity);
+    }
+
+    private void HandleRequestKeyItemSlots(System.Action<IReadOnlyList<InventorySlot>> onResult)
+    {
+        onResult?.Invoke(keyItemSlots);
+    }
+
+    private void HandleClearAllInventories()
+    {
+        keyItemSlots.Clear();
+        GameEvents.Inventory.TriggerGlobalBagUpdated();
+    }
+
+    #endregion
+
+    #region Add, Remove & Query Operations (Non-Alloc)
 
     /// <summary>
-    /// Adds a KeyItem/QuestItem to the global bag. Auto-stacks if MaxStack > 1 or creates a new entry.
+    /// Adds a KeyItem to the global bag using Non-Alloc index loops.
+    /// Auto-stacks if MaxStack > 1 or creates a new slot entry.
     /// </summary>
-    public void AddKeyItem(ItemSO item, int amount = 1)
+    /// <returns>Remaining quantity that could not fit (0 if fully added).</returns>
+    public int AddKeyItem(ItemSO item, int amount = 1)
     {
-        if (item == null || item is not KeyItemSO keyItem || amount <= 0) return;
+        if (item == null || item is not KeyItemSO keyItem || amount <= 0) return amount;
 
         int remaining = amount;
 
-        // Step 1: Try stacking into existing non-full slots
+        // Step 1: Try stacking into existing non-full slots (Non-Alloc for loop)
         if (keyItem.MaxStack > 1)
         {
-            foreach (var slot in keyItemSlots)
+            for (int i = 0; i < keyItemSlots.Count; i++)
             {
-                if (!slot.IsEmpty && slot.Item == keyItem && !slot.IsFull)
+                InventorySlot slot = keyItemSlots[i];
+                if (slot != null && !slot.IsEmpty && slot.Item == keyItem && !slot.IsFull)
                 {
                     remaining = slot.AddQuantity(remaining);
                     if (remaining <= 0) break;
@@ -58,7 +119,7 @@ public class GlobalBag : MonoBehaviour
             }
         }
 
-        // Step 2: Create new slot for remaining items (Unlimited capacity)
+        // Step 2: Create new slot for remaining items (Unlimited capacity for Key Items)
         while (remaining > 0)
         {
             int toAdd = Mathf.Min(remaining, keyItem.MaxStack);
@@ -66,11 +127,13 @@ public class GlobalBag : MonoBehaviour
             remaining -= toAdd;
         }
 
-        OnGlobalBagUpdated?.Invoke();
+        GameEvents.Inventory.TriggerGlobalBagUpdated();
+        return 0; // Key items have unlimited slot capacity
     }
 
     /// <summary>
-    /// Removes a quantity of a specific KeyItem by slug. Auto-removes slot when quantity hits 0.
+    /// Removes a specific quantity of a KeyItem using Non-Alloc reverse index loops.
+    /// Auto-cleans slots when quantity reaches 0.
     /// </summary>
     public bool RemoveKeyItem(ItemSO item, int amount = 1)
     {
@@ -82,9 +145,10 @@ public class GlobalBag : MonoBehaviour
 
         for (int i = keyItemSlots.Count - 1; i >= 0; i--)
         {
-            if (!keyItemSlots[i].IsEmpty && keyItemSlots[i].Item == keyItem)
+            InventorySlot slot = keyItemSlots[i];
+            if (slot != null && !slot.IsEmpty && slot.Item == keyItem)
             {
-                int currentQty = keyItemSlots[i].Quantity;
+                int currentQty = slot.Quantity;
                 if (currentQty <= remainingToRemove)
                 {
                     remainingToRemove -= currentQty;
@@ -92,7 +156,7 @@ public class GlobalBag : MonoBehaviour
                 }
                 else
                 {
-                    keyItemSlots[i].RemoveQuantity(remainingToRemove);
+                    slot.RemoveQuantity(remainingToRemove);
                     remainingToRemove = 0;
                 }
 
@@ -100,21 +164,22 @@ public class GlobalBag : MonoBehaviour
             }
         }
 
-        OnGlobalBagUpdated?.Invoke();
+        GameEvents.Inventory.TriggerGlobalBagUpdated();
         return true;
     }
 
     /// <summary>
-    /// Checks if the group possesses a specific key item and quantity.
+    /// Checks if the party possesses a specific key item and quantity using Non-Alloc loops.
     /// </summary>
     public bool HasKeyItem(ItemSO item, int requiredAmount = 1)
     {
         if (item == null || item is not KeyItemSO keyItem) return false;
 
         int totalCount = 0;
-        foreach (var slot in keyItemSlots)
+        for (int i = 0; i < keyItemSlots.Count; i++)
         {
-            if (!slot.IsEmpty && slot.Item == keyItem)
+            InventorySlot slot = keyItemSlots[i];
+            if (slot != null && !slot.IsEmpty && slot.Item == keyItem)
             {
                 totalCount += slot.Quantity;
                 if (totalCount >= requiredAmount) return true;
@@ -125,16 +190,17 @@ public class GlobalBag : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns total quantity owned of a specific key item.
+    /// Returns total quantity owned of a specific key item using Non-Alloc loops.
     /// </summary>
     public int GetKeyItemQuantity(ItemSO item)
     {
         if (item == null || item is not KeyItemSO keyItem) return 0;
 
         int total = 0;
-        foreach (var slot in keyItemSlots)
+        for (int i = 0; i < keyItemSlots.Count; i++)
         {
-            if (!slot.IsEmpty && slot.Item == keyItem)
+            InventorySlot slot = keyItemSlots[i];
+            if (slot != null && !slot.IsEmpty && slot.Item == keyItem)
             {
                 total += slot.Quantity;
             }
@@ -152,6 +218,29 @@ public class GlobalBag : MonoBehaviour
             return keyItemSlots[index];
         }
         return null;
+    }
+
+    #endregion
+
+    #region Save System & Persistence Preparation
+
+    /// <summary>
+    /// Gets the current state of key item slots for save system serialization.
+    /// </summary>
+    public List<InventorySlot> GetSaveData()
+    {
+        return keyItemSlots;
+    }
+
+    /// <summary>
+    /// Restores the key item slots from saved game data.
+    /// </summary>
+    public void LoadSaveData(List<InventorySlot> savedSlots)
+    {
+        if (savedSlots == null) return;
+
+        keyItemSlots = new List<InventorySlot>(savedSlots);
+        GameEvents.Inventory.TriggerGlobalBagUpdated();
     }
 
     #endregion

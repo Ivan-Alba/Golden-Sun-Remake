@@ -182,7 +182,7 @@ MonoBehaviour:
   maxWaitTime: 8
   maxPatrolTimeOut: 10
   followRadius: 12
-  followSpeed: 6
+  followSpeed: 8
   maxFollowDistance: 30
   playerMask:
     serializedVersion: 2

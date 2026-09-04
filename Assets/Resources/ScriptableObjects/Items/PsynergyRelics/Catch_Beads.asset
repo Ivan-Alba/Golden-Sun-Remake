@@ -13,12 +13,33 @@ MonoBehaviour:
   m_Name: Catch_Beads
   m_EditorClassIdentifier: 
   itemSlug: catch_beads
-  itemName: 'Collar de Poder '
-  itemDescription: "Reliquia Psin\xE9rgica ancestral que canaliza la fuerza interior
-    para manipular el entorno y recoger objetos lejanos."
-  flavorText: "\xABT\xF3malo, Hans. Que la bendici\xF3n del Monte Aleph te proteja
-    en tu viaje\xBB. Entregado por su madre antes de partir, este amuleto late con
-    el c\xE1lido abrazo del hogar."
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660252
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660253
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660254
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 21300000, guid: b3ee1577533e62c4f8a6d669102dca03, type: 3}
   itemType: 2
   buyPrice: 0
@@ -35,3 +56,6 @@ MonoBehaviour:
   useInBattle: 0
   battleUseEffect: {fileID: 0}
   grantedPsynergy: {fileID: 11400000, guid: ca4682f4b3119d343b85ee6ee594e656, type: 2}
+  references:
+    version: 2
+    RefIds: []

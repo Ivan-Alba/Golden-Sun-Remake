@@ -5,6 +5,35 @@ using UnityEngine;
 public static class GameEvents
 {
     // ==========================================
+    // DATABASE & REPOSITORY EVENTS
+    // ==========================================
+    public static class Database
+    {
+        /// <summary>
+        /// Request to retrieve an ItemSO by its unique slug. 
+        /// Sends slug and a callback action returning the ItemSO (or null if not found).
+        /// </summary>
+        public static event Action<string, Action<ItemSO>> OnRequestItemBySlug;
+        public static void RequestItemBySlug(string slug, Action<ItemSO> onResult)
+            => OnRequestItemBySlug?.Invoke(slug, onResult);
+
+        /// <summary>
+        /// Request to retrieve the complete read-only list of all registered ItemSO assets in the database.
+        /// </summary>
+        public static event Action<Action<IReadOnlyList<ItemSO>>> OnRequestAllItems;
+        public static void RequestAllItems(Action<IReadOnlyList<ItemSO>> onResult)
+            => OnRequestAllItems?.Invoke(onResult);
+
+        /// <summary>
+        /// Request to populate a provided buffer list with ItemSO assets filtered by ItemType.
+        /// Zero-allocation query pattern.
+        /// </summary>
+        public static event Action<ItemType, List<ItemSO>> OnRequestItemsByType;
+        public static void RequestItemsByType(ItemType itemType, List<ItemSO> resultsBuffer)
+            => OnRequestItemsByType?.Invoke(itemType, resultsBuffer);
+    }
+
+    // ==========================================
     // GAMEPLAY & GAME STATE EVENTS
     // ==========================================
     public static class GameState
@@ -294,6 +323,56 @@ public static class GameEvents
 
         public static event Action OnAllItemsRequested;
         public static void RequestAllItems() => OnAllItemsRequested?.Invoke();
+
+        // ==========================================
+        // GLOBAL BAG & KEY ITEM EVENTS
+        // ==========================================
+
+        /// <summary>
+        /// Request to add a KeyItem to the global bag.
+        /// Sends ItemSO, quantity and a callback action returning the remaining overflow count (0 = success).
+        /// </summary>
+        public static event Action<ItemSO, int, Action<int>> OnRequestAddKeyItem;
+        public static void RequestAddKeyItem(ItemSO item, int quantity, Action<int> onResult)
+            => OnRequestAddKeyItem?.Invoke(item, quantity, onResult);
+
+        /// <summary>
+        /// Request to remove a KeyItem from the global bag.
+        /// Sends ItemSO, quantity and a callback action returning success (true/false).
+        /// </summary>
+        public static event Action<ItemSO, int, Action<bool>> OnRequestRemoveKeyItem;
+        public static void RequestRemoveKeyItem(ItemSO item, int quantity, Action<bool> onResult)
+            => OnRequestRemoveKeyItem?.Invoke(item, quantity, onResult);
+
+        /// <summary>
+        /// Query if the global bag contains a specific amount of a KeyItem.
+        /// Sends ItemSO, required quantity and a callback action returning whether it is possessed (true/false).
+        /// </summary>
+        public static event Action<ItemSO, int, Action<bool>> OnCheckHasKeyItem;
+        public static void CheckHasKeyItem(ItemSO item, int amount, Action<bool> onResult)
+            => OnCheckHasKeyItem?.Invoke(item, amount, onResult);
+
+        /// <summary>
+        /// Query the total owned quantity of a specific KeyItem in the global bag.
+        /// Sends ItemSO and a callback returning the total count.
+        /// </summary>
+        public static event Action<ItemSO, Action<int>> OnRequestKeyItemQuantity;
+        public static void RequestKeyItemQuantity(ItemSO item, Action<int> onResult)
+            => OnRequestKeyItemQuantity?.Invoke(item, onResult);
+
+        /// <summary>
+        /// Query to retrieve the complete read-only list of key item slots from the global bag.
+        /// Sends a callback action returning IReadOnlyList<InventorySlot>.
+        /// </summary>
+        public static event Action<Action<IReadOnlyList<InventorySlot>>> OnRequestKeyItemSlots;
+        public static void RequestKeyItemSlots(Action<IReadOnlyList<InventorySlot>> onResult)
+            => OnRequestKeyItemSlots?.Invoke(onResult);
+
+        /// <summary>
+        /// Broadcast event triggered whenever the global key item bag contents are modified.
+        /// </summary>
+        public static event Action OnGlobalBagUpdated;
+        public static void TriggerGlobalBagUpdated() => OnGlobalBagUpdated?.Invoke();
     }
 
     // ==========================================
