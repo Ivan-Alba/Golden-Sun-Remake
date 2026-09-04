@@ -44,7 +44,7 @@ public class BattleManager : MonoBehaviour
     private int currentAreaRange = 0;
 
     // RESPAWN CONTROLLER
-    private EnemySpawnZone respawnController;
+    private EnemySpawnZone spawnController;
 
     // LISTS WITH FIGHTERS
     private List<GameObject> enemiesList = new List<GameObject>();
@@ -104,14 +104,26 @@ public class BattleManager : MonoBehaviour
     private void OnEnable()
     {
         SubscribeToInputEvents();
+        SubscribeToGameEvents();
     }
 
     private void OnDisable()
     {
         UnsubscribeFromInputEvents();
+        UnsubscribeFromGameEvents();
     }
 
-    #region Input Event Subscriptions
+    #region Event Subscriptions
+
+    private void SubscribeToGameEvents()
+    {
+        GameEvents.Battle.OnRequestCollisionBattle += InitializeCollisionBattle;
+    }
+
+    private void UnsubscribeFromGameEvents()
+    {
+        GameEvents.Battle.OnRequestCollisionBattle -= InitializeCollisionBattle;
+    }
 
     private void SubscribeToInputEvents()
     {
@@ -351,8 +363,7 @@ public class BattleManager : MonoBehaviour
 
     #region Battle Lifecycle & Setup
 
-    public void AwakeBattle(GameObject enemyInitiator = null, GameObject respawnZone = null,
-        List<GameObject> preSetEnemies = null)
+    public void InitializeCollisionBattle(GameObject enemyInitiator, GameObject spawnZone, EncounterType encounterType)
     {
         ResetBattleVariables();
 
@@ -385,8 +396,8 @@ public class BattleManager : MonoBehaviour
         enemyPositions = new GameObject[enemiesOnBattle];
 
         // RESPAWN OBJECTS
-        if (respawnZone != null)
-            respawnController = respawnZone.GetComponent<EnemySpawnZone>();
+        if (spawnZone != null)
+            spawnController = spawnZone.GetComponent<EnemySpawnZone>();
 
         if (player != null) player.GetComponent<Animator>().enabled = false;
 
@@ -478,12 +489,12 @@ public class BattleManager : MonoBehaviour
             if (i == 0) // FIRST ENEMY LIKE WORLD ENEMY
             {
                 enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = respawnController.GetMatchingEnemyPrefab(firstEnemy);
+                newEnemy = spawnController.GetMatchingEnemyPrefab(firstEnemy);
             }
             else // NEXT RANDOM FROM RESPAWN CONTROLLER ENEMY LIST
             {
                 enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = respawnController.GetRandomEnemyPrefab();
+                newEnemy = spawnController.GetRandomEnemyPrefab();
             }
 
             enemyPositions[i] = enemyPlace;
@@ -748,16 +759,9 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-        // Transition
-        if (SceneTransitionManager.Instance != null)
-        {
-            yield return SceneTransitionManager.Instance.PlayFullTransitionRoutine(SetOffBattle);
-        }
-        else
-        {
-            // Fallback
-            SetOffBattle();
-        }
+        // Transition via decoupled event bus (decoupled from SceneTransitionManager.Instance)
+        GameEvents.Scene.RequestFullTransition(SetOffBattle);
+        yield return null;
     }
 
     private void SetOffBattle()

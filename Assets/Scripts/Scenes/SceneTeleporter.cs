@@ -1,21 +1,34 @@
 using System.Collections;
 using UnityEngine;
-using static GameManager;
 
+/// <summary>
+/// Handles trigger-based scene transitions, managing auto-walk sequences and progressive screen fades.
+/// Decoupled from transition UI singletons while delegating scene state setup to the GameManager.
+/// </summary>
+[RequireComponent(typeof(Collider))]
 public class SceneTeleporter : MonoBehaviour
 {
     #region Serialized Fields
 
     [Header("Destination Settings")]
+    [Tooltip("Target scene name to load upon completing the teleport sequence.")]
     [SerializeField] private string targetSceneName;
+
+    [Tooltip("Spawn point identifier in the destination scene.")]
     [SerializeField] private string targetSpawnID;
 
     [Header("Auto-Walk Sequence Settings")]
+    [Tooltip("Optional transform target the player automatically walks towards upon trigger.")]
     [SerializeField] private Transform walkTarget;
+
+    [Tooltip("Duration in seconds for the initial auto-walk and fade sequence.")]
     [SerializeField] private float sequenceDuration = 1.2f;
 
     [Header("Ambient Fade Settings")]
-    [Range(0f, 1f)][SerializeField] private float targetOverlayAlpha = 1f;
+    [Range(0f, 1f)]
+    [SerializeField] private float targetOverlayAlpha = 1f;
+
+    [Tooltip("Duration for the screen fade overlay to reach target alpha.")]
     [SerializeField] private float fadeDuration = 1.5f;
 
     #endregion
@@ -23,6 +36,20 @@ public class SceneTeleporter : MonoBehaviour
     #region Private Fields
 
     private bool isTeleporting = false;
+    private Collider triggerCollider;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        triggerCollider = GetComponent<Collider>();
+        if (triggerCollider != null)
+        {
+            triggerCollider.isTrigger = true;
+        }
+    }
 
     #endregion
 
@@ -35,7 +62,14 @@ public class SceneTeleporter : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isTeleporting = true;
-            StartCoroutine(TeleportSequenceRoutine());
+
+            // Disable collider immediately to prevent duplicate triggers from child colliders
+            if (triggerCollider != null)
+            {
+                triggerCollider.enabled = false;
+            }
+
+            StartCoroutine(Routine_TeleportSequence());
         }
     }
 
@@ -43,28 +77,32 @@ public class SceneTeleporter : MonoBehaviour
 
     #region Sequence Coroutine
 
-    private IEnumerator TeleportSequenceRoutine()
+    private IEnumerator Routine_TeleportSequence()
     {
-        // 1. Lock controls and camera movement
-        GameEvents.GameState.RequestGameStateChange(GameState.Cutscene);
+        // 1. Lock controls and set state to Cutscene/Transition
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
 
-        // 2. Order player to walk towards the target point if defined using events
+        // 2. Order player to walk towards the target point if assigned
         if (walkTarget != null)
         {
             GameEvents.Player.RequestAutoWalk(walkTarget.position);
         }
 
-        // 3. Start progressive ambient fade to dark (NOT the full logo curtain yet)
-        if (SceneTransitionManager.Instance != null)
+        // 3. Start progressive ambient fade to dark via event
+        GameEvents.Scene.RequestFadeToBlack(targetOverlayAlpha, fadeDuration);
+
+        // 4. Wait for sequence duration (unscaled to avoid timeScale locks)
+        yield return new WaitForSecondsRealtime(sequenceDuration);
+
+        // 5. Delegate scene change to GameManager to set spawn parameters and trigger transition
+        if (GameManager.Instance != null)
         {
-            SceneTransitionManager.Instance.FadeToBlack(targetOverlayAlpha, fadeDuration);
+            GameManager.Instance.ChangeScene(targetSceneName, targetSpawnID);
         }
-
-        // 4. Wait for the sequence duration (player walking + screen darkening)
-        yield return new WaitForSeconds(sequenceDuration);
-
-        // 5. Call regular ChangeScene, which triggers the usual logo curtain transition
-        GameManager.Instance.ChangeScene(targetSceneName, targetSpawnID);
+        else
+        {
+            Debug.LogError($"[SceneTeleporter] Unable to change scene to '{targetSceneName}'. GameManager instance is missing.");
+        }
     }
 
     #endregion

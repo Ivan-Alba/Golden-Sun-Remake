@@ -26,8 +26,17 @@ MonoBehaviour:
   maxStacks: 1
   autoCureChancePerTurn: 0
   cureOnPhysicalDamage: 0
+  missChancePhysical: 0
+  missChancePsynergy: 0
+  sealPsynergy: 0
+  sealPhysicalAttacks: 0
+  sealItemUsage: 0
+  sealDjinnUsage: 0
   incapacitateType: 0
-  damageMitigationPercentage: 5
+  damageMitigationPercentage: 1
+  aggroMultiplier: 1
+  reflectChance: 0
+  elementalAbsorb: 0
   doomTurnCount: 3
   statModifiers:
   - statType: 3

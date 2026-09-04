@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages progression, experience, level-ups, and live calculated stats engine for hero units.
+/// Listens to global events (such as GameEvents.Hero.OnEquipmentChanged) to trigger stat recalculations.
+/// </summary>
 public class HeroStats : FighterStats
 {
     #region Serialized Fields
@@ -129,14 +133,21 @@ public class HeroStats : FighterStats
 
         // Subscribe to FighterStats base mutations for automatic dirtying
         OnStatsChanged += MarkDirty;
+    }
 
-        SubscribeToEquipmentEvents();
+    private void OnEnable()
+    {
+        SubscribeToEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromEvents();
     }
 
     private void OnDestroy()
     {
         OnStatsChanged -= MarkDirty;
-        UnsubscribeFromEquipmentEvents();
     }
 
     private void MarkDirty()
@@ -148,19 +159,22 @@ public class HeroStats : FighterStats
 
     #region Event Subscriptions
 
-    private void SubscribeToEquipmentEvents()
+    private void SubscribeToEvents()
     {
-        if (heroEquipment != null)
-        {
-            heroEquipment.OnEquipmentChanged += RecalculateStatsAndPsynergies;
-        }
+        GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
     }
 
-    private void UnsubscribeFromEquipmentEvents()
+    private void UnsubscribeFromEvents()
     {
-        if (heroEquipment != null)
+        GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
+    }
+
+    private void HandleHeroEquipmentChanged(GameObject heroObj)
+    {
+        // Only trigger recalculations if the event belongs to this hero instance
+        if (heroObj == gameObject)
         {
-            heroEquipment.OnEquipmentChanged -= RecalculateStatsAndPsynergies;
+            RecalculateStatsAndPsynergies();
         }
     }
 

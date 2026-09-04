@@ -1182,6 +1182,11 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   lightOverride: {fileID: 0}
+--- !u!4 &1913782534 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8459378967203041517, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1929226537
 GameObject:
   m_ObjectHideFlags: 0
@@ -1418,6 +1423,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378967438113738, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 1913782534}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

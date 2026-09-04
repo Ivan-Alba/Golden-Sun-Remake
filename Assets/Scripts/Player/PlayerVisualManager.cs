@@ -10,7 +10,8 @@ public enum PlayerInteractionAnimType
     PickChest,
     PickFloor,
     InteractNPC,
-    TouchObject
+    TouchObject,
+    EnemyHitReaction
 }
 
 /// <summary>
@@ -47,6 +48,7 @@ public class PlayerVisualManager : MonoBehaviour
     private static readonly int PickFloorHash = Animator.StringToHash("pickFloor");
     private static readonly int InteractNPCHash = Animator.StringToHash("interactNPC");
     private static readonly int TouchObjectHash = Animator.StringToHash("touchObject");
+    private static readonly int EnemyHitReactionHash = Animator.StringToHash("attacked");
 
     #endregion
 
@@ -234,6 +236,9 @@ public class PlayerVisualManager : MonoBehaviour
                 break;
             case PlayerInteractionAnimType.TouchObject:
                 playerAnimator.SetTrigger(TouchObjectHash);
+                break;
+            case PlayerInteractionAnimType.EnemyHitReaction:
+                playerAnimator.SetTrigger(EnemyHitReactionHash);
                 break;
         }
     }

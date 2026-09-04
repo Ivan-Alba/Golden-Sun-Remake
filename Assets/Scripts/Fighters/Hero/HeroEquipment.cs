@@ -1,9 +1,15 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages standard equipment slots and dedicated Psynergy Relic slots for a hero.
+/// Applies stat modifiers to FighterStats and notifies system events upon equipment changes.
+/// </summary>
 public class HeroEquipment : MonoBehaviour
 {
+    #region Serialized Fields
+
     [Header("Relic Slot Configuration")]
     [SerializeField] private int maxRelicSlots = 4;
 
@@ -11,14 +17,17 @@ public class HeroEquipment : MonoBehaviour
     [SerializeField] private FighterStats fighterStats;
     [SerializeField] private HeroInventory heroInventory;
 
+    #endregion
+
+    #region Private Fields
+
     // Standard Equipment Slots Map
-    private Dictionary<EquipmentSlot, EquipableSO> equippedItems = new Dictionary<EquipmentSlot, EquipableSO>();
+    private readonly Dictionary<EquipmentSlot, EquipableSO> equippedItems = new Dictionary<EquipmentSlot, EquipableSO>();
 
     // Dedicated Psynergy Relic Slots Array
     private PsynergyRelicSO[] equippedRelics;
 
-    // Event fired whenever equipment changes, allowing UI auto-refresh and psynergy re-evaluation
-    public event Action OnEquipmentChanged;
+    #endregion
 
     #region Properties
 
@@ -28,7 +37,7 @@ public class HeroEquipment : MonoBehaviour
 
     #endregion
 
-    #region Unity Lifecycle Methods
+    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -37,6 +46,10 @@ public class HeroEquipment : MonoBehaviour
 
         InitializeEquipmentSlots();
     }
+
+    #endregion
+
+    #region Initialization
 
     private void InitializeEquipmentSlots()
     {
@@ -61,8 +74,11 @@ public class HeroEquipment : MonoBehaviour
 
     /// <summary>
     /// Attempts to equip an item directly from a HeroInventory backpack slot.
-    /// Handles unequipping/swapping if the target slot is currently occupied.
+    /// Handles unequipping and swapping if the target slot is currently occupied.
     /// </summary>
+    /// <param name="backpackSlotIndex">Target backpack slot index.</param>
+    /// <param name="targetRelicIndex">Target relic array index if equipping a Psynergy Relic.</param>
+    /// <returns>True if successfully equipped; false otherwise.</returns>
     public bool EquipFromBackpack(int backpackSlotIndex, int targetRelicIndex = 0)
     {
         if (heroInventory == null) return false;
@@ -72,12 +88,12 @@ public class HeroEquipment : MonoBehaviour
 
         ItemSO itemToEquip = slot.Item;
 
-        // 1. Handle Psynergy Relics FIRST (more specific derived type)
+        // 1. Handle Psynergy Relics FIRST
         if (itemToEquip is PsynergyRelicSO relic)
         {
             return EquipRelicItem(relic, backpackSlotIndex, targetRelicIndex);
         }
-        // 2. Handle Standard Equipment SECOND (base type)
+        // 2. Handle Standard Equipment SECOND
         else if (itemToEquip is EquipableSO equipable)
         {
             return EquipStandardItem(equipable, backpackSlotIndex);
@@ -99,7 +115,7 @@ public class HeroEquipment : MonoBehaviour
 
         EquipableSO currentEquipped = equippedItems[slotType];
 
-        // 1. Remove stat bonuses of previously equipped item (if any)
+        // 1. Remove stat bonuses of previously equipped item
         if (currentEquipped != null)
         {
             RemoveItemModifiers(currentEquipped);
@@ -111,7 +127,7 @@ public class HeroEquipment : MonoBehaviour
         // 3. Update equipped slot map
         equippedItems[slotType] = newEquipable;
 
-        // 4. Update backpack: Replace newly equipped item with old item (or clear slot if none)
+        // 4. Update backpack slot
         if (currentEquipped != null)
         {
             heroInventory.GetSlot(backpackSlotIndex).SetSlot(currentEquipped, 1, false);
@@ -121,7 +137,7 @@ public class HeroEquipment : MonoBehaviour
             heroInventory.RemoveFromSlot(backpackSlotIndex, 1);
         }
 
-        OnEquipmentChanged?.Invoke();
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=green>[Equipment] Equipped {newEquipable.ItemName} on {gameObject.name}</color>");
         return true;
     }
@@ -147,7 +163,7 @@ public class HeroEquipment : MonoBehaviour
         // 3. Assign new relic to dedicated array
         equippedRelics[relicSlotIndex] = newRelic;
 
-        // 4. Update backpack: Replace or clear
+        // 4. Update backpack slot
         if (currentRelic != null)
         {
             heroInventory.GetSlot(backpackSlotIndex).SetSlot(currentRelic, 1, false);
@@ -157,7 +173,7 @@ public class HeroEquipment : MonoBehaviour
             heroInventory.RemoveFromSlot(backpackSlotIndex, 1);
         }
 
-        OnEquipmentChanged?.Invoke();
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=cyan>[Equipment] Equipped Relic {newRelic.ItemName} in slot {relicSlotIndex} on {gameObject.name}</color>");
         return true;
     }
@@ -175,23 +191,17 @@ public class HeroEquipment : MonoBehaviour
 
         EquipableSO itemToUnequip = equippedItems[slotType];
 
-        // Check if backpack has space
         if (!heroInventory.CanAddItem(itemToUnequip, 1))
         {
             Debug.LogWarning("[HeroEquipment] Cannot unequip. Backpack is full!");
             return false;
         }
 
-        // 1. Remove modifiers
         RemoveItemModifiers(itemToUnequip);
-
-        // 2. Clear slot
         equippedItems[slotType] = null;
-
-        // 3. Return item to backpack
         heroInventory.AddItem(itemToUnequip, 1);
 
-        OnEquipmentChanged?.Invoke();
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=yellow>[Equipment] Unequipped {itemToUnequip.ItemName} from {gameObject.name}</color>");
         return true;
     }
@@ -206,23 +216,17 @@ public class HeroEquipment : MonoBehaviour
         PsynergyRelicSO relicToUnequip = equippedRelics[relicSlotIndex];
         if (relicToUnequip == null) return false;
 
-        // Check if backpack has space
         if (!heroInventory.CanAddItem(relicToUnequip, 1))
         {
             Debug.LogWarning("[HeroEquipment] Cannot unequip relic. Backpack is full!");
             return false;
         }
 
-        // 1. Remove modifiers
         RemoveItemModifiers(relicToUnequip);
-
-        // 2. Clear slot
         equippedRelics[relicSlotIndex] = null;
-
-        // 3. Return relic to backpack
         heroInventory.AddItem(relicToUnequip, 1);
 
-        OnEquipmentChanged?.Invoke();
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=yellow>[Equipment] Unequipped Relic {relicToUnequip.ItemName} from {gameObject.name}</color>");
         return true;
     }
@@ -235,11 +239,11 @@ public class HeroEquipment : MonoBehaviour
     {
         if (fighterStats == null || item == null) return;
 
-        // Tanto EquipableSO como PsynergyRelicSO heredan de EquipableSO
         if (item is EquipableSO equipable)
         {
             var modifiers = equipable.GetStatModifiers();
-            for (int i = 0; i < modifiers.Count; i++)
+            int count = modifiers.Count;
+            for (int i = 0; i < count; i++)
             {
                 fighterStats.AddStatModifier(modifiers[i].statType, modifiers[i].modifier);
             }
@@ -250,13 +254,12 @@ public class HeroEquipment : MonoBehaviour
     {
         if (fighterStats == null || item == null) return;
 
-        // Remueve todos los modificadores que tengan este ScriptableObject como Source
         fighterStats.RemoveModifiersFromSource(item);
     }
 
     #endregion
 
-    #region Public Queries & Loading
+    #region Public Queries & Load Helpers
 
     /// <summary>
     /// Gets the item currently equipped in a standard equipment slot.
@@ -271,8 +274,7 @@ public class HeroEquipment : MonoBehaviour
     }
 
     /// <summary>
-    /// Gets the item currently equipped in a weapon equipment slot safely.
-    /// Returns null if the slot is empty or if the item is not a WeaponSO.
+    /// Gets the item currently equipped in a weapon slot safely.
     /// </summary>
     public WeaponSO GetEquippedWeapon()
     {
@@ -315,8 +317,9 @@ public class HeroEquipment : MonoBehaviour
 
     /// <summary>
     /// Directly assigns an equipable item during save data loading, applying its modifiers.
+    /// Allows silent assignment to avoid multiple event triggers during loading sequences.
     /// </summary>
-    public void LoadEquippedItem(EquipableSO item)
+    public void LoadEquippedItem(EquipableSO item, bool notifyEvent = false)
     {
         if (item == null) return;
 
@@ -330,14 +333,19 @@ public class HeroEquipment : MonoBehaviour
 
             equippedItems[slotType] = item;
             ApplyItemModifiers(item);
-            OnEquipmentChanged?.Invoke();
+
+            if (notifyEvent)
+            {
+                GameEvents.Hero.TriggerEquipmentChanged(gameObject);
+            }
         }
     }
 
     /// <summary>
     /// Directly assigns a relic item during save data loading, applying its modifiers.
+    /// Allows silent assignment to avoid multiple event triggers during loading sequences.
     /// </summary>
-    public void LoadEquippedRelic(PsynergyRelicSO relic, int slotIndex)
+    public void LoadEquippedRelic(PsynergyRelicSO relic, int slotIndex, bool notifyEvent = false)
     {
         if (relic == null || slotIndex < 0 || slotIndex >= maxRelicSlots) return;
 
@@ -348,7 +356,11 @@ public class HeroEquipment : MonoBehaviour
 
         equippedRelics[slotIndex] = relic;
         ApplyItemModifiers(relic);
-        OnEquipmentChanged?.Invoke();
+
+        if (notifyEvent)
+        {
+            GameEvents.Hero.TriggerEquipmentChanged(gameObject);
+        }
     }
 
     #endregion

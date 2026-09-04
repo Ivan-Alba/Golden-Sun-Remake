@@ -13,17 +13,15 @@ public class TitleMenu : MonoBehaviour
 
     public void ContinueButton()
     {
-       GameData dataSaved = SaveManager.Load(0);
+        GameData dataSaved = SaveManager.Load(0);
 
-        //CHARGE SCREEN
-        if (SceneTransitionManager.Instance != null)
+        if (dataSaved == null)
         {
-            SceneTransitionManager.Instance.LoadSceneWithTransition(dataSaved.currentSceneName);
+            Debug.LogWarning("[ContinueButton] No saved data found at slot 0.");
+            return;
         }
-        else
-        {
-            // Fallback in case SceneTransitionManager is not present
-            SceneManager.LoadScene(dataSaved.currentSceneName);
-        }
+
+        // Charge screen via decoupled event bus
+        GameEvents.Scene.RequestLoadScene(dataSaved.currentSceneName);
     }
 }

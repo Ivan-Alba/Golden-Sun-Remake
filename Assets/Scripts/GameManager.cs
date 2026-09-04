@@ -5,8 +5,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Cinemachine;
 
+/// <summary>
+/// Core game manager handling global game states, scene flow, party management, and persistent game data.
+/// Decoupled from static transition singletons using GameEvents.Scene.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
+    #region Enumerations
+
     public enum GameState
     {
         None,
@@ -20,7 +26,14 @@ public class GameManager : MonoBehaviour
         Loading
     }
 
+    #endregion
+
+    #region Singleton Reference
+
     private static GameManager instance = null;
+    public static GameManager Instance { get => instance; private set => instance = value; }
+
+    #endregion
 
     #region Serialized Fields
 
@@ -31,25 +44,29 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playerMainCamera;
     [SerializeField] private CinemachineCamera freeLookCamera;
 
+    [Header("Transition Configuration")]
+    [SerializeField] private float transitionDuration = 1.0f;
+    [SerializeField] private float arrivalWalkDelay = 0.2f;
+
     #endregion
 
     #region Private Fields
 
     private bool loadingData = false;
 
-    // SCENE & SPAWN MANAGEMENT
+    // Scene & Spawn Management
     private string pendingSpawnID = null;
     private GameState pendingTargetState = GameState.WorldExploration;
     private SpawnPoint currentUsedSpawnPoint = null;
 
-    // ZONE & AREA TRACKING
+    // Zone & Area Tracking
     private string currentZoneName = "DESCONOCIDO";
     private string currentRegionName = "MUNDO";
 
-    // PARTY INFO
+    // Party Info
     private List<GameObject> party = new List<GameObject>();
 
-    // GAME INFO & FLAGS
+    // Game Info & Flags
     private int totalGold;
     private float totalPlayed;
     private GameObject activeHero;
@@ -59,14 +76,13 @@ public class GameManager : MonoBehaviour
 
     #region Properties
 
-    public GameState CurrentState { get => currentState; private set => currentState = value; }
+    public GameState CurrentState => currentState;
     public int TotalGold { get => totalGold; set => totalGold = value; }
     public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
     public GameObject ActiveHero { get => activeHero; set => activeHero = value; }
     public bool LoadingData { get => loadingData; set => loadingData = value; }
     public string CurrentZoneName => currentZoneName;
     public string CurrentRegionName => currentRegionName;
-    public static GameManager Instance { get => instance; set => instance = value; }
 
     public List<GameObject> GetParty()
     {
@@ -131,7 +147,7 @@ public class GameManager : MonoBehaviour
     #region Game Flags System
 
     /// <summary>
-    /// Checks if a specific story/game flag is set to active.
+    /// Checks if a specific story or game flag is set to active.
     /// </summary>
     public bool HasFlag(string flagKey)
     {
@@ -140,7 +156,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the value of a story/game flag.
+    /// Sets the value of a story or game flag.
     /// </summary>
     public void SetFlag(string flagKey, bool value)
     {
@@ -173,6 +189,9 @@ public class GameManager : MonoBehaviour
         SetGameState(requestedState);
     }
 
+    /// <summary>
+    /// Updates the active global game state, handling camera systems, inputs, and firing state events.
+    /// </summary>
     public void SetGameState(GameState newState)
     {
         if (currentState == newState) return;
@@ -288,20 +307,30 @@ public class GameManager : MonoBehaviour
         ChangeScene(firstSceneName, initialSpawnID, GameState.WorldExploration);
     }
 
+    /// <summary>
+    /// Initiates an asynchronous scene load request via GameEvents.Scene.
+    /// </summary>
     public void ChangeScene(string sceneName, string spawnID, GameState targetStateAfterLoad = GameState.WorldExploration)
     {
         SetGameState(GameState.Loading);
         pendingSpawnID = spawnID;
         pendingTargetState = targetStateAfterLoad;
 
-        if (SceneTransitionManager.Instance != null)
+        GameEvents.Scene.RequestLoadScene(sceneName);
+    }
+
+    /// <summary>
+    /// Executes a full curtain transition sequence via GameEvents.Scene.
+    /// </summary>
+    public void PlayFullTransition(Action onScreenCovered)
+    {
+        SetGameState(GameState.Loading);
+
+        GameEvents.Scene.RequestFullTransition(() =>
         {
-            SceneTransitionManager.Instance.LoadSceneWithTransition(sceneName);
-        }
-        else
-        {
-            SceneManager.LoadScene(sceneName);
-        }
+            onScreenCovered?.Invoke();
+            SetGameState(GameState.WorldExploration);
+        });
     }
 
     private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
@@ -352,11 +381,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
         yield return new WaitForFixedUpdate();
 
-        // 3. Start revealing the screen
-        if (SceneTransitionManager.Instance != null)
-        {
-            SceneTransitionManager.Instance.FadeInNewScene();
-        }
+        // 3. Start revealing the screen via event bus
+        GameEvents.Scene.RequestFadeInScene();
 
         // 4. Handle Arrival vs Immediate Entry
         bool isGameplayTeleport = !loadingData && currentUsedSpawnPoint != null;
@@ -365,22 +391,14 @@ public class GameManager : MonoBehaviour
         {
             SetGameState(GameState.Cutscene);
 
-            float walkDelay = SceneTransitionManager.Instance != null
-                ? SceneTransitionManager.Instance.ArrivalWalkDelay
-                : 0.2f;
-
-            yield return new WaitForSeconds(walkDelay);
+            yield return new WaitForSeconds(arrivalWalkDelay);
 
             yield return StartCoroutine(currentUsedSpawnPoint.Routine_ExecuteArrivalSequence());
         }
         else if (pendingTargetState == GameState.WorldExploration)
         {
             GameEvents.UI.TriggerShowZoneBanner(currentZoneName, currentRegionName, 3.5f);
-
-            if (SceneTransitionManager.Instance != null)
-            {
-                yield return new WaitForSeconds(SceneTransitionManager.Instance.TransitionDuration);
-            }
+            yield return new WaitForSeconds(transitionDuration);
         }
 
         // 5. Activate target game state (WorldExploration)
@@ -393,18 +411,14 @@ public class GameManager : MonoBehaviour
 
     public void NotifyPartyChanged(GameObject activeHero = null)
     {
-        // 1. Notificamos que la composición de la party ha cambiado
         OnPartyChanged?.Invoke();
 
-        // 2. Si no hay party, no se puede activar ningún héroe
         if (party == null || party.Count == 0) return;
 
-        // 3. Seleccionamos el héroe: el pasado por parámetro (si está en la party) o el primero de la lista
         GameObject heroToActivate = (activeHero != null && party.Contains(activeHero))
             ? activeHero
             : party[0];
 
-        // 4. Notificamos al sistema global cuál es el héroe activo
         GameEvents.Player.RequestActiveHeroChange(heroToActivate);
     }
 
@@ -492,7 +506,6 @@ public class GameManager : MonoBehaviour
 
         party.Clear();
 
-        // Clears both Hero Inventories AND GlobalBag safely via decoupled event
         GameEvents.Inventory.RequestClearAllInventories();
 
         for (int i = 0; i < dataToLoad.party.Count; i++)
@@ -510,9 +523,6 @@ public class GameManager : MonoBehaviour
 
         GameEvents.Inventory.RequestSyncWithParty();
 
-        // -----------------------------------------------------------------------------
-        // Restores Global Key Item Bag via Decoupled Events (No GlobalBag.Instance!)
-        // -----------------------------------------------------------------------------
         if (dataToLoad.globalBagItems != null)
         {
             for (int i = 0; i < dataToLoad.globalBagItems.Count; i++)
@@ -530,7 +540,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Restore individual hero stats, inventories and equipment
         for (int i = 0; i < party.Count; i++)
         {
             GameObject heroObj = party[i];

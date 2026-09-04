@@ -81,7 +81,11 @@ public struct PendingSplitTransaction
 
 #endregion
 
-public class PageItemsController
+/// <summary>
+/// Controller for the Main Menu Inventory & Equipment Page UI.
+/// Manages drag and drop interactions, equipment slots, item details, and listens to GameEvents.Hero.
+/// </summary>
+public class PageItemsController : IDisposable
 {
     #region Events & Properties
 
@@ -117,10 +121,10 @@ public class PageItemsController
     private Label labelItemMaxStack;
     private Label labelItemDesc;
 
-    // Container holding modular dynamic UXML templates for item extra information
+    // Dynamic Extra Info Container
     private VisualElement extraInfoContainer;
 
-    // Modular UXML Template Assets for Detailed Item Info Views
+    // Modular UXML Templates for Detailed Item Info Views
     private VisualTreeAsset templateInfoConsumable;
     private VisualTreeAsset templateInfoEquipable;
     private VisualTreeAsset templateInfoWeapon;
@@ -206,13 +210,41 @@ public class PageItemsController
 
     #endregion
 
-    #region Constructor
+    #region Constructor & Disposal
 
     public PageItemsController(VisualElement root)
     {
         rootElement = root;
         BindUIElements();
         BindSplitPopupEvents();
+        SubscribeToGlobalEvents();
+    }
+
+    public void Dispose()
+    {
+        UnsubscribeFromGlobalEvents();
+    }
+
+    #endregion
+
+    #region Event Subscriptions
+
+    private void SubscribeToGlobalEvents()
+    {
+        GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
+    }
+
+    private void UnsubscribeFromGlobalEvents()
+    {
+        GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
+    }
+
+    private void HandleHeroEquipmentChanged(GameObject heroObj)
+    {
+        if (currentHero != null && heroObj == currentHero.gameObject)
+        {
+            RefreshAllData();
+        }
     }
 
     #endregion
@@ -341,19 +373,9 @@ public class PageItemsController
 
     public void PopulateData(HeroStats hero, HeroInventory inventory, HeroEquipment equipment, VisualTreeAsset itemSlotAsset)
     {
-        if (currentEquipment != null)
-        {
-            currentEquipment.OnEquipmentChanged -= RefreshAllData;
-        }
-
         currentHero = hero;
         currentInventory = inventory;
         currentEquipment = equipment;
-
-        if (currentEquipment != null)
-        {
-            currentEquipment.OnEquipmentChanged += RefreshAllData;
-        }
 
         UpdateHeaderHeroInfo();
 
@@ -578,7 +600,6 @@ public class PageItemsController
     {
         IReadOnlyList<InventorySlot> keySlots = null;
 
-        // Request current key item slots via event callback instead of GlobalBag.Instance
         GameEvents.Inventory.RequestKeyItemSlots((slots) =>
         {
             keySlots = slots;
@@ -807,10 +828,8 @@ public class PageItemsController
         {
             if (item is EquipableSO equipable)
             {
-                Debug.Log("Double-clicked equipable item in inventory: " + item.name);
                 if (equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
                 {
-                    Debug.Log("Equipping relic: " + item.name);
                     if (currentEquipment != null)
                     {
                         int emptyRelicIndex = GetFirstEmptyRelicIndex();
@@ -977,8 +996,6 @@ public class PageItemsController
 
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
         if (targetHero == null) return;
-
-        Debug.Log($"[Consumable] Using '{consumable.ItemName}' (Slot {targetingSourceIndex}) on {targetHero.Name}...");
 
         bool effectApplied = consumable.ExecuteMenuEffect(targetHero);
 
@@ -1644,11 +1661,11 @@ public class PageItemsController
         if (labelItemSellPrice != null)
         {
             labelItemSellPrice.text = item.CanSell
-                ? $"Se vende por:  {item.SellPrice} monedas"
+                ? $"Se vende por:   {item.SellPrice} monedas"
                 : "No se puede vender";
         }
 
-        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack:  {item.MaxStack}";
+        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack:   {item.MaxStack}";
         if (labelItemDesc != null) labelItemDesc.text = item.ItemDescription;
 
         if (itemIconPreview != null && item.Icon != null)
@@ -2273,7 +2290,6 @@ public class PageItemsController
     {
         IReadOnlyList<InventorySlot> keySlots = null;
 
-        // Request current key item slots via event callback instead of GlobalBag.Instance
         GameEvents.Inventory.RequestKeyItemSlots((slots) =>
         {
             keySlots = slots;

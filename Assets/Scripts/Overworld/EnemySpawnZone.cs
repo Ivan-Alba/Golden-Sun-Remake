@@ -110,7 +110,7 @@ public class EnemySpawnZone : MonoBehaviour
         activeEnemy = Instantiate(selectedPrefab, transform.position, Quaternion.identity, transform);
 
         // Inject spawn zone reference and enable the AI component for overworld exploration
-        if (activeEnemy.TryGetComponent<WorldEnemyAI>(out var enemyAI))
+        if (activeEnemy.TryGetComponent<OverworldEnemyAI>(out var enemyAI))
         {
             enemyAI.enabled = true;
             enemyAI.InitializeSpawnZone(this);

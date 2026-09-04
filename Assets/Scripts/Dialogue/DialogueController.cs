@@ -3,6 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 
+public enum EmoteType
+{
+    Exclamation,
+    Question,
+    Idea,
+    Sweat,
+    Heart,
+    Anger
+}
+
 /// <summary>
 /// Manages active dialogue execution, typewriter animations, Cinemachine camera framing, 
 /// story flag progression, and branching choice resolution.

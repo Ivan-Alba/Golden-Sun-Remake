@@ -2,13 +2,23 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
+/// <summary>
+/// Controls the top-down minimap camera tracking and updates UI Toolkit compass/arrow rotations.
+/// Render adjustments (such as disabling fog for the minimap pass) are hooked directly to SRP.
+/// </summary>
 public class MinimapController : MonoBehaviour
 {
+    #region Enumerations
+
     public enum MinimapMode
     {
-        DynamicRotating, // Map rotates with camera, player arrow points UP
-        StaticFixedNorth // Map stays North-up, player arrow rotates 360
+        DynamicRotating, // Map rotates with main camera view; player arrow points UP.
+        StaticFixedNorth // Map remains fixed North-up; player arrow rotates 360 degrees.
     }
+
+    #endregion
+
+    #region Serialized Fields
 
     [Header("Settings & Target References")]
     [SerializeField] private MinimapMode currentMode = MinimapMode.DynamicRotating;
@@ -20,45 +30,29 @@ public class MinimapController : MonoBehaviour
     [SerializeField] private string northIndicatorRingName = "minimap_compass_ring";
     [SerializeField] private string playerArrowName = "minimap_player_arrow";
 
+    #endregion
+
+    #region Private Fields
+
     private Camera targetCamera;
     private bool previousFogState;
 
-    // UI Elements references
+    // Cached UI Elements references
     private VisualElement compassRingElement;
     private VisualElement playerArrowElement;
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
         targetCamera = GetComponent<Camera>();
-
-        // Auto-find references if not assigned in Inspector
-        if (playerTransform == null)
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) playerTransform = playerObj.transform;
-        }
-
-        if (mainCameraTransform == null && Camera.main != null)
-        {
-            mainCameraTransform = Camera.main.transform;
-        }
-
-        InitializeUIReferences();
     }
 
-    private void InitializeUIReferences()
+    private void Start()
     {
-        if (hudDocument == null)
-        {
-            hudDocument = FindFirstObjectByType<UIDocument>();
-        }
-
-        if (hudDocument != null && hudDocument.rootVisualElement != null)
-        {
-            VisualElement root = hudDocument.rootVisualElement;
-            compassRingElement = root.Q<VisualElement>(northIndicatorRingName);
-            playerArrowElement = root.Q<VisualElement>(playerArrowName);
-        }
+        InitializeUIReferences();
     }
 
     private void OnEnable()
@@ -72,6 +66,22 @@ public class MinimapController : MonoBehaviour
         RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
         RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
     }
+
+    private void LateUpdate()
+    {
+        if (playerTransform == null) return;
+
+        // Position tracking: Maintain top-down height (Y), align with Player X/Z
+        Vector3 currentPosition = transform.position;
+        Vector3 targetPosition = playerTransform.position;
+        transform.position = new Vector3(targetPosition.x, currentPosition.y, targetPosition.z);
+
+        UpdateMinimapRotation();
+    }
+
+    #endregion
+
+    #region Render Pipeline Callbacks
 
     private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
@@ -90,23 +100,26 @@ public class MinimapController : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    #endregion
+
+    #region UI Initialization
+
+    /// <summary>
+    /// Binds UI Toolkit visual elements for the compass ring and player arrow from the HUD document.
+    /// Executed once at initialization without frame polling.
+    /// </summary>
+    public void InitializeUIReferences()
     {
-        if (playerTransform == null) return;
+        if (hudDocument == null || hudDocument.rootVisualElement == null) return;
 
-        // Position tracking: Keep top-down Y height, follow player X/Z
-        Vector3 newPos = playerTransform.position;
-        newPos.y = transform.position.y;
-        transform.position = newPos;
-
-        // Re-check UI references if lost or initialized late
-        if (compassRingElement == null || playerArrowElement == null)
-        {
-            InitializeUIReferences();
-        }
-
-        UpdateMinimapRotation();
+        VisualElement root = hudDocument.rootVisualElement;
+        compassRingElement = root.Q<VisualElement>(northIndicatorRingName);
+        playerArrowElement = root.Q<VisualElement>(playerArrowName);
     }
+
+    #endregion
+
+    #region Minimap Operations
 
     private void UpdateMinimapRotation()
     {
@@ -115,17 +128,17 @@ public class MinimapController : MonoBehaviour
 
         if (currentMode == MinimapMode.DynamicRotating)
         {
-            // 1. Camera rotates following the main camera or player view
+            // 1. Camera rotates following the main camera/view direction
             transform.rotation = Quaternion.Euler(90f, cameraYaw, 0f);
 
-            // 2. Player Arrow remains pointing UP in the center of HUD
+            // 2. Player Arrow points relative to camera forward angle
             if (playerArrowElement != null)
             {
                 float relativeArrowAngle = playerYaw - cameraYaw;
                 playerArrowElement.style.rotate = new Rotate(Angle.Degrees(relativeArrowAngle));
             }
 
-            // 3. Compass Ring rotates in reverse to keep North aligned globally
+            // 3. Compass Ring rotates in reverse to keep North aligned
             if (compassRingElement != null)
             {
                 compassRingElement.style.rotate = new Rotate(Angle.Degrees(-cameraYaw));
@@ -142,7 +155,7 @@ public class MinimapController : MonoBehaviour
                 compassRingElement.style.rotate = new Rotate(Angle.Degrees(0f));
             }
 
-            // 3. Player Arrow rotates 360 degrees in the HUD center
+            // 3. Player Arrow rotates full 360 degrees in the HUD
             if (playerArrowElement != null)
             {
                 playerArrowElement.style.rotate = new Rotate(Angle.Degrees(playerYaw));
@@ -150,11 +163,18 @@ public class MinimapController : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region Public API
+
     /// <summary>
-    /// Public method to change mode dynamically from Settings UI or Manager.
+    /// Dynamically changes the minimap rotation behavior (e.g. called from settings menu).
     /// </summary>
+    /// <param name="newMode">Target MinimapMode setting.</param>
     public void SetMinimapMode(MinimapMode newMode)
     {
         currentMode = newMode;
     }
+
+    #endregion
 }

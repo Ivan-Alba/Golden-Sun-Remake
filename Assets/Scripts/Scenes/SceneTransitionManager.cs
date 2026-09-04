@@ -1,12 +1,20 @@
-// File: SceneTransitionManager.cs
-// Manages scene loading transitions, logo overlays, and ambient screen fades.
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Manages scene loading transitions, logo overlays, and ambient screen fades.
+/// Decoupled from Singletons and listens exclusively to GameEvents.Scene.
+/// </summary>
 public class SceneTransitionManager : MonoBehaviour
 {
-    public static SceneTransitionManager Instance { get; private set; }
+    #region Animator Hashes (Cached for performance)
+
+    private static readonly int StartTriggerHash = Animator.StringToHash("start");
+    private static readonly int EndTriggerHash = Animator.StringToHash("end");
+
+    #endregion
 
     #region Serialized Fields
 
@@ -28,16 +36,18 @@ public class SceneTransitionManager : MonoBehaviour
     /// Duration in seconds for the transition animation to complete opening or closing.
     /// </summary>
     public float TransitionDuration => transitionDuration;
+
+    /// <summary>
+    /// Delay after arrival for auto-walking or player positioning routines.
+    /// </summary>
     public float ArrivalWalkDelay => arrivalWalkDelay;
 
     #endregion
 
     #region Private Fields
 
-    private const string START_TRIGGER = "start"; // Closes screen (covers view with logo)
-    private const string END_TRIGGER = "end";     // Opens screen (reveals new scene)
-
     private Coroutine activeFadeCoroutine;
+    private Coroutine activeTransitionCoroutine;
 
     #endregion
 
@@ -45,16 +55,6 @@ public class SceneTransitionManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         if (logoTransitionAnimator == null)
         {
             logoTransitionAnimator = GetComponentInChildren<Animator>();
@@ -67,14 +67,77 @@ public class SceneTransitionManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        SubscribeToEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromEvents();
+    }
+
+    #endregion
+
+    #region Event Subscriptions
+
+    private void SubscribeToEvents()
+    {
+        GameEvents.Scene.OnRequestLoadScene += HandleRequestLoadScene;
+        GameEvents.Scene.OnRequestFullTransition += HandleRequestFullTransition;
+        GameEvents.Scene.OnRequestFadeInScene += HandleRequestFadeInScene;
+        GameEvents.Scene.OnRequestFadeToBlack += HandleRequestFadeToBlack;
+        GameEvents.Scene.OnRequestResetFade += HandleRequestResetFade;
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        GameEvents.Scene.OnRequestLoadScene -= HandleRequestLoadScene;
+        GameEvents.Scene.OnRequestFullTransition -= HandleRequestFullTransition;
+        GameEvents.Scene.OnRequestFadeInScene -= HandleRequestFadeInScene;
+        GameEvents.Scene.OnRequestFadeToBlack -= HandleRequestFadeToBlack;
+        GameEvents.Scene.OnRequestResetFade -= HandleRequestResetFade;
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void HandleRequestLoadScene(string sceneName)
+    {
+        if (activeTransitionCoroutine != null) StopCoroutine(activeTransitionCoroutine);
+        activeTransitionCoroutine = StartCoroutine(Routine_LoadScene(sceneName));
+    }
+
+    private void HandleRequestFullTransition(Action onScreenCovered)
+    {
+        if (activeTransitionCoroutine != null) StopCoroutine(activeTransitionCoroutine);
+        activeTransitionCoroutine = StartCoroutine(Routine_PlayFullTransition(onScreenCovered));
+    }
+
+    private void HandleRequestFadeInScene()
+    {
+        FadeInNewScene();
+    }
+
+    private void HandleRequestFadeToBlack(float targetAlpha, float duration)
+    {
+        FadeToBlack(targetAlpha, duration);
+    }
+
+    private void HandleRequestResetFade()
+    {
+        ResetFadeOverlay();
+    }
+
     #endregion
 
     #region Ambient Screen Fade (Black Overlay)
 
     /// <summary>
-    /// Smoothly fades an overlay black panel to a target alpha (e.g., 0.8f or 1f) over a specified duration.
+    /// Smoothly fades an overlay black panel to a target alpha over a specified duration.
     /// </summary>
-    public void FadeToBlack(float targetAlpha = 1f, float duration = 1.0f)
+    private void FadeToBlack(float targetAlpha = 1f, float duration = 1.0f)
     {
         if (fadeOverlayCanvasGroup == null) return;
 
@@ -89,7 +152,7 @@ public class SceneTransitionManager : MonoBehaviour
     /// <summary>
     /// Resets the ambient fade overlay back to fully transparent.
     /// </summary>
-    public void ResetFadeOverlay()
+    private void ResetFadeOverlay()
     {
         if (activeFadeCoroutine != null)
         {
@@ -126,24 +189,20 @@ public class SceneTransitionManager : MonoBehaviour
 
     #region Logo Transition & Scene Loading
 
-    /// <summary>
-    /// Initiates a scene load covered by the closing transition animation.
-    /// </summary>
-    public void LoadSceneWithTransition(string sceneName)
-    {
-        StartCoroutine(Routine_LoadScene(sceneName));
-    }
-
     private IEnumerator Routine_LoadScene(string sceneName)
     {
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
+
         // 1. Play closing transition (cover screen)
         if (logoTransitionAnimator != null)
         {
-            logoTransitionAnimator.ResetTrigger(END_TRIGGER);
-            logoTransitionAnimator.SetTrigger(START_TRIGGER);
+            logoTransitionAnimator.ResetTrigger(EndTriggerHash);
+            logoTransitionAnimator.SetTrigger(StartTriggerHash);
         }
 
-        yield return new WaitForSeconds(transitionDuration);
+        yield return new WaitForSecondsRealtime(transitionDuration);
+
+        GameEvents.Scene.TriggerTransitionCovered();
 
         // 2. Load the scene asynchronously in the background
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
@@ -151,36 +210,39 @@ public class SceneTransitionManager : MonoBehaviour
         {
             yield return null;
         }
+
+        activeTransitionCoroutine = null;
     }
 
     /// <summary>
     /// Plays the transition animation to reveal the new scene.
     /// </summary>
-    public void FadeInNewScene()
+    private void FadeInNewScene()
     {
         ResetFadeOverlay();
 
         if (logoTransitionAnimator != null)
         {
-            logoTransitionAnimator.ResetTrigger(START_TRIGGER);
-            logoTransitionAnimator.SetTrigger(END_TRIGGER);
+            logoTransitionAnimator.ResetTrigger(StartTriggerHash);
+            logoTransitionAnimator.SetTrigger(EndTriggerHash);
         }
+
+        GameEvents.Scene.TriggerTransitionCompleted();
     }
 
-    /// <summary>
-    /// Plays a full closing/opening transition and executes an intermediate action while covered.
-    /// </summary>
-    public IEnumerator PlayFullTransitionRoutine(System.Action onScreenCovered = null)
+    private IEnumerator Routine_PlayFullTransition(Action onScreenCovered = null)
     {
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
 
         if (logoTransitionAnimator != null)
         {
-            logoTransitionAnimator.ResetTrigger(END_TRIGGER);
-            logoTransitionAnimator.SetTrigger(START_TRIGGER);
+            logoTransitionAnimator.ResetTrigger(EndTriggerHash);
+            logoTransitionAnimator.SetTrigger(StartTriggerHash);
         }
 
-        yield return new WaitForSeconds(transitionDuration);
+        yield return new WaitForSecondsRealtime(transitionDuration);
+
+        GameEvents.Scene.TriggerTransitionCovered();
 
         onScreenCovered?.Invoke();
 
@@ -188,7 +250,9 @@ public class SceneTransitionManager : MonoBehaviour
 
         FadeInNewScene();
 
-        yield return new WaitForSeconds(transitionDuration);
+        yield return new WaitForSecondsRealtime(transitionDuration);
+
+        activeTransitionCoroutine = null;
     }
 
     #endregion

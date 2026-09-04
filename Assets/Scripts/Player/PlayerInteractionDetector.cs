@@ -1,12 +1,13 @@
-using System;
 using UnityEngine;
 
 /// <summary>
 /// Handles environmental scanning to detect nearby interactable objects based on proximity and viewing angle.
-/// Emits events when the active interaction target changes, decoupling gameplay physics from UI rendering.
+/// Emits global GameEvents when the active interaction target changes, decoupling gameplay physics from UI rendering.
 /// </summary>
 public class PlayerInteractionDetector : MonoBehaviour
 {
+    #region Serialized Fields
+
     [Header("Detection Parameters")]
     [SerializeField] private float detectionRadius = 1.5f;
     [SerializeField] private float maxInteractionAngle = 50f;
@@ -16,20 +17,12 @@ public class PlayerInteractionDetector : MonoBehaviour
     [Header("Optimization Settings")]
     [SerializeField] private int maxDetectedColliders = 8;
 
+    #endregion
+
     #region Private Fields
 
     private Collider[] hitBuffer;
     private Interactable currentTarget;
-
-    #endregion
-
-    #region Events
-
-    /// <summary>
-    /// Event fired whenever the currently focused interactable target changes.
-    /// Passes the newly focused Interactable reference (or null if target is lost).
-    /// </summary>
-    public static event Action<Interactable> OnInteractableTargetChanged;
 
     #endregion
 
@@ -97,11 +90,11 @@ public class PlayerInteractionDetector : MonoBehaviour
             }
         }
 
-        // Notify subscribers only if target reference changes
+        // Notify subscribers via global event architecture if target reference changes
         if (currentTarget != bestCandidate)
         {
             currentTarget = bestCandidate;
-            OnInteractableTargetChanged?.Invoke(currentTarget);
+            GameEvents.World.TriggerInteractableTargetChanged(currentTarget);
         }
     }
 

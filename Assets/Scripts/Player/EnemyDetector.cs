@@ -1,94 +1,183 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Defines the combat encounter conditions based on physical impact orientation in the overworld.
+/// </summary>
+public enum EncounterType
+{
+    Neutral,
+    PlayerAdvantage,
+    EnemyAmbush
+}
+
+/// <summary>
+/// Detects physical contacts between the player and overworld enemies.
+/// Calculates encounter orientation advantages, plays impact feedback via GameEvents, 
+/// and initiates battle transitions cleanly without direct manager coupling.
+/// </summary>
 public class EnemyDetector : MonoBehaviour
 {
+    #region Serialized Fields
+
     [Header("References")]
+    [Tooltip("Optional reference to the root persistent Player GameObject. Auto-assigned in Awake if null.")]
     [SerializeField] private GameObject player;
 
-    [Header("Audio")]
+    [Header("Audio Settings")]
     [SerializeField] private AudioClip audioCollision;
+
+    [Header("Encounter Angle Thresholds")]
+    [Tooltip("Maximum angle difference in degrees to qualify as an advantage/ambush from behind.")]
+    [SerializeField] private float backstabAngleThreshold = 60f;
+
+    #endregion
+
+    #region Private Fields
 
     private Collider enemyTouched;
     private bool battleLaunched;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        // Fallback in case player is not assigned via Inspector
-        if (player == null && transform.parent != null)
+        // Locate root persistent Player object once on Awake
+        if (player == null && transform.root != null)
         {
-            player = transform.parent.gameObject;
+            player = transform.root.gameObject;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Only process collisions during active world exploration
+        if (battleLaunched || !other.CompareTag("Enemy")) return;
+
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
             return;
 
-        if (other.gameObject.CompareTag("Enemy") && !battleLaunched)
-        {
-            // Dynamically search for BattleManager in the current scene
-            BattleManager bm = FindObjectOfType<BattleManager>();
-            if (bm == null)
-            {
-                Debug.LogWarning("[EnemyDetector] Enemy touched, but no BattleManager exists in this scene!");
-                return;
-            }
-
-            battleLaunched = true;
-
-            // 1. Lock inputs during overworld encounter animation using Cutscene state
-            if (GameManager.Instance != null)
-            {
-                GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
-            }
-
-            // 2. Play collision sound
-            AudioSource audioSrc = GetComponent<AudioSource>();
-            if (audioSrc != null && audioCollision != null)
-            {
-                audioSrc.PlayOneShot(audioCollision);
-            }
-
-            // 3. Freeze player and rotate towards enemy
-            if (player != null)
-            {
-                CharacterController cc = player.GetComponent<CharacterController>();
-                if (cc != null) cc.SimpleMove(Vector3.zero);
-
-                player.transform.LookAt(new Vector3(other.transform.position.x, player.transform.position.y, other.transform.position.z));
-
-                Animator anim = player.GetComponent<Animator>();
-                if (anim != null) anim.SetTrigger("attacked");
-            }
-
-            // 4. Temporarily disable enemy AI and animator
-            WorldEnemyAI enemyAi = other.gameObject.GetComponent<WorldEnemyAI>();
-            if (enemyAi != null) enemyAi.CollisionWithPlayer();
-
-            Animator enemyAnim = other.gameObject.GetComponent<Animator>();
-            if (enemyAnim != null) enemyAnim.enabled = false;
-
-            enemyTouched = other;
-
-            // 5. Start transition delay
-            StartCoroutine(StartBattle(bm));
-        }
+        ExecuteEncounterTrigger(other);
     }
 
-    private IEnumerator StartBattle(BattleManager bm)
-    {
-        // Delay for impact animation / sound before entering battle screen
-        yield return new WaitForSeconds(1.0f);
+    #endregion
 
-        if (bm != null && enemyTouched != null)
+    #region Encounter Logic
+
+    private void ExecuteEncounterTrigger(Collider enemyCollider)
+    {
+        battleLaunched = true;
+        enemyTouched = enemyCollider;
+
+        // 1. Lock overworld inputs during transition
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
+        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.EnemyHitReaction);
+
+        // 2. Determine encounter type based on impact angle
+        EncounterType encounterType = CalculateEncounterType(enemyCollider.transform);
+
+        Debug.Log($"Encounter Type: {encounterType}");
+
+        // 3. Play collision sound via Audio events
+
+        //TODO : Implement encounter type specific audio feedback
+        if (audioCollision != null)
         {
-            bm.AwakeBattle(enemyTouched.gameObject, enemyTouched.transform.parent.gameObject);
+            GameEvents.Audio.RequestPlaySFXClip(audioCollision);
+        }
+
+        // 4. Handle Player physical reaction
+        if (player != null)
+        {
+            if (player.TryGetComponent<CharacterController>(out var cc))
+            {
+                cc.SimpleMove(Vector3.zero);
+            }
+
+            // Only rotate to face enemy if the player was NOT ambushed from behind
+            if (encounterType != EncounterType.EnemyAmbush)
+            {
+                Vector3 lookTarget = new Vector3(enemyCollider.transform.position.x, player.transform.position.y, enemyCollider.transform.position.z);
+                GameEvents.Player.RequestLookAt(lookTarget, 0.15f);
+            }
+
+        }
+
+        // 5. Freeze Overworld Enemy AI and animator
+        if (enemyCollider.TryGetComponent<OverworldEnemyAI>(out var enemyAI))
+        {
+            enemyAI.CollisionWithPlayer();
+        }
+
+        if (enemyCollider.TryGetComponent<Animator>(out var enemyAnim))
+        {
+            enemyAnim.enabled = false;
+        }
+
+        // 6. Begin battle transition delay
+        StartCoroutine(Routine_StartBattle(encounterType));
+    }
+
+    /// <summary>
+    /// Calculates whether the impact was a Player Advantage, Enemy Ambush, or Neutral encounter.
+    /// Uses backstabAngleThreshold from Inspector to calculate precise dot-product cones.
+    /// </summary>
+    private EncounterType CalculateEncounterType(Transform enemyTransform)
+    {
+        if (player == null || enemyTransform == null) return EncounterType.Neutral;
+
+        // Convert inspector angle (in degrees) to required dot product threshold (cosine)
+        // e.g. 60 degrees -> Cos(60°) = 0.5f (Cono de 120° totales: 60° a cada lado)
+        float minDotThreshold = Mathf.Cos(backstabAngleThreshold * Mathf.Deg2Rad);
+
+        // Player forward vector projected on XZ plane
+        Vector3 playerForward = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up).normalized;
+
+        // Direction vector from Player to Enemy projected on XZ plane
+        Vector3 dirToEnemy = Vector3.ProjectOnPlane(enemyTransform.position - player.transform.position, Vector3.up).normalized;
+
+        // Enemy forward vector projected on XZ plane
+        Vector3 enemyForward = Vector3.ProjectOnPlane(enemyTransform.forward, Vector3.up).normalized;
+
+        float playerFacingEnemyDot = Vector3.Dot(playerForward, dirToEnemy);
+        float enemyFacingSameWayDot = Vector3.Dot(playerForward, enemyForward);
+
+        // 1. PLAYER ADVANTAGE (Player faces enemy within cone AND enemy faces away)
+        if (playerFacingEnemyDot > minDotThreshold && enemyFacingSameWayDot > minDotThreshold)
+        {
+            return EncounterType.PlayerAdvantage;
+        }
+
+        // 2. ENEMY AMBUSH (Enemy is within player's rear backstab cone AND enemy faces same way)
+        float enemyInPlayerBackConeDot = Vector3.Dot(playerForward, dirToEnemy);
+
+        if (enemyInPlayerBackConeDot < -minDotThreshold && enemyFacingSameWayDot > minDotThreshold)
+        {
+            return EncounterType.EnemyAmbush;
+        }
+
+        // 3. NEUTRAL ENCOUNTER (Side swipes, frontal collisions or ambiguous angles)
+        return EncounterType.Neutral;
+    }
+
+    private IEnumerator Routine_StartBattle(EncounterType encounterType)
+    {
+        yield return new WaitForSeconds(0.8f);
+
+        if (enemyTouched != null)
+        {
+            GameObject enemyObj = enemyTouched.gameObject;
+            GameObject spawnZoneObj = enemyTouched.transform.parent != null
+                ? enemyTouched.transform.parent.gameObject
+                : null;
+
+            GameEvents.Battle.RequestCollisionBattle(enemyObj, spawnZoneObj, encounterType);
         }
 
         battleLaunched = false;
     }
+
+    #endregion
 }

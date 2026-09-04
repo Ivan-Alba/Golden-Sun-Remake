@@ -266,9 +266,9 @@ MonoBehaviour:
   coinsReward: 20
   possibleDrops:
   - itemSlug: Herb
-    dropChancePercentage: 5
+    dropChancePercentage: 0.1
   - itemSlug: Metal_Bracelet
-    dropChancePercentage: 1
+    dropChancePercentage: 0.02
 --- !u!114 &4134038173637326608
 MonoBehaviour:
   m_ObjectHideFlags: 0

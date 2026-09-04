@@ -1,9 +1,77 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Localization.Plugins.XLIFF.Common;
 using UnityEngine;
 
 public static class GameEvents
 {
+    // ==========================================
+    // CAMERA & VIEWPORT EVENTS
+    // ==========================================
+    public static class Camera
+    {
+        /// <summary>
+        /// Triggered whenever the primary active rendering camera changes in the scene.
+        /// (e.g., Exploration 3rd Person, Cinematic Cutscene, Battle Camera).
+        /// </summary>
+        public static event Action<UnityEngine.Camera> OnActiveCameraChanged;
+        public static void TriggerActiveCameraChanged(UnityEngine.Camera newCamera)
+            => OnActiveCameraChanged?.Invoke(newCamera);
+    }
+
+    // ==========================================
+    // WORLD & EXPLORATION EVENTS
+    // ==========================================
+    public static class World
+    {
+        /// <summary>
+        /// Triggered when the player interaction detector focuses on or loses an interactable target in proximity.
+        /// </summary>
+        public static event Action<Interactable> OnInteractableTargetChanged;
+        public static void TriggerInteractableTargetChanged(Interactable target)
+            => OnInteractableTargetChanged?.Invoke(target);
+
+        /// <summary>
+        /// Triggered when the aiming reticle focuses on or loses a targetable object in the world.
+        /// Sends target GameObject and displayable target name (or null when target is lost).
+        /// </summary>
+        public static event Action<GameObject, string> OnAimTargetChanged;
+        public static void TriggerAimTargetChanged(GameObject targetObj, string targetName)
+            => OnAimTargetChanged?.Invoke(targetObj, targetName);
+
+        /// <summary>
+        /// Request to display an emotional balloon/emote floating above a character's head in world space.
+        /// Params: targetTransform, emoteType, duration
+        /// </summary>
+        public static event Action<Transform, EmoteType, float> OnShowEmoteRequested;
+        public static void RequestShowEmote(Transform targetHead, EmoteType emoteType, float duration = 2.0f)
+            => OnShowEmoteRequested?.Invoke(targetHead, emoteType, duration);
+
+        /// <summary>
+        /// Triggered when an overworld enemy updates its threat/alert percentage towards the player.
+        /// Params: enemyGameObject, threatPercentage (0.0f to 1.0f), currentAIState
+        /// </summary>
+        public static event Action<GameObject, float, EnemyAlertState> OnEnemyThreatLevelChanged;
+        public static void TriggerEnemyThreatLevelChanged(GameObject enemyObj, float threatValue, EnemyAlertState state)
+            => OnEnemyThreatLevelChanged?.Invoke(enemyObj, threatValue, state);
+
+        /// <summary>
+        /// Triggered when an entity enters the player's visual proximity range.
+        /// Params: entityGameObject
+        /// </summary>
+        public static event Action<GameObject> OnEntityEnteredProximity;
+        public static void TriggerEntityEnteredProximity(GameObject entityObj)
+            => OnEntityEnteredProximity?.Invoke(entityObj);
+
+        /// <summary>
+        /// Triggered when an entity exits the player's visual proximity range or is destroyed.
+        /// Params: entityGameObject
+        /// </summary>
+        public static event Action<GameObject> OnEntityExitedProximity;
+        public static void TriggerEntityExitedProximity(GameObject entityObj)
+            => OnEntityExitedProximity?.Invoke(entityObj);
+    }
+
     // ==========================================
     // DATABASE & REPOSITORY EVENTS
     // ==========================================
@@ -87,11 +155,93 @@ public static class GameEvents
     }
 
     // ==========================================
+    // SCENE & TRANSITION EVENTS
+    // ==========================================
+    public static class Scene
+    {
+        // --- Requests (Driven by Game Logic, Doors, Combat Results) ---
+
+        /// <summary>
+        /// Request to load a scene asynchronously covered by the closing transition animation.
+        /// </summary>
+        public static event Action<string> OnRequestLoadScene;
+        public static void RequestLoadScene(string sceneName)
+            => OnRequestLoadScene?.Invoke(sceneName);
+
+        /// <summary>
+        /// Request to play a full closing/opening transition and execute an action while screen is covered.
+        /// </summary>
+        public static event Action<Action> OnRequestFullTransition;
+        public static void RequestFullTransition(Action onScreenCovered)
+            => OnRequestFullTransition?.Invoke(onScreenCovered);
+
+        /// <summary>
+        /// Request to play the opening transition animation to reveal the new scene/exploration.
+        /// </summary>
+        public static event Action OnRequestFadeInScene;
+        public static void RequestFadeInScene()
+            => OnRequestFadeInScene?.Invoke();
+
+        /// <summary>
+        /// Request a smooth ambient black overlay fade to a target alpha.
+        /// Params: targetAlpha, duration
+        /// </summary>
+        public static event Action<float, float> OnRequestFadeToBlack;
+        public static void RequestFadeToBlack(float targetAlpha = 1.0f, float duration = 1.0f)
+            => OnRequestFadeToBlack?.Invoke(targetAlpha, duration);
+
+        /// <summary>
+        /// Request to reset and instantly hide the ambient black fade overlay.
+        /// </summary>
+        public static event Action OnRequestResetFade;
+        public static void RequestResetFade()
+            => OnRequestResetFade?.Invoke();
+
+        // --- Notifications (Broadcasted by SceneTransitionManager) ---
+
+        /// <summary>
+        /// Triggered when the transition animation completely covers the screen with the logo overlay.
+        /// </summary>
+        public static event Action OnTransitionCovered;
+        public static void TriggerTransitionCovered()
+            => OnTransitionCovered?.Invoke();
+
+        /// <summary>
+        /// Triggered when the transition animation finishes revealing the scene.
+        /// </summary>
+        public static event Action OnTransitionCompleted;
+        public static void TriggerTransitionCompleted()
+            => OnTransitionCompleted?.Invoke();
+    }
+
+    // ==========================================
+    // BATTLE EVENTS
+    // ==========================================
+    public static class Battle
+    {
+        /// <summary>
+        /// Request to initiate a battle from an overworld physical collision.
+        /// Params: enemyObj, spawnZoneObj, encounterType
+        /// </summary>
+        public static event Action<GameObject, GameObject, EncounterType> OnRequestCollisionBattle;
+        public static void RequestCollisionBattle(GameObject enemyObj, GameObject spawnZoneObj, EncounterType encounterType)
+            => OnRequestCollisionBattle?.Invoke(enemyObj, spawnZoneObj, encounterType);
+
+        /// <summary>
+        /// Request to initiate a scripted battle from dialogue, cutscenes, boss triggers, or chest traps.
+        /// Params: encounterID / preSetEnemies, isBossBattle
+        /// </summary>
+        public static event Action<List<GameObject>, bool> OnRequestEventBattle;
+        public static void RequestEventBattle(List<GameObject> preSetEnemies, bool isBossBattle = false)
+            => OnRequestEventBattle?.Invoke(preSetEnemies, isBossBattle);
+    }
+
+    // ==========================================
     // FIGHTER & STATS EVENTS
     // ==========================================
     public static class Fighter
     {
-        // --- Cambios de Recursos (UI & Status) ---
+        // --- Resource Changes (UI & Status) ---
         public static event Action<GameObject, int, int> OnHpChanged;
         public static void TriggerHpChanged(GameObject fighterObj, int currentHp, int maxHp)
             => OnHpChanged?.Invoke(fighterObj, currentHp, maxHp);
@@ -100,7 +250,7 @@ public static class GameEvents
         public static void TriggerPpChanged(GameObject fighterObj, int currentPp, int maxPp)
             => OnPpChanged?.Invoke(fighterObj, currentPp, maxPp);
 
-        // --- Eventos de Impacto & Daño (Floating Text, Animaciones & SFX) ---
+        // --- Impact & Damage Events (Floating Text, Animations & SFX) ---
         public static event Action<GameObject, int, bool, ElementalType> OnDamaged;
         public static void TriggerDamaged(GameObject fighterObj, int amount, bool isCritical, ElementalType element)
             => OnDamaged?.Invoke(fighterObj, amount, isCritical, element);
@@ -109,7 +259,7 @@ public static class GameEvents
         public static void TriggerHealed(GameObject fighterObj, int amount)
             => OnHealed?.Invoke(fighterObj, amount);
 
-        // --- Estados de Vida & Muerte ---
+        // --- Life & Death States ---
         public static event Action<GameObject> OnFighterDied;
         public static void TriggerFighterDied(GameObject fighterObj)
             => OnFighterDied?.Invoke(fighterObj);
@@ -118,7 +268,7 @@ public static class GameEvents
         public static void TriggerFighterRevived(GameObject fighterObj)
             => OnFighterRevived?.Invoke(fighterObj);
 
-        // --- Estados Alterados & Modificadores ---
+        // --- Status Effects & Modifiers ---
         public static event Action<GameObject, ActiveStatusEffect> OnStatusEffectAdded;
         public static void TriggerStatusEffectAdded(GameObject fighterObj, ActiveStatusEffect activeEffect)
             => OnStatusEffectAdded?.Invoke(fighterObj, activeEffect);
@@ -130,6 +280,20 @@ public static class GameEvents
         public static event Action<GameObject> OnStatusEffectsCleared;
         public static void TriggerStatusEffectsCleared(GameObject fighterObj)
             => OnStatusEffectsCleared?.Invoke(fighterObj);
+    }
+
+    // ==========================================
+    // HERO & EQUIPMENT EVENTS
+    // ==========================================
+    public static class Hero
+    {
+        /// <summary>
+        /// Triggered whenever a hero changes their equipped items or relics.
+        /// Params: heroGameObject
+        /// </summary>
+        public static event Action<GameObject> OnEquipmentChanged;
+        public static void TriggerEquipmentChanged(GameObject hero)
+            => OnEquipmentChanged?.Invoke(hero);
     }
 
     // ==========================================
@@ -226,7 +390,6 @@ public static class GameEvents
         public static void RequestPlaySFXClip(AudioClip clip, float volume = 1.0f, float pitch = 1.0f)
             => OnPlaySFXClipRequested?.Invoke(clip, volume, pitch);
 
-
         // --- Spatialized Sound Effects (SFX 3D Object Pool) ---
 
         /// <summary>
@@ -244,7 +407,6 @@ public static class GameEvents
         public static event Action<AudioClip, Vector3, float, float> OnPlaySFXClipAtPositionRequested;
         public static void RequestPlaySFXClipAtPosition(AudioClip clip, Vector3 position, float volume = 1.0f, float pitch = 1.0f)
             => OnPlaySFXClipAtPositionRequested?.Invoke(clip, position, volume, pitch);
-
 
         // --- Background Music (BGM) & Music States ---
 
@@ -325,7 +487,6 @@ public static class GameEvents
         /// Sends ItemSO, quantity and a callback action returning the remaining items count (0 = success, >0 = overflow).
         /// </summary>
         public static event Action<ItemSO, int, Action<int>> OnRequestAddItem;
-
         public static void RequestAddItem(ItemSO item, int quantity, Action<int> onResult)
             => OnRequestAddItem?.Invoke(item, quantity, onResult);
 
@@ -334,7 +495,6 @@ public static class GameEvents
         /// Sends ItemSO, quantity and a callback action returning success (true/false).
         /// </summary>
         public static event Action<ItemSO, int, Action<bool>> OnRequestRemoveItem;
-
         public static void RequestRemoveItem(ItemSO item, int quantity, Action<bool> onResult)
             => OnRequestRemoveItem?.Invoke(item, quantity, onResult);
 
@@ -348,12 +508,10 @@ public static class GameEvents
         /// Check if the inventory contains a specific amount of an item using its ScriptableObject reference.
         /// </summary>
         public static event Action<ItemSO, int, Action<bool>> OnCheckHasItem;
-
         public static void CheckHasItem(ItemSO item, int amount, Action<bool> onResult)
             => OnCheckHasItem?.Invoke(item, amount, onResult);
 
         // TESTING
-
         public static event Action OnAllItemsRequested;
         public static void RequestAllItems() => OnAllItemsRequested?.Invoke();
 
