@@ -331,7 +331,8 @@ GameObject:
   - component: {fileID: 8704280226000176160}
   - component: {fileID: 1376690333971318641}
   - component: {fileID: 2638339418044953152}
-  m_Layer: 0
+  - component: {fileID: -8825425146087532868}
+  m_Layer: 12
   m_Name: Mushroom Green
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -494,12 +495,16 @@ MonoBehaviour:
   minWaitTime: 3
   maxWaitTime: 8
   maxPatrolTimeOut: 10
-  followRadius: 12
+  perceptionRadius: 12
+  visionRadius: 8
+  visionAngle: 55
+  stealthApproachMultiplier: 0.35
+  baseThreatBuildRate: 0.5
+  threatDecayRate: 0.4
+  suspiciousThreshold: 0.5
   followSpeed: 8
   maxFollowDistance: 30
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 64
+  trackingRotationSpeed: 5
 --- !u!54 &1376690333971318641
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -549,3 +554,21 @@ MonoBehaviour:
   baseVolume: 0.8
   volumeVariance: 0.05
   defaultProfile: {fileID: 11400000, guid: eda5357243d02664e9b97c933090275f, type: 2}
+--- !u!114 &-8825425146087532868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81414fc7303be4e4d90c224b25406abe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
+  uiType: 1
+  entityName: Unknown
+  entitySubTitle: 
+  entityLevel: 1
+  uiAnchor: {fileID: 0}
+  defaultHeightOffset: 2

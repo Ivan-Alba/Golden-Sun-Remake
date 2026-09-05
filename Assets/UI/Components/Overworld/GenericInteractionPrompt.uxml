@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/Components/Overworld/WorldSpaceUI.uss" />
+
+    <ui:Template name="InteractionPromptBlock" src="project://database/Assets/UI/Components/Overworld/InteractionPromptBlock.uxml" />
+
+    <ui:VisualElement name="generic_prompt_root" class="world-nameplate-root">
+        <ui:Instance template="InteractionPromptBlock" name="prompt-instance" />
+    </ui:VisualElement>
+</ui:UXML>

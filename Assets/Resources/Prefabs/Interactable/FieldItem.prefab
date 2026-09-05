@@ -4978,7 +4978,7 @@ GameObject:
   - component: {fileID: 1572714192713929012}
   m_Layer: 11
   m_Name: FieldItem
-  m_TagString: Untagged
+  m_TagString: Interactable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5068,7 +5068,6 @@ MonoBehaviour:
   promptOffset: {x: 0, y: 0.8, z: 0}
   itemData: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
   itemQuantity: 1
-  visualRoot: {fileID: 1572714192713929019}
   playerPickDuration: 2.2
   endSequenceDelay: 0.7
   destroyDelay: 5

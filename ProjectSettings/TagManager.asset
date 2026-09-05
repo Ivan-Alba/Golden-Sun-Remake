@@ -12,8 +12,7 @@ TagManager:
   - Interactable
   - ContentScrollView
   - Minimap
-  - CatchReactive
-  - MoveReactive
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -27,7 +26,7 @@ TagManager:
   - Minimap
   - PsynergyInteractable
   - Interactable
-  - 
+  - Enemy
   - 
   - 
   - 

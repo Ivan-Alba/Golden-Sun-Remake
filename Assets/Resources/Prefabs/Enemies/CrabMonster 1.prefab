@@ -1867,7 +1867,8 @@ GameObject:
   - component: {fileID: 1098272931516055024}
   - component: {fileID: 8113470619396800847}
   - component: {fileID: 989648652199702810}
-  m_Layer: 0
+  - component: {fileID: 2811295925720095527}
+  m_Layer: 12
   m_Name: CrabMonster 1
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -2037,12 +2038,16 @@ MonoBehaviour:
   minWaitTime: 3
   maxWaitTime: 8
   maxPatrolTimeOut: 10
-  followRadius: 12
+  perceptionRadius: 12
+  visionRadius: 8
+  visionAngle: 55
+  stealthApproachMultiplier: 0.35
+  baseThreatBuildRate: 0.5
+  threatDecayRate: 0.4
+  suspiciousThreshold: 0.5
   followSpeed: 6
   maxFollowDistance: 30
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 64
+  trackingRotationSpeed: 5
 --- !u!65 &8113470619396800847
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2086,6 +2091,22 @@ MonoBehaviour:
   baseVolume: 0.8
   volumeVariance: 0.05
   defaultProfile: {fileID: 11400000, guid: 18278ff9a85916f4895af0641c6542cb, type: 2}
+--- !u!114 &2811295925720095527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6772812994726536540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81414fc7303be4e4d90c224b25406abe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
+  uiType: 1
+  entitySubTitle: 
+  uiAnchor: {fileID: 0}
+  defaultHeightOffset: 2
 --- !u!1 &6772819039177238622
 GameObject:
   m_ObjectHideFlags: 0

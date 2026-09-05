@@ -175,9 +175,10 @@ GameObject:
   - component: {fileID: 4026299312855817950}
   - component: {fileID: 4026299314619900600}
   - component: {fileID: 4782556760297396801}
+  - component: {fileID: -1826962399097632765}
   m_Layer: 11
   m_Name: DjinnVenus
-  m_TagString: Untagged
+  m_TagString: NPC
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -261,11 +262,25 @@ MonoBehaviour:
   npcName: "S\xEDlex"
   rotationSpeed: 4
   portraitSprite: {fileID: 0}
-  dialogue:
-  - "Soy un Djiin de Venus. Me llamo S\xEDlex."
-  - "\xBFC\xF3mo? \xBFQue no sabes lo qu\xE9 es un Djiin?"
-  - "Pues vaya Adepto est\xE1s t\xFA hecho."
+  defaultDialogue: {fileID: 0}
+  conditionalDialogues: []
   eyeHeightOffset: 0.9
+--- !u!114 &-1826962399097632765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4260722136541047085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81414fc7303be4e4d90c224b25406abe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
+  uiType: 2
+  entitySubTitle: 
+  uiAnchor: {fileID: 0}
+  defaultHeightOffset: 2
 --- !u!1 &4392989081439046763
 GameObject:
   m_ObjectHideFlags: 0

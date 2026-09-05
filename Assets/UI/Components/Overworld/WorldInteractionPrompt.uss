@@ -3,11 +3,15 @@
    Floating 3D World-Space Interaction Prompt Styles
    ========================================================================= */
 
+/* --- Root Container Positioned Over 3D Anchor --- */
 .world-prompt-root {
     position: absolute;
     flex-direction: row;
     align-items: center;
-    translate: -50% -50%;
+    justify-content: flex-start;
+    
+    /* Center horizontal pivot relative to the 40px badge frame */
+    translate: -20px -50%;
     
     opacity: 1;
     scale: 1 1;
@@ -25,7 +29,7 @@
     scale: 0.7 0.7;
 }
 
-/* --- Medallón (Círculo de 40px para mejor respiración) --- */
+/* --- Badge Frame (40px Circle) --- */
 .prompt-badge-frame {
     width: 40px;
     height: 40px;
@@ -35,10 +39,12 @@
     border-width: 2px;
     align-items: center;
     justify-content: center;
-    position: relative;
+    
+    /* Ensure badge stays above the action banner in Z-order */
+    z-index: 2;
 }
 
-/* Keycap Badge interno (Ligeramente rectangular 25x19px para acoger 3 letras) */
+/* Internal Keycap Badge (Rectangular for 3 letters) */
 .prompt-key-badge {
     min-width: 25px;
     height: 19px;
@@ -62,10 +68,10 @@
     -unity-text-align: middle-center;
 }
 
-/* --- Banner de texto (Ajustado al centro de 40px) --- */
+/* --- Action Text Banner --- */
 .prompt-action-banner {
     position: absolute;
-    left: 20px; /* Entra hasta el centro del medallón de 40px */
+    left: 20px; /* Overlaps into the center of the 40px badge */
     flex-direction: row;
     align-items: center;
     background-color: var(--color-panel-bg);
@@ -76,6 +82,9 @@
     border-bottom-right-radius: 12px;
     padding: 4px 12px 4px 24px;
     white-space: nowrap;
+    
+    /* Lower Z-index so circle frame overlaps nicely */
+    z-index: 1;
 }
 
 .label-action-text {
@@ -89,7 +98,7 @@
     margin-right: 8px;
 }
 
-/* Gema decorativa */
+/* Decorative Gem Icon */
 .prompt-gem-icon {
     width: 8px;
     height: 8px;

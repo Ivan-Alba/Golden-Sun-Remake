@@ -18,6 +18,9 @@ public class OverworldProximityDetector : MonoBehaviour
     [Tooltip("Tags allowed to register as visible entities.")]
     [SerializeField] private string[] trackableTags = new string[] { "Enemy", "NPC", "Interactable" };
 
+    [Header("Re-evaluation Settings")]
+    [SerializeField] private int maxReevaluationColliders = 16;
+
     #endregion
 
     #region Private Runtime State
@@ -25,6 +28,7 @@ public class OverworldProximityDetector : MonoBehaviour
     private SphereCollider proximityTrigger;
     private readonly HashSet<GameObject> activeNearbyEntities = new HashSet<GameObject>();
     private readonly List<GameObject> invalidEntitiesBuffer = new List<GameObject>();
+    private Collider[] reevaluationBuffer;
 
     #endregion
 
@@ -37,10 +41,18 @@ public class OverworldProximityDetector : MonoBehaviour
         {
             proximityTrigger.isTrigger = true;
         }
+
+        reevaluationBuffer = new Collider[maxReevaluationColliders];
+    }
+
+    private void OnEnable()
+    {
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void OnDisable()
     {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         ClearAllTrackedEntities();
     }
 
@@ -58,9 +70,72 @@ public class OverworldProximityDetector : MonoBehaviour
     {
         if (!IsValidTrackable(other, out GameObject entityRoot)) return;
 
+        // Direct distance validation to avoid PhysX false OnTriggerExit spikes when clipping colliders
+        if (proximityTrigger != null)
+        {
+            Vector3 triggerCenter = transform.TransformPoint(proximityTrigger.center);
+            float scaledRadius = proximityTrigger.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+
+            // ClosestPoint gets the nearest point on the exiting collider to the trigger center
+            Vector3 closestPoint = other.ClosestPoint(triggerCenter);
+            float distanceToCenter = Vector3.Distance(triggerCenter, closestPoint);
+
+            // If the collider is still within the sphere radius, ignore the false exit signal
+            if (distanceToCenter < scaledRadius)
+            {
+                return;
+            }
+        }
+
         if (activeNearbyEntities.Remove(entityRoot))
         {
             GameEvents.World.TriggerEntityExitedProximity(entityRoot);
+        }
+    }
+
+    #endregion
+
+    #region State Event Handler & Area Re-evaluation
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        if (newState == GameManager.GameState.WorldExploration)
+        {
+            ReevaluateProximityArea();
+        }
+        else
+        {
+            // Silent local reset; OverworldWorldSpaceUIController handles DOM cleanup
+            activeNearbyEntities.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Performs an instantaneous physical overlap scan to detect surrounding entities upon returning to exploration.
+    /// </summary>
+    public void ReevaluateProximityArea()
+    {
+        activeNearbyEntities.Clear();
+
+        if (proximityTrigger == null) return;
+
+        Vector3 center = transform.TransformPoint(proximityTrigger.center);
+        float radius = proximityTrigger.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+
+        int hitCount = Physics.OverlapSphereNonAlloc(center, radius, reevaluationBuffer, detectionLayerMask);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider col = reevaluationBuffer[i];
+            if (col == null) continue;
+
+            if (IsValidTrackable(col, out GameObject entityRoot))
+            {
+                if (activeNearbyEntities.Add(entityRoot))
+                {
+                    GameEvents.World.TriggerEntityEnteredProximity(entityRoot);
+                }
+            }
         }
     }
 

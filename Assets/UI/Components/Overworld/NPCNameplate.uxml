@@ -1,0 +1,21 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/Components/Overworld/WorldSpaceUI.uss" />
+
+    <ui:Template name="InteractionPromptBlock" src="project://database/Assets/UI/Components/Overworld/InteractionPromptBlock.uxml" />
+
+    <ui:VisualElement name="npc_nameplate_root" class="world-nameplate-root">
+        <ui:VisualElement class="nameplate-main-frame">
+            <ui:VisualElement class="nameplate-header">
+                <ui:Label name="entity-name" text="NPC" class="label-entity-name" />
+                <ui:Label name="entity-level" text="" class="label-entity-level" style="display: none;" />
+            </ui:VisualElement>
+            
+            <ui:Label name="entity-subtitle" text="" class="label-entity-subtitle" />
+
+            <ui:VisualElement name="interaction-prompt-wrapper" style="display: none; margin-top: 6px;">
+                <ui:Instance template="InteractionPromptBlock" name="prompt-instance" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

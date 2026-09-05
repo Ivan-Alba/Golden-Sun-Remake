@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/Components/Overworld/WorldSpaceUI.uss" />
+    
+    <ui:VisualElement name="enemy_nameplate_root" class="world-nameplate-root">
+        <ui:VisualElement name="alert-icon" class="alert-badge-frame" style="display: none;">
+            <ui:Label text="!" class="label-alert-icon" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="nameplate-main-frame">
+            <ui:VisualElement class="nameplate-header">
+                <ui:Label name="entity-name" text="Goblin" class="label-entity-name" />
+                <ui:Label name="entity-level" text="Lv. 5" class="label-entity-level" />
+            </ui:VisualElement>
+
+            <ui:ProgressBar name="threat-bar" value="0" high-value="100" class="threat-bar-container" style="display: none;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

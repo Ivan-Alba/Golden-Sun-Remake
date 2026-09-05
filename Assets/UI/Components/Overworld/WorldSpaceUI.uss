@@ -1,0 +1,207 @@
+/* =========================================================================
+   WorldSpaceUI.uss
+   Floating 3D World-Space Nameplates and Enemy Threat Indicators
+   ========================================================================= */
+
+/* --- Root Container Positioned Over 3D Anchor --- */
+.world-nameplate-root {
+    position: absolute;
+    flex-direction: column; /* Dynamic vertical layout flow */
+    align-items: center;
+    justify-content: center;
+    translate: -50% -100%;
+    
+    opacity: 1;
+    scale: 1 1;
+    
+    /* CSS Transition Smoothness */
+    transition-property: opacity, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+    
+    picking-mode: ignore;
+}
+
+.world-nameplate-root.nameplate-hidden {
+    opacity: 0;
+    scale: 0.7 0.7;
+}
+
+/* --- Alert / Suspicion Medallion ("!") in Standard Flex Flow --- */
+.alert-badge-frame {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: var(--color-panel-bg-no-alpha);
+    border-width: 1.5px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px; /* Clean spacing above the text frame */
+    border-color: var(--color-mars); /* Fallback */
+}
+
+.label-alert-icon {
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    -unity-text-align: middle-center;
+    color: var(--color-mars); /* Fallback */
+}
+
+/* --- Alert State: Suspicious / Warning (Yellow) --- */
+.alert-badge-frame.alert-suspicious {
+    border-color: #f1c40f;
+}
+
+.alert-badge-frame.alert-suspicious .label-alert-icon {
+    color: #f1c40f;
+}
+
+/* --- Alert State: Chasing / Combat (Red) --- */
+.alert-badge-frame.alert-chasing {
+    border-color: var(--color-mars);
+}
+
+.alert-badge-frame.alert-chasing .label-alert-icon {
+    color: var(--color-mars);
+}
+
+/* --- Main Name and Bar Frame --- */
+.nameplate-main-frame {
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 1.5px;
+    border-radius: 8px;
+    padding: 4px 10px;
+    align-items: center;
+    justify-content: center;
+    min-width: 90px;
+}
+
+/* Header Row (Entity Name + Level) */
+.nameplate-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.label-entity-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    margin: 0;
+    padding: 0;
+}
+
+.label-entity-level {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin-left: 8px;
+    margin: 0;
+    padding: 0;
+}
+
+.label-entity-subtitle {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    margin-top: 1px;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* --- Threat Progress Bar for Enemies --- */
+.threat-bar-container {
+    width: 100%;
+    height: 6px;
+    margin-top: 4px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* UI Toolkit ProgressBar Internal Overrides */
+.threat-bar-container .unity-progress-bar__background {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.threat-bar-container .unity-progress-bar__progress {
+    background-color: var(--color-mars);
+    border-radius: 2px;
+    transition-property: width;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-out;
+}
+
+/* =========================================================================
+   Embedded Interaction Prompt Block
+   ========================================================================= */
+
+/* Sub-template Container (Horizontal Alignment) */
+.prompt-block-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 2px 4px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+/* Keycap Badge Frame (3D Keycap Effect) */
+.prompt-key-badge {
+    min-width: 22px;
+    height: 17px;
+    background-color: var(--color-panel-bg-no-alpha);
+    border-color: var(--color-gold-bright);
+    border-width: 1px;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    padding: 0 3px;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+}
+
+.label-prompt-key {
+    font-size: 9px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    -unity-text-align: middle-center;
+}
+
+/* Action Label Text */
+.label-action-text {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    margin: 0;
+    padding: 0;
+    margin-right: 6px;
+}
+
+/* Decorative Accent Gem */
+.prompt-gem-icon {
+    width: 5px;
+    height: 5px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+    border-width: 0.5px;
+    border-color: #000000;
+}

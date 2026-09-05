@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Global_Theme.uss" />
-    <Style src="project://database/Assets/UI/Components/WorldInteractionPrompt.uss" />
+    <Style src="project://database/Assets/UI/Components/Overworld/WorldInteractionPrompt.uss" />
     
     <ui:VisualElement name="world_prompt_root" class="world-prompt-root">
         <ui:VisualElement name="prompt_action_banner" class="prompt-action-banner">

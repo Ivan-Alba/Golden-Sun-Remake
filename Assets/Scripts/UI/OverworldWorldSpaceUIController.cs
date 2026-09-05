@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 /// <summary>
 /// Orchestrates 3D Overworld UI elements projected onto the 2D UI Toolkit panel during exploration and cutscenes.
-/// Manages interaction prompts, aim hover target names, floating emote balloons, and proximity entity indicators (Enemies/NPCs/Signs).
+/// Manages interaction prompts, aim hover target names, floating emote balloons, and proximity entity indicators (Enemies/NPCs).
 /// </summary>
 public class OverworldWorldSpaceUIController : MonoBehaviour
 {
@@ -13,15 +13,14 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
 
     [Header("UI Document References")]
     [SerializeField] private UIDocument uiDocument;
-    [SerializeField] private string containerName = "world_interaction_prompts_container";
 
-    [Header("UI Templates")]
-    [SerializeField] private VisualTreeAsset interactionPromptTemplate;
+    [Header("Generic Interaction Prompt Template")]
+    [Tooltip("Template used for interactables without a permanent nameplate (e.g. Chests, Doors, Loot).")]
+    [SerializeField] private VisualTreeAsset genericPromptTemplate;
 
     [Header("Proximity Entity Templates")]
-    [SerializeField] private VisualTreeAsset enemyBarTemplate;
+    [SerializeField] private VisualTreeAsset enemyNameplateTemplate;
     [SerializeField] private VisualTreeAsset npcNameplateTemplate;
-    [SerializeField] private VisualTreeAsset simpleSignTemplate;
 
     [Header("Camera Settings Override")]
     [Tooltip("Optional camera override. If null, dynamically syncs via GameEvents.Camera.OnActiveCameraChanged.")]
@@ -32,16 +31,12 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     #region Private Fields
 
     private Camera cachedActiveCamera;
+    private VisualElement rootContainer;
 
-    // --- Layer 1: Interaction Prompt Elements ---
-    private VisualElement promptContainer;
-    private TemplateContainer promptTemplateInstance;
-    private VisualElement promptRootVisualElement;
-    private Label keyLabel;
-    private Label actionLabel;
-
+    // --- Layer 1: Generic Interaction Prompt (Chests, Loot, Doors) ---
     private Interactable currentInteractionTarget;
-    private bool isPromptVisible;
+    private TrackedProximityUI genericPromptTracked;
+    private bool isGenericPromptVisible;
 
     // --- Layer 2: Aim / Hover Target Info Elements (Prepared) ---
     private GameObject currentAimTarget;
@@ -52,7 +47,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     private Transform currentEmoteTarget;
     private bool isEmoteVisible;
 
-    // --- Layer 4: Proximity World-Space Entities (Enemies, NPCs, Signs) ---
+    // --- Layer 4: Proximity World-Space Entities (Enemies, NPCs) ---
     private readonly Dictionary<GameObject, TrackedProximityUI> activeProximityElements = new Dictionary<GameObject, TrackedProximityUI>();
 
     #endregion
@@ -61,22 +56,20 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
 
     private class TrackedProximityUI
     {
-        public TemplateContainer TemplateInstance;
-        public WorldSpaceUIProvider Provider;
-        public Label NameLabel;
-        public Label SubTitleLabel;
-        public Label LevelLabel;
-        public ProgressBar ThreatBar;
-        public VisualElement AlertIcon;
+        public WorldSpaceUIWidgetPresenter Presenter { get; }
+        public WorldSpaceUIProvider Provider { get; }
+
+        public TrackedProximityUI(TemplateContainer templateInstance, WorldSpaceUIProvider provider)
+        {
+            Provider = provider;
+            Presenter = new WorldSpaceUIWidgetPresenter(templateInstance);
+        }
     }
 
     #endregion
 
     #region Properties
 
-    /// <summary>
-    /// Gets the currently active camera used for 3D-to-2D panel coordinate projections.
-    /// </summary>
     public Camera ActiveCamera
     {
         get
@@ -112,7 +105,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeFromEvents();
-        CleanupUI();
+        ClearGenericPrompt();
         ClearAllProximityElements();
     }
 
@@ -120,9 +113,9 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         if (ActiveCamera == null) return;
 
-        if (isPromptVisible && currentInteractionTarget != null)
+        if (isGenericPromptVisible && currentInteractionTarget != null && genericPromptTracked != null)
         {
-            UpdatePromptPosition();
+            UpdateGenericPromptPosition();
         }
 
         if (isAimInfoVisible && currentAimTarget != null)
@@ -135,7 +128,6 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             UpdateEmotePosition();
         }
 
-        // Update positions for active proximity elements (Enemies, NPCs, Signs)
         UpdateProximityElementsPosition();
     }
 
@@ -155,43 +147,10 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Finds the target UI Toolkit container and instantiates the World Interaction Prompt Template.
-    /// </summary>
     private void InitializeUI()
     {
         if (uiDocument == null || uiDocument.rootVisualElement == null) return;
-
-        promptContainer = uiDocument.rootVisualElement.Q<VisualElement>(containerName);
-
-        if (promptContainer != null && interactionPromptTemplate != null)
-        {
-            promptTemplateInstance = interactionPromptTemplate.Instantiate();
-            promptContainer.Add(promptTemplateInstance);
-
-            promptRootVisualElement = promptTemplateInstance.Q<VisualElement>("world_prompt_root");
-            keyLabel = promptTemplateInstance.Q<Label>("label_prompt_key");
-            actionLabel = promptTemplateInstance.Q<Label>("label_action_text");
-
-            if (promptRootVisualElement != null)
-            {
-                promptRootVisualElement.RegisterCallback<TransitionEndEvent>(OnFadeOutFinished);
-            }
-
-            SetPromptVisibility(false, immediate: true);
-        }
-        else
-        {
-            Debug.LogWarning($"[OverworldWorldSpaceUIController] Could not find container '{containerName}' or template is missing.");
-        }
-    }
-
-    private void CleanupUI()
-    {
-        if (promptRootVisualElement != null)
-        {
-            promptRootVisualElement.UnregisterCallback<TransitionEndEvent>(OnFadeOutFinished);
-        }
+        rootContainer = uiDocument.rootVisualElement;
     }
 
     #endregion
@@ -201,11 +160,12 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     private void SubscribeToEvents()
     {
         GameEvents.Camera.OnActiveCameraChanged += HandleActiveCameraChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+
         GameEvents.World.OnInteractableTargetChanged += HandleInteractableTargetChanged;
         GameEvents.World.OnAimTargetChanged += HandleAimTargetChanged;
         GameEvents.World.OnShowEmoteRequested += HandleShowEmoteRequested;
 
-        // Proximity & Enemy Threat Event Subscriptions
         GameEvents.World.OnEntityEnteredProximity += HandleEntityEnteredProximity;
         GameEvents.World.OnEntityExitedProximity += HandleEntityExitedProximity;
         GameEvents.World.OnEnemyThreatLevelChanged += HandleEnemyThreatLevelChanged;
@@ -214,11 +174,12 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     private void UnsubscribeFromEvents()
     {
         GameEvents.Camera.OnActiveCameraChanged -= HandleActiveCameraChanged;
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+
         GameEvents.World.OnInteractableTargetChanged -= HandleInteractableTargetChanged;
         GameEvents.World.OnAimTargetChanged -= HandleAimTargetChanged;
         GameEvents.World.OnShowEmoteRequested -= HandleShowEmoteRequested;
 
-        // Proximity & Enemy Threat Event Unsubscriptions
         GameEvents.World.OnEntityEnteredProximity -= HandleEntityEnteredProximity;
         GameEvents.World.OnEntityExitedProximity -= HandleEntityExitedProximity;
         GameEvents.World.OnEnemyThreatLevelChanged -= HandleEnemyThreatLevelChanged;
@@ -236,48 +197,82 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Triggered when the player interaction detector focuses on a new interactable target or loses target.
-    /// </summary>
-    private void HandleInteractableTargetChanged(Interactable newTarget)
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
-        currentInteractionTarget = newTarget;
+        Debug.Log($"<color=#3498db>[UIController] HandleGameStateChanged: {previousState} -> {newState}</color>");
 
-        if (currentInteractionTarget != null)
+        if (newState != GameManager.GameState.WorldExploration)
         {
-            if (keyLabel != null) keyLabel.text = currentInteractionTarget.KeyPrompt;
-            if (actionLabel != null) actionLabel.text = currentInteractionTarget.ActionText;
-
-            UpdatePromptPosition();
-            SetPromptVisibility(true);
-        }
-        else
-        {
-            SetPromptVisibility(false);
+            currentInteractionTarget = null;
+            ClearGenericPrompt();
+            ClearAllProximityElements();
         }
     }
 
     /// <summary>
-    /// Triggered when the player reticle passes over a targetable object in the world.
+    /// Triggered when the player interaction detector focuses on a new interactable target or loses target.
+    /// Strictly toggles the embedded prompt inside existing Nameplates, preserving the main entity UI.
     /// </summary>
+    private void HandleInteractableTargetChanged(Interactable newTarget)
+    {
+        string prevName = currentInteractionTarget != null ? currentInteractionTarget.gameObject.name : "null";
+        string newName = newTarget != null ? newTarget.gameObject.name : "null";
+        Debug.Log($"<color=#f1c40f>[UIController] HandleInteractableTargetChanged | Prev: {prevName} -> New: {newName}</color>");
+
+        // 1. Clean up previous target's interaction state safely
+        if (currentInteractionTarget != null)
+        {
+            GameObject prevObj = currentInteractionTarget.gameObject;
+            if (activeProximityElements.TryGetValue(prevObj, out TrackedProximityUI prevTracked))
+            {
+                Debug.Log($"<color=#f39c12>[UIController] Disabling embedded prompt on Proximity Nameplate for: {prevObj.name}</color>");
+                prevTracked.Presenter.SetInteractionPrompt(false);
+            }
+            else
+            {
+                Debug.LogWarning($"<color=#e67e22>[UIController] Prev target '{prevObj.name}' NOT found in activeProximityElements! Clearing generic prompt instead.</color>");
+                ClearGenericPrompt();
+            }
+        }
+
+        currentInteractionTarget = newTarget;
+
+        // 2. If focus is completely lost, clear standalone prompts and exit
+        if (currentInteractionTarget == null)
+        {
+            Debug.Log("<color=#d35400>[UIController] Target is null -> Clearing generic prompt.</color>");
+            ClearGenericPrompt();
+            return;
+        }
+
+        GameObject targetObj = currentInteractionTarget.gameObject;
+
+        // 3. Case A: Target has an active Proximity Nameplate (NPC/Sign) -> Show embedded sub-prompt
+        if (activeProximityElements.TryGetValue(targetObj, out TrackedProximityUI activeTracked))
+        {
+            Debug.Log($"<color=#2ecc71>[UIController] Enabling embedded prompt on Proximity Nameplate for: {targetObj.name}</color>");
+            ClearGenericPrompt(); // Ensure standalone floating prompt is cleared
+            activeTracked.Presenter.SetInteractionPrompt(true, currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
+        }
+        // 4. Case B: Target has no Proximity Nameplate (Chest/Door/Loot) -> Instantiate Standalone Generic Prompt
+        else
+        {
+            Debug.Log($"<color=#3498db>[UIController] Target '{targetObj.name}' has no active Proximity Nameplate -> Creating Generic Standalone Prompt.</color>");
+            SetupGenericPrompt(currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
+        }
+    }
+
     private void HandleAimTargetChanged(GameObject targetObj, string targetName)
     {
         currentAimTarget = targetObj;
         currentAimName = targetName;
         isAimInfoVisible = (currentAimTarget != null && !string.IsNullOrEmpty(targetName));
-
-        // TODO: Update and show hovering reticle name tag UI element
     }
 
-    /// <summary>
-    /// Triggered during dialogues or cutscenes to spawn an expressional balloon over a character.
-    /// </summary>
     private void HandleShowEmoteRequested(Transform targetHead, EmoteType emoteType, float duration)
     {
         currentEmoteTarget = targetHead;
         isEmoteVisible = (currentEmoteTarget != null);
-
-        // TODO: Instantiate or display expressional balloon corresponding to emoteType
     }
 
     #endregion
@@ -286,55 +281,60 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
 
     private void HandleEntityEnteredProximity(GameObject entity)
     {
-        if (entity == null || activeProximityElements.ContainsKey(entity)) return;
+        if (entity == null) return;
 
-        if (!entity.TryGetComponent<WorldSpaceUIProvider>(out var provider)) return;
+        Debug.Log($"<color=#1abc9c>[UIController] HandleEntityEnteredProximity: {entity.name}</color>");
+
+        if (activeProximityElements.ContainsKey(entity))
+        {
+            Debug.LogWarning($"[UIController] Entity '{entity.name}' already exists in activeProximityElements.");
+            return;
+        }
+
+        if (!entity.TryGetComponent<WorldSpaceUIProvider>(out var provider))
+        {
+            Debug.LogWarning($"[UIController] Entity '{entity.name}' has NO WorldSpaceUIProvider!");
+            return;
+        }
 
         VisualTreeAsset selectedTemplate = GetTemplateForType(provider.UIType);
-        if (selectedTemplate == null || promptContainer == null) return;
+        if (selectedTemplate == null || rootContainer == null) return;
 
-        // Instantiate template and add to container
         TemplateContainer instance = selectedTemplate.Instantiate();
-        promptContainer.Add(instance);
+        rootContainer.Add(instance);
 
-        TrackedProximityUI tracked = new TrackedProximityUI
-        {
-            TemplateInstance = instance,
-            Provider = provider,
-            NameLabel = instance.Q<Label>("entity-name"),
-            SubTitleLabel = instance.Q<Label>("entity-subtitle"),
-            LevelLabel = instance.Q<Label>("entity-level"),
-            ThreatBar = instance.Q<ProgressBar>("threat-bar"),
-            AlertIcon = instance.Q<VisualElement>("alert-icon")
-        };
-
-        // Initialize values
-        if (tracked.NameLabel != null) tracked.NameLabel.text = provider.EntityName;
-        if (tracked.SubTitleLabel != null)
-        {
-            tracked.SubTitleLabel.text = provider.EntitySubTitle;
-            tracked.SubTitleLabel.style.display = string.IsNullOrEmpty(provider.EntitySubTitle) ? DisplayStyle.None : DisplayStyle.Flex;
-        }
-        if (tracked.LevelLabel != null)
-        {
-            tracked.LevelLabel.text = $"Lv. {provider.EntityLevel}";
-            tracked.LevelLabel.style.display = provider.EntityLevel > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-        }
+        TrackedProximityUI tracked = new TrackedProximityUI(instance, provider);
+        tracked.Presenter.Setup(provider.EntityName, provider.EntitySubTitle, provider.EntityLevel);
 
         activeProximityElements.Add(entity, tracked);
+        Debug.Log($"<color=#2ecc71>[UIController] Successfully added Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
+
+        // If player was already focusing this target when entering proximity radius, display embedded prompt
+        if (currentInteractionTarget != null && currentInteractionTarget.gameObject == entity)
+        {
+            ClearGenericPrompt();
+            tracked.Presenter.SetInteractionPrompt(true, currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
+        }
     }
 
     private void HandleEntityExitedProximity(GameObject entity)
     {
         if (entity == null) return;
 
+        Debug.Log($"<color=#e74c3c>[UIController] HandleEntityExitedProximity: {entity.name}</color>");
+
         if (activeProximityElements.TryGetValue(entity, out TrackedProximityUI tracked))
         {
-            if (tracked.TemplateInstance != null && promptContainer != null)
+            if (tracked.Presenter?.Root != null && rootContainer != null)
             {
-                promptContainer.Remove(tracked.TemplateInstance);
+                rootContainer.Remove(tracked.Presenter.Root);
             }
             activeProximityElements.Remove(entity);
+            Debug.Log($"<color=#c0392b>[UIController] Successfully removed Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
+        }
+        else
+        {
+            Debug.LogWarning($"[UIController] HandleEntityExitedProximity received for '{entity.name}', but it was NOT in activeProximityElements!");
         }
     }
 
@@ -342,17 +342,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         if (enemyObj != null && activeProximityElements.TryGetValue(enemyObj, out TrackedProximityUI tracked))
         {
-            // TODO: Update threat progress bar and alert icon display in UXML instance
-            if (tracked.ThreatBar != null)
-            {
-                tracked.ThreatBar.value = threatValue * 100f;
-            }
-
-            if (tracked.AlertIcon != null)
-            {
-                bool isAlerted = (state == EnemyAlertState.Suspicious || state == EnemyAlertState.Chasing);
-                tracked.AlertIcon.style.display = isAlerted ? DisplayStyle.Flex : DisplayStyle.None;
-            }
+            tracked.Presenter.UpdateThreat(threatValue, state);
         }
     }
 
@@ -360,53 +350,72 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
 
     #region Projection & Positioning Logic
 
-    /// <summary>
-    /// Converts the interaction target's 3D World Position into UI Toolkit screen space coordinates.
-    /// </summary>
-    private void UpdatePromptPosition()
+    private void SetupGenericPrompt(string keyPrompt, string actionText)
+    {
+        if (genericPromptTemplate == null || rootContainer == null) return;
+
+        if (genericPromptTracked == null)
+        {
+            TemplateContainer instance = genericPromptTemplate.Instantiate();
+            rootContainer.Add(instance);
+            genericPromptTracked = new TrackedProximityUI(instance, null);
+        }
+
+        genericPromptTracked.Presenter.SetInteractionPrompt(true, keyPrompt, actionText);
+        isGenericPromptVisible = true;
+        UpdateGenericPromptPosition();
+    }
+
+    private void ClearGenericPrompt()
+    {
+        isGenericPromptVisible = false;
+
+        if (genericPromptTracked?.Presenter?.Root != null && rootContainer != null)
+        {
+            rootContainer.Remove(genericPromptTracked.Presenter.Root);
+            Debug.Log("<color=#9b59b6>[UIController] Generic Prompt Removed from RootContainer.</color>");
+        }
+
+        genericPromptTracked = null;
+    }
+
+    private void UpdateGenericPromptPosition()
     {
         Camera cam = ActiveCamera;
-        if (cam == null || promptTemplateInstance == null || currentInteractionTarget == null) return;
+        if (cam == null || currentInteractionTarget == null || genericPromptTracked == null || rootContainer == null || rootContainer.panel == null) return;
 
         Vector3 worldPos = currentInteractionTarget.PromptWorldPosition;
         Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
 
-        // Hide if object is behind camera clipping plane
-        if (screenPos.z < 0)
+        bool isVisible = screenPos.z > 0;
+        genericPromptTracked.Presenter.Root.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+
+        if (isVisible)
         {
-            promptTemplateInstance.style.display = DisplayStyle.None;
-            return;
+            Vector2 panelPos = RuntimePanelUtils.CameraTransformWorldToPanel(
+                rootContainer.panel,
+                worldPos,
+                cam
+            );
+
+            genericPromptTracked.Presenter.SetPosition(panelPos.x, panelPos.y);
         }
-
-        if (isPromptVisible)
-        {
-            promptTemplateInstance.style.display = DisplayStyle.Flex;
-        }
-
-        Vector2 panelPos = RuntimePanelUtils.CameraTransformWorldToPanel(
-            promptContainer.panel,
-            worldPos,
-            cam
-        );
-
-        promptTemplateInstance.style.left = panelPos.x;
-        promptTemplateInstance.style.top = panelPos.y;
     }
 
     private void UpdateAimInfoPosition()
     {
-        // TODO: Calculate 3D to 2D screen coordinates for the aim target label
+        // TODO: Aim info projection
     }
 
     private void UpdateEmotePosition()
     {
-        // TODO: Calculate 3D to 2D screen coordinates for the emotional balloon container
+        // TODO: Emote balloon projection
     }
 
     private void UpdateProximityElementsPosition()
     {
         Camera cam = ActiveCamera;
-        if (cam == null || promptContainer == null) return;
+        if (cam == null || rootContainer == null || rootContainer.panel == null) return;
 
         List<GameObject> toRemove = null;
 
@@ -426,19 +435,17 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
 
             bool isVisible = screenPos.z > 0;
-            tracked.TemplateInstance.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            tracked.Presenter.Root.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
 
             if (isVisible)
             {
                 Vector2 panelPos = RuntimePanelUtils.CameraTransformWorldToPanel(
-                    promptContainer.panel,
+                    rootContainer.panel,
                     worldPos,
                     cam
                 );
 
-                tracked.TemplateInstance.style.position = Position.Absolute;
-                tracked.TemplateInstance.style.left = panelPos.x;
-                tracked.TemplateInstance.style.top = panelPos.y;
+                tracked.Presenter.SetPosition(panelPos.x, panelPos.y);
             }
         }
 
@@ -455,9 +462,8 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         return type switch
         {
-            WorldSpaceUIType.EnemyBar => enemyBarTemplate,
+            WorldSpaceUIType.EnemyIndicator => enemyNameplateTemplate,
             WorldSpaceUIType.NPCIndicator => npcNameplateTemplate,
-            WorldSpaceUIType.SimpleSign => simpleSignTemplate,
             _ => null
         };
     }
@@ -466,52 +472,15 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         foreach (var tracked in activeProximityElements.Values)
         {
-            if (tracked.TemplateInstance != null && promptContainer != null)
+            if (tracked.Presenter?.Root != null && rootContainer != null)
             {
-                promptContainer.Remove(tracked.TemplateInstance);
+                rootContainer.Remove(tracked.Presenter.Root);
             }
         }
         activeProximityElements.Clear();
+        Debug.Log("<color=#95a5a6>[UIController] All Proximity Elements Cleared.</color>");
     }
 
-    /// <summary>
-    /// Toggles visibility state and applies USS transition classes for smooth fade-in/out.
-    /// </summary>
-    private void SetPromptVisibility(bool visible, bool immediate = false)
-    {
-        isPromptVisible = visible;
-
-        if (promptTemplateInstance == null || promptRootVisualElement == null) return;
-
-        if (visible)
-        {
-            promptTemplateInstance.style.display = DisplayStyle.Flex;
-            promptRootVisualElement.RemoveFromClassList("prompt-hidden");
-        }
-        else
-        {
-            promptRootVisualElement.AddToClassList("prompt-hidden");
-
-            if (immediate)
-            {
-                promptTemplateInstance.style.display = DisplayStyle.None;
-            }
-        }
-    }
-
-    private void OnFadeOutFinished(TransitionEndEvent evt)
-    {
-        if (promptTemplateInstance == null) return;
-
-        if (!isPromptVisible)
-        {
-            promptTemplateInstance.style.display = DisplayStyle.None;
-        }
-    }
-
-    /// <summary>
-    /// Allows external system override for the active rendering camera.
-    /// </summary>
     public void SetOverrideCamera(Camera camera)
     {
         overrideCamera = camera;

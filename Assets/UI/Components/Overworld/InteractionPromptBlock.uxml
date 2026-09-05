@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/Components/Overworld/WorldSpaceUI.uss" />
+
+    <!-- Reusable Embedded Interaction Prompt Block -->
+    <ui:VisualElement name="prompt_block_root" class="prompt-block-container">
+        <!-- Keycap Badge Frame -->
+        <ui:VisualElement class="prompt-key-badge">
+            <ui:Label name="label_prompt_key" text="SPC" class="label-prompt-key" />
+        </ui:VisualElement>
+
+        <!-- Action Description Text -->
+        <ui:Label name="label_action_text" text="Hablar" class="label-action-text" />
+
+        <!-- Decorative Accent Gem -->
+        <ui:VisualElement class="prompt-gem-icon" />
+    </ui:VisualElement>
+</ui:UXML>

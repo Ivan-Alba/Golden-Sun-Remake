@@ -23,6 +23,7 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private Collider[] hitBuffer;
     private Interactable currentTarget;
+    private bool isExplorationActive = true;
 
     #endregion
 
@@ -42,9 +43,46 @@ public class PlayerInteractionDetector : MonoBehaviour
         hitBuffer = new Collider[maxDetectedColliders];
     }
 
+    private void OnEnable()
+    {
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        ClearInteractionTarget();
+    }
+
     private void Update()
     {
+        if (!isExplorationActive) return;
+
         ScanForInteractables();
+    }
+
+    #endregion
+
+    #region Event Handlers & State Management
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        isExplorationActive = (newState == GameManager.GameState.WorldExploration);
+
+        if (!isExplorationActive)
+        {
+            // Silent local reset when leaving exploration state
+            currentTarget = null;
+        }
+    }
+
+    private void ClearInteractionTarget()
+    {
+        if (currentTarget != null)
+        {
+            currentTarget = null;
+            GameEvents.World.TriggerInteractableTargetChanged(null);
+        }
     }
 
     #endregion
