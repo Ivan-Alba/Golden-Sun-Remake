@@ -4,15 +4,11 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Chest
   - PlayerForward
   - Weapon
   - Enemy
-  - Hero
-  - Interactable
   - ContentScrollView
   - Minimap
-  - NPC
   layers:
   - Default
   - TransparentFX

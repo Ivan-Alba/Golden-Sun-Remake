@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Passive physics trigger sensor attached to the persistent Player.
-/// Detects nearby points of interest (Enemies, NPCs, Interactables) entering the visual proximity range
+/// Detects nearby points of interest entering the visual proximity range
 /// and emits global events to manage World-Space UI projections without polling in Update.
 /// </summary>
 [RequireComponent(typeof(SphereCollider))]
@@ -14,9 +14,6 @@ public class OverworldProximityDetector : MonoBehaviour
     [Header("Detection Configuration")]
     [Tooltip("Layer mask identifying entity colliders that trigger visual world-space UI.")]
     [SerializeField] private LayerMask detectionLayerMask;
-
-    [Tooltip("Tags allowed to register as visible entities.")]
-    [SerializeField] private string[] trackableTags = new string[] { "Enemy", "NPC", "Interactable" };
 
     [Header("Re-evaluation Settings")]
     [SerializeField] private int maxReevaluationColliders = 16;
@@ -29,6 +26,8 @@ public class OverworldProximityDetector : MonoBehaviour
     private readonly HashSet<GameObject> activeNearbyEntities = new HashSet<GameObject>();
     private readonly List<GameObject> invalidEntitiesBuffer = new List<GameObject>();
     private Collider[] reevaluationBuffer;
+
+    private bool isExplorationActive = true;
 
     #endregion
 
@@ -56,8 +55,14 @@ public class OverworldProximityDetector : MonoBehaviour
         ClearAllTrackedEntities();
     }
 
+    #endregion
+
+    #region Unity Lifecycle Triggers
+
     private void OnTriggerEnter(Collider other)
     {
+        if (!isExplorationActive) return;
+
         if (!IsValidTrackable(other, out GameObject entityRoot)) return;
 
         if (activeNearbyEntities.Add(entityRoot))
@@ -68,6 +73,8 @@ public class OverworldProximityDetector : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (!isExplorationActive) return;
+
         if (!IsValidTrackable(other, out GameObject entityRoot)) return;
 
         // Direct distance validation to avoid PhysX false OnTriggerExit spikes when clipping colliders
@@ -76,11 +83,9 @@ public class OverworldProximityDetector : MonoBehaviour
             Vector3 triggerCenter = transform.TransformPoint(proximityTrigger.center);
             float scaledRadius = proximityTrigger.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
 
-            // ClosestPoint gets the nearest point on the exiting collider to the trigger center
             Vector3 closestPoint = other.ClosestPoint(triggerCenter);
             float distanceToCenter = Vector3.Distance(triggerCenter, closestPoint);
 
-            // If the collider is still within the sphere radius, ignore the false exit signal
             if (distanceToCenter < scaledRadius)
             {
                 return;
@@ -99,20 +104,18 @@ public class OverworldProximityDetector : MonoBehaviour
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
-        if (newState == GameManager.GameState.WorldExploration)
+        isExplorationActive = (newState == GameManager.GameState.WorldExploration);
+
+        if (isExplorationActive)
         {
             ReevaluateProximityArea();
         }
         else
         {
-            // Silent local reset; OverworldWorldSpaceUIController handles DOM cleanup
             activeNearbyEntities.Clear();
         }
     }
 
-    /// <summary>
-    /// Performs an instantaneous physical overlap scan to detect surrounding entities upon returning to exploration.
-    /// </summary>
     public void ReevaluateProximityArea()
     {
         activeNearbyEntities.Clear();
@@ -147,32 +150,22 @@ public class OverworldProximityDetector : MonoBehaviour
     {
         entityRoot = null;
 
-        // Check layer mask match
+        // 1. Layer Mask check
         if (((1 << col.gameObject.layer) & detectionLayerMask) == 0)
         {
             return false;
         }
 
-        // Check allowed tags
-        bool hasValidTag = false;
-        for (int i = 0; i < trackableTags.Length; i++)
+        // 2. Validate C# provider component
+        if (col.TryGetComponent<WorldSpaceUIProvider>(out _))
         {
-            if (col.CompareTag(trackableTags[i]))
-            {
-                hasValidTag = true;
-                break;
-            }
+            entityRoot = col.gameObject;
+            return true;
         }
 
-        if (!hasValidTag) return false;
-
-        entityRoot = col.gameObject;
-        return true;
+        return false;
     }
 
-    /// <summary>
-    /// Call to purge destroyed or invalid entity references from active tracking.
-    /// </summary>
     public void CleanupInvalidEntities()
     {
         invalidEntitiesBuffer.Clear();

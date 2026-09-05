@@ -54,7 +54,11 @@ public class EnemyDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (battleLaunched || !other.CompareTag("Enemy")) return;
+        if (battleLaunched) return;
+
+        // Clean validation: check for AI/Enemy component instead of string tag comparison
+        if (!other.TryGetComponent<OverworldEnemyAI>(out _) && !other.TryGetComponent<EnemyStats>(out _))
+            return;
 
         if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
             return;
@@ -81,8 +85,6 @@ public class EnemyDetector : MonoBehaviour
         Debug.Log($"Encounter Type: {encounterType}");
 
         // 3. Play collision sound via Audio events
-
-        //TODO : Implement encounter type specific audio feedback
         if (audioCollision != null)
         {
             GameEvents.Audio.RequestPlaySFXClip(audioCollision);
@@ -102,7 +104,6 @@ public class EnemyDetector : MonoBehaviour
                 Vector3 lookTarget = new Vector3(enemyCollider.transform.position.x, player.transform.position.y, enemyCollider.transform.position.z);
                 GameEvents.Player.RequestLookAt(lookTarget, 0.15f);
             }
-
         }
 
         // 5. Freeze Overworld Enemy AI and animator
@@ -129,7 +130,6 @@ public class EnemyDetector : MonoBehaviour
         if (player == null || enemyTransform == null) return EncounterType.Neutral;
 
         // Convert inspector angle (in degrees) to required dot product threshold (cosine)
-        // e.g. 60 degrees -> Cos(60°) = 0.5f (Cono de 120° totales: 60° a cada lado)
         float minDotThreshold = Mathf.Cos(backstabAngleThreshold * Mathf.Deg2Rad);
 
         // Player forward vector projected on XZ plane

@@ -334,7 +334,7 @@ GameObject:
   - component: {fileID: -8825425146087532868}
   m_Layer: 12
   m_Name: Mushroom Green
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -567,8 +567,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 1
-  entityName: Unknown
   entitySubTitle: 
-  entityLevel: 1
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2

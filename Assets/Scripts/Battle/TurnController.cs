@@ -81,7 +81,7 @@ public class TurnController : MonoBehaviour
         }
 
         // 5. Trigger Hero Turn UI/Camera if a Hero acts first
-        if (currentFighter != null && currentFighter.CompareTag("Hero"))
+        if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
         {
             SetHeroTurn();
         }
@@ -126,7 +126,7 @@ public class TurnController : MonoBehaviour
         }
 
         // 6. Handle camera and UI if the new current fighter is a hero
-        if (currentFighter != null && currentFighter.CompareTag("Hero"))
+        if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
         {
             SetHeroTurn();
         }

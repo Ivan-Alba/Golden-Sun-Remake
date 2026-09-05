@@ -522,7 +522,7 @@ public class BattleManager : MonoBehaviour
         {
             turnController.CurrentFighter.StartsTurn();
 
-            if (turnController.CurrentFighter.CompareTag("Enemy"))
+            if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
                 currentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());
@@ -543,7 +543,7 @@ public class BattleManager : MonoBehaviour
         FighterStats targetStats = null;
         GameObject activeFighter = turnController.CurrentFighter.gameObject;
 
-        if (activeFighter.CompareTag("Enemy"))
+        if (activeFighter.TryGetComponent<EnemyStats>(out _))
         {
             battleUIController.CommandSelected = Random.Range(0, 1);
         }
@@ -554,7 +554,7 @@ public class BattleManager : MonoBehaviour
         {
             case 0: // ATTACK
                 baseActionCost = 50;
-                if (activeFighter.CompareTag("Enemy"))
+                if (activeFighter.TryGetComponent<EnemyStats>(out _))
                 {
                     // Use EnemyAIController to pick an alive hero
                     if (activeFighter.TryGetComponent<EnemyAIController>(out var ai))
@@ -634,17 +634,13 @@ public class BattleManager : MonoBehaviour
             FighterStats targetData = target.GetComponent<FighterStats>();
             if (targetData != null && targetData.CurrHp <= 0)
             {
-                if (targetData.gameObject.CompareTag("Enemy"))
+                if (targetData.gameObject.TryGetComponent<EnemyStats>(out var enemyStats))
                 {
-                    // Retrieve EnemyStats to get rewards
-                    if (targetData.TryGetComponent<EnemyStats>(out var enemyStats))
-                    {
-                        totalXpEarned += enemyStats.XpReward;
-                        totalGoldEarned += enemyStats.CoinsReward;
-                        totalPhEarned += enemyStats.CoinsReward;
+                    totalXpEarned += enemyStats.XpReward;
+                    totalGoldEarned += enemyStats.CoinsReward;
+                    totalPhEarned += enemyStats.CoinsReward;
 
-                        GetItemLoot(enemyStats);
-                    }
+                    GetItemLoot(enemyStats);
 
                     fighters.Remove(targetData.gameObject);
                     Destroy(targetData.gameObject);
@@ -719,7 +715,7 @@ public class BattleManager : MonoBehaviour
         {
             turnController.CurrentFighter.StartsTurn();
 
-            if (turnController.CurrentFighter.CompareTag("Enemy"))
+            if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
                 currentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());

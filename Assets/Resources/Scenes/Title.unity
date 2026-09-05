@@ -1383,6 +1383,10 @@ PrefabInstance:
       propertyPath: detectionCenterOffset.z
       value: 0.3
       objectReference: {fileID: 0}
+    - target: {fileID: 4245145517234506247, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 6903538537674537307, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: enemyBarTemplate
       value: 
@@ -1403,6 +1407,18 @@ PrefabInstance:
       propertyPath: enemyNameplateTemplate
       value: 
       objectReference: {fileID: 9197481963319205126, guid: bdea908f54e34814ab91c4ddc8e192bf, type: 3}
+    - target: {fileID: 8459378965965534310, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378966954086645, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378967019290834, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 8459378967151069452, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1486,8 +1502,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 6144
   trackableTags:
-  - Interactable
-  - NPC
   - Enemy
   maxReevaluationColliders: 16
 --- !u!135 &8459378966747734658
