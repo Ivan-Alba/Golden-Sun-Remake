@@ -4,11 +4,7 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - PlayerForward
-  - Weapon
-  - Enemy
-  - ContentScrollView
-  - Minimap
+  - Hero
   layers:
   - Default
   - TransparentFX
@@ -23,7 +19,7 @@ TagManager:
   - PsynergyInteractable
   - Interactable
   - Enemy
-  - 
+  - PlayerSensors
   - 
   - 
   - 

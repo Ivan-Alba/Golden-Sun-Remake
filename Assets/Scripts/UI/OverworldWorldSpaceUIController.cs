@@ -199,7 +199,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
-        Debug.Log($"<color=#3498db>[UIController] HandleGameStateChanged: {previousState} -> {newState}</color>");
+        //Debug.Log($"<color=#3498db>[UIController] HandleGameStateChanged: {previousState} -> {newState}</color>");
 
         if (newState != GameManager.GameState.WorldExploration)
         {
@@ -217,7 +217,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         string prevName = currentInteractionTarget != null ? currentInteractionTarget.gameObject.name : "null";
         string newName = newTarget != null ? newTarget.gameObject.name : "null";
-        Debug.Log($"<color=#f1c40f>[UIController] HandleInteractableTargetChanged | Prev: {prevName} -> New: {newName}</color>");
+        //Debug.Log($"<color=#f1c40f>[UIController] HandleInteractableTargetChanged | Prev: {prevName} -> New: {newName}</color>");
 
         // 1. Clean up previous target's interaction state safely
         if (currentInteractionTarget != null)
@@ -225,7 +225,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             GameObject prevObj = currentInteractionTarget.gameObject;
             if (activeProximityElements.TryGetValue(prevObj, out TrackedProximityUI prevTracked))
             {
-                Debug.Log($"<color=#f39c12>[UIController] Disabling embedded prompt on Proximity Nameplate for: {prevObj.name}</color>");
+                //Debug.Log($"<color=#f39c12>[UIController] Disabling embedded prompt on Proximity Nameplate for: {prevObj.name}</color>");
                 prevTracked.Presenter.SetInteractionPrompt(false);
             }
             else
@@ -240,7 +240,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         // 2. If focus is completely lost, clear standalone prompts and exit
         if (currentInteractionTarget == null)
         {
-            Debug.Log("<color=#d35400>[UIController] Target is null -> Clearing generic prompt.</color>");
+            //Debug.Log("<color=#d35400>[UIController] Target is null -> Clearing generic prompt.</color>");
             ClearGenericPrompt();
             return;
         }
@@ -250,14 +250,14 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         // 3. Case A: Target has an active Proximity Nameplate (NPC/Sign) -> Show embedded sub-prompt
         if (activeProximityElements.TryGetValue(targetObj, out TrackedProximityUI activeTracked))
         {
-            Debug.Log($"<color=#2ecc71>[UIController] Enabling embedded prompt on Proximity Nameplate for: {targetObj.name}</color>");
+            //Debug.Log($"<color=#2ecc71>[UIController] Enabling embedded prompt on Proximity Nameplate for: {targetObj.name}</color>");
             ClearGenericPrompt(); // Ensure standalone floating prompt is cleared
             activeTracked.Presenter.SetInteractionPrompt(true, currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
         }
         // 4. Case B: Target has no Proximity Nameplate (Chest/Door/Loot) -> Instantiate Standalone Generic Prompt
         else
         {
-            Debug.Log($"<color=#3498db>[UIController] Target '{targetObj.name}' has no active Proximity Nameplate -> Creating Generic Standalone Prompt.</color>");
+            //Debug.Log($"<color=#3498db>[UIController] Target '{targetObj.name}' has no active Proximity Nameplate -> Creating Generic Standalone Prompt.</color>");
             SetupGenericPrompt(currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
         }
     }
@@ -283,7 +283,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         if (entity == null) return;
 
-        Debug.Log($"<color=#1abc9c>[UIController] HandleEntityEnteredProximity: {entity.name}</color>");
+        //Debug.Log($"<color=#1abc9c>[UIController] HandleEntityEnteredProximity: {entity.name}</color>");
 
         if (activeProximityElements.ContainsKey(entity))
         {
@@ -307,7 +307,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         tracked.Presenter.Setup(provider.EntityName, provider.EntitySubTitle, provider.EntityLevel);
 
         activeProximityElements.Add(entity, tracked);
-        Debug.Log($"<color=#2ecc71>[UIController] Successfully added Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
+        //Debug.Log($"<color=#2ecc71>[UIController] Successfully added Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
 
         // If player was already focusing this target when entering proximity radius, display embedded prompt
         if (currentInteractionTarget != null && currentInteractionTarget.gameObject == entity)
@@ -321,7 +321,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         if (entity == null) return;
 
-        Debug.Log($"<color=#e74c3c>[UIController] HandleEntityExitedProximity: {entity.name}</color>");
+        //Debug.Log($"<color=#e74c3c>[UIController] HandleEntityExitedProximity: {entity.name}</color>");
 
         if (activeProximityElements.TryGetValue(entity, out TrackedProximityUI tracked))
         {
@@ -330,7 +330,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
                 rootContainer.Remove(tracked.Presenter.Root);
             }
             activeProximityElements.Remove(entity);
-            Debug.Log($"<color=#c0392b>[UIController] Successfully removed Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
+            //Debug.Log($"<color=#c0392b>[UIController] Successfully removed Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
         }
         else
         {
@@ -373,7 +373,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         if (genericPromptTracked?.Presenter?.Root != null && rootContainer != null)
         {
             rootContainer.Remove(genericPromptTracked.Presenter.Root);
-            Debug.Log("<color=#9b59b6>[UIController] Generic Prompt Removed from RootContainer.</color>");
+            //Debug.Log("<color=#9b59b6>[UIController] Generic Prompt Removed from RootContainer.</color>");
         }
 
         genericPromptTracked = null;
@@ -478,7 +478,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             }
         }
         activeProximityElements.Clear();
-        Debug.Log("<color=#95a5a6>[UIController] All Proximity Elements Cleared.</color>");
+        //Debug.Log("<color=#95a5a6>[UIController] All Proximity Elements Cleared.</color>");
     }
 
     public void SetOverrideCamera(Camera camera)

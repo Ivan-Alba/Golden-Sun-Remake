@@ -1,27 +1,32 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Handles environmental scanning to detect nearby interactable objects based on proximity and viewing angle.
-/// Emits global GameEvents when the active interaction target changes, decoupling gameplay physics from UI rendering.
+/// Passive physics trigger sensor attached to the Player's interaction sensor transform.
+/// Tracks nearby interactables entering the physical trigger and evaluates viewing angle cones
+/// to identify the best candidate, emitting global events upon focus shifts.
 /// </summary>
+[RequireComponent(typeof(SphereCollider))]
 public class PlayerInteractionDetector : MonoBehaviour
 {
     #region Serialized Fields
 
     [Header("Detection Parameters")]
-    [SerializeField] private float detectionRadius = 1.5f;
     [SerializeField] private float maxInteractionAngle = 50f;
     [SerializeField] private LayerMask interactableLayer;
-    [SerializeField] private Vector3 detectionCenterOffset = new Vector3(0f, 1f, 0f);
 
-    [Header("Optimization Settings")]
-    [SerializeField] private int maxDetectedColliders = 8;
+    [Header("Re-evaluation Settings")]
+    [SerializeField] private int maxReevaluationColliders = 8;
 
     #endregion
 
-    #region Private Fields
+    #region Private Runtime State
 
-    private Collider[] hitBuffer;
+    private SphereCollider interactionTrigger;
+    private readonly HashSet<Interactable> nearbyCandidates = new HashSet<Interactable>();
+    private readonly List<Interactable> invalidCandidatesBuffer = new List<Interactable>();
+    private Collider[] reevaluationBuffer;
+
     private Interactable currentTarget;
     private bool isExplorationActive = true;
 
@@ -40,7 +45,13 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private void Awake()
     {
-        hitBuffer = new Collider[maxDetectedColliders];
+        interactionTrigger = GetComponent<SphereCollider>();
+        if (interactionTrigger != null)
+        {
+            interactionTrigger.isTrigger = true;
+        }
+
+        reevaluationBuffer = new Collider[maxReevaluationColliders];
     }
 
     private void OnEnable()
@@ -51,14 +62,53 @@ public class PlayerInteractionDetector : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
-        ClearInteractionTarget();
+        ClearAllCandidates();
     }
 
     private void Update()
     {
         if (!isExplorationActive) return;
 
-        ScanForInteractables();
+        EvaluateBestCandidate();
+    }
+
+    #endregion
+
+    #region PhysX Triggers
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!isExplorationActive) return;
+
+        // 1. Layer Mask check
+        if (((1 << other.gameObject.layer) & interactableLayer) == 0) return;
+
+        // 2. Fetch component
+        if (other.TryGetComponent<Interactable>(out var interactable) ||
+            other.GetComponentInParent<Interactable>() is Interactable parentInteractable && (interactable = parentInteractable) != null)
+        {
+            if (nearbyCandidates.Add(interactable))
+            {
+                EvaluateBestCandidate();
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!isExplorationActive) return;
+
+        if (other.TryGetComponent<Interactable>(out var interactable) ||
+            other.GetComponentInParent<Interactable>() is Interactable parentInteractable && (interactable = parentInteractable) != null)
+        {
+            if (nearbyCandidates.Remove(interactable))
+            {
+                if (currentTarget == interactable)
+                {
+                    EvaluateBestCandidate();
+                }
+            }
+        }
     }
 
     #endregion
@@ -69,15 +119,48 @@ public class PlayerInteractionDetector : MonoBehaviour
     {
         isExplorationActive = (newState == GameManager.GameState.WorldExploration);
 
-        if (!isExplorationActive)
+        if (isExplorationActive)
         {
-            // Silent local reset when leaving exploration state
-            currentTarget = null;
+            ReevaluateInteractionArea();
+        }
+        else
+        {
+            ClearAllCandidates();
         }
     }
 
-    private void ClearInteractionTarget()
+    /// <summary>
+    /// Performs an explicit overlap query to repopulate candidate targets when returning to exploration state.
+    /// </summary>
+    public void ReevaluateInteractionArea()
     {
+        nearbyCandidates.Clear();
+
+        if (interactionTrigger == null) return;
+
+        Vector3 center = transform.TransformPoint(interactionTrigger.center);
+        float radius = interactionTrigger.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+
+        int hitCount = Physics.OverlapSphereNonAlloc(center, radius, reevaluationBuffer, interactableLayer);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider col = reevaluationBuffer[i];
+            if (col == null) continue;
+
+            if (col.TryGetComponent<Interactable>(out var interactable) ||
+                col.GetComponentInParent<Interactable>() is Interactable parentInteractable && (interactable = parentInteractable) != null)
+            {
+                nearbyCandidates.Add(interactable);
+            }
+        }
+
+        EvaluateBestCandidate();
+    }
+
+    private void ClearAllCandidates()
+    {
+        nearbyCandidates.Clear();
         if (currentTarget != null)
         {
             currentTarget = null;
@@ -87,48 +170,61 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     #endregion
 
-    #region Detection Logic
+    #region Candidate Evaluation Logic
 
     /// <summary>
-    /// Scans surrounding space for interactables and selects the best candidate aligned with player facing direction.
+    /// Evaluates nearby candidates inside the trigger and selects the closest target within the viewing angle cone.
     /// </summary>
-    private void ScanForInteractables()
+    private void EvaluateBestCandidate()
     {
-        Vector3 center = transform.position + detectionCenterOffset;
-        int hitCount = Physics.OverlapSphereNonAlloc(center, detectionRadius, hitBuffer, interactableLayer);
-
         Interactable bestCandidate = null;
         float minDistance = float.MaxValue;
+        invalidCandidatesBuffer.Clear();
 
-        for (int i = 0; i < hitCount; i++)
+        Vector3 playerForward = transform.forward;
+        playerForward.y = 0f;
+        playerForward.Normalize();
+
+        Vector3 originPos = transform.position;
+
+        foreach (var interactable in nearbyCandidates)
         {
-            Collider col = hitBuffer[i];
-            if (col == null) continue;
-
-            if (col.TryGetComponent<Interactable>(out var interactable))
+            if (interactable == null || !interactable.gameObject.activeInHierarchy)
             {
-                Vector3 directionToTarget = (interactable.transform.position - transform.position).normalized;
-                directionToTarget.y = 0f; // Ignore vertical height difference for angle calculation
+                invalidCandidatesBuffer.Add(interactable);
+                continue;
+            }
 
-                Vector3 playerForward = transform.forward;
-                playerForward.y = 0f;
+            Vector3 targetPos = interactable.transform.position;
+            Vector3 directionToTarget = new Vector3(targetPos.x - originPos.x, 0f, targetPos.z - originPos.z);
 
-                float angle = Vector3.Angle(playerForward, directionToTarget);
+            if (directionToTarget.sqrMagnitude < 0.0001f)
+            {
+                directionToTarget = playerForward;
+            }
+            else
+            {
+                directionToTarget.Normalize();
+            }
 
-                // Check if target is within acceptable forward viewing cone
-                if (angle <= maxInteractionAngle)
+            float angle = Vector3.Angle(playerForward, directionToTarget);
+
+            if (angle <= maxInteractionAngle)
+            {
+                float distance = Vector3.Distance(new Vector3(originPos.x, 0, originPos.z), new Vector3(targetPos.x, 0, targetPos.z));
+                if (distance < minDistance)
                 {
-                    float distance = Vector3.Distance(transform.position, interactable.transform.position);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        bestCandidate = interactable;
-                    }
+                    minDistance = distance;
+                    bestCandidate = interactable;
                 }
             }
         }
 
-        // Notify subscribers via global event architecture if target reference changes
+        for (int i = 0; i < invalidCandidatesBuffer.Count; i++)
+        {
+            nearbyCandidates.Remove(invalidCandidatesBuffer[i]);
+        }
+
         if (currentTarget != bestCandidate)
         {
             currentTarget = bestCandidate;
@@ -140,23 +236,30 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     #region Gizmos & Debugging
 
+#if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        Vector3 center = transform.position + detectionCenterOffset;
+        if (interactionTrigger == null) interactionTrigger = GetComponent<SphereCollider>();
 
-        // Draw detection sphere radius
+        Vector3 center = transform.position;
+        float radius = interactionTrigger != null ? interactionTrigger.radius : 1.5f;
+
         Gizmos.color = new Color(0f, 1f, 0.5f, 0.25f);
-        Gizmos.DrawWireSphere(center, detectionRadius);
+        Gizmos.DrawWireSphere(center, radius);
 
-        // Draw forward viewing angle cone lines
-        Vector3 leftBound = Quaternion.Euler(0, -maxInteractionAngle, 0) * transform.forward;
-        Vector3 rightBound = Quaternion.Euler(0, maxInteractionAngle, 0) * transform.forward;
+        Vector3 forwardDir = transform.forward;
+        forwardDir.y = 0f;
+        forwardDir.Normalize();
+
+        Vector3 leftBound = Quaternion.Euler(0, -maxInteractionAngle, 0) * forwardDir;
+        Vector3 rightBound = Quaternion.Euler(0, maxInteractionAngle, 0) * forwardDir;
 
         Gizmos.color = Color.cyan;
-        Gizmos.DrawRay(center, leftBound * detectionRadius);
+        Gizmos.DrawRay(center, leftBound * radius);
         Gizmos.color = Color.cyan;
-        Gizmos.DrawRay(center, rightBound * detectionRadius);
+        Gizmos.DrawRay(center, rightBound * radius);
     }
+#endif
 
     #endregion
 }

@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         playerAnim = GetComponent<Animator>();
-        interactionDetector = GetComponent<PlayerInteractionDetector>();
+        interactionDetector = GetComponentInChildren<PlayerInteractionDetector>();
         footstepEmitter = GetComponent<FootstepAudioEmitter>();
 
         currentStamina = maxStamina;
