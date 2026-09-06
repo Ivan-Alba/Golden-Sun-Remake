@@ -29,6 +29,7 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private Interactable currentTarget;
     private bool isExplorationActive = true;
+    private bool isAiming = false;
 
     #endregion
 
@@ -57,17 +58,19 @@ public class PlayerInteractionDetector : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+        GameEvents.Player.OnAimStateChanged += HandleAimStateChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.Player.OnAimStateChanged -= HandleAimStateChanged;
         ClearAllCandidates();
     }
 
     private void Update()
     {
-        if (!isExplorationActive) return;
+        if (!isExplorationActive || isAiming) return;
 
         EvaluateBestCandidate();
     }
@@ -78,7 +81,7 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!isExplorationActive) return;
+        if (!isExplorationActive || isAiming) return;
 
         // 1. Layer Mask check
         if (((1 << other.gameObject.layer) & interactableLayer) == 0) return;
@@ -119,13 +122,27 @@ public class PlayerInteractionDetector : MonoBehaviour
     {
         isExplorationActive = (newState == GameManager.GameState.WorldExploration);
 
-        if (isExplorationActive)
+        if (isExplorationActive && !isAiming)
         {
             ReevaluateInteractionArea();
         }
         else
         {
             ClearAllCandidates();
+        }
+    }
+
+    private void HandleAimStateChanged(bool aiming)
+    {
+        isAiming = aiming;
+
+        if (isAiming)
+        {
+            ClearAllCandidates();
+        }
+        else if (isExplorationActive)
+        {
+            ReevaluateInteractionArea();
         }
     }
 

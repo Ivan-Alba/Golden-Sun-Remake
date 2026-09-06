@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Localization.Plugins.XLIFF.Common;
 using UnityEngine;
 
 public static class GameEvents
@@ -366,6 +365,14 @@ public static class GameEvents
         public static event Action OnHeroStatusChanged;
         public static void TriggerHeroStatusChanged()
             => OnHeroStatusChanged?.Invoke();
+
+        /// <summary>
+        /// Triggered whenever the player enters or exits the Aiming state.
+        /// Params: isAiming
+        /// </summary>
+        public static event Action<bool> OnAimStateChanged;
+        public static void TriggerAimStateChanged(bool isAiming)
+            => OnAimStateChanged?.Invoke(isAiming);
     }
 
     // ==========================================

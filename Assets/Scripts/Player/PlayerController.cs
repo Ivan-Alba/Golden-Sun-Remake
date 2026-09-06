@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
     private Animator playerAnim;
     private FootstepAudioEmitter footstepEmitter;
     private CinemachinePanTilt aimPanTilt;
-    private PlayerInteractionDetector interactionDetector;
+    private Interactable interactionCurrentTarget;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
@@ -74,7 +74,6 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         playerAnim = GetComponent<Animator>();
-        interactionDetector = GetComponentInChildren<PlayerInteractionDetector>();
         footstepEmitter = GetComponent<FootstepAudioEmitter>();
 
         currentStamina = maxStamina;
@@ -106,6 +105,7 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.OnRequestLookAt += HandleRequestLookAt;
         GameEvents.Player.OnRequestAutoWalk += HandleRequestAutoWalk;
         GameEvents.Player.OnRequestStopAutoWalk += HandleRequestStopAutoWalk;
+        GameEvents.World.OnInteractableTargetChanged += HandleInteractableTargetChanged;
     }
 
     private void OnDisable()
@@ -118,6 +118,7 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.OnRequestLookAt -= HandleRequestLookAt;
         GameEvents.Player.OnRequestAutoWalk -= HandleRequestAutoWalk;
         GameEvents.Player.OnRequestStopAutoWalk -= HandleRequestStopAutoWalk;
+        GameEvents.World.OnInteractableTargetChanged -= HandleInteractableTargetChanged;
 
         StopAutoWalk();
 
@@ -236,6 +237,11 @@ public class PlayerController : MonoBehaviour
         rotateCoroutine = null;
     }
 
+    private void HandleInteractableTargetChanged(Interactable target)
+    {
+        interactionCurrentTarget = target;
+    }
+
     #endregion
 
     #region Input Subscriptions
@@ -283,9 +289,9 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsAiming)) return;
 
-        if (interactionDetector != null && interactionDetector.CurrentTarget != null)
+        if (interactionCurrentTarget != null)
         {
-            interactionDetector.CurrentTarget.Interact();
+            interactionCurrentTarget.Interact();
         }
     }
 
@@ -543,6 +549,8 @@ public class PlayerController : MonoBehaviour
         {
             aimingScript.enabled = true;
         }
+
+        GameEvents.Player.TriggerAimStateChanged(true);
     }
 
     private void StopAiming()
@@ -569,6 +577,7 @@ public class PlayerController : MonoBehaviour
         }
 
         GameEvents.UI.RequestSetAimUIVisible(false);
+        GameEvents.Player.TriggerAimStateChanged(false);
     }
 
     private void HandleAimRotation()
