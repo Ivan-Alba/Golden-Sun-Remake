@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,7 +8,7 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Controls the main menu UI overlay, handling tab navigation (Status, Items, Psynergy, Djinn, Encyclopedia),
 /// hero selection, sub-page controllers lifecycle, and header data refresh.
-/// Reacts to decoupled input commands via GameEvents.Input and GameEvents.GameState.
+/// Reacts to decoupled input commands via GameEvents.Input, GameEvents.Party, GameEvents.GameState, and GameEvents.Economy.
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
@@ -59,7 +60,6 @@ public class MainMenuController : MonoBehaviour
     private Label labelGold;
     private Label labelLocation;
     private Label labelTime;
-    private float timeUpdateTimer = 0f;
 
     // Content Area
     private VisualElement pageContent;
@@ -97,6 +97,13 @@ public class MainMenuController : MonoBehaviour
     private int selectedHeroIndex = 0;
     private bool isMenuOpen = false;
 
+    // Local Cache State
+    private IReadOnlyList<GameObject> _cachedActiveParty;
+    private GameManager.GameState _cachedGameState;
+    private int _cachedGold;
+    private float _cachedPlayTime;
+    private int _lastDisplayedSecond = -1;
+
     // CSS Active Class Name (Matches MainMenu.uss)
     private const string ACTIVE_CLASS = "active";
 
@@ -132,20 +139,21 @@ public class MainMenuController : MonoBehaviour
 
     private void Update()
     {
-        if (!isMenuOpen || GameManager.Instance == null || labelTime == null) return;
+        if (!isMenuOpen || labelTime == null) return;
 
-        timeUpdateTimer += Time.deltaTime;
+        _cachedPlayTime += Time.unscaledDeltaTime;
+        int currentSecond = Mathf.FloorToInt(_cachedPlayTime);
 
-        if (timeUpdateTimer >= 1.0f)
+        if (currentSecond != _lastDisplayedSecond)
         {
-            timeUpdateTimer = 0f;
+            _lastDisplayedSecond = currentSecond;
             UpdatePlayTimeText();
         }
     }
 
     private void UpdatePlayTimeText()
     {
-        TimeSpan timeSpan = TimeSpan.FromSeconds(GameManager.Instance.TotalPlayed);
+        TimeSpan timeSpan = TimeSpan.FromSeconds(_cachedPlayTime);
         labelTime.text = string.Format("{0:D2}:{1:D2}:{2:D2}", (int)timeSpan.TotalHours, timeSpan.Minutes, timeSpan.Seconds);
     }
 
@@ -245,6 +253,10 @@ public class MainMenuController : MonoBehaviour
         GameEvents.Input.OnMenuCancelPressed += HandleCancelInput;
         GameEvents.Input.OnMenuNextHeroPressed += HandleNextHero;
         GameEvents.Input.OnMenuPreviousHeroPressed += HandlePreviousHero;
+
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
+        GameEvents.Party.OnGoldChanged += HandleGoldChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void UnsubscribeFromInputEvents()
@@ -255,13 +267,41 @@ public class MainMenuController : MonoBehaviour
         GameEvents.Input.OnMenuCancelPressed -= HandleCancelInput;
         GameEvents.Input.OnMenuNextHeroPressed -= HandleNextHero;
         GameEvents.Input.OnMenuPreviousHeroPressed -= HandlePreviousHero;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnGoldChanged -= HandleGoldChanged;
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
+    }
+
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
+    {
+        _cachedActiveParty = activeParty;
+        if (isMenuOpen)
+        {
+            RefreshGlobalHeaderInfo();
+            RefreshActiveTabHeroData();
+        }
+    }
+
+    private void HandleGoldChanged(int newGold)
+    {
+        _cachedGold = newGold;
+        if (isMenuOpen && labelGold != null)
+        {
+            labelGold.text = $"{_cachedGold:N0} Monedas";
+        }
     }
 
     private void HandleToggleMenuInput()
     {
         if (!isMenuOpen)
         {
-            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration)
+            if (_cachedGameState == GameManager.GameState.WorldExploration)
             {
                 SetMenuVisibility(true);
             }
@@ -301,17 +341,27 @@ public class MainMenuController : MonoBehaviour
         isMenuOpen = visible;
         rootElement.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 
-        if (GameManager.Instance != null)
-        {
-            GameEvents.GameState.RequestGameStateChange(visible ? GameManager.GameState.InMenu : GameManager.GameState.WorldExploration);
-        }
+        GameEvents.GameState.RequestGameStateChange(visible ? GameManager.GameState.InMenu : GameManager.GameState.WorldExploration);
 
         if (visible)
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
 
-            timeUpdateTimer = 0f;
-            UpdatePlayTimeText();
+            _lastDisplayedSecond = -1;
+
+            // Fetch current play time via callback once upon opening menu
+            GameEvents.GameState.RequestPlayTime(time =>
+            {
+                _cachedPlayTime = time;
+                UpdatePlayTimeText();
+            });
+
+            // Fetch current gold via callback if opening fresh
+            GameEvents.Party.RequestGold(gold =>
+            {
+                _cachedGold = gold;
+                if (labelGold != null) labelGold.text = $"{_cachedGold:N0} Monedas";
+            });
 
             RefreshGlobalHeaderInfo();
             SelectTab(currentTab, playSound: false);
@@ -582,17 +632,13 @@ public class MainMenuController : MonoBehaviour
     private List<HeroStats> GetPartyHeroStatsList()
     {
         List<HeroStats> partyHeroStats = new List<HeroStats>();
-        if (GameManager.Instance != null)
+        if (_cachedActiveParty != null)
         {
-            List<GameObject> partyGameObjects = GameManager.Instance.GetParty();
-            if (partyGameObjects != null)
+            foreach (GameObject memberObj in _cachedActiveParty)
             {
-                foreach (GameObject memberObj in partyGameObjects)
+                if (memberObj != null && memberObj.TryGetComponent<HeroStats>(out HeroStats heroStats))
                 {
-                    if (memberObj != null && memberObj.TryGetComponent<HeroStats>(out HeroStats heroStats))
-                    {
-                        partyHeroStats.Add(heroStats);
-                    }
+                    partyHeroStats.Add(heroStats);
                 }
             }
         }
@@ -601,12 +647,9 @@ public class MainMenuController : MonoBehaviour
 
     private T GetPartyMemberComponent<T>(int index) where T : Component
     {
-        if (GameManager.Instance == null) return null;
-
-        List<GameObject> party = GameManager.Instance.GetParty();
-        if (party != null && index >= 0 && index < party.Count)
+        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
         {
-            GameObject memberObj = party[index];
+            GameObject memberObj = _cachedActiveParty[index];
             if (memberObj != null && memberObj.TryGetComponent<T>(out T component))
             {
                 return component;
@@ -617,12 +660,9 @@ public class MainMenuController : MonoBehaviour
 
     private GameObject GetPartyMemberGameObject(int index)
     {
-        if (GameManager.Instance == null) return null;
-
-        List<GameObject> party = GameManager.Instance.GetParty();
-        if (party != null && index >= 0 && index < party.Count)
+        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
         {
-            return party[index];
+            return _cachedActiveParty[index];
         }
         return null;
     }
@@ -633,11 +673,9 @@ public class MainMenuController : MonoBehaviour
 
     private void RefreshGlobalHeaderInfo()
     {
-        if (GameManager.Instance == null) return;
-
         if (labelGold != null)
         {
-            labelGold.text = $"{GameManager.Instance.TotalGold:N0} Monedas";
+            labelGold.text = $"{_cachedGold:N0} Monedas";
         }
 
         if (labelLocation != null)

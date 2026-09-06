@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Controls item routing, backpack distribution, and global bag operations for the active party.
-/// Listens exclusively to GameEvents.Inventory for decoupled transactional messaging with zero GC allocations.
+/// Listens exclusively to GameEvents (Inventory & Party) for decoupled transactional messaging with zero GC allocations.
 /// </summary>
 public class InventoryController : MonoBehaviour
 {
@@ -13,6 +13,12 @@ public class InventoryController : MonoBehaviour
     [Header("Active Party References")]
     [Tooltip("List of registered hero inventories corresponding to the active party members.")]
     [SerializeField] private List<HeroInventory> partyInventories = new List<HeroInventory>();
+
+    #endregion
+
+    #region Private Local Cache State
+
+    private GameObject _currentActiveHero;
 
     #endregion
 
@@ -26,12 +32,16 @@ public class InventoryController : MonoBehaviour
 
     private void OnEnable()
     {
+        // Inventory Requests
         GameEvents.Inventory.OnRequestAddItem += HandleRequestAddItem;
         GameEvents.Inventory.OnRequestRemoveItem += HandleRequestRemoveItem;
         GameEvents.Inventory.OnCheckHasItem += HandleCheckHasItem;
-        GameEvents.Inventory.OnSyncWithPartyRequested += SyncWithParty;
         GameEvents.Inventory.OnClearAllInventoriesRequested += ClearAllInventories;
         GameEvents.Inventory.OnAllItemsRequested += AllItems;
+
+        // Party Domain Subscriptions
+        GameEvents.Party.OnPartyChanged += SyncWithParty;
+        GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
     }
 
     private void OnDisable()
@@ -39,14 +49,21 @@ public class InventoryController : MonoBehaviour
         GameEvents.Inventory.OnRequestAddItem -= HandleRequestAddItem;
         GameEvents.Inventory.OnRequestRemoveItem -= HandleRequestRemoveItem;
         GameEvents.Inventory.OnCheckHasItem -= HandleCheckHasItem;
-        GameEvents.Inventory.OnSyncWithPartyRequested -= SyncWithParty;
         GameEvents.Inventory.OnClearAllInventoriesRequested -= ClearAllInventories;
         GameEvents.Inventory.OnAllItemsRequested -= AllItems;
+
+        GameEvents.Party.OnPartyChanged -= SyncWithParty;
+        GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
     }
 
     #endregion
 
     #region Event Handlers
+
+    private void HandleActiveHeroChanged(GameObject newActiveHero)
+    {
+        _currentActiveHero = newActiveHero;
+    }
 
     private void HandleRequestAddItem(ItemSO itemData, int quantity, Action<int> onResult)
     {
@@ -71,20 +88,17 @@ public class InventoryController : MonoBehaviour
     #region Party Registration
 
     /// <summary>
-    /// Rebuilds the active party inventory list based on the current active heroes in GameManager.
+    /// Automatically rebuilds the active party inventory list when GameEvents.Party.OnPartyChanged fires.
     /// </summary>
-    private void SyncWithParty()
+    private void SyncWithParty(IReadOnlyList<GameObject> activeParty)
     {
         partyInventories.Clear();
 
-        if (GameManager.Instance == null) return;
+        if (activeParty == null || activeParty.Count == 0) return;
 
-        var partyList = GameManager.Instance.GetParty();
-        if (partyList == null) return;
-
-        for (int i = 0; i < partyList.Count; i++)
+        for (int i = 0; i < activeParty.Count; i++)
         {
-            GameObject heroObj = partyList[i];
+            GameObject heroObj = activeParty[i];
             if (heroObj != null && heroObj.TryGetComponent<HeroInventory>(out var heroInv))
             {
                 RegisterHeroInventory(heroInv);
@@ -213,19 +227,17 @@ public class InventoryController : MonoBehaviour
     }
 
     /// <summary>
-    /// Helper method to find the list index of the currently active hero's inventory.
+    /// Helper method to find the list index of the currently active hero's inventory without calling GameManager.
     /// </summary>
     private int GetActiveHeroInventoryIndex()
     {
-        if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
+        if (_currentActiveHero != null && _currentActiveHero.TryGetComponent<HeroInventory>(out var activeInv))
         {
-            if (GameManager.Instance.ActiveHero.TryGetComponent<HeroInventory>(out var activeInv))
-            {
-                int index = partyInventories.IndexOf(activeInv);
-                if (index != -1) return index;
-            }
+            int index = partyInventories.IndexOf(activeInv);
+            if (index != -1) return index;
         }
-        return 0; // Default to first hero if active hero is not found
+
+        return 0; // Default to first hero in party if active hero is not found or null
     }
 
     /// <summary>

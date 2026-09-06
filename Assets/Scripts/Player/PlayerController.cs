@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 currentMoveInput;
     private bool isRunningInput;
     private PlayerMovementState currentMovementState = PlayerMovementState.FreeExploration;
-    private GameManager.GameState currentGameState = GameManager.GameState.TitleScreen;
+    private GameManager.GameState currentGameState = GameManager.GameState.None;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
@@ -106,7 +106,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
-        GameEvents.Player.TriggerHeroStatusChanged();
+        GameEvents.Hero.TriggerHeroStatusChanged();
 
         if (firstPersonCamera != null)
         {
@@ -250,12 +250,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ChangeActiveHero(heroIndex);
-        }
-
-        GameEvents.Player.TriggerHeroStatusChanged();
+        GameEvents.Party.RequestActiveHeroIndexChange(heroIndex);
     }
 
     private void HandleInteraction()

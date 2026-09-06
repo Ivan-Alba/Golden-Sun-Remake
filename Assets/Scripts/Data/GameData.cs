@@ -1,12 +1,84 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
-#region Inventory & Equipment DTOs
+#region Save Header DTOs
 
-[System.Serializable]
+/// <summary>
+/// Lightweight preview DTO storing hero info for save slot selection UI cards.
+/// </summary>
+[Serializable]
+public class HeroPreviewData
+{
+    public string heroName;
+    public int level;
+
+    public HeroPreviewData() { }
+
+    public HeroPreviewData(string name, int lvl)
+    {
+        heroName = name;
+        level = lvl;
+    }
+}
+
+/// <summary>
+/// Lightweight metadata header container used by UI to list save slots without loading full game states.
+/// Includes encoded thumbnail image for modern UI save cards.
+/// </summary>
+[Serializable]
+public class SaveHeaderData
+{
+    public int saveSlotIndex;
+    public string saveTimestamp;
+    public float totalTime;
+    public int totalGold;
+    public string locationName;
+    public string saveThumbnailBase64;
+    public List<HeroPreviewData> partyPreview = new List<HeroPreviewData>();
+}
+
+#endregion
+
+#region World & Scene State DTOs
+
+/// <summary>
+/// Container holding deterministic player spawn positioning and target scene data.
+/// </summary>
+[Serializable]
+public class WorldSceneStateData
+{
+    public string currentSceneName;
+    public string spawnPointID;
+    public float[] playerPosition = new float[3];
+    public float[] playerRotation = new float[3];
+    public string currentZoneName;
+    public string currentRegionName;
+    public bool isAutoSave;
+}
+
+#endregion
+
+#region Party & Progression DTOs
+
+/// <summary>
+/// Container storing active party members, reserve/inactive heroes, and the current overworld leader hero.
+/// </summary>
+[Serializable]
+public class PartyProgressionData
+{
+    public string activeLeaderHeroName;
+    public List<string> partyMemberNames = new List<string>();
+    public List<string> reserveHeroNames = new List<string>();
+}
+
+#endregion
+
+#region Inventory & Equipment Data Transfer Objects (DTOs)
+
+/// <summary>
+/// Serializable DTO representing a single item slot in backpacks or global key bag.
+/// </summary>
+[Serializable]
 public class InventorySlotData
 {
     public string itemSlug;
@@ -21,21 +93,30 @@ public class InventorySlotData
     }
 }
 
-[System.Serializable]
+/// <summary>
+/// Serializable DTO storing backpack slots for a specific party hero.
+/// </summary>
+[Serializable]
 public class HeroInventoryData
 {
     public string heroName;
     public List<InventorySlotData> slots = new List<InventorySlotData>();
 }
 
-[System.Serializable]
+/// <summary>
+/// Serializable DTO for standard equipment slots (Weapon, Armor, Helm, Shield, Boots, Ring).
+/// </summary>
+[Serializable]
 public class EquipmentSlotData
 {
     public EquipmentSlot slotType;
     public string itemSlug;
 }
 
-[System.Serializable]
+/// <summary>
+/// Serializable DTO storing equipped items and Psynergy Relics for a specific hero.
+/// </summary>
+[Serializable]
 public class HeroEquipmentData
 {
     public string heroName;
@@ -45,178 +126,182 @@ public class HeroEquipmentData
 
 #endregion
 
-[System.Serializable]
+#region Hero Stats & Psynergy DTOs
+
+/// <summary>
+/// Serializable DTO storing level and experience progression for a hero.
+/// </summary>
+[Serializable]
+public class HeroProgressionData
+{
+    public string heroName;
+    public int level;
+    public int currentXp;
+    public int nextLevelXp;
+}
+
+/// <summary>
+/// Serializable DTO storing current Health (HP) and Psynergy Points (PP) for a hero.
+/// </summary>
+[Serializable]
+public class HeroVitalStatusData
+{
+    public string heroName;
+    public int currentHp;
+    public int currentPp;
+}
+
+/// <summary>
+/// Serializable DTO storing a single base stat entry without active modifiers or class multipliers.
+/// </summary>
+[Serializable]
+public class StatBaseData
+{
+    public StatType statType;
+    public float baseValue;
+
+    public StatBaseData() { }
+
+    public StatBaseData(StatType type, float baseVal)
+    {
+        statType = type;
+        baseValue = baseVal;
+    }
+}
+
+/// <summary>
+/// Serializable DTO storing base stats for a specific hero.
+/// </summary>
+[Serializable]
+public class HeroStatsContainerData
+{
+    public string heroName;
+    public List<StatBaseData> baseStats = new List<StatBaseData>();
+}
+
+/// <summary>
+/// Serializable DTO storing unlocked story/event Psynergies for a specific hero.
+/// </summary>
+[Serializable]
+public class HeroStoryPsynergyData
+{
+    public string heroName;
+    public List<string> unlockedStoryPsynergySlugs = new List<string>();
+}
+
+#region Golden Sun Djinn & World Flags DTOs
+
+/// <summary>
+/// Serializable DTO storing individual Djinn assignment, current operational state, and leader status.
+/// </summary>
+[Serializable]
+public class DjinnSaveData
+{
+    public string djinnSlug;
+    public string assignedHeroName;
+    public DjinnState currentState;
+    public int recoveryTurnsLeft;
+    public bool isLeader;
+
+    public DjinnSaveData() { }
+
+    public DjinnSaveData(string slug, string hero, DjinnState state, int recoveryTurns = 0, bool leader = false)
+    {
+        djinnSlug = slug;
+        assignedHeroName = hero;
+        currentState = state;
+        recoveryTurnsLeft = recoveryTurns;
+        isLeader = leader;
+    }
+}
+
+/// <summary>
+/// Serializable Key-Value DTO for story, chest, and environmental flags.
+/// </summary>
+[Serializable]
+public class GameFlagData
+{
+    public string key;
+    public bool state;
+
+    public GameFlagData() { }
+
+    public GameFlagData(string key, bool state)
+    {
+        this.key = key;
+        this.state = state;
+    }
+}
+
+#endregion
+
+/// <summary>
+/// Serializable DTO storing assigned field Psynergy shortcuts (D-Pad / Hotline) for a hero.
+/// </summary>
+[Serializable]
+public class HeroShortcutData
+{
+    public string heroName;
+    public string[] shortcutSlugs = new string[4];
+}
+
+#endregion
+
+/// <summary>
+/// Root persistent data container used for serializing and deserializing game save files to disk (JSON).
+/// </summary>
+[Serializable]
 public class GameData
 {
-    // Scene Data
-    public string currentSceneName;
-    public float[] playerPosition = new float[3];
-    public float[] playerRotation = new float[3];
+    #region Meta & Header Info
 
-    // Refactored Inventories & Equipment
-    public List<InventorySlotData> globalBagItems = new List<InventorySlotData>();
+    public SaveHeaderData header = new SaveHeaderData();
+
+    #endregion
+
+    #region World & Scene State
+
+    public WorldSceneStateData worldState = new WorldSceneStateData();
+
+    #endregion
+
+    #region Party & General Progression
+
+    public PartyProgressionData partyState = new PartyProgressionData();
+
+    #endregion
+
+    #region Inventory & Equipment Data
+
+    public List<InventorySlotData> globalBagKeyItems = new List<InventorySlotData>();
     public List<HeroInventoryData> heroesInventories = new List<HeroInventoryData>();
     public List<HeroEquipmentData> heroesEquipment = new List<HeroEquipmentData>();
 
-    // Party & Game Stats
-    public int totalGold;
-    public float totalTime;
-    public List<string> party = new List<string>();
-    public List<List<Stat>> heroStats = new List<List<Stat>>();
-    public List<int[]> heroLevelAndXp = new List<int[]>();
-    public List<int[]> heroCurrHpPp = new List<int[]>();
+    #endregion
 
-    // Psynergy Data (Stored as Slugs for Clean JSON Serialization)
-    public List<List<string>> heroPsynergySlugs = new List<List<string>>();
-    public List<KeyValuePair<string, string[]>> heroShortcuts = new List<KeyValuePair<string, string[]>>();
+    #region Hero Stats & Psynergy Data
 
-    // JSON CONSTRUCTOR
+    public List<HeroStatsContainerData> heroesStats = new List<HeroStatsContainerData>();
+    public List<HeroProgressionData> heroesProgression = new List<HeroProgressionData>();
+    public List<HeroVitalStatusData> heroesVitals = new List<HeroVitalStatusData>();
+    public List<HeroStoryPsynergyData> heroesStoryPsynergies = new List<HeroStoryPsynergyData>();
+    public List<HeroShortcutData> heroesShortcuts = new List<HeroShortcutData>();
+
+    #endregion
+
+    #region Djinn & Story Flags
+
+    public List<DjinnSaveData> collectedDjinn = new List<DjinnSaveData>();
+    public List<GameFlagData> gameFlags = new List<GameFlagData>();
+
+    #endregion
+
+    #region Constructors
+
     public GameData()
     {
-
+        // Default constructor for JSON deserialization
     }
 
-    public GameData(Transform player)
-    {
-        // ---- SCENE DATA ----
-        currentSceneName = SceneManager.GetActiveScene().name;
-
-        // Position
-        playerPosition[0] = player.position.x;
-        playerPosition[1] = player.position.y;
-        playerPosition[2] = player.position.z;
-
-        // Rotation
-        playerRotation[0] = player.rotation.eulerAngles.x;
-        playerRotation[1] = player.rotation.eulerAngles.y;
-        playerRotation[2] = player.rotation.eulerAngles.z;
-
-        // ---- GLOBAL BAG DATA ----
-        GameEvents.Inventory.RequestKeyItemSlots((keySlots) =>
-        {
-            if (keySlots == null) return;
-
-            for (int i = 0; i < keySlots.Count; i++)
-            {
-                InventorySlot slot = keySlots[i];
-                if (slot != null && !slot.IsEmpty && slot.Item != null)
-                {
-                    globalBagItems.Add(new InventorySlotData(slot.Item.ItemSlug, slot.Quantity));
-                }
-            }
-        });
-
-        // ---- GAME & PARTY DATA ----
-        if (GameManager.Instance != null)
-        {
-            totalGold = GameManager.Instance.TotalGold;
-            totalTime = GameManager.Instance.TotalPlayed;
-
-            // ---- PARTY DATA ----
-            foreach (GameObject hero in GameManager.Instance.GetParty())
-            {
-                if (hero == null) continue;
-
-                party.Add(hero.name);
-
-                if (hero.TryGetComponent<HeroStats>(out var heroStatsComponent))
-                {
-                    // Collect all Stat objects for this hero
-                    List<Stat> currentHeroStats = new List<Stat>();
-                    foreach (StatType statType in Enum.GetValues(typeof(StatType)))
-                    {
-                        Stat stat = heroStatsComponent.GetStat(statType);
-                        if (stat != null)
-                        {
-                            currentHeroStats.Add(stat);
-                        }
-                    }
-                    heroStats.Add(currentHeroStats);
-
-                    // Level and XP from HeroStats
-                    int[] xpLevel = new int[3] { heroStatsComponent.Level, heroStatsComponent.CurrentXp, heroStatsComponent.NextLevelXp };
-                    heroLevelAndXp.Add(xpLevel);
-
-                    // Current HP and PP from FighterStats/HeroStats
-                    int[] currentPpHp = new int[2] { heroStatsComponent.CurrHp, heroStatsComponent.CurrPp };
-                    heroCurrHpPp.Add(currentPpHp);
-
-                    // Convert PsynergySO list to Slugs
-                    List<string> psySlugs = heroStatsComponent.Psynergies?
-                        .Where(p => p != null)
-                        .Select(p => p.SlugName)
-                        .ToList() ?? new List<string>();
-
-                    heroPsynergySlugs.Add(psySlugs);
-                }
-
-                // Individual Backpack (HeroInventory)
-                if (hero.TryGetComponent<HeroInventory>(out var heroInventory))
-                {
-                    HeroInventoryData invData = new HeroInventoryData { heroName = hero.name };
-
-                    for (int i = 0; i < heroInventory.Slots.Count; i++)
-                    {
-                        var slot = heroInventory.Slots[i];
-                        if (!slot.IsEmpty)
-                        {
-                            invData.slots.Add(new InventorySlotData(slot.Item.ItemSlug, slot.Quantity));
-                        }
-                        else
-                        {
-                            invData.slots.Add(new InventorySlotData(null, 0));
-                        }
-                    }
-                    heroesInventories.Add(invData);
-                }
-
-                // Equipment (HeroEquipment)
-                if (hero.TryGetComponent<HeroEquipment>(out var heroEquipment))
-                {
-                    HeroEquipmentData eqData = new HeroEquipmentData { heroName = hero.name };
-
-                    foreach (var kvp in heroEquipment.EquippedItems)
-                    {
-                        if (kvp.Value != null)
-                        {
-                            eqData.standardEquipment.Add(new EquipmentSlotData
-                            {
-                                slotType = kvp.Key,
-                                itemSlug = kvp.Value.ItemSlug
-                            });
-                        }
-                    }
-
-                    foreach (var relic in heroEquipment.EquippedRelics)
-                    {
-                        eqData.relicSlugs.Add(relic != null ? relic.ItemSlug : null);
-                    }
-
-                    heroesEquipment.Add(eqData);
-                }
-            }
-        }
-
-        // ---- PSYNERGY SHORTCUTS ----
-        if (GameManager.Instance != null)
-        {
-            foreach (GameObject hero in GameManager.Instance.GetParty())
-            {
-                if (hero == null) continue;
-
-                GameEvents.Psynergy.RequestGetShortcuts(hero, shortcuts =>
-                {
-                    if (shortcuts != null)
-                    {
-                        string[] shortcutSlugs = shortcuts
-                            .Select(p => p != null ? p.SlugName : null)
-                            .ToArray();
-
-                        KeyValuePair<string, string[]> item = new KeyValuePair<string, string[]>(hero.name, shortcutSlugs);
-                        heroShortcuts.Add(item);
-                    }
-                });
-            }
-        }
-    }
+    #endregion
 }

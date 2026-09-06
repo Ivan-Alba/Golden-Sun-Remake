@@ -210,10 +210,7 @@ public class ResultsScreenController : MonoBehaviour
         }
 
         // ADD GOLD TO GAME TOTAL
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.TotalGold += goldEarned;
-        }
+        GameEvents.Party.RequestModifyGold(goldEarned);
 
         // SHOW EXIT MESSAGE
         waitingConfirmation = true;

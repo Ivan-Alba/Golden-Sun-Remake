@@ -2,34 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Represents a deterministic player spawn location within a scene.
+/// Manages static lookup registry, zone context metadata, and automated arrival sequences.
+/// </summary>
 public class SpawnPoint : MonoBehaviour
 {
     #region Static Registry ($O(1)$ Lookup)
 
-    // Global registry for all active SpawnPoints in the currently loaded scenes
+    /// <summary>
+    /// Global registry for all active SpawnPoints in the currently loaded scenes.
+    /// </summary>
     public static readonly Dictionary<string, SpawnPoint> AllSpawnPoints = new Dictionary<string, SpawnPoint>();
-
-    private void Awake()
-    {
-        if (!string.IsNullOrEmpty(spawnPointID))
-        {
-            AllSpawnPoints[spawnPointID] = this;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (!string.IsNullOrEmpty(spawnPointID) && AllSpawnPoints.ContainsKey(spawnPointID))
-        {
-            AllSpawnPoints.Remove(spawnPointID);
-        }
-    }
 
     #endregion
 
     #region Serialized Fields
 
-    [SerializeField] private string spawnPointID;
+    [Header("Identification Settings")]
+    [Tooltip("Unique string identifier used for teleportation and persistence matching.")]
+    [SerializeField] private string spawnID;
 
     [Header("Zone Identification Settings")]
     [SerializeField] private string zoneName = "ENTRADA AL BOSQUE";
@@ -45,10 +37,51 @@ public class SpawnPoint : MonoBehaviour
 
     #region Properties
 
-    public string SpawnPointID => spawnPointID;
+    public string SpawnID => spawnID;
     public string ZoneName => zoneName;
     public string RegionName => regionName;
     public bool AutoWalkOnArrival => autoWalkOnArrival;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        RegisterSpawnPoint();
+    }
+
+    private void OnDestroy()
+    {
+        UnregisterSpawnPoint();
+    }
+
+    #endregion
+
+    #region Registration Logic
+
+    private void RegisterSpawnPoint()
+    {
+        if (!string.IsNullOrEmpty(spawnID))
+        {
+            AllSpawnPoints[spawnID] = this;
+        }
+        else
+        {
+            Debug.LogWarning($"[SpawnPoint] SpawnPoint on GameObject '{gameObject.name}' has an empty spawnID!", this);
+        }
+    }
+
+    private void UnregisterSpawnPoint()
+    {
+        if (!string.IsNullOrEmpty(spawnID) && AllSpawnPoints.ContainsKey(spawnID))
+        {
+            if (AllSpawnPoints[spawnID] == this)
+            {
+                AllSpawnPoints.Remove(spawnID);
+            }
+        }
+    }
 
     #endregion
 

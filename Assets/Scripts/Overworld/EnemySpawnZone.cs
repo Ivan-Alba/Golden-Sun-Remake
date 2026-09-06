@@ -35,6 +35,9 @@ public class EnemySpawnZone : MonoBehaviour
     private Transform playerTransform;
     private float cooldownTimer;
 
+    // Local GameState cache
+    private GameManager.GameState _cachedGameState;
+
     #endregion
 
     #region Properties
@@ -45,14 +48,19 @@ public class EnemySpawnZone : MonoBehaviour
 
     #region Unity Lifecycle & Events
 
+    private void Awake()
+    {
+        CachePlayerTransform();
+    }
+
     private void OnEnable()
     {
-        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+        SubscribeToGameEvents();
     }
 
     private void OnDisable()
     {
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        UnsubscribeFromGameEvents();
     }
 
     private void Start()
@@ -81,14 +89,22 @@ public class EnemySpawnZone : MonoBehaviour
 
     #endregion
 
-    #region Event Handlers
+    #region Event Subscriptions
 
-    private void HandleActiveHeroChanged(GameObject hero)
+    private void SubscribeToGameEvents()
     {
-        if (hero != null)
-        {
-            playerTransform = hero.transform;
-        }
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+    }
+
+    private void UnsubscribeFromGameEvents()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
     }
 
     #endregion
@@ -171,15 +187,29 @@ public class EnemySpawnZone : MonoBehaviour
 
     #region Private Helper Methods
 
+    private void CachePlayerTransform()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+        }
+    }
+
     private bool IsPlayerFarEnough()
     {
-        if (playerTransform == null) return true;
+        if (playerTransform == null)
+        {
+            CachePlayerTransform();
+            if (playerTransform == null) return true;
+        }
+
         return Vector3.Distance(playerTransform.position, transform.position) > respawnDistance;
     }
 
     private bool IsWorldExplorationActive()
     {
-        return GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
+        return _cachedGameState == GameManager.GameState.WorldExploration;
     }
 
     #endregion

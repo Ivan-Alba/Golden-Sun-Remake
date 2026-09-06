@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Handles trigger-based scene transitions, managing auto-walk sequences and progressive screen fades.
-/// Decoupled from transition UI singletons while delegating scene state setup to the GameManager.
+/// Decoupled from transition UI singletons while delegating scene change requests to the Event Bus.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class SceneTeleporter : MonoBehaviour
@@ -94,15 +94,8 @@ public class SceneTeleporter : MonoBehaviour
         // 4. Wait for sequence duration (unscaled to avoid timeScale locks)
         yield return new WaitForSecondsRealtime(sequenceDuration);
 
-        // 5. Delegate scene change to GameManager to set spawn parameters and trigger transition
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ChangeScene(targetSceneName, targetSpawnID);
-        }
-        else
-        {
-            Debug.LogError($"[SceneTeleporter] Unable to change scene to '{targetSceneName}'. GameManager instance is missing.");
-        }
+        // 5. Delegate scene change via decoupled event bus
+        GameEvents.Scene.RequestChangeScene(targetSceneName, targetSpawnID);
     }
 
     #endregion

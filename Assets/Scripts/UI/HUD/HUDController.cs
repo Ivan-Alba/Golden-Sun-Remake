@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -26,6 +27,19 @@ public class HUDController : MonoBehaviour
     [Header("Minimap Setup")]
     [Tooltip("Assign the Custom RenderTexture processed by CRT_MinimapProcessed shader here.")]
     [SerializeField] private CustomRenderTexture minimapCustomRenderTexture;
+
+    #endregion
+
+    #region Private Local Cache State
+
+    // Cached active leader hero reference received via GameEvents.Party.OnActiveHeroChanged
+    private GameObject _currentActiveHero;
+
+    // Cached active party roster received via GameEvents.Party.OnPartyChanged
+    private IReadOnlyList<GameObject> _cachedActiveParty;
+
+    // Local GameState cache
+    private GameManager.GameState _cachedGameState;
 
     #endregion
 
@@ -75,8 +89,6 @@ public class HUDController : MonoBehaviour
     private VisualElement _dialoguePortraitFrame;
     private VisualElement _dialoguePortraitImg;
 
-    // TODO: Add VisualElement references for Choice Boxes (Binary Yes/No & Standard Vertical List) once added to UXML
-
     #endregion
 
     #region Unity Lifecycle & Initialization
@@ -114,10 +126,7 @@ public class HUDController : MonoBehaviour
     /// </summary>
     private void SyncInitialUIState()
     {
-        if (GameManager.Instance != null)
-        {
-            HandleGameStateChanged(GameManager.GameState.None, GameManager.Instance.CurrentState);
-        }
+        HandleGameStateChanged(GameManager.GameState.None, _cachedGameState);
 
         RefreshPartyInfo();
         RefreshShortcuts();
@@ -207,8 +216,6 @@ public class HUDController : MonoBehaviour
         _dialoguePortraitFrame = _root.Q<VisualElement>("dialogue_portrait_frame");
         _dialoguePortraitImg = _root.Q<VisualElement>("dialogue_portrait_img");
 
-        // TODO: Query choice container elements from UXML here
-
         // Query and Bind Party Cards
         InitializePartyCardControllers();
     }
@@ -256,8 +263,8 @@ public class HUDController : MonoBehaviour
         GameEvents.UI.OnShowNotification -= HandleShowNotification;
         GameEvents.UI.OnShowNotification += HandleShowNotification;
 
-        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
-        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested += SetFirstPersonViewUIVisible;
+        GameEvents.UI.OnSetFirstPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
+        GameEvents.UI.OnSetFirstPersonViewUIVisibleRequested += SetFirstPersonViewUIVisible;
 
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
         GameEvents.UI.OnUpdateDialogueRequested += UpdateDialogueUI;
@@ -266,11 +273,16 @@ public class HUDController : MonoBehaviour
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
         GameEvents.Player.OnStaminaChanged += UpdateStamina;
 
-        GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
-        GameEvents.Player.OnHeroStatusChanged += RefreshPartyInfo;
+        // GameEvents.Hero
+        GameEvents.Hero.OnHeroStatusChanged -= RefreshPartyInfo;
+        GameEvents.Hero.OnHeroStatusChanged += RefreshPartyInfo;
 
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
-        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+        // GameEvents.Party
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
+
+        GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
 
         // GameEvents.Fighter
         GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
@@ -293,13 +305,16 @@ public class HUDController : MonoBehaviour
 
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowNotification -= HandleShowNotification;
-        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
+        GameEvents.UI.OnSetFirstPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
 
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
 
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
-        GameEvents.Player.OnHeroStatusChanged -= RefreshPartyInfo;
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+
+        GameEvents.Hero.OnHeroStatusChanged -= RefreshPartyInfo;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
 
         GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
         GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
@@ -314,6 +329,8 @@ public class HUDController : MonoBehaviour
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
+        _cachedGameState = newState;
+
         switch (newState)
         {
             case GameManager.GameState.WorldExploration:
@@ -351,8 +368,15 @@ public class HUDController : MonoBehaviour
         }
     }
 
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
+    {
+        _cachedActiveParty = activeParty;
+        RefreshPartyInfo();
+    }
+
     private void HandleActiveHeroChanged(GameObject activeHero)
     {
+        _currentActiveHero = activeHero;
         RefreshPartyInfo();
         RefreshShortcuts();
     }
@@ -366,10 +390,9 @@ public class HUDController : MonoBehaviour
 
     private void HandleFighterResourceChanged(GameObject fighterObj, int current, int max)
     {
-        if (GameManager.Instance == null || fighterObj == null) return;
+        if (fighterObj == null || _cachedActiveParty == null) return;
 
-        List<GameObject> party = GameManager.Instance.GetParty();
-        if (party != null && party.Contains(fighterObj))
+        if (_cachedActiveParty.Contains(fighterObj))
         {
             RefreshPartyInfo();
         }
@@ -377,10 +400,9 @@ public class HUDController : MonoBehaviour
 
     private void HandleFighterDied(GameObject fighterObj)
     {
-        if (GameManager.Instance == null || fighterObj == null) return;
+        if (fighterObj == null || _cachedActiveParty == null) return;
 
-        List<GameObject> party = GameManager.Instance.GetParty();
-        if (party != null && party.Contains(fighterObj))
+        if (_cachedActiveParty.Contains(fighterObj))
         {
             RefreshPartyInfo();
         }
@@ -505,13 +527,6 @@ public class HUDController : MonoBehaviour
                 _dialoguePortraitFrame.style.display = DisplayStyle.None;
             }
         }
-
-        // TODO: Handle rendering choices UI based on choiceType and choices list
-        // e.g., Display Binary Yes/No UI or generate a dynamic vertical button list
-        if (choices != null && choices.Count > 0)
-        {
-            // Pending UXML elements creation for options container
-        }
     }
 
     #endregion
@@ -533,7 +548,7 @@ public class HUDController : MonoBehaviour
 
     private void SetStaminaBarVisible(bool visible)
     {
-        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration) return;
+        if (_cachedGameState != GameManager.GameState.WorldExploration) return;
 
         if (_staminaBarBackground != null)
         {
@@ -547,21 +562,16 @@ public class HUDController : MonoBehaviour
 
     private void RefreshPartyInfo()
     {
-        if (GameManager.Instance == null) return;
-
-        List<GameObject> party = GameManager.Instance.GetParty();
-        GameObject activeHero = GameManager.Instance.ActiveHero;
-
-        if (party == null || party.Count == 0) return;
+        if (_cachedActiveParty == null || _cachedActiveParty.Count == 0) return;
 
         for (int i = 0; i < _partyCardPresenters.Count; i++)
         {
-            if (i < party.Count && party[i] != null)
+            if (i < _cachedActiveParty.Count && _cachedActiveParty[i] != null)
             {
-                HeroStats stats = party[i].GetComponent<HeroStats>();
-                bool isActive = (party[i] == activeHero);
+                HeroStats stats = _cachedActiveParty[i].GetComponent<HeroStats>();
+                bool isActive = (_cachedActiveParty[i] == _currentActiveHero);
 
-                _partyCardPresenters[i].UpdateData(stats, party[i].name, keyNumber: i + 1, isActiveHero: isActive);
+                _partyCardPresenters[i].UpdateData(stats, _cachedActiveParty[i].name, keyNumber: i + 1, isActiveHero: isActive);
             }
             else
             {
@@ -576,7 +586,7 @@ public class HUDController : MonoBehaviour
 
     private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
     {
-        if (GameManager.Instance != null && GameManager.Instance.ActiveHero == hero)
+        if (_currentActiveHero != null && _currentActiveHero == hero)
         {
             UpdateShortcutsUI(shortcuts);
         }
@@ -584,10 +594,10 @@ public class HUDController : MonoBehaviour
 
     private void RefreshShortcuts()
     {
-        if (GameManager.Instance != null && GameManager.Instance.ActiveHero != null)
+        if (_currentActiveHero != null)
         {
             GameEvents.Psynergy.RequestGetShortcuts(
-                GameManager.Instance.ActiveHero,
+                _currentActiveHero,
                 shortcuts => UpdateShortcutsUI(shortcuts)
             );
         }
@@ -632,8 +642,7 @@ public class HUDController : MonoBehaviour
 
     private void SetFirstPersonViewUIVisible(bool visible)
     {
-        // TODO: Optional First Person / Inspection view HUD overlays (e.g., lens vignette, zoom levels or crosshair).
-        // Currently left empty to maintain a clean inspection view during world exploration.
+        // Reserved for first person overlays
     }
 
     #endregion

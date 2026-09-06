@@ -39,6 +39,9 @@ public class EnemyDetector : MonoBehaviour
     private Collider enemyTouched;
     private bool battleLaunched;
 
+    // Local GameState cache
+    private GameManager.GameState _cachedGameState;
+
     #endregion
 
     #region Unity Lifecycle
@@ -52,6 +55,36 @@ public class EnemyDetector : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        SubscribeToGameEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromGameEvents();
+    }
+
+    #endregion
+
+    #region Event Subscriptions & Handlers
+
+    private void SubscribeToGameEvents()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+    }
+
+    private void UnsubscribeFromGameEvents()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (battleLaunched) return;
@@ -60,7 +93,7 @@ public class EnemyDetector : MonoBehaviour
         if (!other.TryGetComponent<OverworldEnemyAI>(out _) && !other.TryGetComponent<EnemyStats>(out _))
             return;
 
-        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.WorldExploration)
+        if (_cachedGameState != GameManager.GameState.WorldExploration)
             return;
 
         ExecuteEncounterTrigger(other);

@@ -98,14 +98,14 @@ public class PlayerVisualManager : MonoBehaviour
 
     private void OnEnable()
     {
-        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+        GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested += SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
     }
 
     private void OnDisable()
     {
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested -= SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
     }

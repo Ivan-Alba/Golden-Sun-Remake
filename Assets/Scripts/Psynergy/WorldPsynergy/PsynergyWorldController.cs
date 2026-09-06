@@ -4,14 +4,18 @@ using UnityEngine;
 
 /// <summary>
 /// Manages assigned Psynergy shortcuts for each hero and handles execution of world Psynergies.
-/// Reacts to requests via GameEvents.Psynergy.
+/// Reacts to requests via GameEvents.Psynergy and GameEvents.Party.
 /// </summary>
 public class PsynergyWorldController : MonoBehaviour
 {
     #region Private Fields
 
     // Stores up to 4 shortcut slots per hero (0: Up, 1: Down, 2: Left, 3: Right)
-    private Dictionary<GameObject, PsynergySO[]> heroShortcuts = new Dictionary<GameObject, PsynergySO[]>();
+    private readonly Dictionary<GameObject, PsynergySO[]> heroShortcuts = new Dictionary<GameObject, PsynergySO[]>();
+
+    // Local state caches
+    private IReadOnlyList<GameObject> _cachedActiveParty;
+    private GameObject _currentActiveHero;
 
     #endregion
 
@@ -23,7 +27,8 @@ public class PsynergyWorldController : MonoBehaviour
         GameEvents.Psynergy.OnGetShortcutsRequested += HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested += HandleUseShortcutRequested;
         GameEvents.Psynergy.OnPsynergyLost += HandleHeroLostPsynergy;
-        GameEvents.Player.OnActiveHeroChanged += HandleActiveHeroChanged;
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
+        GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
     }
 
     private void OnDisable()
@@ -32,27 +37,21 @@ public class PsynergyWorldController : MonoBehaviour
         GameEvents.Psynergy.OnGetShortcutsRequested -= HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested -= HandleUseShortcutRequested;
         GameEvents.Psynergy.OnPsynergyLost -= HandleHeroLostPsynergy;
-        GameEvents.Player.OnActiveHeroChanged -= HandleActiveHeroChanged;
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
     }
 
-    private void Start()
+    #endregion
+
+    #region Event Handlers & Request Processors
+
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
     {
-        Initialize();
-    }
+        _cachedActiveParty = activeParty;
 
-    /// <summary>
-    /// Resets all shortcut data and initializes empty slots for the current party.
-    /// </summary>
-    private void Initialize()
-    {
-        heroShortcuts.Clear();
+        if (_cachedActiveParty == null || _cachedActiveParty.Count == 0) return;
 
-        if (GameManager.Instance == null) return;
-
-        List<GameObject> party = GameManager.Instance.GetParty();
-        if (party == null || party.Count == 0) return;
-
-        foreach (GameObject hero in party)
+        foreach (GameObject hero in _cachedActiveParty)
         {
             if (hero == null) continue;
 
@@ -61,22 +60,15 @@ public class PsynergyWorldController : MonoBehaviour
                 heroShortcuts.Add(hero, new PsynergySO[4]);
             }
         }
-
-        if (GameManager.Instance.ActiveHero != null)
-        {
-            NotifyShortcutsChanged(GameManager.Instance.ActiveHero);
-        }
     }
-
-    #endregion
-
-    #region Event Handlers & Request Processors
 
     private void HandleActiveHeroChanged(GameObject activeHero)
     {
-        if (activeHero != null)
+        _currentActiveHero = activeHero;
+
+        if (_currentActiveHero != null)
         {
-            NotifyShortcutsChanged(activeHero);
+            NotifyShortcutsChanged(_currentActiveHero);
         }
     }
 
@@ -96,10 +88,6 @@ public class PsynergyWorldController : MonoBehaviour
         UsePsynergy(slotIndex, target);
     }
 
-    /// <summary>
-    /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
-    /// Filters early if the lost psynergy is not usable in the world.
-    /// </summary>
     /// <summary>
     /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
     /// Filters early if the lost psynergy is not usable in the world.
@@ -178,11 +166,10 @@ public class PsynergyWorldController : MonoBehaviour
     /// </summary>
     private void UsePsynergy(int slotIndex, IPsynergyTargetable target)
     {
-        if (GameManager.Instance == null || GameManager.Instance.ActiveHero == null) return;
+        if (_currentActiveHero == null) return;
         if (slotIndex < 0 || slotIndex >= 4) return;
 
-        GameObject activeHero = GameManager.Instance.ActiveHero;
-        PsynergySO[] shortcuts = GetShortcuts(activeHero);
+        PsynergySO[] shortcuts = GetShortcuts(_currentActiveHero);
         PsynergySO usedPsynergy = shortcuts[slotIndex];
 
         if (usedPsynergy == null) return;
@@ -191,11 +178,11 @@ public class PsynergyWorldController : MonoBehaviour
         {
             Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.SlugName} on target.");
 
-            bool success = target.ExecutePsynergy(usedPsynergy, activeHero);
+            bool success = target.ExecutePsynergy(usedPsynergy, _currentActiveHero);
             if (success)
             {
                 Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
-                GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, activeHero.transform);
+                GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, _currentActiveHero.transform);
             }
             else
             {
@@ -205,7 +192,7 @@ public class PsynergyWorldController : MonoBehaviour
         else
         {
             Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} without an active target.");
-            GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, activeHero.transform);
+            GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, _currentActiveHero.transform);
         }
     }
 

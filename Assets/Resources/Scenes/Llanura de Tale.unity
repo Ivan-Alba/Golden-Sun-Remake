@@ -1067,7 +1067,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df66976fbcd76bc4b8f062eacaab2105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPointID: Entrance_From_Tale
+  spawnID: entrance_from_tale
   zoneName: Norte
   regionName: Llanura de Tale
   autoWalkOnArrival: 1
@@ -1427,8 +1427,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df66976fbcd76bc4b8f062eacaab2105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPointID: Initial_Spawn
-  zoneName: 
+  spawnID: initial_spawn
+  zoneName: Bosque Sur
   regionName: Llanura de Tale
   autoWalkOnArrival: 0
   arrivalWalkTarget: {fileID: 0}
@@ -2117,6 +2117,7 @@ MonoBehaviour:
   singleUse: 0
   objRenderer: {fileID: 0}
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  shaderColorPropertyName: _BaseColor
 --- !u!4 &1111172249 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4243724423293762, guid: c07f24e35f07ce74ba43afa35d48adf7, type: 3}
@@ -2552,6 +2553,7 @@ MonoBehaviour:
   singleUse: 1
   objRenderer: {fileID: 0}
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  shaderColorPropertyName: _BaseColor
 --- !u!1001 &1498562560
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4127,6 +4129,10 @@ PrefabInstance:
     - target: {fileID: 5785678243049324688, guid: cbae3ae9e0204194f83b3178a6c09fc7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5785678243049324689, guid: cbae3ae9e0204194f83b3178a6c09fc7, type: 3}
+      propertyPath: targetSpawnID
+      value: tale_entrance_from_tale_plains
       objectReference: {fileID: 0}
     - target: {fileID: 5785678243049324691, guid: cbae3ae9e0204194f83b3178a6c09fc7, type: 3}
       propertyPath: m_Name

@@ -16,7 +16,7 @@ public enum EmoteType
 /// <summary>
 /// Manages active dialogue execution, typewriter animations, Cinemachine camera framing, 
 /// story flag progression, and branching choice resolution.
-/// Reacts to input events via GameEvents.Input.
+/// Reacts to input events via GameEvents.Input and decoupled GameEvents.GameState.
 /// </summary>
 public class DialogueController : MonoBehaviour
 {
@@ -53,6 +53,9 @@ public class DialogueController : MonoBehaviour
     private GameObject playerEyePivot;
     private GameObject npcEyePivot;
 
+    // Local GameState cache
+    private GameManager.GameState _cachedGameState;
+
     #endregion
 
     #region Unity Lifecycle & Event Subscriptions
@@ -74,6 +77,9 @@ public class DialogueController : MonoBehaviour
         GameEvents.UI.OnSelectDialogueChoiceRequested -= HandleSelectDialogueChoiceRequested;
         GameEvents.UI.OnSelectDialogueChoiceRequested += HandleSelectDialogueChoiceRequested;
 
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+
         // Input Event Subscriptions
         SubscribeToInputEvents();
     }
@@ -83,6 +89,8 @@ public class DialogueController : MonoBehaviour
         // UI & System Event Unsubscriptions
         GameEvents.UI.OnStartDialogueRequested -= HandleStartDialogueRequested;
         GameEvents.UI.OnSelectDialogueChoiceRequested -= HandleSelectDialogueChoiceRequested;
+
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
 
         // Input Event Unsubscriptions
         UnsubscribeFromInputEvents();
@@ -106,6 +114,11 @@ public class DialogueController : MonoBehaviour
         GameEvents.Input.OnDialogueAdvancePressed -= HandleDialogueAdvance;
     }
 
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
+    }
+
     private void HandleStartDialogueRequested(DialogueSO dialogue, string speakerName, GameObject speakerObj, Sprite portrait)
     {
         StartDialogue(dialogue, speakerName, speakerObj, portrait);
@@ -113,7 +126,7 @@ public class DialogueController : MonoBehaviour
 
     private void HandleDialogueAdvance()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InDialogue) return;
+        if (_cachedGameState != GameManager.GameState.InDialogue) return;
 
         // Block manual advancement if the UI is currently displaying choices and waiting for input
         if (isAwaitingChoice) return;
@@ -134,10 +147,10 @@ public class DialogueController : MonoBehaviour
 
         DialogueChoice selectedChoice = currentActiveChoices[choiceIndex];
 
-        // Process choice-specific story flag if set
-        if (!string.IsNullOrEmpty(selectedChoice.setFlagOnSelect) && GameManager.Instance != null)
+        // Process choice-specific story flag via event bus if set
+        if (!string.IsNullOrEmpty(selectedChoice.setFlagOnSelect))
         {
-            GameManager.Instance.SetFlag(selectedChoice.setFlagOnSelect, true);
+            GameEvents.GameState.RequestSetFlag(selectedChoice.setFlagOnSelect, true);
         }
 
         isAwaitingChoice = false;
@@ -193,10 +206,10 @@ public class DialogueController : MonoBehaviour
     {
         DialogueNode node = currentDialogue.nodes[currentNodeIndex];
 
-        // Process node completion flags if specified
-        if (!string.IsNullOrEmpty(node.setFlagOnComplete) && GameManager.Instance != null)
+        // Process node completion flags via event bus if specified
+        if (!string.IsNullOrEmpty(node.setFlagOnComplete))
         {
-            GameManager.Instance.SetFlag(node.setFlagOnComplete, true);
+            GameEvents.GameState.RequestSetFlag(node.setFlagOnComplete, true);
         }
 
         // Resolve localized text line
@@ -268,10 +281,16 @@ public class DialogueController : MonoBehaviour
             {
                 var choice = node.choices[i];
 
-                // Filter out choices restricted by flags
-                if (!string.IsNullOrEmpty(choice.requiredFlag) && GameManager.Instance != null && !GameManager.Instance.HasFlag(choice.requiredFlag))
+                // Filter out choices restricted by flags via callback request
+                if (!string.IsNullOrEmpty(choice.requiredFlag))
                 {
-                    continue;
+                    bool hasFlag = false;
+                    GameEvents.GameState.RequestFlagState(choice.requiredFlag, state => hasFlag = state);
+
+                    if (!hasFlag)
+                    {
+                        continue;
+                    }
                 }
 
                 currentActiveChoices.Add(choice);
@@ -311,10 +330,10 @@ public class DialogueController : MonoBehaviour
             npc.EndDialogueLook();
         }
 
-        // Set global flag marking this dialogue asset as read
-        if (currentDialogue != null && currentDialogue.markAsReadOnEnd && !string.IsNullOrEmpty(currentDialogue.dialogueId) && GameManager.Instance != null)
+        // Set global flag marking this dialogue asset as read via event bus
+        if (currentDialogue != null && currentDialogue.markAsReadOnEnd && !string.IsNullOrEmpty(currentDialogue.dialogueId))
         {
-            GameManager.Instance.SetFlag($"SPOKEN_TO_{currentDialogue.dialogueId}", true);
+            GameEvents.GameState.RequestSetFlag($"SPOKEN_TO_{currentDialogue.dialogueId}", true);
         }
 
         yield return new WaitForSeconds(0.3f);

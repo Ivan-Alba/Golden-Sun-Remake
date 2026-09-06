@@ -51,11 +51,8 @@ public class AreaZoneTrigger : MonoBehaviour
         {
             _hasBeenTriggered = true;
 
-            // 1. Update global zone tracking in GameManager
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.UpdateCurrentZone(zoneName, regionName);
-            }
+            // 1. Request global zone tracking update via decoupled event bus
+            GameEvents.GameState.RequestUpdateZone(zoneName, regionName);
 
             // 2. Fire decoupled UI banner event
             GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, displayDuration);

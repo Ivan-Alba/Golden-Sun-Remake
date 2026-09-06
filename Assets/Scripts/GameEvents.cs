@@ -110,6 +110,127 @@ public static class GameEvents
     }
 
     // ==========================================
+    // GAMEPLAY & GAME STATE EVENTS
+    // ==========================================
+    public static class GameState
+    {
+        /// <summary>
+        /// Request to change the current game state. Listened exclusively by GameManager.
+        /// </summary>
+        public static event Action<GameManager.GameState> OnChangeGameStateRequested;
+        public static void RequestGameStateChange(GameManager.GameState newState)
+            => OnChangeGameStateRequested?.Invoke(newState);
+
+        /// <summary>
+        /// Triggered AFTER the GameManager has validated and officially changed the state.
+        /// </summary>
+        public static event Action<GameManager.GameState, GameManager.GameState> OnGameStateChanged;
+        public static void TriggerGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+            => OnGameStateChanged?.Invoke(previousState, newState);
+
+        /// <summary>
+        /// Requests the current total playtime in seconds via callback. Listened by GameManager.
+        /// </summary>
+        public static event Action<Action<float>> OnRequestPlayTime;
+        public static void RequestPlayTime(Action<float> callback) => OnRequestPlayTime?.Invoke(callback);
+
+        /// <summary>
+        /// Requests to update or set a story/game flag state. Listened by GameManager.
+        /// </summary>
+        public static event Action<string, bool> OnSetFlagRequested;
+        public static void RequestSetFlag(string flagKey, bool value)
+            => OnSetFlagRequested?.Invoke(flagKey, value);
+
+        /// <summary>
+        /// Requests the boolean state of a specific story/game flag via callback. Listened by GameManager.
+        /// </summary>
+        public static event Action<string, Action<bool>> OnRequestFlagState;
+        public static void RequestFlagState(string flagKey, Action<bool> callback)
+            => OnRequestFlagState?.Invoke(flagKey, callback);
+
+        /// <summary>
+        /// Requests an update for the player's current zone and region names. Listened by GameManager.
+        /// </summary>
+        public static event Action<string, string> OnUpdateZoneRequested;
+        public static void RequestUpdateZone(string zoneName, string regionName)
+            => OnUpdateZoneRequested?.Invoke(zoneName, regionName);
+
+        /// <summary>
+        /// Request to change the global time scale (1.0f = normal, 2.0f = x2 speed, 0.0f = pause).
+        /// Listened by GameManager.
+        /// </summary>
+        public static event Action<float> OnChangeGameSpeedRequested;
+        public static void RequestChangeGameSpeed(float newSpeed)
+            => OnChangeGameSpeedRequested?.Invoke(newSpeed);
+
+        /// <summary>
+        /// Request to toggle game speed between normal (1.0f) and fast-forward (2.0f).
+        /// Listened by GameManager.
+        /// </summary>
+        public static event Action OnToggleGameSpeedRequested;
+        public static void RequestToggleGameSpeed()
+            => OnToggleGameSpeedRequested?.Invoke();
+    }
+
+    // ==========================================
+    // PARTY & GROUP MANAGEMENT EVENTS
+    // ==========================================
+    public static class Party
+    {
+        /// <summary>
+        /// Triggered whenever the active party roster structure changes (hero added, removed, or swapped positions).
+        /// Passes the updated read-only list of active party hero GameObjects.
+        /// </summary>
+        public static event Action<IReadOnlyList<GameObject>> OnPartyChanged;
+        public static void TriggerPartyChanged(IReadOnlyList<GameObject> activeParty)
+            => OnPartyChanged?.Invoke(activeParty);
+
+        /// <summary>
+        /// Triggered whenever the reserve party roster structure changes.
+        /// Passes the updated read-only list of reserve hero GameObjects.
+        /// </summary>
+        public static event Action<IReadOnlyList<GameObject>> OnReservePartyChanged;
+        public static void TriggerReservePartyChanged(IReadOnlyList<GameObject> reserveParty)
+            => OnReservePartyChanged?.Invoke(reserveParty);
+
+        /// <summary>
+        /// Request sent by UI or PlayerController to swap the active overworld leader by party index.
+        /// Listened exclusively by GameManager.
+        /// </summary>
+        public static event Action<int> OnActiveHeroIndexChangeRequested;
+        public static void RequestActiveHeroIndexChange(int index)
+            => OnActiveHeroIndexChangeRequested?.Invoke(index);
+
+        /// <summary>
+        /// Request sent to swap active leader directly by GameObject reference.
+        /// Listened exclusively by GameManager.
+        /// </summary>
+        public static event Action<GameObject> OnActiveHeroChangeRequested;
+        public static void RequestActiveHeroChange(GameObject newHero)
+            => OnActiveHeroChangeRequested?.Invoke(newHero);
+
+        /// <summary>
+        /// Triggered AFTER GameManager has successfully validated and changed the active leader.
+        /// Listened by PlayerController, Cameras, UI, etc.
+        /// </summary>
+        public static event Action<GameObject> OnActiveHeroChanged;
+        public static void TriggerActiveHeroChanged(GameObject activeHero)
+            => OnActiveHeroChanged?.Invoke(activeHero);
+
+        // Event triggered when total gold value updates
+        public static Action<int> OnGoldChanged;
+        public static void TriggerGoldChanged(int newTotalGold) => OnGoldChanged?.Invoke(newTotalGold);
+
+        // Event requested when a system wants to add or subtract gold (amount can be positive or negative)
+        public static Action<int> OnModifyGoldRequested;
+        public static void RequestModifyGold(int amount) => OnModifyGoldRequested?.Invoke(amount);
+
+        // Event requested when a system needs to query current gold via callback
+        public static Action<Action<int>> OnRequestGold;
+        public static void RequestGold(Action<int> callback) => OnRequestGold?.Invoke(callback);
+    }
+
+    // ==========================================
     // WORLD & EXPLORATION EVENTS
     // ==========================================
     public static class World
@@ -225,31 +346,25 @@ public static class GameEvents
     }
 
     // ==========================================
-    // GAMEPLAY & GAME STATE EVENTS
-    // ==========================================
-    public static class GameState
-    {
-        /// <summary>
-        /// Request to change the current game state. Listened exclusively by GameManager.
-        /// </summary>
-        public static event Action<GameManager.GameState> OnChangeGameStateRequested;
-        public static void RequestGameStateChange(GameManager.GameState newState)
-            => OnChangeGameStateRequested?.Invoke(newState);
-
-        /// <summary>
-        /// Triggered AFTER the GameManager has validated and officially changed the state.
-        /// </summary>
-        public static event Action<GameManager.GameState, GameManager.GameState> OnGameStateChanged;
-        public static void TriggerGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
-            => OnGameStateChanged?.Invoke(previousState, newState);
-    }
-
-    // ==========================================
     // SCENE & TRANSITION EVENTS
     // ==========================================
     public static class Scene
     {
-        // --- Requests (Driven by Game Logic, Doors, Combat Results) ---
+        /// <summary>
+        /// Request to reset progress metrics and boot up a new game sequence.
+        /// Params: firstSceneName, initialSpawnID
+        /// Listened exclusively by GameManager.
+        /// </summary>
+        public static event Action<string, string> OnStartNewGameRequested;
+        public static void RequestStartNewGame(string firstSceneName, string initialSpawnID)
+            => OnStartNewGameRequested?.Invoke(firstSceneName, initialSpawnID);
+
+        /// <summary>
+        /// Requests loading a scene and moving the player to a target spawn point. Listened by GameManager.
+        /// </summary>
+        public static event Action<string, string, GameManager.GameState> OnChangeSceneRequested;
+        public static void RequestChangeScene(string sceneName, string spawnID, GameManager.GameState targetState = GameManager.GameState.WorldExploration)
+            => OnChangeSceneRequested?.Invoke(sceneName, spawnID, targetState);
 
         /// <summary>
         /// Request to load a scene asynchronously covered by the closing transition animation.
@@ -302,6 +417,58 @@ public static class GameEvents
         public static event Action OnTransitionCompleted;
         public static void TriggerTransitionCompleted()
             => OnTransitionCompleted?.Invoke();
+    }
+
+    // ==========================================
+    // SAVE & LOAD EVENTS
+    // ==========================================
+    public static class SaveLoad
+    {
+        /// <summary>
+        /// Request to save the game to a specified save slot index.
+        /// </summary>
+        public static event Action<int> OnRequestSaveGame;
+        public static void RequestSaveGame(int slotIndex)
+            => OnRequestSaveGame?.Invoke(slotIndex);
+
+        /// <summary>
+        /// Request to load the game state from a specified save slot index.
+        /// </summary>
+        public static event Action<int> OnRequestLoadGame;
+        public static void RequestLoadGame(int slotIndex)
+            => OnRequestLoadGame?.Invoke(slotIndex);
+
+        /// <summary>
+        /// Broadcasted during save creation to collect data from subscribed managers/entities.
+        /// Params: targetGameData
+        /// </summary>
+        public static event Action<GameData> OnCollectSaveData;
+        public static void TriggerCollectSaveData(GameData saveData)
+            => OnCollectSaveData?.Invoke(saveData);
+
+        /// <summary>
+        /// Broadcasted after loading GameData from disk to restore state across managers/entities.
+        /// Params: loadedGameData
+        /// </summary>
+        public static event Action<GameData> OnRestoreSaveData;
+        public static void TriggerRestoreSaveData(GameData saveData)
+            => OnRestoreSaveData?.Invoke(saveData);
+
+        /// <summary>
+        /// Triggered when a save operation completes successfully.
+        /// Params: slotIndex
+        /// </summary>
+        public static event Action<int> OnSaveCompleted;
+        public static void TriggerSaveCompleted(int slotIndex)
+            => OnSaveCompleted?.Invoke(slotIndex);
+
+        /// <summary>
+        /// Triggered when a load operation completes successfully.
+        /// Params: slotIndex
+        /// </summary>
+        public static event Action<int> OnLoadCompleted;
+        public static void TriggerLoadCompleted(int slotIndex)
+            => OnLoadCompleted?.Invoke(slotIndex);
     }
 
     // ==========================================
@@ -384,10 +551,18 @@ public static class GameEvents
         public static event Action<GameObject> OnEquipmentChanged;
         public static void TriggerEquipmentChanged(GameObject hero)
             => OnEquipmentChanged?.Invoke(hero);
+
+        /// <summary>
+        /// Triggered when hero stats or overall status update (damage, healing, level up, class change, etc.).
+        /// UI elements subscribe to this to refresh party info panels (HP, PP, Level, Icons).
+        /// </summary>
+        public static event Action OnHeroStatusChanged;
+        public static void TriggerHeroStatusChanged()
+            => OnHeroStatusChanged?.Invoke();
     }
 
     // ==========================================
-    // PLAYER EVENTS
+    // PLAYER AVATAR & PHYSICS EVENTS
     // ==========================================
     public static class Player
     {
@@ -399,14 +574,14 @@ public static class GameEvents
             => OnPlayInteractionAnimation?.Invoke(animType);
 
         /// <summary>
-        /// Request to relocate/teleport the player to a target position and rotation safely.
+        /// Request to relocate/teleport the player avatar to a target position and rotation safely.
         /// </summary>
         public static event Action<Vector3, Quaternion> OnRequestTeleport;
         public static void RequestTeleport(Vector3 position, Quaternion rotation)
             => OnRequestTeleport?.Invoke(position, rotation);
 
         /// <summary>
-        /// Request the player to smoothly rotate and face toward a target position in the world.
+        /// Request the player avatar to smoothly rotate and face toward a target position in the world.
         /// Params: targetPosition, duration
         /// </summary>
         public static event Action<Vector3, float> OnRequestLookAt;
@@ -414,25 +589,18 @@ public static class GameEvents
             => OnRequestLookAt?.Invoke(targetPosition, duration);
 
         /// <summary>
-        /// Request the player to automatically walk toward a target destination.
+        /// Request the player avatar to automatically walk toward a target destination.
         /// </summary>
         public static event Action<Vector3> OnRequestAutoWalk;
         public static void RequestAutoWalk(Vector3 destination)
             => OnRequestAutoWalk?.Invoke(destination);
 
         /// <summary>
-        /// Request to stop any active auto-walk operation on the player.
+        /// Request to stop any active auto-walk operation on the player avatar.
         /// </summary>
         public static event Action OnRequestStopAutoWalk;
         public static void RequestStopAutoWalk()
             => OnRequestStopAutoWalk?.Invoke();
-
-        /// <summary>
-        /// Request to change the active hero model and animator controller on the player GameObject.
-        /// </summary>
-        public static event Action<GameObject> OnActiveHeroChanged;
-        public static void RequestActiveHeroChange(GameObject newHero)
-            => OnActiveHeroChanged?.Invoke(newHero);
 
         /// <summary>
         /// Request to toggle the visibility of the player model mesh.
@@ -448,14 +616,6 @@ public static class GameEvents
         public static event Action<float, float> OnStaminaChanged;
         public static void TriggerStaminaChanged(float currentStamina, float maxStamina)
             => OnStaminaChanged?.Invoke(currentStamina, maxStamina);
-
-        /// <summary>
-        /// Triggered when party stats or status update (active hero swap, damage, healing, level up, etc.).
-        /// UI elements subscribe to this to refresh party info panels (HP, PP, Level, Icons).
-        /// </summary>
-        public static event Action OnHeroStatusChanged;
-        public static void TriggerHeroStatusChanged()
-            => OnHeroStatusChanged?.Invoke();
 
         /// <summary>
         /// Triggered whenever the player enters or exits the First-Person View state.
@@ -596,9 +756,6 @@ public static class GameEvents
         public static void RequestRemoveItem(ItemSO item, int quantity, Action<bool> onResult)
             => OnRequestRemoveItem?.Invoke(item, quantity, onResult);
 
-        public static event Action OnSyncWithPartyRequested;
-        public static void RequestSyncWithParty() => OnSyncWithPartyRequested?.Invoke();
-
         public static event Action OnClearAllInventoriesRequested;
         public static void RequestClearAllInventories() => OnClearAllInventoriesRequested?.Invoke();
 
@@ -688,9 +845,9 @@ public static class GameEvents
         /// <summary>
         /// Request to show or hide the aiming reticle UI overlay.
         /// </summary>
-        public static event Action<bool> OnSetFirtsPersonViewUIVisibleRequested;
+        public static event Action<bool> OnSetFirstPersonViewUIVisibleRequested;
         public static void RequestSetFirstPersonUIVisible(bool visible)
-            => OnSetFirtsPersonViewUIVisibleRequested?.Invoke(visible);
+            => OnSetFirstPersonViewUIVisibleRequested?.Invoke(visible);
 
         /// <summary>
         /// Request to initiate a dialogue conversation using DialogueSO.

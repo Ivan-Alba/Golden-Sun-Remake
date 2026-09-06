@@ -15,6 +15,7 @@ public struct NPCDialogueRule
 /// <summary>
 /// Controls world interaction for NPCs, smooth rotation towards the player, 
 /// and dynamic dialogue evaluation using localized DialogueSO assets and GameFlags.
+/// Reacts and emits via decoupled GameEvents.
 /// </summary>
 public class NPC : Interactable
 {
@@ -123,7 +124,7 @@ public class NPC : Interactable
     }
 
     /// <summary>
-    /// Evaluates story flags in top-to-bottom priority to select the current active dialogue.
+    /// Evaluates story flags in top-to-bottom priority to select the current active dialogue via event bus.
     /// </summary>
     private DialogueSO EvaluateActiveDialogue()
     {
@@ -131,7 +132,10 @@ public class NPC : Interactable
         {
             if (string.IsNullOrEmpty(rule.requiredFlag)) continue;
 
-            if (GameManager.Instance != null && GameManager.Instance.HasFlag(rule.requiredFlag))
+            bool isFlagActive = false;
+            GameEvents.GameState.RequestFlagState(rule.requiredFlag, state => isFlagActive = state);
+
+            if (isFlagActive)
             {
                 return rule.dialogue;
             }

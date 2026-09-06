@@ -24,6 +24,9 @@ public class BattleUIController : MonoBehaviour
     private int contentCursorIndex;
     private string lastContent;
 
+    // Local Party Cache
+    private IReadOnlyList<GameObject> _cachedActiveParty;
+
     // Turn UI References & State
     private TurnController turnController;
     private List<Transform> turnsUIElements = new List<Transform>();
@@ -99,20 +102,30 @@ public class BattleUIController : MonoBehaviour
 
         GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
         GameEvents.Fighter.OnPpChanged += HandleFighterResourceChanged;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
     }
 
     private void UnsubscribeFromPartyEvents()
     {
         GameEvents.Fighter.OnHpChanged -= HandleFighterResourceChanged;
         GameEvents.Fighter.OnPpChanged -= HandleFighterResourceChanged;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+    }
+
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
+    {
+        _cachedActiveParty = activeParty;
+        RefreshHeroInfoPanel();
     }
 
     private void HandleFighterResourceChanged(GameObject fighterObj, int current, int max)
     {
-        if (GameManager.Instance == null || fighterObj == null) return;
+        if (fighterObj == null || _cachedActiveParty == null) return;
 
-        List<GameObject> heroParty = GameManager.Instance.GetParty();
-        if (heroParty != null && heroParty.Contains(fighterObj))
+        if (_cachedActiveParty.Contains(fighterObj))
         {
             RefreshHeroInfoPanel();
         }
@@ -138,12 +151,9 @@ public class BattleUIController : MonoBehaviour
 
     public void RefreshHeroInfoPanel()
     {
-        if (GameManager.Instance == null) return;
+        if (_cachedActiveParty == null) return;
 
-        List<GameObject> heroParty = GameManager.Instance.GetParty();
-        if (heroParty == null) return;
-
-        for (int i = 0; i < heroParty.Count; i++)
+        for (int i = 0; i < _cachedActiveParty.Count; i++)
         {
             if (i >= heroInfoPanels.Length || heroInfoPanels[i] == null) continue;
 
@@ -151,7 +161,7 @@ public class BattleUIController : MonoBehaviour
             Transform ppTrans = heroInfoPanels[i].transform.Find("Pp");
             Transform nameTrans = heroInfoPanels[i].transform.Find("Name");
 
-            if (!heroParty[i].TryGetComponent<FighterStats>(out var heroStats)) continue;
+            if (!_cachedActiveParty[i].TryGetComponent<FighterStats>(out var heroStats)) continue;
 
             // HP Text & Coloring
             if (hpTrans != null && hpTrans.TryGetComponent<TextMeshProUGUI>(out var hpText))

@@ -8,7 +8,7 @@ public class TitleMenu : MonoBehaviour
 
     public void NewGameButton()
     {
-        GameManager.Instance.StartNewGame("Llanura de Tale", "Initial_Spawn");
+        GameEvents.Scene.RequestStartNewGame("Llanura de Tale", "initial_spawn");
     }
 
     public void ContinueButton()
@@ -22,6 +22,6 @@ public class TitleMenu : MonoBehaviour
         }
 
         // Charge screen via decoupled event bus
-        GameEvents.Scene.RequestLoadScene(dataSaved.currentSceneName);
+        GameEvents.Scene.RequestLoadScene(dataSaved.worldState.currentSceneName);
     }
 }

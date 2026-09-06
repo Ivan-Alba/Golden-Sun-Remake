@@ -54,7 +54,7 @@ public struct PsynergyDropTargetInfo
 
 #endregion
 
-public class PagePsynergyController
+public class PagePsynergyController : IDisposable
 {
     #region Events & Properties
 
@@ -74,6 +74,9 @@ public class PagePsynergyController
     #region Private Fields
 
     private VisualElement rootElement;
+
+    // Local Party Cache
+    private IReadOnlyList<GameObject> _cachedActiveParty;
 
     // Psynergy Card Template
     private VisualTreeAsset psynergyCardTemplate;
@@ -164,11 +167,20 @@ public class PagePsynergyController
     {
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
         GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
     }
 
     private void UnsubscribeEvents()
     {
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+    }
+
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
+    {
+        _cachedActiveParty = activeParty;
     }
 
     private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
@@ -791,13 +803,9 @@ public class PagePsynergyController
 
     private HeroStats GetHeroStatsByIdx(int index)
     {
-        if (GameManager.Instance != null)
+        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
         {
-            List<GameObject> party = GameManager.Instance.GetParty();
-            if (party != null && index >= 0 && index < party.Count)
-            {
-                return party[index]?.GetComponent<HeroStats>();
-            }
+            return _cachedActiveParty[index]?.GetComponent<HeroStats>();
         }
         return null;
     }

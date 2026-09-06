@@ -3538,7 +3538,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetSceneName: Llanura de Tale
-  targetSpawnID: Entrance_From_Tale
+  targetSpawnID: entrance_from_tale
   walkTarget: {fileID: 1690358852}
   sequenceDuration: 1.2
   targetOverlayAlpha: 1
@@ -12241,7 +12241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df66976fbcd76bc4b8f062eacaab2105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPointID: Entrance_From_Tale_Plains
+  spawnID: tale_entrance_from_tale_plains
   zoneName: Entrada Llanura
   regionName: Aldea de Tale
   autoWalkOnArrival: 1

@@ -27,7 +27,10 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
     private GameObject player; // player reference
-    private List<GameObject> party;
+    private IReadOnlyList<GameObject> party;
+
+    // Local GameState Cache
+    private GameManager.GameState _cachedGameState;
 
     // TODO REVISAR
     private int maxEnemiesInBattle = 3;
@@ -118,11 +121,29 @@ public class BattleManager : MonoBehaviour
     private void SubscribeToGameEvents()
     {
         GameEvents.Battle.OnRequestCollisionBattle += InitializeCollisionBattle;
+
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
+
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void UnsubscribeFromGameEvents()
     {
         GameEvents.Battle.OnRequestCollisionBattle -= InitializeCollisionBattle;
+        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
+    {
+        party = activeParty;
+    }
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
     }
 
     private void SubscribeToInputEvents()
@@ -153,7 +174,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleConfirmPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         switch (currentBattleState)
         {
@@ -262,7 +283,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleCancelPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         switch (currentBattleState)
         {
@@ -303,7 +324,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleLeftPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         switch (currentBattleState)
         {
@@ -320,7 +341,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleRightPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         switch (currentBattleState)
         {
@@ -337,7 +358,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleUpPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         if (currentBattleState == BattleState.SubMenuSelection)
         {
@@ -348,7 +369,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandleDownPressed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle) return;
 
         if (currentBattleState == BattleState.SubMenuSelection)
         {
@@ -378,15 +399,15 @@ public class BattleManager : MonoBehaviour
         if (playerCanvas == null)
             playerCanvas = GameObject.Find("PlayerCanvas");
 
-        // Refresh dynamic party members
-        party = GameManager.Instance.GetParty();
-
         // Set up UI hero panels according to current party count
-        for (int i = 0; i < 4; i++)
+        if (party != null)
         {
-            if (i < party.Count)
+            for (int i = 0; i < 4; i++)
             {
-                battleUIController.SetHeroInfoPanel(i);
+                if (i < party.Count)
+                {
+                    battleUIController.SetHeroInfoPanel(i);
+                }
             }
         }
 
@@ -417,18 +438,23 @@ public class BattleManager : MonoBehaviour
 
         // SET HEROS
         int i = 0;
-        if (GameManager.Instance.GetParty().Count <= 2) i = 1;
+        if (party != null && party.Count <= 2) i = 1;
 
-        foreach (GameObject hero in GameManager.Instance.GetParty())
+        if (party != null)
         {
-            // IF HERO IS ALIVE
-            if (hero.GetComponent<FighterStats>().CurrHp != 0)
+            foreach (GameObject hero in party)
             {
-                fighters.Add(hero);
-                heroList.Add(hero);
+                if (hero == null) continue;
+
+                // IF HERO IS ALIVE
+                if (hero.GetComponent<FighterStats>().CurrHp != 0)
+                {
+                    fighters.Add(hero);
+                    heroList.Add(hero);
+                }
+                // HERO POSITIONS
+                hero.transform.position = heroPositions[i++].transform.position;
             }
-            // HERO POSITIONS
-            hero.transform.position = heroPositions[i++].transform.position;
         }
 
         // SET INFO ON HERO'S PANEL
@@ -770,7 +796,7 @@ public class BattleManager : MonoBehaviour
 
         if (playerCanvas != null) playerCanvas.SetActive(true);
 
-        GameEvents.Player.TriggerHeroStatusChanged();
+        GameEvents.Hero.TriggerHeroStatusChanged();
 
         battleCameraController.SetOffBattleCamera();
 
@@ -788,12 +814,15 @@ public class BattleManager : MonoBehaviour
         // RESTORE WORLD MUSIC VIA AUDIO MANAGER
         GameEvents.Audio.RequestResumeBGM();
 
-        for (int i = 0; i < GameManager.Instance.GetParty().Count; i++)
+        if (party != null)
         {
-            if (i < heroList.Count)
+            for (int i = 0; i < party.Count; i++)
             {
-                heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
-                heroList[i].GetComponent<FighterController>().SetOffDefense();
+                if (i < heroList.Count)
+                {
+                    heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
+                    heroList[i].GetComponent<FighterController>().SetOffDefense();
+                }
             }
         }
 
@@ -853,9 +882,9 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        if (GameManager.Instance != null && GameManager.Instance.GetParty() != null)
+        if (party != null)
         {
-            foreach (GameObject hero in GameManager.Instance.GetParty())
+            foreach (GameObject hero in party)
             {
                 if (hero != null)
                 {
@@ -896,10 +925,7 @@ public class BattleManager : MonoBehaviour
 
     public void ChangeBattleSpeed()
     {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ChangeGameSpeed();
-        }
+        GameEvents.GameState.RequestToggleGameSpeed();
     }
 
     #endregion
@@ -913,38 +939,43 @@ public class BattleManager : MonoBehaviour
         if (targetIsAlly)
         {
             GameObject pointer;
-            List<GameObject> currentParty = GameManager.Instance.GetParty();
             targetList = new List<GameObject>();
 
-            foreach (GameObject hero in currentParty)
+            if (party != null)
             {
-                hero.transform.Find("Pointer").gameObject.SetActive(false);
-            }
-
-            switch (targetType)
-            {
-                case PsynergyTargetType.SingleAlly:
-                case PsynergyTargetType.Self:
-                    pointer = currentParty[initialIndex].transform.Find("Pointer").gameObject;
-                    pointer.SetActive(true);
-                    targetList.Add(currentParty[initialIndex]);
-                    actualTarget = initialIndex;
-                    battleUIController.ShowSelectedTarget(targetList);
-                    break;
-
-                case PsynergyTargetType.AllAllies:
-                    foreach (GameObject hero in currentParty)
+                foreach (GameObject hero in party)
+                {
+                    if (hero != null)
                     {
-                        if (hero != null)
-                        {
-                            pointer = hero.transform.Find("Pointer").gameObject;
-                            pointer.SetActive(true);
-                            targetList.Add(hero);
-                        }
+                        hero.transform.Find("Pointer").gameObject.SetActive(false);
                     }
-                    actualTarget = 0;
-                    battleUIController.ShowSelectedTarget(targetList);
-                    break;
+                }
+
+                switch (targetType)
+                {
+                    case PsynergyTargetType.SingleAlly:
+                    case PsynergyTargetType.Self:
+                        pointer = party[initialIndex].transform.Find("Pointer").gameObject;
+                        pointer.SetActive(true);
+                        targetList.Add(party[initialIndex]);
+                        actualTarget = initialIndex;
+                        battleUIController.ShowSelectedTarget(targetList);
+                        break;
+
+                    case PsynergyTargetType.AllAllies:
+                        foreach (GameObject hero in party)
+                        {
+                            if (hero != null)
+                            {
+                                pointer = hero.transform.Find("Pointer").gameObject;
+                                pointer.SetActive(true);
+                                targetList.Add(hero);
+                            }
+                        }
+                        actualTarget = 0;
+                        battleUIController.ShowSelectedTarget(targetList);
+                        break;
+                }
             }
         }
         else
@@ -1038,10 +1069,9 @@ public class BattleManager : MonoBehaviour
 
         if (targetIsAlly)
         {
-            List<GameObject> currentParty = GameManager.Instance.GetParty();
-            if (currentParty.Count > 1)
+            if (party != null && party.Count > 1)
             {
-                nextTarget = (actualTarget + 1) % currentParty.Count;
+                nextTarget = (actualTarget + 1) % party.Count;
             }
 
             if (actualTarget != nextTarget)
@@ -1079,10 +1109,9 @@ public class BattleManager : MonoBehaviour
 
         if (targetIsAlly)
         {
-            List<GameObject> currentParty = GameManager.Instance.GetParty();
-            if (currentParty.Count > 1)
+            if (party != null && party.Count > 1)
             {
-                nextTarget = (actualTarget - 1 + currentParty.Count) % currentParty.Count;
+                nextTarget = (actualTarget - 1 + party.Count) % party.Count;
             }
 
             if (actualTarget != nextTarget)

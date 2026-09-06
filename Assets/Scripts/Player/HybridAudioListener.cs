@@ -12,6 +12,9 @@ public class HybridAudioListener : MonoBehaviour
     private Transform battleCameraTransform;
     private Transform battleCenterTarget;
 
+    // Local GameState cache
+    private GameManager.GameState _cachedGameState;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -22,12 +25,40 @@ public class HybridAudioListener : MonoBehaviour
         Instance = this;
     }
 
+    private void OnEnable()
+    {
+        SubscribeToGameEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromGameEvents();
+    }
+
+    #region Event Subscriptions
+
+    private void SubscribeToGameEvents()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+    }
+
+    private void UnsubscribeFromGameEvents()
+    {
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
+    }
+
+    #endregion
+
     private void LateUpdate()
     {
-        if (GameManager.Instance == null) return;
-
         // --- BATTLE MODE AUDIO ---
-        if (GameManager.Instance.CurrentState == GameManager.GameState.InBattle)
+        if (_cachedGameState == GameManager.GameState.InBattle)
         {
             if (battleCameraTransform != null)
             {

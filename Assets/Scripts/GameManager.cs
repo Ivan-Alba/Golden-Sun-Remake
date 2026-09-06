@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 using Unity.Cinemachine;
 
 /// <summary>
-/// Core game manager handling global game states, scene flow, party management, and persistent game data.
-/// Decoupled from static transition singletons using GameEvents.Scene.
+/// Core game manager handling global game states, scene flow, party management, and persistent game metadata.
+/// Decoupled via GameEvents (GameState, Scene, SaveLoad, Party, Player, Economy).
 /// </summary>
 public class GameManager : MonoBehaviour
 {
@@ -28,19 +28,16 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Singleton Reference
-
-    private static GameManager instance = null;
-    public static GameManager Instance { get => instance; private set => instance = value; }
-
-    #endregion
-
     #region Serialized Fields
 
     [Header("Game State System")]
     [SerializeField] private GameState currentState = GameState.None;
 
-    [Header("Persistent References")]
+    [Header("Party Hero Database (Persistent Core)")]
+    [Tooltip("Serialized references to all available hero GameObjects within [PERSISTENT_CORE].")]
+    [SerializeField] private List<GameObject> availableHeroes = new List<GameObject>();
+
+    [Header("Persistent Camera References")]
     [SerializeField] private GameObject playerMainCamera;
     [SerializeField] private CinemachineCamera freeLookCamera;
 
@@ -64,135 +61,132 @@ public class GameManager : MonoBehaviour
     private string currentRegionName = "MUNDO";
 
     // Party Info
-    private List<GameObject> party = new List<GameObject>();
+    private readonly List<GameObject> activeParty = new List<GameObject>();
+    private readonly List<GameObject> reserveParty = new List<GameObject>();
+    private GameObject activeLeaderHero;
 
-    // Game Info & Flags
+    // Game Economy & Metrics
     private int totalGold;
     private float totalPlayed;
-    private GameObject activeHero;
     private readonly Dictionary<string, bool> gameFlags = new Dictionary<string, bool>();
 
     #endregion
 
-    #region Properties
-
-    public GameState CurrentState => currentState;
-    public int TotalGold { get => totalGold; set => totalGold = value; }
-    public float TotalPlayed { get => totalPlayed; set => totalPlayed = value; }
-    public GameObject ActiveHero { get => activeHero; set => activeHero = value; }
-    public bool LoadingData { get => loadingData; set => loadingData = value; }
-    public string CurrentZoneName => currentZoneName;
-    public string CurrentRegionName => currentRegionName;
-
-    public List<GameObject> GetParty()
-    {
-        return party;
-    }
-
-    #endregion
-
-    #region Events
-
-    public event Action OnPartyChanged;
-
-    #endregion
-
-    #region Unity Lifecycle & Initialization
+    #region Unity Lifecycle & Event Subscriptions
 
     private void Awake()
     {
-        if (Instance == null)
+        if (playerMainCamera == null)
         {
-            Instance = this;
-
-            if (playerMainCamera == null)
+            Transform coreTransform = transform.parent != null ? transform.parent : transform;
+            Transform camTrans = coreTransform.Find("MainCamera");
+            if (camTrans != null)
             {
-                Transform coreTransform = transform.parent != null ? transform.parent : transform;
-                Transform camTrans = coreTransform.Find("MainCamera");
-                if (camTrans != null)
-                {
-                    playerMainCamera = camTrans.gameObject;
-                }
+                playerMainCamera = camTrans.gameObject;
             }
-        }
-        else if (Instance != this)
-        {
-            Destroy(gameObject);
-            return;
         }
     }
 
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnLevelFinishedLoading;
+
+        // Game State & Zone Event Subscriptions
         GameEvents.GameState.OnChangeGameStateRequested += HandleGameStateRequest;
+        GameEvents.GameState.OnRequestPlayTime += HandleRequestPlayTime;
+        GameEvents.GameState.OnUpdateZoneRequested += UpdateCurrentZone;
+
+        // Game Flags Event Subscriptions
+        GameEvents.GameState.OnSetFlagRequested += HandleSetFlagRequest;
+        GameEvents.GameState.OnRequestFlagState += HandleRequestFlagState;
+
+        // Time Management Event Subscriptions
+        GameEvents.GameState.OnChangeGameSpeedRequested += HandleChangeGameSpeedRequest;
+        GameEvents.GameState.OnToggleGameSpeedRequested += HandleToggleGameSpeedRequest;
+
+        // Party & Economy Event Subscriptions
+        GameEvents.Party.OnModifyGoldRequested += HandleModifyGoldRequest;
+        GameEvents.Party.OnRequestGold += HandleRequestGold;
+        GameEvents.Party.OnActiveHeroIndexChangeRequested += HandleActiveHeroIndexChangeRequest;
+        GameEvents.Party.OnActiveHeroChangeRequested += HandleActiveHeroChangeRequest;
+
+        // Scene Transition Event Subscriptions
+        GameEvents.Scene.OnStartNewGameRequested += HandleStartNewGameRequest;
+        GameEvents.Scene.OnChangeSceneRequested += HandleChangeSceneRequest;
+
+        // Save / Load Event Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnLevelFinishedLoading;
+
+        // Game State & Zone Event Unsubscriptions
         GameEvents.GameState.OnChangeGameStateRequested -= HandleGameStateRequest;
+        GameEvents.GameState.OnRequestPlayTime -= HandleRequestPlayTime;
+        GameEvents.GameState.OnUpdateZoneRequested -= UpdateCurrentZone;
+
+        // Game Flags Event Unsubscriptions
+        GameEvents.GameState.OnSetFlagRequested -= HandleSetFlagRequest;
+        GameEvents.GameState.OnRequestFlagState -= HandleRequestFlagState;
+
+        // Time Management Event Unsubscriptions
+        GameEvents.GameState.OnChangeGameSpeedRequested -= HandleChangeGameSpeedRequest;
+        GameEvents.GameState.OnToggleGameSpeedRequested -= HandleToggleGameSpeedRequest;
+
+        // Party & Economy Event Unsubscriptions
+        GameEvents.Party.OnModifyGoldRequested -= HandleModifyGoldRequest;
+        GameEvents.Party.OnRequestGold -= HandleRequestGold;
+        GameEvents.Party.OnActiveHeroIndexChangeRequested -= HandleActiveHeroIndexChangeRequest;
+        GameEvents.Party.OnActiveHeroChangeRequested -= HandleActiveHeroChangeRequest;
+
+        // Scene Transition Event Unsubscriptions
+        GameEvents.Scene.OnStartNewGameRequested -= HandleStartNewGameRequest;
+        GameEvents.Scene.OnChangeSceneRequested -= HandleChangeSceneRequest;
+
+        // Save / Load Event Unsubscriptions
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     private void Update()
     {
         if (currentState != GameState.TitleScreen && currentState != GameState.Loading)
         {
-            TotalPlayed += Time.deltaTime;
+            totalPlayed += Time.deltaTime;
         }
     }
 
     #endregion
 
-    #region Game Flags System
-
-    /// <summary>
-    /// Checks if a specific story or game flag is set to active.
-    /// </summary>
-    public bool HasFlag(string flagKey)
-    {
-        if (string.IsNullOrEmpty(flagKey)) return false;
-        return gameFlags.TryGetValue(flagKey, out bool value) && value;
-    }
-
-    /// <summary>
-    /// Sets the value of a story or game flag.
-    /// </summary>
-    public void SetFlag(string flagKey, bool value)
-    {
-        if (string.IsNullOrEmpty(flagKey)) return;
-
-        gameFlags[flagKey] = value;
-        Debug.Log($"[GameManager] GameFlag updated: '{flagKey}' => {value}");
-    }
-
-    /// <summary>
-    /// Removes a flag completely from memory.
-    /// </summary>
-    public void ClearFlag(string flagKey)
-    {
-        if (string.IsNullOrEmpty(flagKey)) return;
-
-        if (gameFlags.ContainsKey(flagKey))
-        {
-            gameFlags.Remove(flagKey);
-            Debug.Log($"[GameManager] GameFlag cleared: '{flagKey}'");
-        }
-    }
-
-    #endregion
-
-    #region State Machine Management
+    #region Game State & Time Event Handlers
 
     private void HandleGameStateRequest(GameState requestedState)
     {
         SetGameState(requestedState);
     }
 
-    /// <summary>
-    /// Updates the active global game state, handling camera systems, inputs, and firing state events.
-    /// </summary>
-    public void SetGameState(GameState newState)
+    private void HandleRequestPlayTime(Action<float> callback)
+    {
+        callback?.Invoke(totalPlayed);
+    }
+
+    private void HandleChangeGameSpeedRequest(float targetSpeed)
+    {
+        float clampedSpeed = Mathf.Clamp(targetSpeed, 0f, 5f);
+        Time.timeScale = clampedSpeed;
+        Debug.Log($"[GameManager] Game speed set to {Time.timeScale}x");
+    }
+
+    private void HandleToggleGameSpeedRequest()
+    {
+        float newSpeed = (Mathf.Approximately(Time.timeScale, 1f)) ? 2f : 1f;
+        HandleChangeGameSpeedRequest(newSpeed);
+    }
+
+    private void SetGameState(GameState newState)
     {
         if (currentState == newState) return;
 
@@ -223,94 +217,91 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.TriggerGameStateChanged(previousState, currentState);
     }
 
-    private void ToggleGameplaySystems(bool active)
+    #endregion
+
+    #region Game Flags Event Handlers
+
+    private void HandleSetFlagRequest(string flagKey, bool value)
     {
-        ToggleCameraInput(active);
+        if (string.IsNullOrEmpty(flagKey)) return;
 
-        if (playerMainCamera != null)
-        {
-            bool isTitle = (currentState == GameState.TitleScreen);
-
-            playerMainCamera.SetActive(!isTitle);
-
-            CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
-            if (brain != null)
-            {
-                brain.enabled = !isTitle;
-            }
-        }
+        gameFlags[flagKey] = value;
+        Debug.Log($"[GameManager] GameFlag updated via event: '{flagKey}' => {value}");
     }
 
-    private void ToggleCameraInput(bool active)
+    private void HandleRequestFlagState(string flagKey, Action<bool> callback)
     {
-        if (freeLookCamera == null && playerMainCamera != null)
+        if (string.IsNullOrEmpty(flagKey))
         {
-            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineCamera>();
+            callback?.Invoke(false);
+            return;
         }
 
-        if (freeLookCamera != null)
-        {
-            if (freeLookCamera.TryGetComponent<CinemachineInputAxisController>(out var inputController))
-            {
-                inputController.enabled = active;
-            }
-        }
+        bool state = gameFlags.TryGetValue(flagKey, out bool value) && value;
+        callback?.Invoke(state);
     }
 
     #endregion
 
-    #region Zone & Area Management
+    #region Party & Economy Event Handlers
 
-    public void UpdateCurrentZone(string zoneName, string regionName)
+    private void HandleModifyGoldRequest(int amount)
     {
-        currentZoneName = zoneName;
-        currentRegionName = regionName;
+        int newGold = Mathf.Max(0, totalGold + amount);
+
+        if (totalGold != newGold)
+        {
+            totalGold = newGold;
+            GameEvents.Party.TriggerGoldChanged(totalGold);
+        }
+    }
+
+    private void HandleRequestGold(Action<int> callback)
+    {
+        callback?.Invoke(totalGold);
+    }
+
+    private void HandleActiveHeroIndexChangeRequest(int index)
+    {
+        if (activeParty != null && index >= 0 && index < activeParty.Count)
+        {
+            if (activeLeaderHero != activeParty[index])
+            {
+                activeLeaderHero = activeParty[index];
+
+                GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+                GameEvents.Hero.TriggerHeroStatusChanged();
+            }
+        }
+    }
+
+    private void HandleActiveHeroChangeRequest(GameObject newHero)
+    {
+        if (newHero != null && activeParty.Contains(newHero) && activeLeaderHero != newHero)
+        {
+            activeLeaderHero = newHero;
+
+            GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+            GameEvents.Hero.TriggerHeroStatusChanged();
+        }
+    }
+
+    private void NotifyPartyChanged()
+    {
+        GameEvents.Party.TriggerPartyChanged(activeParty);
+        GameEvents.Party.TriggerReservePartyChanged(reserveParty);
     }
 
     #endregion
 
-    #region New Game & Scene Flow
+    #region Scene Flow & Zone Event Handlers
 
-    public void StartNewGame(string firstSceneName, string initialSpawnID)
+    private void HandleStartNewGameRequest(string firstSceneName, string initialSpawnID)
     {
-        totalGold = 0;
-        totalPlayed = 0f;
-        party.Clear();
-        gameFlags.Clear();
-
-        GameEvents.Inventory.RequestClearAllInventories();
-
-        GameObject isaac = GameObject.Find("Isaac");
-        GameObject garet = GameObject.Find("Garet");
-
-        if (isaac != null) party.Add(isaac);
-        if (garet != null) party.Add(garet);
-
-        if (party.Count > 0)
-        {
-            activeHero = party[0];
-
-            for (int i = 0; i < party.Count; i++)
-            {
-                HeroStats stats = party[i].GetComponent<HeroStats>();
-                if (stats != null)
-                {
-                    for (int l = 0; l < 7; l++) stats.LevelUp();
-                }
-            }
-        }
-
-        GameEvents.Inventory.RequestSyncWithParty();
-
-        NotifyPartyChanged(activeHero);
-
-        ChangeScene(firstSceneName, initialSpawnID, GameState.WorldExploration);
+        StartNewGame(firstSceneName, initialSpawnID);
     }
 
-    /// <summary>
-    /// Initiates an asynchronous scene load request via GameEvents.Scene.
-    /// </summary>
-    public void ChangeScene(string sceneName, string spawnID, GameState targetStateAfterLoad = GameState.WorldExploration)
+    private void HandleChangeSceneRequest(string sceneName, string spawnID, GameState targetStateAfterLoad = GameState.WorldExploration)
     {
         SetGameState(GameState.Loading);
         pendingSpawnID = spawnID;
@@ -319,18 +310,48 @@ public class GameManager : MonoBehaviour
         GameEvents.Scene.RequestLoadScene(sceneName);
     }
 
-    /// <summary>
-    /// Executes a full curtain transition sequence via GameEvents.Scene.
-    /// </summary>
-    public void PlayFullTransition(Action onScreenCovered)
+    private void UpdateCurrentZone(string zoneName, string regionName)
     {
-        SetGameState(GameState.Loading);
+        currentZoneName = zoneName;
+        currentRegionName = regionName;
+    }
 
-        GameEvents.Scene.RequestFullTransition(() =>
+    private void StartNewGame(string firstSceneName, string initialSpawnID)
+    {
+        totalGold = 0;
+        totalPlayed = 0f;
+        activeParty.Clear();
+        reserveParty.Clear();
+        gameFlags.Clear();
+
+        GameEvents.Party.TriggerGoldChanged(totalGold);
+        GameEvents.Inventory.RequestClearAllInventories();
+
+        for (int i = 0; i < availableHeroes.Count; i++)
         {
-            onScreenCovered?.Invoke();
-            SetGameState(GameState.WorldExploration);
-        });
+            if (availableHeroes[i] == null) continue;
+
+            string heroName = availableHeroes[i].name;
+            if (heroName.Equals("Isaac") || heroName.Equals("Garet"))
+            {
+                activeParty.Add(availableHeroes[i]);
+
+                if (availableHeroes[i].TryGetComponent<HeroStats>(out var stats))
+                {
+                    for (int l = 0; l < 7; l++) stats.LevelUp();
+                }
+            }
+        }
+
+        if (activeParty.Count > 0)
+        {
+            activeLeaderHero = activeParty[0];
+        }
+
+        NotifyPartyChanged();
+        GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+
+        HandleChangeSceneRequest(firstSceneName, initialSpawnID, GameState.WorldExploration);
     }
 
     private void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
@@ -345,18 +366,16 @@ public class GameManager : MonoBehaviour
 
         SetGameState(GameState.Loading);
 
-        if (SaveManager.loadedData != null)
-        {
-            loadingData = true;
-            LoadData();
-            pendingSpawnID = null;
-        }
-        else if (!string.IsNullOrEmpty(pendingSpawnID))
+        if (!string.IsNullOrEmpty(pendingSpawnID))
         {
             RelocatePlayerToSpawnPoint();
         }
 
-        NotifyPartyChanged(activeHero);
+        NotifyPartyChanged();
+        if (activeLeaderHero != null)
+        {
+            GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+        }
 
         StartCoroutine(Routine_HandlePostLoadSequence());
     }
@@ -365,9 +384,9 @@ public class GameManager : MonoBehaviour
     {
         // 1. Reveal Player Mesh and trigger Hero Swap while screen is still black
         GameEvents.Player.RequestSetPlayerVisibility(true);
-        if (activeHero != null)
+        if (activeLeaderHero != null)
         {
-            GameEvents.Player.RequestActiveHeroChange(activeHero);
+            GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
         }
 
         if (playerMainCamera != null)
@@ -407,35 +426,175 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Party & Hero Management
+    #region Save & Load Event Handlers
 
-    public void NotifyPartyChanged(GameObject activeHero = null)
+    private void HandleCollectSaveData(GameData saveData)
     {
-        OnPartyChanged?.Invoke();
+        if (saveData == null) return;
 
-        if (party == null || party.Count == 0) return;
+        // 1. Save Header Meta Info
+        saveData.header.totalGold = totalGold;
+        saveData.header.totalTime = totalPlayed;
+        saveData.header.locationName = currentZoneName;
 
-        GameObject heroToActivate = (activeHero != null && party.Contains(activeHero))
-            ? activeHero
-            : party[0];
-
-        GameEvents.Player.RequestActiveHeroChange(heroToActivate);
-    }
-
-    public void ChangeGameSpeed()
-    {
-        Time.timeScale = (Time.timeScale == 2f) ? 1f : 2f;
-        Debug.Log($"[GameManager] SpeedChanged to {Time.timeScale}");
-    }
-
-    public void ChangeActiveHero(int index)
-    {
-        if (party.Count > index)
+        saveData.header.partyPreview.Clear();
+        for (int i = 0; i < activeParty.Count; i++)
         {
-            activeHero = party[index];
+            if (activeParty[i] != null && activeParty[i].TryGetComponent<HeroStats>(out var stats))
+            {
+                saveData.header.partyPreview.Add(new HeroPreviewData(activeParty[i].name, stats.Level));
+            }
+        }
 
-            GameEvents.Player.RequestActiveHeroChange(activeHero);
-            NotifyPartyChanged(activeHero);
+        // 2. World & Scene State
+        saveData.worldState.currentSceneName = SceneManager.GetActiveScene().name;
+        saveData.worldState.currentZoneName = currentZoneName;
+        saveData.worldState.currentRegionName = currentRegionName;
+        saveData.worldState.spawnPointID = currentUsedSpawnPoint != null ? currentUsedSpawnPoint.SpawnID : string.Empty;
+
+        // 3. Party Progression State
+        saveData.partyState.activeLeaderHeroName = activeLeaderHero != null ? activeLeaderHero.name : string.Empty;
+
+        saveData.partyState.partyMemberNames.Clear();
+        for (int i = 0; i < activeParty.Count; i++)
+        {
+            if (activeParty[i] != null) saveData.partyState.partyMemberNames.Add(activeParty[i].name);
+        }
+
+        saveData.partyState.reserveHeroNames.Clear();
+        for (int i = 0; i < reserveParty.Count; i++)
+        {
+            if (reserveParty[i] != null) saveData.partyState.reserveHeroNames.Add(reserveParty[i].name);
+        }
+
+        // 4. World Story Flags
+        saveData.gameFlags.Clear();
+        foreach (var kvp in gameFlags)
+        {
+            saveData.gameFlags.Add(new GameFlagData(kvp.Key, kvp.Value));
+        }
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        loadingData = true;
+
+        // 1. Restore Economy & Meta Metrics
+        totalGold = Mathf.Max(0, saveData.header.totalGold);
+        totalPlayed = saveData.header.totalTime;
+        currentZoneName = saveData.worldState.currentZoneName;
+        currentRegionName = saveData.worldState.currentRegionName;
+
+        GameEvents.Party.TriggerGoldChanged(totalGold);
+
+        // 2. Restore Story Flags
+        gameFlags.Clear();
+        if (saveData.gameFlags != null)
+        {
+            for (int i = 0; i < saveData.gameFlags.Count; i++)
+            {
+                if (saveData.gameFlags[i] != null)
+                {
+                    gameFlags[saveData.gameFlags[i].key] = saveData.gameFlags[i].state;
+                }
+            }
+        }
+
+        // 3. Restore Party Roster Composition without GameObject.Find
+        activeParty.Clear();
+        reserveParty.Clear();
+
+        if (saveData.partyState != null)
+        {
+            // Restore Active Party Members
+            for (int i = 0; i < saveData.partyState.partyMemberNames.Count; i++)
+            {
+                string targetName = saveData.partyState.partyMemberNames[i];
+                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName));
+                if (matchedHero != null)
+                {
+                    activeParty.Add(matchedHero);
+                }
+            }
+
+            // Restore Inactive/Reserve Party Members
+            for (int i = 0; i < saveData.partyState.reserveHeroNames.Count; i++)
+            {
+                string targetName = saveData.partyState.reserveHeroNames[i];
+                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName));
+                if (matchedHero != null)
+                {
+                    reserveParty.Add(matchedHero);
+                }
+            }
+
+            // Restore Active Overworld Leader
+            if (!string.IsNullOrEmpty(saveData.partyState.activeLeaderHeroName))
+            {
+                activeLeaderHero = availableHeroes.Find(h => h != null && h.name.Equals(saveData.partyState.activeLeaderHeroName));
+            }
+        }
+
+        if (activeLeaderHero == null && activeParty.Count > 0)
+        {
+            activeLeaderHero = activeParty[0];
+        }
+
+        // 4. Relocate Player Position
+        Vector3 targetPos = new Vector3(saveData.worldState.playerPosition[0], saveData.worldState.playerPosition[1], saveData.worldState.playerPosition[2]);
+        Quaternion targetRot = Quaternion.Euler(0, saveData.worldState.playerRotation[1], 0);
+
+        if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
+        {
+            targetPos.y = hit.point.y;
+        }
+
+        GameEvents.Player.RequestTeleport(targetPos, targetRot);
+        ResetCameraBehindPlayer(targetPos, targetRot);
+
+        NotifyPartyChanged();
+        GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+
+        loadingData = false;
+    }
+
+    #endregion
+
+    #region Internal Systems & Camera Helpers
+
+    private void ToggleGameplaySystems(bool active)
+    {
+        ToggleCameraInput(active);
+
+        if (playerMainCamera != null)
+        {
+            bool isTitle = (currentState == GameState.TitleScreen);
+
+            playerMainCamera.SetActive(!isTitle);
+
+            CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
+            if (brain != null)
+            {
+                brain.enabled = !isTitle;
+            }
+        }
+    }
+
+    private void ToggleCameraInput(bool active)
+    {
+        if (freeLookCamera == null && playerMainCamera != null)
+        {
+            freeLookCamera = playerMainCamera.GetComponentInChildren<CinemachineCamera>();
+        }
+
+        if (freeLookCamera != null)
+        {
+            if (freeLookCamera.TryGetComponent<CinemachineInputAxisController>(out var inputController))
+            {
+                inputController.enabled = active;
+            }
         }
     }
 
@@ -478,220 +637,6 @@ public class GameManager : MonoBehaviour
                 orbitalFollow.VerticalAxis.Value = 0.5f;
             }
         }
-    }
-
-    #endregion
-
-    #region Save & Load System
-
-    private void LoadData()
-    {
-        if (SaveManager.loadedData == null) return;
-
-        GameData dataToLoad = SaveManager.loadedData[0];
-
-        Vector3 targetPos = new Vector3(dataToLoad.playerPosition[0], dataToLoad.playerPosition[1], dataToLoad.playerPosition[2]);
-        Quaternion targetRot = Quaternion.Euler(0, dataToLoad.playerRotation[1], 0);
-
-        if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
-        {
-            targetPos.y = hit.point.y;
-        }
-
-        GameEvents.Player.RequestTeleport(targetPos, targetRot);
-        ResetCameraBehindPlayer(targetPos, targetRot);
-
-        totalPlayed = dataToLoad.totalTime;
-        totalGold = dataToLoad.totalGold;
-
-        party.Clear();
-
-        GameEvents.Inventory.RequestClearAllInventories();
-
-        for (int i = 0; i < dataToLoad.party.Count; i++)
-        {
-            string heroName = dataToLoad.party[i];
-            GameObject heroObj = GameObject.Find(heroName);
-            if (heroObj != null)
-            {
-                party.Add(heroObj);
-            }
-        }
-
-        if (party.Count > 0) activeHero = party[0];
-        GameEvents.Player.RequestActiveHeroChange(activeHero);
-
-        GameEvents.Inventory.RequestSyncWithParty();
-
-        if (dataToLoad.globalBagItems != null)
-        {
-            for (int i = 0; i < dataToLoad.globalBagItems.Count; i++)
-            {
-                var savedItem = dataToLoad.globalBagItems[i];
-                if (savedItem == null || string.IsNullOrEmpty(savedItem.itemSlug)) continue;
-
-                ItemSO item = null;
-                GameEvents.Database.RequestItemBySlug(savedItem.itemSlug, (res) => item = res);
-
-                if (item is KeyItemSO keyItem)
-                {
-                    GameEvents.Inventory.RequestAddKeyItem(keyItem, savedItem.quantity, null);
-                }
-            }
-        }
-
-        for (int i = 0; i < party.Count; i++)
-        {
-            GameObject heroObj = party[i];
-            string currentHeroName = heroObj.name;
-
-            if (heroObj.TryGetComponent<HeroStats>(out var heroStats))
-            {
-                if (dataToLoad.heroStats != null && i < dataToLoad.heroStats.Count)
-                {
-                    var savedStats = dataToLoad.heroStats[i];
-                    for (int s = 0; s < savedStats.Count; s++)
-                    {
-                        Stat savedStat = savedStats[s];
-                        Stat currentStat = heroStats.GetStat(savedStat.StatType);
-                        if (currentStat != null)
-                        {
-                            currentStat.BaseValue = savedStat.BaseValue;
-                        }
-                    }
-                }
-
-                if (dataToLoad.heroLevelAndXp != null && i < dataToLoad.heroLevelAndXp.Count)
-                {
-                    int savedLevel = dataToLoad.heroLevelAndXp[i][0];
-                    int savedXp = dataToLoad.heroLevelAndXp[i][1];
-                    heroStats.LoadProgression(savedLevel, savedXp);
-                }
-
-                if (dataToLoad.heroPsynergySlugs != null && i < dataToLoad.heroPsynergySlugs.Count)
-                {
-                    List<string> savedSlugs = dataToLoad.heroPsynergySlugs[i];
-                    List<PsynergySO> loadedPsynergies = new List<PsynergySO>();
-
-                    if (savedSlugs != null)
-                    {
-                        for (int p = 0; p < savedSlugs.Count; p++)
-                        {
-                            string slug = savedSlugs[p];
-                            if (string.IsNullOrEmpty(slug)) continue;
-
-                            PsynergySO psynergy = null;
-                            GameEvents.Database.RequestPsynergyBySlug(slug, (res) => psynergy = res);
-
-                            if (psynergy != null) loadedPsynergies.Add(psynergy);
-                        }
-                    }
-
-                    heroStats.Psynergies = loadedPsynergies;
-                }
-            }
-
-            if (heroObj.TryGetComponent<HeroInventory>(out var heroInventory))
-            {
-                var savedInvData = dataToLoad.heroesInventories?.Find(x => x.heroName == currentHeroName);
-                if (savedInvData != null && savedInvData.slots != null)
-                {
-                    for (int slotIdx = 0; slotIdx < savedInvData.slots.Count && slotIdx < heroInventory.Slots.Count; slotIdx++)
-                    {
-                        var savedSlotData = savedInvData.slots[slotIdx];
-                        if (!string.IsNullOrEmpty(savedSlotData.itemSlug))
-                        {
-                            ItemSO item = null;
-                            GameEvents.Database.RequestItemBySlug(savedSlotData.itemSlug, (res) => item = res);
-                            heroInventory.GetSlot(slotIdx).SetSlot(item, savedSlotData.quantity);
-                        }
-                        else
-                        {
-                            heroInventory.GetSlot(slotIdx).ClearSlot();
-                        }
-                    }
-                }
-            }
-
-            if (heroObj.TryGetComponent<HeroEquipment>(out var heroEquipment))
-            {
-                var eqData = dataToLoad.heroesEquipment?.Find(x => x.heroName == currentHeroName);
-                if (eqData != null)
-                {
-                    if (eqData.standardEquipment != null)
-                    {
-                        for (int eqIdx = 0; eqIdx < eqData.standardEquipment.Count; eqIdx++)
-                        {
-                            var eqSlotData = eqData.standardEquipment[eqIdx];
-                            if (string.IsNullOrEmpty(eqSlotData.itemSlug)) continue;
-
-                            ItemSO item = null;
-                            GameEvents.Database.RequestItemBySlug(eqSlotData.itemSlug, (res) => item = res);
-
-                            if (item is EquipableSO equipable)
-                            {
-                                heroEquipment.LoadEquippedItem(equipable);
-                            }
-                        }
-                    }
-
-                    if (eqData.relicSlugs != null)
-                    {
-                        for (int relicIdx = 0; relicIdx < eqData.relicSlugs.Count; relicIdx++)
-                        {
-                            string relicSlug = eqData.relicSlugs[relicIdx];
-                            if (string.IsNullOrEmpty(relicSlug)) continue;
-
-                            ItemSO item = null;
-                            GameEvents.Database.RequestItemBySlug(relicSlug, (res) => item = res);
-
-                            if (item is PsynergyRelicSO relic)
-                            {
-                                heroEquipment.LoadEquippedRelic(relic, relicIdx);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (heroObj.TryGetComponent<HeroStats>(out var heroStatsFinal))
-            {
-                if (dataToLoad.heroCurrHpPp != null && i < dataToLoad.heroCurrHpPp.Count)
-                {
-                    heroStatsFinal.CurrHp = dataToLoad.heroCurrHpPp[i][0];
-                    heroStatsFinal.CurrPp = dataToLoad.heroCurrHpPp[i][1];
-                }
-            }
-        }
-
-        if (dataToLoad.heroShortcuts != null)
-        {
-            foreach (KeyValuePair<string, string[]> heroShortcut in dataToLoad.heroShortcuts)
-            {
-                GameObject heroObj = GameObject.Find(heroShortcut.Key);
-                if (heroObj != null && heroShortcut.Value != null)
-                {
-                    string[] savedSlugs = heroShortcut.Value;
-                    for (int slotIdx = 0; slotIdx < savedSlugs.Length && slotIdx < 4; slotIdx++)
-                    {
-                        string slug = savedSlugs[slotIdx];
-                        PsynergySO psynergy = null;
-
-                        if (!string.IsNullOrEmpty(slug))
-                        {
-                            GameEvents.Database.RequestPsynergyBySlug(slug, (res) => psynergy = res);
-                        }
-
-                        GameEvents.Psynergy.RequestAssignShortcut(heroObj, psynergy, slotIdx);
-                    }
-                }
-            }
-        }
-
-        loadingData = false;
-        SaveManager.loadedData = null;
-
-        NotifyPartyChanged(activeHero);
     }
 
     #endregion
