@@ -1182,11 +1182,6 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   lightOverride: {fileID: 0}
---- !u!4 &1872816913 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8459378967203041517, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1929226537
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,73 +1374,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 575090345836108460, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: Lens.FieldOfView
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 575090345836108460, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: Target.TrackingTarget
-      value: 
-      objectReference: {fileID: 1872816913}
-    - target: {fileID: 1544131417561556296, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: CameraDistance
-      value: 2.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1544131417561556296, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: ShoulderOffset.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1544131417561556296, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: AvoidObstacles.DampingFromCollision
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1544131417561556296, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: AvoidObstacles.CollisionFilter.m_Bits
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[0].Input.Gain
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[1].Input.Gain
-      value: -0.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[0].Driver.AccelTime
-      value: 0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[0].Driver.DecelTime
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[1].Driver.AccelTime
-      value: 0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 2852740400667906410, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_ControllerManager.Controllers.Array.data[1].Driver.DecelTime
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 3526866620092773622, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: TiltAxis.Range.x
-      value: -30
-      objectReference: {fileID: 0}
-    - target: {fileID: 8459378966427559356, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.9000002
+    - target: {fileID: 3791319071773773611, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 8459378966427559356, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -29.800001
-      objectReference: {fileID: 0}
-    - target: {fileID: 8459378966983066129, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8459378966983066129, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2
+      value: -26.86
       objectReference: {fileID: 0}
     - target: {fileID: 8459378967151069452, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1490,10 +1425,6 @@ PrefabInstance:
     - target: {fileID: 8459378967151069454, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
-      objectReference: {fileID: 0}
-    - target: {fileID: 8840404653442117784, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_Radius
-      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

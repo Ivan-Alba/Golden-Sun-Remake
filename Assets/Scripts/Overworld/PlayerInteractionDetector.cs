@@ -58,13 +58,13 @@ public class PlayerInteractionDetector : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
-        GameEvents.Player.OnAimStateChanged += HandleAimStateChanged;
+        GameEvents.Player.OnFirstPersonViewStateChanged += HandleAimStateChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
-        GameEvents.Player.OnAimStateChanged -= HandleAimStateChanged;
+        GameEvents.Player.OnFirstPersonViewStateChanged -= HandleAimStateChanged;
         ClearAllCandidates();
     }
 

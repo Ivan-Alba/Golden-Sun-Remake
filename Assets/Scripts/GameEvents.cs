@@ -31,12 +31,12 @@ public static class GameEvents
             => OnInteractableTargetChanged?.Invoke(target);
 
         /// <summary>
-        /// Triggered when the aiming reticle focuses on or loses a targetable object in the world.
-        /// Sends target GameObject and displayable target name (or null when target is lost).
+        /// Triggered when the player's Psynergy detector focuses on or loses an IPsynergyTargetable in proximity/viewport.
+        /// Sends IPsynergyTargetable target (or null when target is lost).
         /// </summary>
-        public static event Action<GameObject, string> OnAimTargetChanged;
-        public static void TriggerAimTargetChanged(GameObject targetObj, string targetName)
-            => OnAimTargetChanged?.Invoke(targetObj, targetName);
+        public static event Action<IPsynergyTargetable> OnPsynergyTargetChanged;
+        public static void TriggerPsynergyTargetChanged(IPsynergyTargetable target)
+            => OnPsynergyTargetChanged?.Invoke(target);
 
         /// <summary>
         /// Request to display an emotional balloon/emote floating above a character's head in world space.
@@ -367,12 +367,12 @@ public static class GameEvents
             => OnHeroStatusChanged?.Invoke();
 
         /// <summary>
-        /// Triggered whenever the player enters or exits the Aiming state.
-        /// Params: isAiming
+        /// Triggered whenever the player enters or exits the First-Person View state.
+        /// Params: isFirstPersonView
         /// </summary>
-        public static event Action<bool> OnAimStateChanged;
-        public static void TriggerAimStateChanged(bool isAiming)
-            => OnAimStateChanged?.Invoke(isAiming);
+        public static event Action<bool> OnFirstPersonViewStateChanged;
+        public static void TriggerFirstPersonViewChanged(bool isFirstPersonView)
+            => OnFirstPersonViewStateChanged?.Invoke(isFirstPersonView);
     }
 
     // ==========================================
@@ -597,16 +597,9 @@ public static class GameEvents
         /// <summary>
         /// Request to show or hide the aiming reticle UI overlay.
         /// </summary>
-        public static event Action<bool> OnSetAimUIVisibleRequested;
-        public static void RequestSetAimUIVisible(bool visible)
-            => OnSetAimUIVisibleRequested?.Invoke(visible);
-
-        /// <summary>
-        /// Request to change the aiming reticle lock-on highlight state.
-        /// </summary>
-        public static event Action<bool> OnSetAimTargetLockedRequested;
-        public static void RequestSetAimTargetLocked(bool locked)
-            => OnSetAimTargetLockedRequested?.Invoke(locked);
+        public static event Action<bool> OnSetFirtsPersonViewUIVisibleRequested;
+        public static void RequestSetFirstPersonUIVisible(bool visible)
+            => OnSetFirtsPersonViewUIVisibleRequested?.Invoke(visible);
 
         /// <summary>
         /// Request to initiate a dialogue conversation using DialogueSO.

@@ -10,14 +10,14 @@ public class InputManager : MonoBehaviour
 
     public Vector2 MoveInput { get; private set; }
     public bool IsRunning { get; private set; }
-    public bool IsAiming { get; private set; }
+    public bool IsFirstPersonView { get; private set; }
 
     // --- EVENTS FOR DISCRETE ACTIONS ---
     public event Action<int> OnChangeHeroPressed;
     public event Action OnInteractPressed;
     public event Action OnToggleMenuPressed;
-    public event Action OnStartAimPressed;
-    public event Action OnStopAimPressed;
+    public event Action OnStartFirstPersonViewPressed;
+    public event Action OnStopFirstPersonViewPressed;
     public event Action<int> OnUsePsynergyPressed;
     public event Action OnDialogueAdvancePressed;
 
@@ -119,15 +119,14 @@ public class InputManager : MonoBehaviour
         inputActions.WorldExploration.Hero3.performed += OnHero3Performed;
         inputActions.WorldExploration.Hero4.performed += OnHero4Performed;
 
-        // Hold Right-Click to Aim
-        inputActions.WorldExploration.Aim.started += OnAimStarted;
-        inputActions.WorldExploration.Aim.canceled += OnAimCanceled;
+        // Toggle Right-Click for First Person View
+        inputActions.WorldExploration.Aim.performed += OnFirstPersonViewTogglePerformed;
 
-        // --- PSYNERGY AIMING MAP ---
-        inputActions.PsynergyAiming.Psynergy1.performed += OnPsynergy1Performed;
-        inputActions.PsynergyAiming.Psynergy2.performed += OnPsynergy2Performed;
-        inputActions.PsynergyAiming.Psynergy3.performed += OnPsynergy3Performed;
-        inputActions.PsynergyAiming.Psynergy4.performed += OnPsynergy4Performed;
+        // Direct Psynergy Shortcuts inside WorldExploration Map
+        inputActions.WorldExploration.Psynergy1.performed += OnPsynergy1Performed;
+        inputActions.WorldExploration.Psynergy2.performed += OnPsynergy2Performed;
+        inputActions.WorldExploration.Psynergy3.performed += OnPsynergy3Performed;
+        inputActions.WorldExploration.Psynergy4.performed += OnPsynergy4Performed;
 
         // --- DIALOGUE MAP ---
         inputActions.Dialogue.Confirm.performed += OnDialogueAdvancePerformed;
@@ -168,13 +167,12 @@ public class InputManager : MonoBehaviour
         inputActions.WorldExploration.Hero3.performed -= OnHero3Performed;
         inputActions.WorldExploration.Hero4.performed -= OnHero4Performed;
 
-        inputActions.WorldExploration.Aim.started -= OnAimStarted;
-        inputActions.WorldExploration.Aim.canceled -= OnAimCanceled;
+        inputActions.WorldExploration.Aim.performed -= OnFirstPersonViewTogglePerformed;
 
-        inputActions.PsynergyAiming.Psynergy1.performed -= OnPsynergy1Performed;
-        inputActions.PsynergyAiming.Psynergy2.performed -= OnPsynergy2Performed;
-        inputActions.PsynergyAiming.Psynergy3.performed -= OnPsynergy3Performed;
-        inputActions.PsynergyAiming.Psynergy4.performed -= OnPsynergy4Performed;
+        inputActions.WorldExploration.Psynergy1.performed -= OnPsynergy1Performed;
+        inputActions.WorldExploration.Psynergy2.performed -= OnPsynergy2Performed;
+        inputActions.WorldExploration.Psynergy3.performed -= OnPsynergy3Performed;
+        inputActions.WorldExploration.Psynergy4.performed -= OnPsynergy4Performed;
 
         inputActions.Dialogue.Confirm.performed -= OnDialogueAdvancePerformed;
 
@@ -206,7 +204,7 @@ public class InputManager : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
-        if (!IsAiming) OnInteractPressed?.Invoke();
+        if (!IsFirstPersonView) OnInteractPressed?.Invoke();
     }
 
     private void OnToggleMenuPerformed(InputAction.CallbackContext ctx) => OnToggleMenuPressed?.Invoke();
@@ -216,8 +214,17 @@ public class InputManager : MonoBehaviour
     private void OnHero3Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(2);
     private void OnHero4Performed(InputAction.CallbackContext ctx) => OnChangeHeroPressed?.Invoke(3);
 
-    private void OnAimStarted(InputAction.CallbackContext ctx) => StartAiming();
-    private void OnAimCanceled(InputAction.CallbackContext ctx) => StopAiming();
+    private void OnFirstPersonViewTogglePerformed(InputAction.CallbackContext ctx)
+    {
+        if (IsFirstPersonView)
+        {
+            StopFirstPersonView();
+        }
+        else
+        {
+            StartFirstPersonView();
+        }
+    }
 
     private void OnPsynergy1Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(0);
     private void OnPsynergy2Performed(InputAction.CallbackContext ctx) => OnUsePsynergyPressed?.Invoke(1);
@@ -252,15 +259,6 @@ public class InputManager : MonoBehaviour
         if (inputActions.Dialogue.enabled) inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
         if (inputActions.Menu.enabled) inputActions.Menu.Disable();
-
-        if (IsAiming)
-        {
-            if (!inputActions.PsynergyAiming.enabled) inputActions.PsynergyAiming.Enable();
-        }
-        else
-        {
-            if (inputActions.PsynergyAiming.enabled) inputActions.PsynergyAiming.Disable();
-        }
     }
 
     private void ProcessDialogueState()
@@ -268,10 +266,9 @@ public class InputManager : MonoBehaviour
         MoveInput = Vector2.zero;
         IsRunning = false;
 
-        if (IsAiming) StopAiming();
+        if (IsFirstPersonView) StopFirstPersonView();
 
         inputActions.WorldExploration.Disable();
-        inputActions.PsynergyAiming.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
         if (inputActions.Menu.enabled) inputActions.Menu.Disable();
 
@@ -283,10 +280,9 @@ public class InputManager : MonoBehaviour
         MoveInput = Vector2.zero;
         IsRunning = false;
 
-        if (IsAiming) StopAiming();
+        if (IsFirstPersonView) StopFirstPersonView();
 
         inputActions.WorldExploration.Disable();
-        inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
 
@@ -298,10 +294,9 @@ public class InputManager : MonoBehaviour
         MoveInput = Vector2.zero;
         IsRunning = false;
 
-        if (IsAiming) StopAiming();
+        if (IsFirstPersonView) StopFirstPersonView();
 
         inputActions.WorldExploration.Disable();
-        inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
         if (inputActions.Battle.enabled) inputActions.Battle.Disable();
         if (inputActions.Menu.enabled) inputActions.Menu.Disable();
@@ -312,32 +307,29 @@ public class InputManager : MonoBehaviour
         MoveInput = Vector2.zero;
         IsRunning = false;
 
-        if (IsAiming) StopAiming();
+        if (IsFirstPersonView) StopFirstPersonView();
 
         inputActions.WorldExploration.Disable();
-        inputActions.PsynergyAiming.Disable();
         inputActions.Dialogue.Disable();
         if (inputActions.Menu.enabled) inputActions.Menu.Disable();
 
         if (!inputActions.Battle.enabled) inputActions.Battle.Enable();
     }
 
-    private void StartAiming()
+    private void StartFirstPersonView()
     {
-        if (IsAiming) return;
+        if (IsFirstPersonView) return;
 
-        IsAiming = true;
-        inputActions.PsynergyAiming.Enable();
-        OnStartAimPressed?.Invoke();
+        IsFirstPersonView = true;
+        OnStartFirstPersonViewPressed?.Invoke();
     }
 
-    private void StopAiming()
+    private void StopFirstPersonView()
     {
-        if (!IsAiming) return;
+        if (!IsFirstPersonView) return;
 
-        IsAiming = false;
-        inputActions.PsynergyAiming.Disable();
-        OnStopAimPressed?.Invoke();
+        IsFirstPersonView = false;
+        OnStopFirstPersonViewPressed?.Invoke();
     }
 
     #endregion

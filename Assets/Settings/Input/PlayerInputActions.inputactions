@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "PlayerInputActions",
     "maps": [
         {
@@ -81,7 +82,7 @@
                     "name": "Aim",
                     "type": "Button",
                     "id": "27f5cd53-cc67-4a23-b38f-b06265c5bf76",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -94,6 +95,42 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Psynergy1",
+                    "type": "Button",
+                    "id": "7fab896f-ce13-4c51-a7eb-3e3439099081",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Psynergy2",
+                    "type": "Button",
+                    "id": "480afc37-1684-4433-a0e3-f19dcebff59b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Psynergy3",
+                    "type": "Button",
+                    "id": "d8ff9fe0-3e58-4c5c-98ea-1a80b0039b3a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Psynergy4",
+                    "type": "Button",
+                    "id": "4cd8299f-0d37-493f-ada9-e25866f9226c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -250,6 +287,50 @@
                     "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "171ee4b7-a775-483d-972a-3896027658a6",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Psynergy1",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ea6425a5-3149-40ba-86ba-3572ba978974",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Psynergy2",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "37ed44fc-38d9-4790-84f1-1319e1b1fe2c",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Psynergy3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "acb2129b-93e7-45ed-a29c-a6a96fc4d55d",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Psynergy4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -261,7 +342,7 @@
                     "name": "Aim",
                     "type": "Button",
                     "id": "41da3b32-cd1e-4c15-b324-a1d30a892d8b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -270,7 +351,7 @@
                     "name": "Psynergy1",
                     "type": "Button",
                     "id": "c27cd5c2-4284-4677-b1eb-8c5f4435b3fc",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -279,7 +360,7 @@
                     "name": "Psynergy2",
                     "type": "Button",
                     "id": "705a5c5a-b834-45f3-bb43-2566a5c6be6c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

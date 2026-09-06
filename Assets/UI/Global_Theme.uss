@@ -1,50 +1,32 @@
-/* =========================================================================
-   Global_Theme.uss
-   Central Theme Variables, Colors, Elemental Icons, and Text Utilities
-   ========================================================================= */
-
-/* --- Root Theme Variables --- */
 :root {
-    /* Main Accent Colors */
-    --color-gold-sun: #DAA520;
-    --color-gold-bright: #FFD700;
-    --color-text-white: #FFFFFF;
-    --color-text-muted: #8A9BA8;
-    --color-text-description: #CBD5E1;
-    --color-accent-blue: #60A5FA;
-
-    /* Base Containers Backgrounds & Borders */
+    --color-gold-sun: rgb(218, 165, 32);
+    --color-gold-bright: rgb(255, 215, 0);
+    --color-text-white: rgb(255, 255, 255);
+    --color-text-muted: rgb(138, 155, 168);
+    --color-text-description: rgb(203, 213, 225);
+    --color-accent-blue: rgb(96, 165, 250);
     --color-panel-bg: rgba(15, 20, 28, 0.85);
-    --color-panel-bg-no-alpha: rgba(15, 20, 28, 1);
-    --color-panel-border: #2E3A4E;
-    --color-subbox-bg: #101722;
-    --color-subbox-border: #1F2D40;
-
-    /* Interactive States Colors */
+    --color-panel-bg-no-alpha: rgb(15, 20, 28);
+    --color-panel-border: rgb(46, 58, 78);
+    --color-subbox-bg: rgb(16, 23, 34);
+    --color-subbox-border: rgb(31, 45, 64);
     --color-hover-subtle-bg: rgba(50, 50, 65, 0.95);
     --color-hover-subtle-border: rgba(218, 165, 32, 0.6);
-    
     --color-hover-gold-bg: rgba(218, 165, 32, 0.35);
-    --color-hover-gold-border: #FFD700;
-
+    --color-hover-gold-border: rgb(255, 215, 0);
     --color-active-gold-bg: rgba(60, 50, 30, 0.95);
-    --color-active-gold-border: #FFD700;
-
-    /* Elemental Colors */
-    --color-venus: #C88A2E;
-    --color-mars: #E74C3C;
-    --color-jupiter: #9B59B6;
-    --color-mercury: #3498DB;
-    --color-none: #555555;
-
+    --color-active-gold-border: rgb(255, 215, 0);
+    --color-venus: rgb(200, 138, 46);
+    --color-mars: rgb(231, 76, 60);
+    --color-jupiter: rgb(155, 89, 182);
+    --color-mercury: rgb(52, 152, 219);
+    --color-none: rgb(85, 85, 85);
     --color-venus-bg: rgba(200, 138, 46, 0.12);
     --color-mars-bg: rgba(231, 76, 60, 0.12);
     --color-jupiter-bg: rgba(155, 89, 182, 0.12);
     --color-mercury-bg: rgba(52, 152, 219, 0.12);
-
 }
 
-/* --- Elemental Pips (Standardized) --- */
 .pip-icon {
     width: 12px;
     height: 12px;
@@ -57,32 +39,35 @@
 .pip-count {
     font-size: 13px;
     -unity-font-style: bold;
-    color: #E0E0E0;
+    color: rgb(224, 224, 224);
     width: 25px;
 }
-.icon-venus { 
-    background-image: url('/Assets/Resources/Images/Icons/Venus_Star.gif');
-    border-color: rgba(255, 255, 255, 0.4); 
-}
-.icon-mars { 
-    background-image: url('/Assets/Resources/Images/Icons/Mars_Star.gif');
-    border-color: rgba(255, 255, 255, 0.4); 
-}
-.icon-jupiter { 
-    background-image: url('/Assets/Resources/Images/Icons/Jupiter_Star.gif');
-    border-color: rgba(255, 255, 255, 0.4); 
-}
-.icon-mercury { 
-    background-image: url('/Assets/Resources/Images/Icons/Mercury_Star.gif');
-    border-color: rgba(255, 255, 255, 0.4); 
+
+.icon-venus {
+    background-image: url("project://database/Assets/Resources/Images/Icons/Venus_Star.gif?fileID=21300000&guid=f1a0ba108c3adb640bfad36c265184a2&type=3#Venus_Star");
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-.icon-none { 
+.icon-mars {
+    background-image: url("project://database/Assets/Resources/Images/Icons/Mars_Star.gif?fileID=21300000&guid=f3bd2ce65e9099440a049b566a86e970&type=3#Mars_Star");
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.icon-jupiter {
+    background-image: url("project://database/Assets/Resources/Images/Icons/Jupiter_Star.gif?fileID=21300000&guid=2921df73e30678745ba644923a130fa8&type=3#Jupiter_Star");
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.icon-mercury {
+    background-image: url("project://database/Assets/Resources/Images/Icons/Mercury_Star.gif?fileID=21300000&guid=94c258c31d4776f429f657c0a79b9112&type=3#Mercury_Star");
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.icon-none {
     background-color: var(--color-none);
-    border-color: rgba(255, 255, 255, 0.4); 
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* --- Shared Utility Text Classes --- */
 .text-gold {
     color: var(--color-gold-sun);
 }
@@ -99,32 +84,27 @@
     color: var(--color-accent-blue);
 }
 
-/* =========================================================================
-   GLOBAL INTERACTIVE UTILITY CLASSES
-   ========================================================================= */
-
-/* Base transition for interactive UI elements */
 .ui-interactive {
     transition-property: background-color, border-color, scale;
     transition-duration: 0.15s;
     transition-timing-function: ease-out;
 }
 
-/* 1. Subtle Hover (Azulado/Blanquecino discreto) */
 .ui-hover-subtle:hover {
     background-color: var(--color-hover-subtle-bg);
     border-color: var(--color-hover-subtle-border);
 }
 
-/* 2. Gold Hover (Dorado vistoso) */
 .ui-hover-gold:hover {
     background-color: var(--color-hover-gold-bg);
     border-color: var(--color-hover-gold-border);
 }
 
-/* 3. Global Active/Selected State */
 .ui-state-active {
     border-color: var(--color-active-gold-border);
     border-width: 2px;
     background-color: var(--color-active-gold-bg);
+}
+
+.active-dpad {
 }

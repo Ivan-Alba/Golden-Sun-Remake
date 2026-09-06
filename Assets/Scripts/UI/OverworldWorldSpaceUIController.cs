@@ -163,7 +163,6 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
 
         GameEvents.World.OnInteractableTargetChanged += HandleInteractableTargetChanged;
-        GameEvents.World.OnAimTargetChanged += HandleAimTargetChanged;
         GameEvents.World.OnShowEmoteRequested += HandleShowEmoteRequested;
 
         GameEvents.World.OnEntityEnteredProximity += HandleEntityEnteredProximity;
@@ -177,7 +176,6 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
 
         GameEvents.World.OnInteractableTargetChanged -= HandleInteractableTargetChanged;
-        GameEvents.World.OnAimTargetChanged -= HandleAimTargetChanged;
         GameEvents.World.OnShowEmoteRequested -= HandleShowEmoteRequested;
 
         GameEvents.World.OnEntityEnteredProximity -= HandleEntityEnteredProximity;
@@ -260,13 +258,6 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             //Debug.Log($"<color=#3498db>[UIController] Target '{targetObj.name}' has no active Proximity Nameplate -> Creating Generic Standalone Prompt.</color>");
             SetupGenericPrompt(currentInteractionTarget.KeyPrompt, currentInteractionTarget.ActionText);
         }
-    }
-
-    private void HandleAimTargetChanged(GameObject targetObj, string targetName)
-    {
-        currentAimTarget = targetObj;
-        currentAimName = targetName;
-        isAimInfoVisible = (currentAimTarget != null && !string.IsNullOrEmpty(targetName));
     }
 
     private void HandleShowEmoteRequested(Transform targetHead, EmoteType emoteType, float duration)

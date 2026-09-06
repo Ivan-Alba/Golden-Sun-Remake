@@ -168,7 +168,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Aim"",
                     ""type"": ""Button"",
                     ""id"": ""27f5cd53-cc67-4a23-b38f-b06265c5bf76"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -181,6 +181,42 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Psynergy1"",
+                    ""type"": ""Button"",
+                    ""id"": ""7fab896f-ce13-4c51-a7eb-3e3439099081"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Psynergy2"",
+                    ""type"": ""Button"",
+                    ""id"": ""480afc37-1684-4433-a0e3-f19dcebff59b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Psynergy3"",
+                    ""type"": ""Button"",
+                    ""id"": ""d8ff9fe0-3e58-4c5c-98ea-1a80b0039b3a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Psynergy4"",
+                    ""type"": ""Button"",
+                    ""id"": ""4cd8299f-0d37-493f-ada9-e25866f9226c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -337,6 +373,50 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""171ee4b7-a775-483d-972a-3896027658a6"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Psynergy1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ea6425a5-3149-40ba-86ba-3572ba978974"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Psynergy2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""37ed44fc-38d9-4790-84f1-1319e1b1fe2c"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Psynergy3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""acb2129b-93e7-45ed-a29c-a6a96fc4d55d"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Psynergy4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -348,7 +428,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Aim"",
                     ""type"": ""Button"",
                     ""id"": ""41da3b32-cd1e-4c15-b324-a1d30a892d8b"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -357,7 +437,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Psynergy1"",
                     ""type"": ""Button"",
                     ""id"": ""c27cd5c2-4284-4677-b1eb-8c5f4435b3fc"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -366,7 +446,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Psynergy2"",
                     ""type"": ""Button"",
                     ""id"": ""705a5c5a-b834-45f3-bb43-2566a5c6be6c"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -787,6 +867,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_WorldExploration_Hero4 = m_WorldExploration.FindAction("Hero4", throwIfNotFound: true);
         m_WorldExploration_Aim = m_WorldExploration.FindAction("Aim", throwIfNotFound: true);
         m_WorldExploration_Look = m_WorldExploration.FindAction("Look", throwIfNotFound: true);
+        m_WorldExploration_Psynergy1 = m_WorldExploration.FindAction("Psynergy1", throwIfNotFound: true);
+        m_WorldExploration_Psynergy2 = m_WorldExploration.FindAction("Psynergy2", throwIfNotFound: true);
+        m_WorldExploration_Psynergy3 = m_WorldExploration.FindAction("Psynergy3", throwIfNotFound: true);
+        m_WorldExploration_Psynergy4 = m_WorldExploration.FindAction("Psynergy4", throwIfNotFound: true);
         // PsynergyAiming
         m_PsynergyAiming = asset.FindActionMap("PsynergyAiming", throwIfNotFound: true);
         m_PsynergyAiming_Aim = m_PsynergyAiming.FindAction("Aim", throwIfNotFound: true);
@@ -909,6 +993,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_WorldExploration_Hero4;
     private readonly InputAction m_WorldExploration_Aim;
     private readonly InputAction m_WorldExploration_Look;
+    private readonly InputAction m_WorldExploration_Psynergy1;
+    private readonly InputAction m_WorldExploration_Psynergy2;
+    private readonly InputAction m_WorldExploration_Psynergy3;
+    private readonly InputAction m_WorldExploration_Psynergy4;
     /// <summary>
     /// Provides access to input actions defined in input action map "WorldExploration".
     /// </summary>
@@ -960,6 +1048,22 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "WorldExploration/Look".
         /// </summary>
         public InputAction @Look => m_Wrapper.m_WorldExploration_Look;
+        /// <summary>
+        /// Provides access to the underlying input action "WorldExploration/Psynergy1".
+        /// </summary>
+        public InputAction @Psynergy1 => m_Wrapper.m_WorldExploration_Psynergy1;
+        /// <summary>
+        /// Provides access to the underlying input action "WorldExploration/Psynergy2".
+        /// </summary>
+        public InputAction @Psynergy2 => m_Wrapper.m_WorldExploration_Psynergy2;
+        /// <summary>
+        /// Provides access to the underlying input action "WorldExploration/Psynergy3".
+        /// </summary>
+        public InputAction @Psynergy3 => m_Wrapper.m_WorldExploration_Psynergy3;
+        /// <summary>
+        /// Provides access to the underlying input action "WorldExploration/Psynergy4".
+        /// </summary>
+        public InputAction @Psynergy4 => m_Wrapper.m_WorldExploration_Psynergy4;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1016,6 +1120,18 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Look.started += instance.OnLook;
             @Look.performed += instance.OnLook;
             @Look.canceled += instance.OnLook;
+            @Psynergy1.started += instance.OnPsynergy1;
+            @Psynergy1.performed += instance.OnPsynergy1;
+            @Psynergy1.canceled += instance.OnPsynergy1;
+            @Psynergy2.started += instance.OnPsynergy2;
+            @Psynergy2.performed += instance.OnPsynergy2;
+            @Psynergy2.canceled += instance.OnPsynergy2;
+            @Psynergy3.started += instance.OnPsynergy3;
+            @Psynergy3.performed += instance.OnPsynergy3;
+            @Psynergy3.canceled += instance.OnPsynergy3;
+            @Psynergy4.started += instance.OnPsynergy4;
+            @Psynergy4.performed += instance.OnPsynergy4;
+            @Psynergy4.canceled += instance.OnPsynergy4;
         }
 
         /// <summary>
@@ -1057,6 +1173,18 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Look.started -= instance.OnLook;
             @Look.performed -= instance.OnLook;
             @Look.canceled -= instance.OnLook;
+            @Psynergy1.started -= instance.OnPsynergy1;
+            @Psynergy1.performed -= instance.OnPsynergy1;
+            @Psynergy1.canceled -= instance.OnPsynergy1;
+            @Psynergy2.started -= instance.OnPsynergy2;
+            @Psynergy2.performed -= instance.OnPsynergy2;
+            @Psynergy2.canceled -= instance.OnPsynergy2;
+            @Psynergy3.started -= instance.OnPsynergy3;
+            @Psynergy3.performed -= instance.OnPsynergy3;
+            @Psynergy3.canceled -= instance.OnPsynergy3;
+            @Psynergy4.started -= instance.OnPsynergy4;
+            @Psynergy4.performed -= instance.OnPsynergy4;
+            @Psynergy4.canceled -= instance.OnPsynergy4;
         }
 
         /// <summary>
@@ -1727,6 +1855,34 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLook(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Psynergy1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPsynergy1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Psynergy2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPsynergy2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Psynergy3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPsynergy3(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Psynergy4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPsynergy4(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "PsynergyAiming" which allows adding and removing callbacks.

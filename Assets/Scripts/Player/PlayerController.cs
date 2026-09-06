@@ -5,7 +5,7 @@ using Unity.Cinemachine;
 
 /// <summary>
 /// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
-/// Reacts to decoupled commands via GameEvents.Player and GameEvents.GameState.
+/// Reacts to decoupled commands via GameEvents.Player, GameEvents.World, and GameEvents.GameState.
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -38,12 +38,12 @@ public class PlayerController : MonoBehaviour
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
     [SerializeField] private CinemachineCamera freeLookCamera;
-    [SerializeField] private CinemachineCamera aimVirtualCamera;
-    [SerializeField] private float aimRotationSpeed = 1200f;
+    [SerializeField] private CinemachineCamera firstPersonCamera;
+    [SerializeField] private float firstPersonViewRotationSpeed = 1200f;
 
     [Header("Cinemachine Priority Settings")]
-    [SerializeField] private int defaultAimPriority = 0;
-    [SerializeField] private int activeAimPriority = 20;
+    [SerializeField] private int defaultFirstPersonViewPriority = 0;
+    [SerializeField] private int activeFirstPersonViewPriority = 20;
 
     #endregion
 
@@ -52,8 +52,10 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Animator playerAnim;
     private FootstepAudioEmitter footstepEmitter;
-    private CinemachinePanTilt aimPanTilt;
+    private CinemachinePanTilt firstPersonViewPanTilt;
+
     private Interactable interactionCurrentTarget;
+    private IPsynergyTargetable psynergyCurrentTarget;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
@@ -81,17 +83,15 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        // If InputManager wasn't ready during OnEnable, subscribe now safely
         SubscribeToInputEvents();
 
-        // Broadcast initial stamina and party status via events instead of calling PlayerUIManager directly
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
         GameEvents.Player.TriggerHeroStatusChanged();
 
-        if (aimVirtualCamera != null)
+        if (firstPersonCamera != null)
         {
-            aimVirtualCamera.Priority.Value = defaultAimPriority;
-            aimPanTilt = aimVirtualCamera.GetComponent<CinemachinePanTilt>();
+            firstPersonCamera.Priority.Value = defaultFirstPersonViewPriority;
+            firstPersonViewPanTilt = firstPersonCamera.GetComponent<CinemachinePanTilt>();
         }
     }
 
@@ -99,26 +99,26 @@ public class PlayerController : MonoBehaviour
     {
         SubscribeToInputEvents();
 
-        // Subscribe to GameEvents
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
         GameEvents.Player.OnRequestTeleport += HandleRequestTeleport;
         GameEvents.Player.OnRequestLookAt += HandleRequestLookAt;
         GameEvents.Player.OnRequestAutoWalk += HandleRequestAutoWalk;
         GameEvents.Player.OnRequestStopAutoWalk += HandleRequestStopAutoWalk;
         GameEvents.World.OnInteractableTargetChanged += HandleInteractableTargetChanged;
+        GameEvents.World.OnPsynergyTargetChanged += HandlePsynergyTargetChanged;
     }
 
     private void OnDisable()
     {
         UnsubscribeFromInputEvents();
 
-        // Unsubscribe from GameEvents
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.Player.OnRequestTeleport -= HandleRequestTeleport;
         GameEvents.Player.OnRequestLookAt -= HandleRequestLookAt;
         GameEvents.Player.OnRequestAutoWalk -= HandleRequestAutoWalk;
         GameEvents.Player.OnRequestStopAutoWalk -= HandleRequestStopAutoWalk;
         GameEvents.World.OnInteractableTargetChanged -= HandleInteractableTargetChanged;
+        GameEvents.World.OnPsynergyTargetChanged -= HandlePsynergyTargetChanged;
 
         StopAutoWalk();
 
@@ -133,7 +133,6 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration())
         {
-            // Reset standard movement animations if not auto-walking
             if (autoWalkCoroutine == null)
             {
                 ResetMovementAnimations();
@@ -149,9 +148,9 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
-        if (InputManager.Instance != null && InputManager.Instance.IsAiming)
+        if (InputManager.Instance != null && InputManager.Instance.IsFirstPersonView)
         {
-            HandleAimRotation();
+            HandleFirstPersonViewRotation();
         }
     }
 
@@ -159,30 +158,21 @@ public class PlayerController : MonoBehaviour
 
     #region Event Handlers (GameState & Player Events)
 
-    /// <summary>
-    /// Reacts to global game state shifts, enabling/disabling player movement and delegating mesh visibility.
-    /// </summary>
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
         bool isGameplayActive = (newState == GameManager.GameState.WorldExploration);
         bool isTitleScreen = (newState == GameManager.GameState.TitleScreen);
 
-        // Control character physics controller
         if (controller != null) controller.enabled = !isTitleScreen;
 
-        // Delegate mesh visibility toggle to PlayerVisualManager via GameEvents
         GameEvents.Player.RequestSetPlayerVisibility(!isTitleScreen);
 
-        // Whenever player regains control in world exploration, cancel any residual auto-walk operations
         if (isGameplayActive)
         {
             StopAutoWalk();
         }
     }
 
-    /// <summary>
-    /// Safely repositions and rotates the player, toggling CharacterController to avoid physics glitches.
-    /// </summary>
     private void HandleRequestTeleport(Vector3 position, Quaternion rotation)
     {
         StopAutoWalk();
@@ -242,6 +232,11 @@ public class PlayerController : MonoBehaviour
         interactionCurrentTarget = target;
     }
 
+    private void HandlePsynergyTargetChanged(IPsynergyTargetable target)
+    {
+        psynergyCurrentTarget = target;
+    }
+
     #endregion
 
     #region Input Subscriptions
@@ -250,13 +245,12 @@ public class PlayerController : MonoBehaviour
     {
         if (InputManager.Instance == null) return;
 
-        // Unsubscribe first to avoid duplicate callbacks
         UnsubscribeFromInputEvents();
 
         InputManager.Instance.OnChangeHeroPressed += HandleChangeHero;
         InputManager.Instance.OnInteractPressed += HandleInteraction;
-        InputManager.Instance.OnStartAimPressed += StartAiming;
-        InputManager.Instance.OnStopAimPressed += StopAiming;
+        InputManager.Instance.OnStartFirstPersonViewPressed += StartFirstPersonView;
+        InputManager.Instance.OnStopFirstPersonViewPressed += StopFirstPersonView;
         InputManager.Instance.OnUsePsynergyPressed += HandleUsePsynergy;
     }
 
@@ -266,8 +260,8 @@ public class PlayerController : MonoBehaviour
 
         InputManager.Instance.OnChangeHeroPressed -= HandleChangeHero;
         InputManager.Instance.OnInteractPressed -= HandleInteraction;
-        InputManager.Instance.OnStartAimPressed -= StartAiming;
-        InputManager.Instance.OnStopAimPressed -= StopAiming;
+        InputManager.Instance.OnStartFirstPersonViewPressed -= StartFirstPersonView;
+        InputManager.Instance.OnStopFirstPersonViewPressed -= StopFirstPersonView;
         InputManager.Instance.OnUsePsynergyPressed -= HandleUsePsynergy;
     }
 
@@ -280,14 +274,12 @@ public class PlayerController : MonoBehaviour
         if (!IsWorldExploration()) return;
 
         GameManager.Instance.ChangeActiveHero(heroIndex);
-
-        // Notify UI elements to update party info via event
         GameEvents.Player.TriggerHeroStatusChanged();
     }
 
     private void HandleInteraction()
     {
-        if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsAiming)) return;
+        if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsFirstPersonView)) return;
 
         if (interactionCurrentTarget != null)
         {
@@ -299,15 +291,8 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
-        IPsynergyTargetable currentTarget = null;
-
-        if (TryGetComponent<PlayerAiming>(out var aimingScript))
-        {
-            currentTarget = aimingScript.CurrentTarget;
-        }
-
-        // Requests Psynergy execution via global event bus (decoupled from PsynergyWorldController)
-        GameEvents.Psynergy.RequestUseShortcut(slotIndex, currentTarget);
+        // Requests Psynergy execution using cached event-driven target reference
+        GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
     }
 
     #endregion
@@ -332,10 +317,18 @@ public class PlayerController : MonoBehaviour
     {
         if (controller == null || !controller.enabled) return;
 
+        bool isFirstPersonView = InputManager.Instance != null && InputManager.Instance.IsFirstPersonView;
+
+        // Freeze player feet movement while in inspection / first-person view
+        if (isFirstPersonView)
+        {
+            ResetMovementAnimations();
+            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+            return;
+        }
+
         Vector2 inputMove = InputManager.Instance != null ? InputManager.Instance.MoveInput : Vector2.zero;
         Vector3 direction = new Vector3(inputMove.x, 0f, inputMove.y).normalized;
-
-        bool isAimingState = InputManager.Instance != null && InputManager.Instance.IsAiming;
 
         if (direction.magnitude >= 0.1f)
         {
@@ -344,10 +337,7 @@ public class PlayerController : MonoBehaviour
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + mainCamera.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
 
-            if (!isAimingState)
-            {
-                transform.rotation = Quaternion.Euler(0f, angle, 0f);
-            }
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
             if (playerAnim != null) playerAnim.SetBool(IsMovingHash, true);
 
@@ -510,9 +500,9 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Aiming Logic
+    #region Inspection / First Person Camera Logic
 
-    private void StartAiming()
+    private void StartFirstPersonView()
     {
         if (!IsWorldExploration()) return;
 
@@ -521,66 +511,56 @@ public class PlayerController : MonoBehaviour
             Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
             if (cameraForward.sqrMagnitude > 0.001f)
             {
-                transform.rotation = Quaternion.LookRotation(cameraForward);
+                // Rotación suave coincidente con la duración de la transición de la cámara (ej. 0.3s)
+                Vector3 targetLookPos = transform.position + cameraForward * 5f;
+                GameEvents.Player.RequestLookAt(targetLookPos, 0.3f);
             }
         }
 
-        if (freeLookCamera != null && aimPanTilt != null && mainCamera != null)
+        if (freeLookCamera != null && firstPersonViewPanTilt != null && mainCamera != null)
         {
             if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
             {
-                aimPanTilt.PanAxis.Value = orbitalFollow.HorizontalAxis.Value;
+                firstPersonViewPanTilt.PanAxis.Value = orbitalFollow.HorizontalAxis.Value;
             }
 
             float pitchAngle = mainCamera.eulerAngles.x;
             if (pitchAngle > 180f) pitchAngle -= 360f;
 
-            aimPanTilt.TiltAxis.Value = pitchAngle;
+            firstPersonViewPanTilt.TiltAxis.Value = pitchAngle;
         }
 
-        if (aimVirtualCamera != null)
+        if (firstPersonCamera != null)
         {
-            aimVirtualCamera.Priority.Value = activeAimPriority;
+            firstPersonCamera.Priority.Value = activeFirstPersonViewPriority;
         }
 
-        GameEvents.UI.RequestSetAimUIVisible(true);
-
-        if (TryGetComponent<PlayerAiming>(out var aimingScript))
-        {
-            aimingScript.enabled = true;
-        }
-
-        GameEvents.Player.TriggerAimStateChanged(true);
+        GameEvents.UI.RequestSetFirstPersonUIVisible(true);
+        GameEvents.Player.TriggerFirstPersonViewChanged(true);
     }
 
-    private void StopAiming()
+    private void StopFirstPersonView()
     {
-        if (freeLookCamera != null && aimPanTilt != null)
+        if (freeLookCamera != null && firstPersonViewPanTilt != null)
         {
             if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))
             {
-                orbitalFollow.HorizontalAxis.Value = aimPanTilt.PanAxis.Value;
-                float normalizedPitch = Mathf.InverseLerp(45f, -45f, aimPanTilt.TiltAxis.Value);
+                orbitalFollow.HorizontalAxis.Value = firstPersonViewPanTilt.PanAxis.Value;
+                float normalizedPitch = Mathf.InverseLerp(45f, -45f, firstPersonViewPanTilt.TiltAxis.Value);
                 orbitalFollow.VerticalAxis.Value = Mathf.Clamp01(normalizedPitch);
             }
         }
 
-        if (aimVirtualCamera != null)
+        if (firstPersonCamera != null)
         {
-            aimVirtualCamera.Priority.Value = defaultAimPriority;
+            firstPersonCamera.Priority.Value = defaultFirstPersonViewPriority;
         }
 
-        if (TryGetComponent<PlayerAiming>(out var aimingScript))
-        {
-            aimingScript.Reset();
-            aimingScript.enabled = false;
-        }
-
-        GameEvents.UI.RequestSetAimUIVisible(false);
-        GameEvents.Player.TriggerAimStateChanged(false);
+        GameEvents.UI.RequestSetFirstPersonUIVisible(false);
+        GameEvents.Player.TriggerFirstPersonViewChanged(false);
     }
 
-    private void HandleAimRotation()
+    private void HandleFirstPersonViewRotation()
     {
         if (mainCamera == null || !IsWorldExploration()) return;
 
@@ -589,7 +569,7 @@ public class PlayerController : MonoBehaviour
         if (cameraForward.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, aimRotationSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, firstPersonViewRotationSpeed * Time.deltaTime);
         }
     }
 
@@ -610,14 +590,9 @@ public class PlayerController : MonoBehaviour
             enoughStaminaToRun = true;
         }
 
-        // Notify stamina changes via GameEvents instead of calling PlayerUIManager directly
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
     }
 
-    /// <summary>
-    /// Invoked directly by Unity Animation Events on character walk/run animations.
-    /// Delegates footstep audio detection and execution to FootstepAudioEmitter.
-    /// </summary>
     public void playFootprints()
     {
         if (footstepEmitter != null)

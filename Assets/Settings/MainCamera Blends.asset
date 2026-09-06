@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CustomBlends:
   - From: ThirdPersonCamera
-    To: AimCamera
+    To: FirstPersonCamera
     Blend:
       Style: 1
       Time: 0.4
@@ -24,7 +24,7 @@ MonoBehaviour:
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - From: AimCamera
+  - From: FirstPersonCamera
     To: ThirdPersonCamera
     Blend:
       Style: 1

@@ -60,9 +60,6 @@ public class HUDController : MonoBehaviour
     private VisualElement _staminaFill;
     private VisualElement _staminaBarBackground;
 
-    // Aiming Reticle
-    private VisualElement _aimingReticle;
-
     // World Interaction Prompts Container
     private VisualElement _worldInteractionPromptsContainer;
 
@@ -195,8 +192,7 @@ public class HUDController : MonoBehaviour
         _staminaFill = _root.Q<VisualElement>("stamina_bar_fill");
         _staminaBarBackground = _root.Q<VisualElement>(className: "stamina-bar-background");
 
-        // Query Reticle & Interaction Prompts Container
-        _aimingReticle = _root.Q<VisualElement>("aiming_reticle");
+        // Query World Interaction Prompts Container
         _worldInteractionPromptsContainer = _root.Q<VisualElement>("world_interaction_prompts_container");
 
         // Query D-Pad Shortcut Icons
@@ -260,11 +256,8 @@ public class HUDController : MonoBehaviour
         GameEvents.UI.OnShowNotification -= HandleShowNotification;
         GameEvents.UI.OnShowNotification += HandleShowNotification;
 
-        GameEvents.UI.OnSetAimUIVisibleRequested -= SetAimUIVisible;
-        GameEvents.UI.OnSetAimUIVisibleRequested += SetAimUIVisible;
-
-        GameEvents.UI.OnSetAimTargetLockedRequested -= SetAimTargetLocked;
-        GameEvents.UI.OnSetAimTargetLockedRequested += SetAimTargetLocked;
+        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
+        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested += SetFirstPersonViewUIVisible;
 
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
         GameEvents.UI.OnUpdateDialogueRequested += UpdateDialogueUI;
@@ -300,8 +293,8 @@ public class HUDController : MonoBehaviour
 
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowNotification -= HandleShowNotification;
-        GameEvents.UI.OnSetAimUIVisibleRequested -= SetAimUIVisible;
-        GameEvents.UI.OnSetAimTargetLockedRequested -= SetAimTargetLocked;
+        GameEvents.UI.OnSetFirtsPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
+
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
 
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
@@ -326,7 +319,7 @@ public class HUDController : MonoBehaviour
             case GameManager.GameState.WorldExploration:
                 SetExplorationUIVisible(true);
                 SetDialogueUIVisible(false);
-                SetAimUIVisible(false);
+                SetFirstPersonViewUIVisible(false);
                 SetNotificationsUIVisible(true);
                 break;
 
@@ -334,7 +327,7 @@ public class HUDController : MonoBehaviour
                 SetNotificationsUIVisible(true);
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(true);
-                SetAimUIVisible(false);
+                SetFirstPersonViewUIVisible(false);
                 break;
 
             case GameManager.GameState.TitleScreen:
@@ -345,7 +338,7 @@ public class HUDController : MonoBehaviour
                 SetNotificationsUIVisible(false);
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);
-                SetAimUIVisible(false);
+                SetFirstPersonViewUIVisible(false);
                 HideZoneBannerImmediate();
                 break;
 
@@ -353,7 +346,7 @@ public class HUDController : MonoBehaviour
                 SetNotificationsUIVisible(true);
                 SetExplorationUIVisible(false);
                 SetDialogueUIVisible(false);
-                SetAimUIVisible(false);
+                SetFirstPersonViewUIVisible(false);
                 break;
         }
     }
@@ -630,53 +623,17 @@ public class HUDController : MonoBehaviour
 
     #endregion
 
-    #region Specific HUD Panel & Aiming Controls
+    #region Specific HUD Panel & First Person Controls
 
     private void SetMinimapVisible(bool visible)
     {
         SetElementDisplay(_topRightContainer, visible);
     }
 
-    private void SetAimUIVisible(bool visible)
+    private void SetFirstPersonViewUIVisible(bool visible)
     {
-        if (_aimingReticle != null)
-        {
-            _aimingReticle.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-        }
-
-        if (_dpadWheel != null)
-        {
-            if (visible)
-            {
-                _dpadWheel.RemoveFromClassList("passive-dpad");
-                _dpadWheel.AddToClassList("aiming-active");
-            }
-            else
-            {
-                _dpadWheel.RemoveFromClassList("aiming-active");
-                _dpadWheel.AddToClassList("passive-dpad");
-            }
-        }
-
-        if (!visible)
-        {
-            SetAimTargetLocked(false);
-        }
-    }
-
-    private void SetAimTargetLocked(bool locked)
-    {
-        if (_aimingReticle != null)
-        {
-            StyleColor targetColor = locked
-                ? new StyleColor(Color.red)
-                : new StyleColor(new Color(1f, 0.84f, 0f));
-
-            _aimingReticle.style.borderLeftColor = targetColor;
-            _aimingReticle.style.borderRightColor = targetColor;
-            _aimingReticle.style.borderTopColor = targetColor;
-            _aimingReticle.style.borderBottomColor = targetColor;
-        }
+        // TODO: Optional First Person / Inspection view HUD overlays (e.g., lens vignette, zoom levels or crosshair).
+        // Currently left empty to maintain a clean inspection view during world exploration.
     }
 
     #endregion
