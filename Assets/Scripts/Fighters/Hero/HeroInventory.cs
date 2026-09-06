@@ -2,29 +2,44 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages the individual backpack inventory of a party hero.
+/// Handles item stacking, capacity limits, slot transfers, drag-and-drop merging, and battle queries.
+/// </summary>
 public class HeroInventory : MonoBehaviour
 {
+    #region Serialized Fields
+
     [Header("Inventory Capacity Settings")]
     [SerializeField] private int maxBackpackSlots = 18;
 
     [Header("Current Backpack State")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
-    // Event fired whenever inventory structure or contents change, allowing UI auto-refresh
+    #endregion
+
+    #region Events & Properties
+
+    /// <summary>
+    /// Fired whenever inventory structure or item quantities change to auto-refresh listening UI components.
+    /// </summary>
     public event Action OnInventoryUpdated;
 
-    #region Properties
-
     public IReadOnlyList<InventorySlot> Slots => slots;
-
-    public int MaxBackpackSlots { get => maxBackpackSlots; }
+    public int MaxBackpackSlots => maxBackpackSlots;
 
     #endregion
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
         InitializeInventory();
     }
+
+    #endregion
+
+    #region Initialization
 
     /// <summary>
     /// Initializes empty slots if inventory list is empty or smaller than maxBackpackSlots.
@@ -41,6 +56,8 @@ public class HeroInventory : MonoBehaviour
             slots.Add(new InventorySlot());
         }
     }
+
+    #endregion
 
     #region Add & Remove Operations
 

@@ -1,12 +1,27 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 
 /// <summary>
-/// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
-/// Reacts to decoupled commands via GameEvents.Input, GameEvents.Player, GameEvents.World, and GameEvents.GameState.
+/// Internal state machine for locomotion and interaction states of the player hero.
 /// </summary>
+public enum PlayerMovementState
+{
+    FreeExploration,  // Standard walking and running movement
+    InFirstPerson,    // Inspection / First-person viewing mode
+    Climbing,         // Climbing ladders, vines, or ropes
+    Sliding,          // Automatic sliding down slopes or sand dunes
+    Falling,          // Falling down holes, dungeon pitfalls, or chasm drops
+    CastingPsynergy,  // Frozen executing field Psynergy animations (Move, Force, etc.)
+    AutoWalking       // Controlled automatically by cutscene or trigger events
+}
+
+/// <summary>
+/// Controls player exploration movement, character physics, stamina drain/regeneration,
+/// edge detection, auto-walk cutscene commands, and first-person inspection camera mode.
+/// Fully decoupled via GameEvents (Input, Player, World, GameState).
+/// </summary>
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     #region Animator Hashes (Cached for performance)
@@ -14,6 +29,7 @@ public class PlayerController : MonoBehaviour
     private static readonly int IsMovingHash = Animator.StringToHash("isMoving");
     private static readonly int IsRunningHash = Animator.StringToHash("isRunning");
     private static readonly int LongTimeHash = Animator.StringToHash("longTime");
+    private static readonly int CastPsynergyHash = Animator.StringToHash("castPsynergy");
 
     #endregion
 
@@ -59,18 +75,20 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 currentMoveInput;
     private bool isRunningInput;
-    private bool isFirstPersonViewActive;
+    private PlayerMovementState currentMovementState = PlayerMovementState.FreeExploration;
+    private GameManager.GameState currentGameState = GameManager.GameState.TitleScreen;
 
     private float verticalVelocity;
     private float turnSmoothVelocity;
     private float currentStamina;
     private bool enoughStaminaToRun = true;
 
-    private float timeCount;
+    private float idleTimeCounter;
     private readonly float secondsInIdle = 15f;
 
     private Coroutine autoWalkCoroutine;
     private Coroutine rotateCoroutine;
+    private Coroutine psynergyCastCoroutine;
 
     #endregion
 
@@ -123,6 +141,7 @@ public class PlayerController : MonoBehaviour
         GameEvents.World.OnPsynergyTargetChanged -= HandlePsynergyTargetChanged;
 
         StopAutoWalk();
+        InterruptPsynergyCast();
 
         if (rotateCoroutine != null)
         {
@@ -142,15 +161,50 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        HandleGravity();
-        HandleMovement();
+        // Apply gravity standard physics unless climbing or falling programmatically
+        if (currentMovementState != PlayerMovementState.Climbing)
+        {
+            HandleGravity();
+        }
+
+        switch (currentMovementState)
+        {
+            case PlayerMovementState.FreeExploration:
+                HandleMovement();
+                break;
+
+            case PlayerMovementState.InFirstPerson:
+            case PlayerMovementState.CastingPsynergy:
+                ResetMovementAnimations();
+                if (controller != null && controller.enabled)
+                {
+                    controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+                }
+                break;
+
+            case PlayerMovementState.Climbing:
+                HandleClimbingMovement();
+                break;
+
+            case PlayerMovementState.Sliding:
+                HandleSlidingMovement();
+                break;
+
+            case PlayerMovementState.Falling:
+                HandleFallingMovement();
+                break;
+
+            case PlayerMovementState.AutoWalking:
+                // Managed by auto-walk routine
+                break;
+        }
     }
 
     private void LateUpdate()
     {
         if (!IsWorldExploration()) return;
 
-        if (isFirstPersonViewActive)
+        if (currentMovementState == PlayerMovementState.InFirstPerson)
         {
             HandleFirstPersonViewRotation();
         }
@@ -158,7 +212,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Input Event Subscriptions & Handlers
+    #region Input Subscriptions & Handlers
 
     private void SubscribeToInputEvents()
     {
@@ -194,15 +248,19 @@ public class PlayerController : MonoBehaviour
 
     private void HandleChangeHero(int heroIndex)
     {
-        if (!IsWorldExploration()) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
 
-        GameManager.Instance.ChangeActiveHero(heroIndex);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ChangeActiveHero(heroIndex);
+        }
+
         GameEvents.Player.TriggerHeroStatusChanged();
     }
 
     private void HandleInteraction()
     {
-        if (!IsWorldExploration() || isFirstPersonViewActive) return;
+        if (!IsWorldExploration() || currentMovementState != PlayerMovementState.FreeExploration) return;
 
         if (interactionCurrentTarget != null)
         {
@@ -212,13 +270,13 @@ public class PlayerController : MonoBehaviour
 
     private void HandleToggleFirstPersonView()
     {
-        if (!IsWorldExploration()) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
 
-        if (isFirstPersonViewActive)
+        if (currentMovementState == PlayerMovementState.InFirstPerson)
         {
             StopFirstPersonView();
         }
-        else
+        else if (currentMovementState == PlayerMovementState.FreeExploration)
         {
             StartFirstPersonView();
         }
@@ -226,9 +284,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleUsePsynergy(int slotIndex)
     {
-        if (!IsWorldExploration()) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
 
-        // Requests Psynergy execution using cached event-driven target reference
         GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
     }
 
@@ -238,6 +295,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
+        currentGameState = newState;
+
         bool isGameplayActive = (newState == GameManager.GameState.WorldExploration);
         bool isTitleScreen = (newState == GameManager.GameState.TitleScreen);
 
@@ -251,7 +310,9 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (isFirstPersonViewActive)
+            InterruptPsynergyCast();
+
+            if (currentMovementState == PlayerMovementState.InFirstPerson)
             {
                 StopFirstPersonView();
             }
@@ -261,13 +322,15 @@ public class PlayerController : MonoBehaviour
     private void HandleRequestTeleport(Vector3 position, Quaternion rotation)
     {
         StopAutoWalk();
+        InterruptPsynergyCast();
+        currentMovementState = PlayerMovementState.FreeExploration;
 
         if (controller != null) controller.enabled = false;
 
         transform.position = position;
         transform.rotation = rotation;
 
-        if (controller != null && GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.TitleScreen)
+        if (controller != null && currentGameState != GameManager.GameState.TitleScreen)
         {
             controller.enabled = true;
         }
@@ -276,7 +339,9 @@ public class PlayerController : MonoBehaviour
     private void HandleRequestAutoWalk(Vector3 destination)
     {
         StopAutoWalk();
-        autoWalkCoroutine = StartCoroutine(Routine_MoveToDestination(destination));
+        InterruptPsynergyCast();
+        currentMovementState = PlayerMovementState.AutoWalking;
+        autoWalkCoroutine = StartCoroutine(MoveToDestinationRoutine(destination));
     }
 
     private void HandleRequestStopAutoWalk()
@@ -287,10 +352,10 @@ public class PlayerController : MonoBehaviour
     private void HandleRequestLookAt(Vector3 targetPosition, float duration)
     {
         if (rotateCoroutine != null) StopCoroutine(rotateCoroutine);
-        rotateCoroutine = StartCoroutine(Routine_RotateTowards(targetPosition, duration));
+        rotateCoroutine = StartCoroutine(RotateTowardsRoutine(targetPosition, duration));
     }
 
-    private IEnumerator Routine_RotateTowards(Vector3 targetPosition, float duration)
+    private IEnumerator RotateTowardsRoutine(Vector3 targetPosition, float duration)
     {
         Vector3 direction = targetPosition - transform.position;
         direction.y = 0f;
@@ -344,21 +409,13 @@ public class PlayerController : MonoBehaviour
     {
         if (controller == null || !controller.enabled) return;
 
-        // Freeze player feet movement while in inspection / first-person view
-        if (isFirstPersonViewActive)
-        {
-            ResetMovementAnimations();
-            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
-            return;
-        }
-
         Vector3 direction = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
 
         if (direction.magnitude >= 0.1f)
         {
-            timeCount = 0f;
+            idleTimeCounter = 0f;
 
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + mainCamera.eulerAngles.y;
+            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + (mainCamera != null ? mainCamera.eulerAngles.y : 0f);
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
 
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
@@ -397,11 +454,11 @@ public class PlayerController : MonoBehaviour
 
             controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
 
-            timeCount += Time.deltaTime;
-            if (timeCount >= secondsInIdle)
+            idleTimeCounter += Time.deltaTime;
+            if (idleTimeCounter >= secondsInIdle)
             {
                 if (playerAnim != null) playerAnim.SetTrigger(LongTimeHash);
-                timeCount = 1f;
+                idleTimeCounter = 1f;
             }
 
             ModifyStamina(staminaRegenRate * Time.deltaTime);
@@ -461,6 +518,80 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
+    #region Golden Sun Special Locomotion States (Psynergy, Slide, Climb, Fall)
+
+    /// <summary>
+    /// Temporarily locks movement while playing the overworld Psynergy casting animation.
+    /// </summary>
+    public void LockMovementForPsynergyCast(float duration)
+    {
+        if (psynergyCastCoroutine != null) StopCoroutine(psynergyCastCoroutine);
+        psynergyCastCoroutine = StartCoroutine(PsynergyCastRoutine(duration));
+    }
+
+    private IEnumerator PsynergyCastRoutine(float duration)
+    {
+        currentMovementState = PlayerMovementState.CastingPsynergy;
+        ResetMovementAnimations();
+
+        if (playerAnim != null)
+        {
+            playerAnim.SetTrigger(CastPsynergyHash);
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        currentMovementState = PlayerMovementState.FreeExploration;
+        psynergyCastCoroutine = null;
+    }
+
+    private void InterruptPsynergyCast()
+    {
+        if (psynergyCastCoroutine != null)
+        {
+            StopCoroutine(psynergyCastCoroutine);
+            psynergyCastCoroutine = null;
+        }
+
+        if (currentMovementState == PlayerMovementState.CastingPsynergy)
+        {
+            currentMovementState = PlayerMovementState.FreeExploration;
+        }
+    }
+
+    /// <summary>
+    /// Triggers automatic downward falling when stepping into pitfall traps or floor holes.
+    /// </summary>
+    public void StartFalling()
+    {
+        StopAutoWalk();
+        InterruptPsynergyCast();
+        currentMovementState = PlayerMovementState.Falling;
+        ResetMovementAnimations();
+
+        // TODO: Trigger falling animation (e.g. playerAnim.SetTrigger("fallHole"))
+    }
+
+    private void HandleFallingMovement()
+    {
+        if (controller == null || !controller.enabled) return;
+
+        // TODO: Apply direct vertical downward movement through holes or trigger scene/floor transition
+        controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+    }
+
+    private void HandleClimbingMovement()
+    {
+        // TODO: Golden Sun Ladder/Vine climbing logic (move vertically along Y axis, disable gravity)
+    }
+
+    private void HandleSlidingMovement()
+    {
+        // TODO: Golden Sun Slope/Sand sliding logic (move downwards continuously along slope vector)
+    }
+
+    #endregion
+
     #region Auto-Walk Destination System
 
     private void StopAutoWalk()
@@ -471,10 +602,15 @@ public class PlayerController : MonoBehaviour
             autoWalkCoroutine = null;
         }
 
+        if (currentMovementState == PlayerMovementState.AutoWalking)
+        {
+            currentMovementState = PlayerMovementState.FreeExploration;
+        }
+
         ResetMovementAnimations();
     }
 
-    private IEnumerator Routine_MoveToDestination(Vector3 targetPosition)
+    private IEnumerator MoveToDestinationRoutine(Vector3 targetPosition)
     {
         if (playerAnim != null)
         {
@@ -517,6 +653,7 @@ public class PlayerController : MonoBehaviour
         }
 
         ResetMovementAnimations();
+        currentMovementState = PlayerMovementState.FreeExploration;
         autoWalkCoroutine = null;
     }
 
@@ -528,7 +665,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
-        isFirstPersonViewActive = true;
+        currentMovementState = PlayerMovementState.InFirstPerson;
 
         if (mainCamera != null)
         {
@@ -564,7 +701,7 @@ public class PlayerController : MonoBehaviour
 
     private void StopFirstPersonView()
     {
-        isFirstPersonViewActive = false;
+        currentMovementState = PlayerMovementState.FreeExploration;
 
         if (freeLookCamera != null && firstPersonViewPanTilt != null)
         {
@@ -618,7 +755,11 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
     }
 
-    public void playFootprints()
+    /// <summary>
+    /// Animation Event Callback triggered by the locomotion clip.
+    /// Broadcasts footstep sound triggers to the attached FootstepAudioEmitter.
+    /// </summary>
+    public void PlayFootprints()
     {
         if (footstepEmitter != null)
         {
@@ -626,11 +767,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Backwards compatibility for legacy animation clip events
+    public void playFootprints() => PlayFootprints();
+
     #endregion
 
     #region Utilities & State Checks
 
-    private bool IsWorldExploration() => GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.WorldExploration;
+    private bool IsWorldExploration() => currentGameState == GameManager.GameState.WorldExploration;
 
     #endregion
 }
