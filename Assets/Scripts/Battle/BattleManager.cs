@@ -246,7 +246,7 @@ public class BattleManager : MonoBehaviour
 
                         SelectDefaultTarget(currentTargetType, currentAreaRange);
 
-                        Debug.Log($"Psinergía {nextPsynergy.SlugName} target tipo: {nextPsynergy.TargetType}");
+                        Debug.Log($"Psinergía {nextPsynergy.PsynergySlug} target tipo: {nextPsynergy.TargetType}");
                     }
                     else if (battleUIController.CommandSelected == 5) // ITEMS
                     {

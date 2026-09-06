@@ -93,20 +93,20 @@ public class PsynergyDatabase : MonoBehaviour
             PsynergySO psynergy = loadedPsynergies[i];
             if (psynergy == null) continue;
 
-            if (string.IsNullOrWhiteSpace(psynergy.SlugName))
+            if (string.IsNullOrWhiteSpace(psynergy.PsynergySlug))
             {
                 Debug.LogWarning($"[PsynergyDatabase] Psynergy '{psynergy.PsynergyName}' has an empty or null SlugName.", this);
                 continue;
             }
 
-            if (!psynergyDictionary.ContainsKey(psynergy.SlugName))
+            if (!psynergyDictionary.ContainsKey(psynergy.PsynergySlug))
             {
                 allPsynergies.Add(psynergy);
-                psynergyDictionary.Add(psynergy.SlugName, psynergy);
+                psynergyDictionary.Add(psynergy.PsynergySlug, psynergy);
             }
             else
             {
-                Debug.LogWarning($"[PsynergyDatabase] Duplicate SlugName detected: '{psynergy.SlugName}'. Skipping duplicate asset '{psynergy.name}'.", this);
+                Debug.LogWarning($"[PsynergyDatabase] Duplicate SlugName detected: '{psynergy.PsynergySlug}'. Skipping duplicate asset '{psynergy.name}'.", this);
             }
         }
 

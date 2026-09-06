@@ -343,6 +343,32 @@ public static class GameEvents
         public static event Action<ElementalType, Action<GameObject>> OnRequestElementVFX;
         public static void RequestElementVFX(ElementalType element, Action<GameObject> onResult)
             => OnRequestElementVFX?.Invoke(element, onResult);
+
+        // --- DJINN DATABASE QUERIES ---
+
+        /// <summary>
+        /// Request a DjinnSO asset by its unique djinnSlug.
+        /// Params: djinnSlug, callbackResult
+        /// </summary>
+        public static event Action<string, Action<DjinnSO>> OnRequestDjinnBySlug;
+        public static void RequestDjinnBySlug(string djinnSlug, Action<DjinnSO> callback)
+            => OnRequestDjinnBySlug?.Invoke(djinnSlug, callback);
+
+        /// <summary>
+        /// Request all registered DjinnSO assets from the database.
+        /// Params: callbackResult
+        /// </summary>
+        public static event Action<Action<IReadOnlyList<DjinnSO>>> OnRequestAllDjinns;
+        public static void RequestAllDjinns(Action<IReadOnlyList<DjinnSO>> callback)
+            => OnRequestAllDjinns?.Invoke(callback);
+
+        /// <summary>
+        /// Request all DjinnSO assets matching a specific ElementalType.
+        /// Params: element, resultsBuffer
+        /// </summary>
+        public static event Action<ElementalType, List<DjinnSO>> OnRequestDjinnsByElement;
+        public static void RequestDjinnsByElement(ElementalType element, List<DjinnSO> resultsBuffer)
+            => OnRequestDjinnsByElement?.Invoke(element, resultsBuffer);
     }
 
     // ==========================================
@@ -439,6 +465,13 @@ public static class GameEvents
             => OnRequestLoadGame?.Invoke(slotIndex);
 
         /// <summary>
+        /// Requests an automated save operation (typically targeting slot 0) with an optional custom location or trigger tag.
+        /// </summary>
+        public static event Action OnRequestAutoSave;
+        public static void TriggerRequestAutoSave()
+            => OnRequestAutoSave?.Invoke();
+
+        /// <summary>
         /// Broadcasted during save creation to collect data from subscribed managers/entities.
         /// Params: targetGameData
         /// </summary>
@@ -455,20 +488,20 @@ public static class GameEvents
             => OnRestoreSaveData?.Invoke(saveData);
 
         /// <summary>
-        /// Triggered when a save operation completes successfully.
-        /// Params: slotIndex
+        /// Triggered when a save operation finishes.
+        /// Params: slotIndex, isSuccess
         /// </summary>
-        public static event Action<int> OnSaveCompleted;
-        public static void TriggerSaveCompleted(int slotIndex)
-            => OnSaveCompleted?.Invoke(slotIndex);
+        public static event Action<int, bool> OnSaveCompleted;
+        public static void TriggerSaveCompleted(int slotIndex, bool success)
+            => OnSaveCompleted?.Invoke(slotIndex, success);
 
         /// <summary>
-        /// Triggered when a load operation completes successfully.
-        /// Params: slotIndex
+        /// Triggered when a load operation finishes.
+        /// Params: slotIndex, isSuccess
         /// </summary>
-        public static event Action<int> OnLoadCompleted;
-        public static void TriggerLoadCompleted(int slotIndex)
-            => OnLoadCompleted?.Invoke(slotIndex);
+        public static event Action<int, bool> OnLoadCompleted;
+        public static void TriggerLoadCompleted(int slotIndex, bool success)
+            => OnLoadCompleted?.Invoke(slotIndex, success);
     }
 
     // ==========================================

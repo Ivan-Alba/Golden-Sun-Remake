@@ -29,6 +29,17 @@ public class DjinnInstance
 
     public DjinnSO DjinnData => djinnData;
     public DjinnState CurrentState => currentState;
+
+    /// <summary>
+    /// Gets or sets the current remaining recovery turns.
+    /// Safely clamped to non-negative values.
+    /// </summary>
+    public int RecoveryTurnsLeft
+    {
+        get => currentRecoveryTurns;
+        set => currentRecoveryTurns = Mathf.Max(0, value);
+    }
+
     public int CurrentRecoveryTurns => currentRecoveryTurns;
 
     // Helper state evaluation shortcuts for UI and Combat logic

@@ -4,7 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// Manages standard equipment slots and dedicated Psynergy Relic slots for a hero.
-/// Applies stat modifiers to FighterStats and notifies system events upon equipment changes.
+/// Applies stat modifiers to FighterStats, notifies system events upon equipment changes,
+/// and handles self-contained save data serialization via GameEvents.SaveLoad.
 /// </summary>
 public class HeroEquipment : MonoBehaviour
 {
@@ -37,7 +38,7 @@ public class HeroEquipment : MonoBehaviour
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Unity Lifecycle & Event Subscriptions
 
     private void Awake()
     {
@@ -45,6 +46,20 @@ public class HeroEquipment : MonoBehaviour
         if (heroInventory == null) heroInventory = GetComponent<HeroInventory>();
 
         InitializeEquipmentSlots();
+    }
+
+    private void OnEnable()
+    {
+        // Save & Load Event Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
+    }
+
+    private void OnDisable()
+    {
+        // Save & Load Event Unsubscriptions
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     #endregion
@@ -66,6 +81,134 @@ public class HeroEquipment : MonoBehaviour
 
         // Initialize dedicated relic slots
         equippedRelics = new PsynergyRelicSO[maxRelicSlots];
+    }
+
+    #endregion
+
+    #region Save & Load Event Handlers
+
+    private void HandleCollectSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        HeroEquipmentData equipmentData = new HeroEquipmentData
+        {
+            heroName = gameObject.name
+        };
+
+        // 1. Serialize standard equipment slots
+        foreach (var kvp in equippedItems)
+        {
+            if (kvp.Value != null)
+            {
+                equipmentData.standardEquipment.Add(new EquipmentSlotData
+                {
+                    slotType = kvp.Key,
+                    itemSlug = kvp.Value.ItemSlug
+                });
+            }
+        }
+
+        // 2. Serialize equipped relics
+        if (equippedRelics != null)
+        {
+            for (int i = 0; i < equippedRelics.Length; i++)
+            {
+                if (equippedRelics[i] != null)
+                {
+                    equipmentData.relicSlugs.Add(equippedRelics[i].ItemSlug);
+                }
+                else
+                {
+                    equipmentData.relicSlugs.Add(string.Empty);
+                }
+            }
+        }
+
+        saveData.heroesEquipment.Add(equipmentData);
+        Debug.Log($"<color=green>[HeroEquipment] Collected equipment save data for hero '{gameObject.name}'.</color>");
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null || saveData.heroesEquipment == null) return;
+
+        // Find this specific hero's equipment DTO by GameObject name
+        HeroEquipmentData equipmentData = saveData.heroesEquipment.Find(e => e != null && e.heroName.Equals(gameObject.name));
+        if (equipmentData == null) return;
+
+        // 1. Clear current equipped items and stat modifiers silently
+        ClearAllEquipmentSilently();
+
+        // 2. Restore standard equipment slots
+        for (int i = 0; i < equipmentData.standardEquipment.Count; i++)
+        {
+            EquipmentSlotData slotData = equipmentData.standardEquipment[i];
+            if (slotData == null || string.IsNullOrEmpty(slotData.itemSlug)) continue;
+
+            ItemSO itemAsset = null;
+            GameEvents.Database.RequestItemBySlug(slotData.itemSlug, item => itemAsset = item);
+
+            if (itemAsset is EquipableSO equipable)
+            {
+                LoadEquippedItem(equipable, notifyEvent: false);
+            }
+            else
+            {
+                Debug.LogWarning($"[HeroEquipment] Equipable slug '{slotData.itemSlug}' not found in database for hero '{gameObject.name}'.");
+            }
+        }
+
+        // 3. Restore equipped relics
+        for (int i = 0; i < equipmentData.relicSlugs.Count; i++)
+        {
+            string relicSlug = equipmentData.relicSlugs[i];
+            if (string.IsNullOrEmpty(relicSlug)) continue;
+
+            ItemSO itemAsset = null;
+            GameEvents.Database.RequestItemBySlug(relicSlug, item => itemAsset = item);
+
+            if (itemAsset is PsynergyRelicSO relic)
+            {
+                LoadEquippedRelic(relic, i, notifyEvent: false);
+            }
+            else
+            {
+                Debug.LogWarning($"[HeroEquipment] Relic slug '{relicSlug}' not found in database for hero '{gameObject.name}'.");
+            }
+        }
+
+        // 4. Notify all system listeners that this hero's equipment has finished restoring
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
+        Debug.Log($"<color=cyan>[HeroEquipment] Equipment successfully restored from save data for hero '{gameObject.name}'.</color>");
+    }
+
+    private void ClearAllEquipmentSilently()
+    {
+        // Remove standard equipment modifiers
+        List<EquipmentSlot> keys = new List<EquipmentSlot>(equippedItems.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            EquipmentSlot slotKey = keys[i];
+            if (equippedItems[slotKey] != null)
+            {
+                RemoveItemModifiers(equippedItems[slotKey]);
+                equippedItems[slotKey] = null;
+            }
+        }
+
+        // Remove relic modifiers
+        if (equippedRelics != null)
+        {
+            for (int i = 0; i < equippedRelics.Length; i++)
+            {
+                if (equippedRelics[i] != null)
+                {
+                    RemoveItemModifiers(equippedRelics[i]);
+                    equippedRelics[i] = null;
+                }
+            }
+        }
     }
 
     #endregion

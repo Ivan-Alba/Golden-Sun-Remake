@@ -372,7 +372,7 @@ public class BattleUIController : MonoBehaviour
                         if (psynergy == null || !psynergy.IsBattlePsynergy) continue;
 
                         GameObject newItem = Instantiate(contentItemPrefab, contentScrollView.transform);
-                        newItem.name = psynergy.SlugName;
+                        newItem.name = psynergy.PsynergySlug;
 
                         newItem.transform.Find("Name")?.GetComponent<TextMeshProUGUI>()?.SetText(psynergy.PsynergyName);
                         newItem.transform.Find("Number")?.GetComponent<TextMeshProUGUI>()?.SetText($"{psynergy.PpCost} PP");

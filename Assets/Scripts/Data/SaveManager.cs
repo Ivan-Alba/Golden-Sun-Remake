@@ -52,11 +52,13 @@ public static class SaveManager
             File.WriteAllText(filePath, json);
 
             Debug.Log($"<color=green>[SaveManager] Successfully saved game to Slot {slotIndex} at path: {filePath}</color>");
+            GameEvents.SaveLoad.TriggerSaveCompleted(slotIndex, true);
             return true;
         }
         catch (Exception ex)
         {
             Debug.LogError($"[SaveManager] Failed to save game to Slot {slotIndex}: {ex.Message}");
+            GameEvents.SaveLoad.TriggerSaveCompleted(slotIndex, false);
             return false;
         }
     }
@@ -91,6 +93,7 @@ public static class SaveManager
             if (loadedData == null)
             {
                 Debug.LogError($"[SaveManager] Failed to deserialize Save Data for Slot {slotIndex}. Object is null.");
+                GameEvents.SaveLoad.TriggerLoadCompleted(slotIndex, false);
                 return null;
             }
 
@@ -98,11 +101,13 @@ public static class SaveManager
             GameEvents.SaveLoad.TriggerRestoreSaveData(loadedData);
 
             Debug.Log($"<color=cyan>[SaveManager] Successfully loaded game state from Slot {slotIndex}.</color>");
+            GameEvents.SaveLoad.TriggerLoadCompleted(slotIndex, true);
             return loadedData;
         }
         catch (Exception ex)
         {
             Debug.LogError($"[SaveManager] Critical error loading save file for Slot {slotIndex}: {ex.Message}");
+            GameEvents.SaveLoad.TriggerLoadCompleted(slotIndex, false);
             return null;
         }
     }

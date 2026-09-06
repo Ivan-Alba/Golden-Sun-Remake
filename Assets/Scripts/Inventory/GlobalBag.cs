@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Manages the shared global bag for key/quest items (e.g. Dungeon Keys, Elemental Stars, Quest Relics).
-/// Fully decoupled via GameEvents.Inventory, zero-alloc loop iterations, and Save System ready.
+/// Fully decoupled via GameEvents.Inventory and GameEvents.SaveLoad, zero-alloc loop iterations, and Save System ready.
 /// </summary>
 public class GlobalBag : MonoBehaviour
 {
@@ -33,22 +33,32 @@ public class GlobalBag : MonoBehaviour
 
     private void OnEnable()
     {
+        // Inventory Request Subscriptions
         GameEvents.Inventory.OnRequestAddKeyItem += HandleRequestAddKeyItem;
         GameEvents.Inventory.OnRequestRemoveKeyItem += HandleRequestRemoveKeyItem;
         GameEvents.Inventory.OnCheckHasKeyItem += HandleCheckHasKeyItem;
         GameEvents.Inventory.OnRequestKeyItemQuantity += HandleRequestKeyItemQuantity;
         GameEvents.Inventory.OnRequestKeyItemSlots += HandleRequestKeyItemSlots;
         GameEvents.Inventory.OnClearAllInventoriesRequested += HandleClearAllInventories;
+
+        // Save & Load Event Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
     }
 
     private void OnDisable()
     {
+        // Inventory Request Unsubscriptions
         GameEvents.Inventory.OnRequestAddKeyItem -= HandleRequestAddKeyItem;
         GameEvents.Inventory.OnRequestRemoveKeyItem -= HandleRequestRemoveKeyItem;
         GameEvents.Inventory.OnCheckHasKeyItem -= HandleCheckHasKeyItem;
         GameEvents.Inventory.OnRequestKeyItemQuantity -= HandleRequestKeyItemQuantity;
         GameEvents.Inventory.OnRequestKeyItemSlots -= HandleRequestKeyItemSlots;
         GameEvents.Inventory.OnClearAllInventoriesRequested -= HandleClearAllInventories;
+
+        // Save & Load Event Unsubscriptions
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     #endregion
@@ -88,6 +98,56 @@ public class GlobalBag : MonoBehaviour
     {
         keyItemSlots.Clear();
         GameEvents.Inventory.TriggerGlobalBagUpdated();
+    }
+
+    #endregion
+
+    #region Save & Load Event Handlers
+
+    private void HandleCollectSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        saveData.globalBagKeyItems.Clear();
+
+        for (int i = 0; i < keyItemSlots.Count; i++)
+        {
+            InventorySlot slot = keyItemSlots[i];
+            if (slot != null && !slot.IsEmpty && slot.Item != null)
+            {
+                saveData.globalBagKeyItems.Add(new InventorySlotData(i, slot.Item.ItemSlug, slot.Quantity));
+            }
+        }
+
+        Debug.Log($"<color=green>[GlobalBag] Collected save data for {saveData.globalBagKeyItems.Count} key item slot(s).</color>");
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null || saveData.globalBagKeyItems == null) return;
+
+        keyItemSlots.Clear();
+
+        for (int i = 0; i < saveData.globalBagKeyItems.Count; i++)
+        {
+            InventorySlotData slotData = saveData.globalBagKeyItems[i];
+            if (slotData == null || string.IsNullOrEmpty(slotData.itemSlug) || slotData.quantity <= 0) continue;
+
+            ItemSO keyItemAsset = null;
+            GameEvents.Database.RequestItemBySlug(slotData.itemSlug, item => keyItemAsset = item);
+
+            if (keyItemAsset != null)
+            {
+                keyItemSlots.Add(new InventorySlot(keyItemAsset, slotData.quantity));
+            }
+            else
+            {
+                Debug.LogWarning($"[GlobalBag] Key item slug '{slotData.itemSlug}' not found in database during save restoration.");
+            }
+        }
+
+        GameEvents.Inventory.TriggerGlobalBagUpdated();
+        Debug.Log("<color=cyan>[GlobalBag] Key items successfully restored from save data.</color>");
     }
 
     #endregion
@@ -218,29 +278,6 @@ public class GlobalBag : MonoBehaviour
             return keyItemSlots[index];
         }
         return null;
-    }
-
-    #endregion
-
-    #region Save System & Persistence Preparation
-
-    /// <summary>
-    /// Gets the current state of key item slots for save system serialization.
-    /// </summary>
-    public List<InventorySlot> GetSaveData()
-    {
-        return keyItemSlots;
-    }
-
-    /// <summary>
-    /// Restores the key item slots from saved game data.
-    /// </summary>
-    public void LoadSaveData(List<InventorySlot> savedSlots)
-    {
-        if (savedSlots == null) return;
-
-        keyItemSlots = new List<InventorySlot>(savedSlots);
-        GameEvents.Inventory.TriggerGlobalBagUpdated();
     }
 
     #endregion

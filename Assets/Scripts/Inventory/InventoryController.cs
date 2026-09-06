@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Controls item routing, backpack distribution, and global bag operations for the active party.
-/// Listens exclusively to GameEvents (Inventory & Party) for decoupled transactional messaging with zero GC allocations.
+/// Listens exclusively to GameEvents (Inventory, Party, and SaveLoad) for decoupled transactional messaging with zero GC allocations.
 /// </summary>
 public class InventoryController : MonoBehaviour
 {
@@ -42,6 +42,10 @@ public class InventoryController : MonoBehaviour
         // Party Domain Subscriptions
         GameEvents.Party.OnPartyChanged += SyncWithParty;
         GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
+
+        // Save & Load Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
     }
 
     private void OnDisable()
@@ -54,6 +58,9 @@ public class InventoryController : MonoBehaviour
 
         GameEvents.Party.OnPartyChanged -= SyncWithParty;
         GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
+
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     #endregion
@@ -81,6 +88,80 @@ public class InventoryController : MonoBehaviour
     {
         bool hasIt = HasItem(itemData, amount);
         onResult?.Invoke(hasIt);
+    }
+
+    #endregion
+
+    #region Save & Load Event Handlers
+
+    private void HandleCollectSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        saveData.heroesInventories.Clear();
+
+        for (int i = 0; i < partyInventories.Count; i++)
+        {
+            HeroInventory heroInv = partyInventories[i];
+            if (heroInv == null) continue;
+
+            HeroInventoryData heroInvData = new HeroInventoryData
+            {
+                heroName = heroInv.gameObject.name
+            };
+
+            if (heroInv.Slots != null)
+            {
+                for (int j = 0; j < heroInv.Slots.Count; j++)
+                {
+                    var slot = heroInv.Slots[j];
+                    if (slot != null && !slot.IsEmpty && slot.Item != null)
+                    {
+                        heroInvData.slots.Add(new InventorySlotData(j, slot.Item.ItemSlug, slot.Quantity));
+                    }
+                }
+            }
+
+            saveData.heroesInventories.Add(heroInvData);
+        }
+
+        Debug.Log($"<color=green>[InventoryController] Collected inventory save data for {saveData.heroesInventories.Count} hero(es).</color>");
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null || saveData.heroesInventories == null) return;
+
+        ClearAllInventories();
+
+        for (int i = 0; i < saveData.heroesInventories.Count; i++)
+        {
+            HeroInventoryData heroInvData = saveData.heroesInventories[i];
+            if (heroInvData == null || string.IsNullOrEmpty(heroInvData.heroName)) continue;
+
+            HeroInventory targetHeroInv = partyInventories.Find(inv => inv != null && inv.gameObject.name.Equals(heroInvData.heroName));
+            if (targetHeroInv == null) continue;
+
+            for (int j = 0; j < heroInvData.slots.Count; j++)
+            {
+                InventorySlotData slotData = heroInvData.slots[j];
+                if (slotData == null || string.IsNullOrEmpty(slotData.itemSlug) || slotData.quantity <= 0) continue;
+
+                ItemSO itemAsset = null;
+                GameEvents.Database.RequestItemBySlug(slotData.itemSlug, item => itemAsset = item);
+
+                if (itemAsset != null)
+                {
+                    targetHeroInv.SetSlot(slotData.slotIndex, itemAsset, slotData.quantity);
+                }
+                else
+                {
+                    Debug.LogWarning($"[InventoryController] Item slug '{slotData.itemSlug}' not found in database during save restoration.");
+                }
+            }
+        }
+
+        Debug.Log("<color=cyan>[InventoryController] Hero inventories successfully restored from save data with exact slot positions.</color>");
     }
 
     #endregion

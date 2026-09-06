@@ -81,13 +81,15 @@ public class PartyProgressionData
 [Serializable]
 public class InventorySlotData
 {
+    public int slotIndex;
     public string itemSlug;
     public int quantity;
 
     public InventorySlotData() { }
 
-    public InventorySlotData(string slug, int qty)
+    public InventorySlotData(int index, string slug, int qty)
     {
+        slotIndex = index;
         itemSlug = slug;
         quantity = qty;
     }

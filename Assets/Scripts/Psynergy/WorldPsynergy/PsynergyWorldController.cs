@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Manages assigned Psynergy shortcuts for each hero and handles execution of world Psynergies.
-/// Reacts to requests via GameEvents.Psynergy and GameEvents.Party.
+/// Reacts to requests via GameEvents.Psynergy, GameEvents.Party, and handles persistence via GameEvents.SaveLoad.
 /// </summary>
 public class PsynergyWorldController : MonoBehaviour
 {
@@ -23,22 +23,32 @@ public class PsynergyWorldController : MonoBehaviour
 
     private void OnEnable()
     {
+        // Psynergy & Party Domain Subscriptions
         GameEvents.Psynergy.OnAssignShortcutRequested += HandleAssignShortcutRequested;
         GameEvents.Psynergy.OnGetShortcutsRequested += HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested += HandleUseShortcutRequested;
         GameEvents.Psynergy.OnPsynergyLost += HandleHeroLostPsynergy;
         GameEvents.Party.OnPartyChanged += HandlePartyChanged;
         GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
+
+        // Save & Load Event Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
     }
 
     private void OnDisable()
     {
+        // Psynergy & Party Domain Unsubscriptions
         GameEvents.Psynergy.OnAssignShortcutRequested -= HandleAssignShortcutRequested;
         GameEvents.Psynergy.OnGetShortcutsRequested -= HandleGetShortcutsRequested;
         GameEvents.Psynergy.OnUseShortcutRequested -= HandleUseShortcutRequested;
         GameEvents.Psynergy.OnPsynergyLost -= HandleHeroLostPsynergy;
         GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
         GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
+
+        // Save & Load Event Unsubscriptions
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     #endregion
@@ -96,7 +106,6 @@ public class PsynergyWorldController : MonoBehaviour
     {
         if (hero == null || lostPsynergy == null) return;
 
-        // Correct check: WorldData is a struct, so we check the property directly
         if (!lostPsynergy.WorldData.CanBeUsedInWorld)
         {
             return;
@@ -123,6 +132,114 @@ public class PsynergyWorldController : MonoBehaviour
 
     #endregion
 
+    #region Save & Load Event Handlers
+
+    private void HandleCollectSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        saveData.heroesShortcuts.Clear();
+
+        foreach (var kvp in heroShortcuts)
+        {
+            GameObject heroObj = kvp.Key;
+            PsynergySO[] shortcuts = kvp.Value;
+
+            if (heroObj == null || shortcuts == null) continue;
+
+            HeroShortcutData shortcutData = new HeroShortcutData
+            {
+                heroName = heroObj.name
+            };
+
+            for (int i = 0; i < Mathf.Min(4, shortcuts.Length); i++)
+            {
+                shortcutData.shortcutSlugs[i] = shortcuts[i] != null ? shortcuts[i].PsynergySlug : string.Empty;
+            }
+
+            saveData.heroesShortcuts.Add(shortcutData);
+        }
+
+        Debug.Log($"<color=green>[PsynergyWorldController] Collected shortcuts save data for {saveData.heroesShortcuts.Count} hero(es).</color>");
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null || saveData.heroesShortcuts == null) return;
+
+        heroShortcuts.Clear();
+
+        // Re-initialize containers for cached active party
+        if (_cachedActiveParty != null)
+        {
+            for (int i = 0; i < _cachedActiveParty.Count; i++)
+            {
+                GameObject hero = _cachedActiveParty[i];
+                if (hero != null && !heroShortcuts.ContainsKey(hero))
+                {
+                    heroShortcuts.Add(hero, new PsynergySO[4]);
+                }
+            }
+        }
+
+        for (int i = 0; i < saveData.heroesShortcuts.Count; i++)
+        {
+            HeroShortcutData shortcutData = saveData.heroesShortcuts[i];
+            if (shortcutData == null || string.IsNullOrEmpty(shortcutData.heroName)) continue;
+
+            // Find matching hero GameObject reference
+            GameObject matchedHero = null;
+            if (_cachedActiveParty != null)
+            {
+                for (int h = 0; h < _cachedActiveParty.Count; h++)
+                {
+                    if (_cachedActiveParty[h] != null && _cachedActiveParty[h].name.Equals(shortcutData.heroName))
+                    {
+                        matchedHero = _cachedActiveParty[h];
+                        break;
+                    }
+                }
+            }
+
+            if (matchedHero == null) continue;
+
+            PsynergySO[] restoredShortcuts = GetShortcuts(matchedHero);
+
+            for (int slot = 0; slot < Mathf.Min(4, shortcutData.shortcutSlugs.Length); slot++)
+            {
+                string slug = shortcutData.shortcutSlugs[slot];
+                if (string.IsNullOrEmpty(slug))
+                {
+                    restoredShortcuts[slot] = null;
+                    continue;
+                }
+
+                PsynergySO psynergyAsset = null;
+                GameEvents.Database.RequestPsynergyBySlug(slug, p => psynergyAsset = p);
+
+                if (psynergyAsset != null)
+                {
+                    restoredShortcuts[slot] = psynergyAsset;
+                }
+                else
+                {
+                    Debug.LogWarning($"[PsynergyWorldController] Shortcut psynergy slug '{slug}' not found in database for '{matchedHero.name}'.");
+                }
+            }
+
+            NotifyShortcutsChanged(matchedHero);
+        }
+
+        if (_currentActiveHero != null)
+        {
+            NotifyShortcutsChanged(_currentActiveHero);
+        }
+
+        Debug.Log("<color=cyan>[PsynergyWorldController] Psynergy shortcuts successfully restored from save data.</color>");
+    }
+
+    #endregion
+
     #region Shortcut Data Access & Internal Mutators
 
     /// <summary>
@@ -137,7 +254,6 @@ public class PsynergyWorldController : MonoBehaviour
             return shortcuts;
         }
 
-        // Auto-register hero if missing
         PsynergySO[] newShortcuts = new PsynergySO[4];
         heroShortcuts.Add(hero, newShortcuts);
         return newShortcuts;
@@ -176,23 +292,23 @@ public class PsynergyWorldController : MonoBehaviour
 
         if (target != null)
         {
-            Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.SlugName} on target.");
+            Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.PsynergySlug} on target.");
 
             bool success = target.ExecutePsynergy(usedPsynergy, _currentActiveHero);
             if (success)
             {
-                Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} executed successfully!");
-                GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, _currentActiveHero.transform);
+                Debug.Log($"[PsynergyWorldController] {usedPsynergy.PsynergySlug} executed successfully!");
+                GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.PsynergySlug, _currentActiveHero.transform);
             }
             else
             {
-                Debug.Log($"[PsynergyWorldController] {usedPsynergy.SlugName} failed or target is not compatible.");
+                Debug.Log($"[PsynergyWorldController] {usedPsynergy.PsynergySlug} failed or target is not compatible.");
             }
         }
         else
         {
-            Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.SlugName} without an active target.");
-            GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.SlugName, _currentActiveHero.transform);
+            Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.PsynergySlug} without an active target.");
+            GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.PsynergySlug, _currentActiveHero.transform);
         }
     }
 

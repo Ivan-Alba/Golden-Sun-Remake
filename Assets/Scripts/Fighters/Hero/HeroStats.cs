@@ -4,7 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// Manages progression, experience, level-ups, and live calculated stats engine for hero units.
-/// Listens to global events (such as GameEvents.Hero.OnEquipmentChanged) to trigger stat recalculations.
+/// Listens to global events (such as GameEvents.Hero.OnEquipmentChanged and GameEvents.SaveLoad)
+/// to trigger stat recalculations and handle self-contained save data persistence.
 /// </summary>
 public class HeroStats : FighterStats
 {
@@ -162,11 +163,19 @@ public class HeroStats : FighterStats
     private void SubscribeToEvents()
     {
         GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
+
+        // Save & Load Event Subscriptions
+        GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
     }
 
     private void UnsubscribeFromEvents()
     {
         GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
+
+        // Save & Load Event Unsubscriptions
+        GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
+        GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
     }
 
     private void HandleHeroEquipmentChanged(GameObject heroObj)
@@ -176,6 +185,150 @@ public class HeroStats : FighterStats
         {
             RecalculateStatsAndPsynergies();
         }
+    }
+
+    #endregion
+
+    #region Save & Load Event Handlers
+
+    private void HandleCollectSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        string currentHeroName = gameObject.name;
+
+        // 1. Progression Data
+        saveData.heroesProgression.Add(new HeroProgressionData
+        {
+            heroName = currentHeroName,
+            level = level,
+            currentXp = currentXp,
+            nextLevelXp = nextLevelXp
+        });
+
+        // 2. Vital Status Data
+        saveData.heroesVitals.Add(new HeroVitalStatusData
+        {
+            heroName = currentHeroName,
+            currentHp = CurrHp,
+            currentPp = CurrPp
+        });
+
+        // 3. Story Psynergies Data
+        HeroStoryPsynergyData storyData = new HeroStoryPsynergyData
+        {
+            heroName = currentHeroName
+        };
+
+        if (unlockedStoryPsynergies != null)
+        {
+            for (int i = 0; i < unlockedStoryPsynergies.Count; i++)
+            {
+                if (unlockedStoryPsynergies[i] != null)
+                {
+                    storyData.unlockedStoryPsynergySlugs.Add(unlockedStoryPsynergies[i].PsynergySlug);
+                }
+            }
+        }
+        saveData.heroesStoryPsynergies.Add(storyData);
+
+        // 4. Base Stats Data
+        HeroStatsContainerData statsData = new HeroStatsContainerData
+        {
+            heroName = currentHeroName
+        };
+
+        if (statsMap != null)
+        {
+            foreach (var kvp in statsMap)
+            {
+                if (kvp.Value != null)
+                {
+                    statsData.baseStats.Add(new StatBaseData(kvp.Key, kvp.Value.BaseValue));
+                }
+            }
+        }
+        saveData.heroesStats.Add(statsData);
+
+        Debug.Log($"<color=green>[HeroStats] Collected progression, vitals, and base stats save data for '{currentHeroName}'.</color>");
+    }
+
+    private void HandleRestoreSaveData(GameData saveData)
+    {
+        if (saveData == null) return;
+
+        string currentHeroName = gameObject.name;
+
+        // Temporarily unsubscribe from stat mutation events to prevent multiple calculation sweeps during load loop
+        OnStatsChanged -= MarkDirty;
+
+        // 1. Restore Base Stats via parent class FighterStats API
+        HeroStatsContainerData statsData = saveData.heroesStats.Find(s => s != null && s.heroName.Equals(currentHeroName));
+        if (statsData != null && statsData.baseStats != null)
+        {
+            for (int i = 0; i < statsData.baseStats.Count; i++)
+            {
+                StatBaseData baseData = statsData.baseStats[i];
+                if (baseData != null)
+                {
+                    SetStatBaseValue(baseData.statType, Mathf.RoundToInt(baseData.baseValue));
+                }
+            }
+        }
+
+        // 2. Restore Progression
+        HeroProgressionData progData = saveData.heroesProgression.Find(p => p != null && p.heroName.Equals(currentHeroName));
+        if (progData != null)
+        {
+            level = progData.level;
+            currentXp = progData.currentXp;
+            CalculateNextLevelXp();
+        }
+
+        // 3. Restore Story Psynergies
+        HeroStoryPsynergyData storyData = saveData.heroesStoryPsynergies.Find(s => s != null && s.heroName.Equals(currentHeroName));
+        unlockedStoryPsynergies.Clear();
+
+        if (storyData != null && storyData.unlockedStoryPsynergySlugs != null)
+        {
+            for (int i = 0; i < storyData.unlockedStoryPsynergySlugs.Count; i++)
+            {
+                string slug = storyData.unlockedStoryPsynergySlugs[i];
+                if (string.IsNullOrEmpty(slug)) continue;
+
+                PsynergySO psynergyAsset = null;
+                GameEvents.Database.RequestPsynergyBySlug(slug, p => psynergyAsset = p);
+
+                if (psynergyAsset != null)
+                {
+                    unlockedStoryPsynergies.Add(psynergyAsset);
+                }
+                else
+                {
+                    Debug.LogWarning($"[HeroStats] Story psynergy slug '{slug}' not found in database for '{currentHeroName}'.");
+                }
+            }
+        }
+
+        // 4. Recalculate stats block, class multipliers, and active psynergies
+        RecalculateStatsAndPsynergies();
+
+        // 5. Restore Vital Status (Clamped against newly recalculated Max HP/PP)
+        HeroVitalStatusData vitalsData = saveData.heroesVitals.Find(v => v != null && v.heroName.Equals(currentHeroName));
+        if (vitalsData != null)
+        {
+            CurrHp = Mathf.Clamp(vitalsData.currentHp, 0, MaxHp);
+            CurrPp = Mathf.Clamp(vitalsData.currentPp, 0, MaxPp);
+        }
+
+        // Re-engage stat mutation event listener
+        OnStatsChanged += MarkDirty;
+        MarkDirty();
+
+        NotifyHpChanged();
+        NotifyPpChanged();
+
+        Debug.Log($"<color=cyan>[HeroStats] Stats, progression, and vitals successfully restored for '{currentHeroName}'.</color>");
     }
 
     #endregion

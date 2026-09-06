@@ -142,7 +142,7 @@ public abstract class PsynergySO : ScriptableObject
     #region Public Properties
 
     public string PsynergyName => psynergyName;
-    public string SlugName => slugName;
+    public string PsynergySlug => slugName;
     public string Description => description;
     public Sprite Icon => icon;
     public int PpCost => ppCost;

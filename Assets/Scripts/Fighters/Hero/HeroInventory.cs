@@ -151,6 +151,22 @@ public class HeroInventory : MonoBehaviour
         OnInventoryUpdated?.Invoke();
     }
 
+    /// <summary>
+    /// Forces an item assignment directly into a specific slot index.
+    /// Essential for precise save data restoration and deterministic slot placement.
+    /// </summary>
+    public void SetSlot(int slotIndex, ItemSO item, int amount = 1, bool isEquipped = false)
+    {
+        if (!IsValidIndex(slotIndex))
+        {
+            Debug.LogWarning($"[HeroInventory] Cannot set slot. Index {slotIndex} is out of range.", this);
+            return;
+        }
+
+        slots[slotIndex].SetSlot(item, amount, isEquipped);
+        OnInventoryUpdated?.Invoke();
+    }
+
     #endregion
 
     #region Drag & Drop / Rearrange Operations
