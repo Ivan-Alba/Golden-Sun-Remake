@@ -4,6 +4,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
+/// <summary>
+/// Controls the main menu UI overlay, handling tab navigation (Status, Items, Psynergy, Djinn, Encyclopedia),
+/// hero selection, sub-page controllers lifecycle, and header data refresh.
+/// Reacts to decoupled input commands via GameEvents.Input and GameEvents.GameState.
+/// </summary>
 public class MainMenuController : MonoBehaviour
 {
     #region Enums
@@ -69,17 +74,17 @@ public class MainMenuController : MonoBehaviour
     private Button btnPsynergy;
     private Button btnDjinn;
     private Button btnEncyclopedia;
-    private Dictionary<MenuTab, Button> bookmarkDictionary = new Dictionary<MenuTab, Button>();
+    private readonly Dictionary<MenuTab, Button> bookmarkDictionary = new Dictionary<MenuTab, Button>();
 
     // Hero Selection Header Cards
-    private Button[] btnHeroes = new Button[4];
-    private VisualElement[] imgHeroPortraits = new VisualElement[4];
-    private Label[] labelHeroNames = new Label[4];
-    private Label[] labelHeroLevels = new Label[4];
-    private Label[] labelHeroHpVals = new Label[4];
-    private Label[] labelHeroPpVals = new Label[4];
-    private VisualElement[] barHeroHpFills = new VisualElement[4];
-    private VisualElement[] barHeroPpFills = new VisualElement[4];
+    private readonly Button[] btnHeroes = new Button[4];
+    private readonly VisualElement[] imgHeroPortraits = new VisualElement[4];
+    private readonly Label[] labelHeroNames = new Label[4];
+    private readonly Label[] labelHeroLevels = new Label[4];
+    private readonly Label[] labelHeroHpVals = new Label[4];
+    private readonly Label[] labelHeroPpVals = new Label[4];
+    private readonly VisualElement[] barHeroHpFills = new VisualElement[4];
+    private readonly VisualElement[] barHeroPpFills = new VisualElement[4];
 
     // Page Controllers
     private PageStatusController statusPageController;
@@ -106,11 +111,14 @@ public class MainMenuController : MonoBehaviour
 
     private void OnEnable()
     {
+        if (uiDocument == null) return;
+
         rootElement = uiDocument.rootVisualElement;
         if (rootElement == null) return;
 
         BindUIElements();
         RegisterUICallbacks();
+        SubscribeToInputEvents();
 
         rootElement.style.display = DisplayStyle.None;
         isMenuOpen = false;
@@ -118,15 +126,8 @@ public class MainMenuController : MonoBehaviour
 
     private void OnDisable()
     {
+        UnsubscribeFromInputEvents();
         UnregisterUICallbacks();
-    }
-
-    private void Start()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnToggleMenuPressed += HandleToggleMenuInput;
-        }
     }
 
     private void Update()
@@ -146,15 +147,6 @@ public class MainMenuController : MonoBehaviour
     {
         TimeSpan timeSpan = TimeSpan.FromSeconds(GameManager.Instance.TotalPlayed);
         labelTime.text = string.Format("{0:D2}:{1:D2}:{2:D2}", (int)timeSpan.TotalHours, timeSpan.Minutes, timeSpan.Seconds);
-    }
-
-    private void OnDestroy()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnToggleMenuPressed -= HandleToggleMenuInput;
-            UnsubscribeFromMenuInputs();
-        }
     }
 
     #endregion
@@ -183,7 +175,7 @@ public class MainMenuController : MonoBehaviour
         if (btnDjinn != null) bookmarkDictionary.Add(MenuTab.Djinn, btnDjinn);
         if (btnEncyclopedia != null) bookmarkDictionary.Add(MenuTab.Encyclopedia, btnEncyclopedia);
 
-        // Disable native focus on bookmark buttons to prevent UI Navigation conflicts with A/D keys
+        // Disable native focus on bookmark buttons to prevent UI Navigation conflicts with keyboard/gamepad
         foreach (var btn in bookmarkDictionary.Values)
         {
             if (btn != null) btn.focusable = false;
@@ -243,28 +235,26 @@ public class MainMenuController : MonoBehaviour
 
     #region Input Event Subscriptions & Handlers
 
-    private void SubscribeToMenuInputs()
+    private void SubscribeToInputEvents()
     {
-        if (InputManager.Instance == null) return;
+        UnsubscribeFromInputEvents();
 
-        InputManager.Instance.OnMenuNextTabPressed += HandleNextTab;
-        InputManager.Instance.OnMenuPreviousTabPressed += HandlePreviousTab;
-        InputManager.Instance.OnMenuCancelPressed += HandleCancelInput;
-
-        InputManager.Instance.OnMenuNextHeroPressed += HandleNextHero;
-        InputManager.Instance.OnMenuPreviousHeroPressed += HandlePreviousHero;
+        GameEvents.Input.OnToggleMenuPressed += HandleToggleMenuInput;
+        GameEvents.Input.OnMenuNextTabPressed += HandleNextTab;
+        GameEvents.Input.OnMenuPreviousTabPressed += HandlePreviousTab;
+        GameEvents.Input.OnMenuCancelPressed += HandleCancelInput;
+        GameEvents.Input.OnMenuNextHeroPressed += HandleNextHero;
+        GameEvents.Input.OnMenuPreviousHeroPressed += HandlePreviousHero;
     }
 
-    private void UnsubscribeFromMenuInputs()
+    private void UnsubscribeFromInputEvents()
     {
-        if (InputManager.Instance == null) return;
-
-        InputManager.Instance.OnMenuNextTabPressed -= HandleNextTab;
-        InputManager.Instance.OnMenuPreviousTabPressed -= HandlePreviousTab;
-        InputManager.Instance.OnMenuCancelPressed -= HandleCancelInput;
-
-        InputManager.Instance.OnMenuNextHeroPressed -= HandleNextHero;
-        InputManager.Instance.OnMenuPreviousHeroPressed -= HandlePreviousHero;
+        GameEvents.Input.OnToggleMenuPressed -= HandleToggleMenuInput;
+        GameEvents.Input.OnMenuNextTabPressed -= HandleNextTab;
+        GameEvents.Input.OnMenuPreviousTabPressed -= HandlePreviousTab;
+        GameEvents.Input.OnMenuCancelPressed -= HandleCancelInput;
+        GameEvents.Input.OnMenuNextHeroPressed -= HandleNextHero;
+        GameEvents.Input.OnMenuPreviousHeroPressed -= HandlePreviousHero;
     }
 
     private void HandleToggleMenuInput()
@@ -323,7 +313,6 @@ public class MainMenuController : MonoBehaviour
             timeUpdateTimer = 0f;
             UpdatePlayTimeText();
 
-            SubscribeToMenuInputs();
             RefreshGlobalHeaderInfo();
             SelectTab(currentTab, playSound: false);
         }
@@ -333,7 +322,6 @@ public class MainMenuController : MonoBehaviour
 
             itemsPageController?.CancelItemTargeting();
             psynergyPageController?.CancelPsynergyTargeting();
-            UnsubscribeFromMenuInputs();
         }
     }
 
@@ -355,7 +343,6 @@ public class MainMenuController : MonoBehaviour
             headerHeroesBar.style.display = needsHeroSelector ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        Debug.Log($"[MainMenu] Active Tab: {tab}");
         LoadTabContent(tab);
         UpdateBookmarksHighlight();
         UpdateHeroCardsHighlight();
@@ -383,7 +370,6 @@ public class MainMenuController : MonoBehaviour
 
         selectedHeroIndex = targetIndex;
 
-        Debug.Log($"[MainMenu] Selected Hero Index: {selectedHeroIndex}");
         UpdateHeroCardsHighlight();
         RefreshActiveTabHeroData();
     }
@@ -579,7 +565,7 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadEncyclopediaPage()
     {
-        Debug.Log("[MainMenu] Rendering Encyclopedia Page...");
+        // TODO: Render Encyclopedia / Bestiary sub-page once UI Toolkit asset is created
     }
 
     private void RefreshActiveTabHeroData()

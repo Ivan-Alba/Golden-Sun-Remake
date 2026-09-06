@@ -5,7 +5,7 @@ using Unity.Cinemachine;
 
 /// <summary>
 /// Controls player movement, physics, stamina management, camera targeting, and interaction execution.
-/// Reacts to decoupled commands via GameEvents.Player, GameEvents.World, and GameEvents.GameState.
+/// Reacts to decoupled commands via GameEvents.Input, GameEvents.Player, GameEvents.World, and GameEvents.GameState.
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -57,6 +57,10 @@ public class PlayerController : MonoBehaviour
     private Interactable interactionCurrentTarget;
     private IPsynergyTargetable psynergyCurrentTarget;
 
+    private Vector2 currentMoveInput;
+    private bool isRunningInput;
+    private bool isFirstPersonViewActive;
+
     private float verticalVelocity;
     private float turnSmoothVelocity;
     private float currentStamina;
@@ -83,8 +87,6 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        SubscribeToInputEvents();
-
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
         GameEvents.Player.TriggerHeroStatusChanged();
 
@@ -148,10 +150,86 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
-        if (InputManager.Instance != null && InputManager.Instance.IsFirstPersonView)
+        if (isFirstPersonViewActive)
         {
             HandleFirstPersonViewRotation();
         }
+    }
+
+    #endregion
+
+    #region Input Event Subscriptions & Handlers
+
+    private void SubscribeToInputEvents()
+    {
+        UnsubscribeFromInputEvents();
+
+        GameEvents.Input.OnMoveInputChanged += HandleMoveInputChanged;
+        GameEvents.Input.OnRunStateChanged += HandleRunStateChanged;
+        GameEvents.Input.OnChangeHeroPressed += HandleChangeHero;
+        GameEvents.Input.OnInteractPressed += HandleInteraction;
+        GameEvents.Input.OnToggleFirstPersonViewPressed += HandleToggleFirstPersonView;
+        GameEvents.Input.OnUsePsynergyPressed += HandleUsePsynergy;
+    }
+
+    private void UnsubscribeFromInputEvents()
+    {
+        GameEvents.Input.OnMoveInputChanged -= HandleMoveInputChanged;
+        GameEvents.Input.OnRunStateChanged -= HandleRunStateChanged;
+        GameEvents.Input.OnChangeHeroPressed -= HandleChangeHero;
+        GameEvents.Input.OnInteractPressed -= HandleInteraction;
+        GameEvents.Input.OnToggleFirstPersonViewPressed -= HandleToggleFirstPersonView;
+        GameEvents.Input.OnUsePsynergyPressed -= HandleUsePsynergy;
+    }
+
+    private void HandleMoveInputChanged(Vector2 moveInput)
+    {
+        currentMoveInput = moveInput;
+    }
+
+    private void HandleRunStateChanged(bool isRunning)
+    {
+        isRunningInput = isRunning;
+    }
+
+    private void HandleChangeHero(int heroIndex)
+    {
+        if (!IsWorldExploration()) return;
+
+        GameManager.Instance.ChangeActiveHero(heroIndex);
+        GameEvents.Player.TriggerHeroStatusChanged();
+    }
+
+    private void HandleInteraction()
+    {
+        if (!IsWorldExploration() || isFirstPersonViewActive) return;
+
+        if (interactionCurrentTarget != null)
+        {
+            interactionCurrentTarget.Interact();
+        }
+    }
+
+    private void HandleToggleFirstPersonView()
+    {
+        if (!IsWorldExploration()) return;
+
+        if (isFirstPersonViewActive)
+        {
+            StopFirstPersonView();
+        }
+        else
+        {
+            StartFirstPersonView();
+        }
+    }
+
+    private void HandleUsePsynergy(int slotIndex)
+    {
+        if (!IsWorldExploration()) return;
+
+        // Requests Psynergy execution using cached event-driven target reference
+        GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
     }
 
     #endregion
@@ -170,6 +248,13 @@ public class PlayerController : MonoBehaviour
         if (isGameplayActive)
         {
             StopAutoWalk();
+        }
+        else
+        {
+            if (isFirstPersonViewActive)
+            {
+                StopFirstPersonView();
+            }
         }
     }
 
@@ -239,64 +324,6 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Input Subscriptions
-
-    private void SubscribeToInputEvents()
-    {
-        if (InputManager.Instance == null) return;
-
-        UnsubscribeFromInputEvents();
-
-        InputManager.Instance.OnChangeHeroPressed += HandleChangeHero;
-        InputManager.Instance.OnInteractPressed += HandleInteraction;
-        InputManager.Instance.OnStartFirstPersonViewPressed += StartFirstPersonView;
-        InputManager.Instance.OnStopFirstPersonViewPressed += StopFirstPersonView;
-        InputManager.Instance.OnUsePsynergyPressed += HandleUsePsynergy;
-    }
-
-    private void UnsubscribeFromInputEvents()
-    {
-        if (InputManager.Instance == null) return;
-
-        InputManager.Instance.OnChangeHeroPressed -= HandleChangeHero;
-        InputManager.Instance.OnInteractPressed -= HandleInteraction;
-        InputManager.Instance.OnStartFirstPersonViewPressed -= StartFirstPersonView;
-        InputManager.Instance.OnStopFirstPersonViewPressed -= StopFirstPersonView;
-        InputManager.Instance.OnUsePsynergyPressed -= HandleUsePsynergy;
-    }
-
-    #endregion
-
-    #region Input Event Handlers
-
-    private void HandleChangeHero(int heroIndex)
-    {
-        if (!IsWorldExploration()) return;
-
-        GameManager.Instance.ChangeActiveHero(heroIndex);
-        GameEvents.Player.TriggerHeroStatusChanged();
-    }
-
-    private void HandleInteraction()
-    {
-        if (!IsWorldExploration() || (InputManager.Instance != null && InputManager.Instance.IsFirstPersonView)) return;
-
-        if (interactionCurrentTarget != null)
-        {
-            interactionCurrentTarget.Interact();
-        }
-    }
-
-    private void HandleUsePsynergy(int slotIndex)
-    {
-        if (!IsWorldExploration()) return;
-
-        // Requests Psynergy execution using cached event-driven target reference
-        GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
-    }
-
-    #endregion
-
     #region Movement & Physics Logic
 
     private void HandleGravity()
@@ -317,18 +344,15 @@ public class PlayerController : MonoBehaviour
     {
         if (controller == null || !controller.enabled) return;
 
-        bool isFirstPersonView = InputManager.Instance != null && InputManager.Instance.IsFirstPersonView;
-
         // Freeze player feet movement while in inspection / first-person view
-        if (isFirstPersonView)
+        if (isFirstPersonViewActive)
         {
             ResetMovementAnimations();
             controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
             return;
         }
 
-        Vector2 inputMove = InputManager.Instance != null ? InputManager.Instance.MoveInput : Vector2.zero;
-        Vector3 direction = new Vector3(inputMove.x, 0f, inputMove.y).normalized;
+        Vector3 direction = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
 
         if (direction.magnitude >= 0.1f)
         {
@@ -347,8 +371,6 @@ public class PlayerController : MonoBehaviour
             {
                 moveDirection = Vector3.zero;
             }
-
-            bool isRunningInput = InputManager.Instance != null && InputManager.Instance.IsRunning;
 
             if (isRunningInput && enoughStaminaToRun)
             {
@@ -506,12 +528,13 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsWorldExploration()) return;
 
+        isFirstPersonViewActive = true;
+
         if (mainCamera != null)
         {
             Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
             if (cameraForward.sqrMagnitude > 0.001f)
             {
-                // Rotación suave coincidente con la duración de la transición de la cámara (ej. 0.3s)
                 Vector3 targetLookPos = transform.position + cameraForward * 5f;
                 GameEvents.Player.RequestLookAt(targetLookPos, 0.3f);
             }
@@ -541,6 +564,8 @@ public class PlayerController : MonoBehaviour
 
     private void StopFirstPersonView()
     {
+        isFirstPersonViewActive = false;
+
         if (freeLookCamera != null && firstPersonViewPanTilt != null)
         {
             if (freeLookCamera.TryGetComponent<CinemachineOrbitalFollow>(out var orbitalFollow))

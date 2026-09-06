@@ -16,6 +16,7 @@ public enum EmoteType
 /// <summary>
 /// Manages active dialogue execution, typewriter animations, Cinemachine camera framing, 
 /// story flag progression, and branching choice resolution.
+/// Reacts to input events via GameEvents.Input.
 /// </summary>
 public class DialogueController : MonoBehaviour
 {
@@ -66,36 +67,44 @@ public class DialogueController : MonoBehaviour
 
     private void OnEnable()
     {
-        // Event Subscriptions
+        // UI & System Event Subscriptions
         GameEvents.UI.OnStartDialogueRequested -= HandleStartDialogueRequested;
         GameEvents.UI.OnStartDialogueRequested += HandleStartDialogueRequested;
 
         GameEvents.UI.OnSelectDialogueChoiceRequested -= HandleSelectDialogueChoiceRequested;
         GameEvents.UI.OnSelectDialogueChoiceRequested += HandleSelectDialogueChoiceRequested;
 
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnDialogueAdvancePressed += HandleDialogueAdvance;
-        }
+        // Input Event Subscriptions
+        SubscribeToInputEvents();
     }
 
     private void OnDisable()
     {
-        // Event Unsubscriptions
+        // UI & System Event Unsubscriptions
         GameEvents.UI.OnStartDialogueRequested -= HandleStartDialogueRequested;
         GameEvents.UI.OnSelectDialogueChoiceRequested -= HandleSelectDialogueChoiceRequested;
 
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnDialogueAdvancePressed -= HandleDialogueAdvance;
-        }
+        // Input Event Unsubscriptions
+        UnsubscribeFromInputEvents();
 
         CleanupEyePivots();
     }
 
     #endregion
 
-    #region Event Callbacks
+    #region Event Subscriptions & Callbacks
+
+    private void SubscribeToInputEvents()
+    {
+        UnsubscribeFromInputEvents();
+
+        GameEvents.Input.OnDialogueAdvancePressed += HandleDialogueAdvance;
+    }
+
+    private void UnsubscribeFromInputEvents()
+    {
+        GameEvents.Input.OnDialogueAdvancePressed -= HandleDialogueAdvance;
+    }
 
     private void HandleStartDialogueRequested(DialogueSO dialogue, string speakerName, GameObject speakerObj, Sprite portrait)
     {

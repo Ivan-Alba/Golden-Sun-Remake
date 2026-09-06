@@ -127,26 +127,24 @@ public class BattleManager : MonoBehaviour
 
     private void SubscribeToInputEvents()
     {
-        if (InputManager.Instance == null) return;
+        UnsubscribeFromInputEvents();
 
-        InputManager.Instance.OnBattleConfirmPressed += HandleConfirmPressed;
-        InputManager.Instance.OnBattleCancelPressed += HandleCancelPressed;
-        InputManager.Instance.OnBattleUpPressed += HandleUpPressed;
-        InputManager.Instance.OnBattleDownPressed += HandleDownPressed;
-        InputManager.Instance.OnBattleLeftPressed += HandleLeftPressed;
-        InputManager.Instance.OnBattleRightPressed += HandleRightPressed;
+        GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
+        GameEvents.Input.OnBattleCancelPressed += HandleCancelPressed;
+        GameEvents.Input.OnBattleUpPressed += HandleUpPressed;
+        GameEvents.Input.OnBattleDownPressed += HandleDownPressed;
+        GameEvents.Input.OnBattleLeftPressed += HandleLeftPressed;
+        GameEvents.Input.OnBattleRightPressed += HandleRightPressed;
     }
 
     private void UnsubscribeFromInputEvents()
     {
-        if (InputManager.Instance == null) return;
-
-        InputManager.Instance.OnBattleConfirmPressed -= HandleConfirmPressed;
-        InputManager.Instance.OnBattleCancelPressed -= HandleCancelPressed;
-        InputManager.Instance.OnBattleUpPressed -= HandleUpPressed;
-        InputManager.Instance.OnBattleDownPressed -= HandleDownPressed;
-        InputManager.Instance.OnBattleLeftPressed -= HandleLeftPressed;
-        InputManager.Instance.OnBattleRightPressed -= HandleRightPressed;
+        GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
+        GameEvents.Input.OnBattleCancelPressed -= HandleCancelPressed;
+        GameEvents.Input.OnBattleUpPressed -= HandleUpPressed;
+        GameEvents.Input.OnBattleDownPressed -= HandleDownPressed;
+        GameEvents.Input.OnBattleLeftPressed -= HandleLeftPressed;
+        GameEvents.Input.OnBattleRightPressed -= HandleRightPressed;
     }
 
     #endregion

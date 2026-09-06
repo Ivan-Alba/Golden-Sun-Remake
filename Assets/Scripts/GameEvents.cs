@@ -19,6 +19,97 @@ public static class GameEvents
     }
 
     // ==========================================
+    // INPUT & CONTROLLER EVENTS
+    // ==========================================
+    public static class Input
+    {
+        // Continuous Movement & State Inputs
+        public static event Action<Vector2> OnMoveInputChanged;
+        public static void TriggerMoveInputChanged(Vector2 moveInput)
+            => OnMoveInputChanged?.Invoke(moveInput);
+
+        public static event Action<bool> OnRunStateChanged;
+        public static void TriggerRunStateChanged(bool isRunning)
+            => OnRunStateChanged?.Invoke(isRunning);
+
+        // Exploration & World Interaction Inputs
+        public static event Action OnInteractPressed;
+        public static void TriggerInteractPressed()
+            => OnInteractPressed?.Invoke();
+
+        public static event Action OnToggleMenuPressed;
+        public static void TriggerToggleMenuPressed()
+            => OnToggleMenuPressed?.Invoke();
+
+        public static event Action<int> OnChangeHeroPressed;
+        public static void TriggerChangeHeroPressed(int heroIndex)
+            => OnChangeHeroPressed?.Invoke(heroIndex);
+
+        public static event Action OnToggleFirstPersonViewPressed;
+        public static void TriggerToggleFirstPersonViewPressed()
+            => OnToggleFirstPersonViewPressed?.Invoke();
+
+        public static event Action<int> OnUsePsynergyPressed;
+        public static void TriggerUsePsynergyPressed(int slotIndex)
+            => OnUsePsynergyPressed?.Invoke(slotIndex);
+
+        // Dialogue Inputs
+        public static event Action OnDialogueAdvancePressed;
+        public static void TriggerDialogueAdvancePressed()
+            => OnDialogueAdvancePressed?.Invoke();
+
+        // Battle Inputs
+        public static event Action OnBattleConfirmPressed;
+        public static void TriggerBattleConfirmPressed()
+            => OnBattleConfirmPressed?.Invoke();
+
+        public static event Action OnBattleCancelPressed;
+        public static void TriggerBattleCancelPressed()
+            => OnBattleCancelPressed?.Invoke();
+
+        public static event Action OnBattleUpPressed;
+        public static void TriggerBattleUpPressed()
+            => OnBattleUpPressed?.Invoke();
+
+        public static event Action OnBattleDownPressed;
+        public static void TriggerBattleDownPressed()
+            => OnBattleDownPressed?.Invoke();
+
+        public static event Action OnBattleLeftPressed;
+        public static void TriggerBattleLeftPressed()
+            => OnBattleLeftPressed?.Invoke();
+
+        public static event Action OnBattleRightPressed;
+        public static void TriggerBattleRightPressed()
+            => OnBattleRightPressed?.Invoke();
+
+        // Menu Navigation Inputs
+        public static event Action OnMenuConfirmPressed;
+        public static void TriggerMenuConfirmPressed()
+            => OnMenuConfirmPressed?.Invoke();
+
+        public static event Action OnMenuCancelPressed;
+        public static void TriggerMenuCancelPressed()
+            => OnMenuCancelPressed?.Invoke();
+
+        public static event Action OnMenuNextTabPressed;
+        public static void TriggerMenuNextTabPressed()
+            => OnMenuNextTabPressed?.Invoke();
+
+        public static event Action OnMenuPreviousTabPressed;
+        public static void TriggerMenuPreviousTabPressed()
+            => OnMenuPreviousTabPressed?.Invoke();
+
+        public static event Action OnMenuNextHeroPressed;
+        public static void TriggerMenuNextHeroPressed()
+            => OnMenuNextHeroPressed?.Invoke();
+
+        public static event Action OnMenuPreviousHeroPressed;
+        public static void TriggerMenuPreviousHeroPressed()
+            => OnMenuPreviousHeroPressed?.Invoke();
+    }
+
+    // ==========================================
     // WORLD & EXPLORATION EVENTS
     // ==========================================
     public static class World
