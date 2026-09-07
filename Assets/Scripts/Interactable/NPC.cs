@@ -5,8 +5,11 @@ using UnityEngine;
 [System.Serializable]
 public struct NPCDialogueRule
 {
-    [Tooltip("Required story/game flag for this dialogue rule to activate.")]
-    public string requiredFlag;
+    [Tooltip("Required story/game flag ScriptableObject for this dialogue rule to activate.")]
+    public FlagSO requiredFlag;
+
+    [Tooltip("Fallback slug identifier if no FlagSO asset is directly assigned.")]
+    public string requiredFlagSlug;
 
     [Tooltip("Dialogue ScriptableObject to assign when the flag condition is met.")]
     public DialogueSO dialogue;
@@ -14,7 +17,7 @@ public struct NPCDialogueRule
 
 /// <summary>
 /// Controls world interaction for NPCs, smooth rotation towards the player, 
-/// and dynamic dialogue evaluation using localized DialogueSO assets and GameFlags.
+/// and dynamic dialogue evaluation using localized DialogueSO assets and FlagSO assets.
 /// Reacts and emits via decoupled GameEvents.
 /// </summary>
 public class NPC : Interactable
@@ -130,10 +133,22 @@ public class NPC : Interactable
     {
         foreach (var rule in conditionalDialogues)
         {
-            if (string.IsNullOrEmpty(rule.requiredFlag)) continue;
-
             bool isFlagActive = false;
-            GameEvents.GameState.RequestFlagState(rule.requiredFlag, state => isFlagActive = state);
+
+            if (rule.requiredFlag != null)
+            {
+                GameEvents.World.RequestCheckFlag(rule.requiredFlag, state => isFlagActive = state);
+            }
+            else if (!string.IsNullOrEmpty(rule.requiredFlagSlug))
+            {
+                GameEvents.Database.RequestFlagBySlug(rule.requiredFlagSlug, flagAsset =>
+                {
+                    if (flagAsset != null)
+                    {
+                        GameEvents.World.RequestCheckFlag(flagAsset, state => isFlagActive = state);
+                    }
+                });
+            }
 
             if (isFlagActive)
             {

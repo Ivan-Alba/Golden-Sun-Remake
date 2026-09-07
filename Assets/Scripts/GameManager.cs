@@ -68,7 +68,6 @@ public class GameManager : MonoBehaviour
     // Game Economy & Metrics
     private int totalGold;
     private float totalPlayed;
-    private readonly Dictionary<string, bool> gameFlags = new Dictionary<string, bool>();
 
     #endregion
 
@@ -95,10 +94,6 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.OnChangeGameStateRequested += HandleGameStateRequest;
         GameEvents.GameState.OnRequestPlayTime += HandleRequestPlayTime;
         GameEvents.GameState.OnUpdateZoneRequested += UpdateCurrentZone;
-
-        // Game Flags Event Subscriptions
-        GameEvents.GameState.OnSetFlagRequested += HandleSetFlagRequest;
-        GameEvents.GameState.OnRequestFlagState += HandleRequestFlagState;
 
         // Time Management Event Subscriptions
         GameEvents.GameState.OnChangeGameSpeedRequested += HandleChangeGameSpeedRequest;
@@ -127,10 +122,6 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.OnChangeGameStateRequested -= HandleGameStateRequest;
         GameEvents.GameState.OnRequestPlayTime -= HandleRequestPlayTime;
         GameEvents.GameState.OnUpdateZoneRequested -= UpdateCurrentZone;
-
-        // Game Flags Event Unsubscriptions
-        GameEvents.GameState.OnSetFlagRequested -= HandleSetFlagRequest;
-        GameEvents.GameState.OnRequestFlagState -= HandleRequestFlagState;
 
         // Time Management Event Unsubscriptions
         GameEvents.GameState.OnChangeGameSpeedRequested -= HandleChangeGameSpeedRequest;
@@ -219,30 +210,6 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Game Flags Event Handlers
-
-    private void HandleSetFlagRequest(string flagKey, bool value)
-    {
-        if (string.IsNullOrEmpty(flagKey)) return;
-
-        gameFlags[flagKey] = value;
-        Debug.Log($"[GameManager] GameFlag updated via event: '{flagKey}' => {value}");
-    }
-
-    private void HandleRequestFlagState(string flagKey, Action<bool> callback)
-    {
-        if (string.IsNullOrEmpty(flagKey))
-        {
-            callback?.Invoke(false);
-            return;
-        }
-
-        bool state = gameFlags.TryGetValue(flagKey, out bool value) && value;
-        callback?.Invoke(state);
-    }
-
-    #endregion
-
     #region Party & Economy Event Handlers
 
     private void HandleModifyGoldRequest(int amount)
@@ -322,7 +289,6 @@ public class GameManager : MonoBehaviour
         totalPlayed = 0f;
         activeParty.Clear();
         reserveParty.Clear();
-        gameFlags.Clear();
 
         GameEvents.Party.TriggerGoldChanged(totalGold);
         GameEvents.Inventory.RequestClearAllInventories();
@@ -466,13 +432,6 @@ public class GameManager : MonoBehaviour
         {
             if (reserveParty[i] != null) saveData.partyState.reserveHeroNames.Add(reserveParty[i].name);
         }
-
-        // 4. World Story Flags
-        saveData.gameFlags.Clear();
-        foreach (var kvp in gameFlags)
-        {
-            saveData.gameFlags.Add(new GameFlagData(kvp.Key, kvp.Value));
-        }
     }
 
     private void HandleRestoreSaveData(GameData saveData)
@@ -489,20 +448,7 @@ public class GameManager : MonoBehaviour
 
         GameEvents.Party.TriggerGoldChanged(totalGold);
 
-        // 2. Restore Story Flags
-        gameFlags.Clear();
-        if (saveData.gameFlags != null)
-        {
-            for (int i = 0; i < saveData.gameFlags.Count; i++)
-            {
-                if (saveData.gameFlags[i] != null)
-                {
-                    gameFlags[saveData.gameFlags[i].key] = saveData.gameFlags[i].state;
-                }
-            }
-        }
-
-        // 3. Restore Party Roster Composition without GameObject.Find
+        // 2. Restore Party Roster Composition without GameObject.Find
         activeParty.Clear();
         reserveParty.Clear();
 
@@ -542,7 +488,7 @@ public class GameManager : MonoBehaviour
             activeLeaderHero = activeParty[0];
         }
 
-        // 4. Relocate Player Position
+        // 3. Relocate Player Position
         Vector3 targetPos = new Vector3(saveData.worldState.playerPosition[0], saveData.worldState.playerPosition[1], saveData.worldState.playerPosition[2]);
         Quaternion targetRot = Quaternion.Euler(0, saveData.worldState.playerRotation[1], 0);
 

@@ -24,86 +24,151 @@ public static class GameEvents
     public static class Input
     {
         // Continuous Movement & State Inputs
+
+        /// <summary>
+        /// Triggered continuous movement vector input changes (x: horizontal, y: vertical).
+        /// </summary>
         public static event Action<Vector2> OnMoveInputChanged;
         public static void TriggerMoveInputChanged(Vector2 moveInput)
             => OnMoveInputChanged?.Invoke(moveInput);
 
+        /// <summary>
+        /// Triggered when the running modifier button state changes (held / released).
+        /// </summary>
         public static event Action<bool> OnRunStateChanged;
         public static void TriggerRunStateChanged(bool isRunning)
             => OnRunStateChanged?.Invoke(isRunning);
 
         // Exploration & World Interaction Inputs
+
+        /// <summary>
+        /// Triggered when the primary world interaction button (Interact) is pressed.
+        /// </summary>
         public static event Action OnInteractPressed;
         public static void TriggerInteractPressed()
             => OnInteractPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when the pause/start menu toggle button is pressed.
+        /// </summary>
         public static event Action OnToggleMenuPressed;
         public static void TriggerToggleMenuPressed()
             => OnToggleMenuPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when requesting a direct active leader hero swap by hero index.
+        /// </summary>
         public static event Action<int> OnChangeHeroPressed;
         public static void TriggerChangeHeroPressed(int heroIndex)
             => OnChangeHeroPressed?.Invoke(heroIndex);
 
+        /// <summary>
+        /// Triggered when the first-person view toggle button (Mind's Eye / Look) is pressed.
+        /// </summary>
         public static event Action OnToggleFirstPersonViewPressed;
         public static void TriggerToggleFirstPersonViewPressed()
             => OnToggleFirstPersonViewPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when pressing a field Psynergy shortcut button (D-Pad Hotline).
+        /// </summary>
         public static event Action<int> OnUsePsynergyPressed;
         public static void TriggerUsePsynergyPressed(int slotIndex)
             => OnUsePsynergyPressed?.Invoke(slotIndex);
 
         // Dialogue Inputs
+
+        /// <summary>
+        /// Triggered when the advance dialogue key is pressed to move text forward or accept a line.
+        /// </summary>
         public static event Action OnDialogueAdvancePressed;
         public static void TriggerDialogueAdvancePressed()
             => OnDialogueAdvancePressed?.Invoke();
 
         // Battle Inputs
+
+        /// <summary>
+        /// Triggered when the confirm action button is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleConfirmPressed;
         public static void TriggerBattleConfirmPressed()
             => OnBattleConfirmPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when the cancel/back button is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleCancelPressed;
         public static void TriggerBattleCancelPressed()
             => OnBattleCancelPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when navigate up key is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleUpPressed;
         public static void TriggerBattleUpPressed()
             => OnBattleUpPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when navigate down key is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleDownPressed;
         public static void TriggerBattleDownPressed()
             => OnBattleDownPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when navigate left key is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleLeftPressed;
         public static void TriggerBattleLeftPressed()
             => OnBattleLeftPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when navigate right key is pressed inside battle UI.
+        /// </summary>
         public static event Action OnBattleRightPressed;
         public static void TriggerBattleRightPressed()
             => OnBattleRightPressed?.Invoke();
 
         // Menu Navigation Inputs
+
+        /// <summary>
+        /// Triggered when the confirm button is pressed in standard full-screen or sub-menus.
+        /// </summary>
         public static event Action OnMenuConfirmPressed;
         public static void TriggerMenuConfirmPressed()
             => OnMenuConfirmPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when the cancel/back button is pressed in standard full-screen or sub-menus.
+        /// </summary>
         public static event Action OnMenuCancelPressed;
         public static void TriggerMenuCancelPressed()
             => OnMenuCancelPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when requesting navigation to the next tab in full-screen menus.
+        /// </summary>
         public static event Action OnMenuNextTabPressed;
         public static void TriggerMenuNextTabPressed()
             => OnMenuNextTabPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when requesting navigation to the previous tab in full-screen menus.
+        /// </summary>
         public static event Action OnMenuPreviousTabPressed;
         public static void TriggerMenuPreviousTabPressed()
             => OnMenuPreviousTabPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when cycling to inspect the next hero in full-screen sub-menus.
+        /// </summary>
         public static event Action OnMenuNextHeroPressed;
         public static void TriggerMenuNextHeroPressed()
             => OnMenuNextHeroPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when cycling to inspect the previous hero in full-screen sub-menus.
+        /// </summary>
         public static event Action OnMenuPreviousHeroPressed;
         public static void TriggerMenuPreviousHeroPressed()
             => OnMenuPreviousHeroPressed?.Invoke();
@@ -133,20 +198,6 @@ public static class GameEvents
         /// </summary>
         public static event Action<Action<float>> OnRequestPlayTime;
         public static void RequestPlayTime(Action<float> callback) => OnRequestPlayTime?.Invoke(callback);
-
-        /// <summary>
-        /// Requests to update or set a story/game flag state. Listened by GameManager.
-        /// </summary>
-        public static event Action<string, bool> OnSetFlagRequested;
-        public static void RequestSetFlag(string flagKey, bool value)
-            => OnSetFlagRequested?.Invoke(flagKey, value);
-
-        /// <summary>
-        /// Requests the boolean state of a specific story/game flag via callback. Listened by GameManager.
-        /// </summary>
-        public static event Action<string, Action<bool>> OnRequestFlagState;
-        public static void RequestFlagState(string flagKey, Action<bool> callback)
-            => OnRequestFlagState?.Invoke(flagKey, callback);
 
         /// <summary>
         /// Requests an update for the player's current zone and region names. Listened by GameManager.
@@ -217,16 +268,23 @@ public static class GameEvents
         public static void TriggerActiveHeroChanged(GameObject activeHero)
             => OnActiveHeroChanged?.Invoke(activeHero);
 
-        // Event triggered when total gold value updates
-        public static Action<int> OnGoldChanged;
+        /// <summary>
+        /// Triggered whenever the party's total gold amount changes.
+        /// </summary>
+        public static event Action<int> OnGoldChanged;
         public static void TriggerGoldChanged(int newTotalGold) => OnGoldChanged?.Invoke(newTotalGold);
 
-        // Event requested when a system wants to add or subtract gold (amount can be positive or negative)
-        public static Action<int> OnModifyGoldRequested;
+        /// <summary>
+        /// Request sent to modify party gold (amount can be positive or negative).
+        /// Listened by GameManager.
+        /// </summary>
+        public static event Action<int> OnModifyGoldRequested;
         public static void RequestModifyGold(int amount) => OnModifyGoldRequested?.Invoke(amount);
 
-        // Event requested when a system needs to query current gold via callback
-        public static Action<Action<int>> OnRequestGold;
+        /// <summary>
+        /// Request to query current total gold via callback. Listened by GameManager.
+        /// </summary>
+        public static event Action<Action<int>> OnRequestGold;
         public static void RequestGold(Action<int> callback) => OnRequestGold?.Invoke(callback);
     }
 
@@ -281,6 +339,29 @@ public static class GameEvents
         public static event Action<GameObject> OnEntityExitedProximity;
         public static void TriggerEntityExitedProximity(GameObject entityObj)
             => OnEntityExitedProximity?.Invoke(entityObj);
+
+        /// <summary>
+        /// Request to update a world flag value using a FlagSO reference.
+        /// Listened by WorldStateController.
+        /// </summary>
+        public static event Action<FlagSO, bool> OnSetFlagRequested;
+        public static void RequestSetFlag(FlagSO flag, bool value)
+            => OnSetFlagRequested?.Invoke(flag, value);
+
+        /// <summary>
+        /// Request to query a world flag value via callback using a FlagSO reference.
+        /// Listened by WorldStateController.
+        /// </summary>
+        public static event Action<FlagSO, Action<bool>> OnCheckFlagRequested;
+        public static void RequestCheckFlag(FlagSO flag, Action<bool> callback)
+            => OnCheckFlagRequested?.Invoke(flag, callback);
+
+        /// <summary>
+        /// Broadcasted whenever any world flag value is updated at runtime.
+        /// </summary>
+        public static event Action<FlagSO, bool> OnFlagChanged;
+        public static void TriggerFlagChanged(FlagSO flag, bool newValue)
+            => OnFlagChanged?.Invoke(flag, newValue);
     }
 
     // ==========================================
@@ -369,6 +450,24 @@ public static class GameEvents
         public static event Action<ElementalType, List<DjinnSO>> OnRequestDjinnsByElement;
         public static void RequestDjinnsByElement(ElementalType element, List<DjinnSO> resultsBuffer)
             => OnRequestDjinnsByElement?.Invoke(element, resultsBuffer);
+
+        // --- FLAG DATABASE QUERIES ---
+
+        /// <summary>
+        /// Request a FlagSO asset by its unique flagSlug identifier.
+        /// Params: flagSlug, callbackResult
+        /// </summary>
+        public static event Action<string, Action<FlagSO>> OnRequestFlagBySlug;
+        public static void RequestFlagBySlug(string flagSlug, Action<FlagSO> callback)
+            => OnRequestFlagBySlug?.Invoke(flagSlug, callback);
+
+        /// <summary>
+        /// Request all registered FlagSO assets from the database repository.
+        /// Params: callbackResult
+        /// </summary>
+        public static event Action<Action<IReadOnlyList<FlagSO>>> OnRequestAllFlags;
+        public static void RequestAllFlags(Action<IReadOnlyList<FlagSO>> callback)
+            => OnRequestAllFlags?.Invoke(callback);
     }
 
     // ==========================================
@@ -532,41 +631,76 @@ public static class GameEvents
     public static class Fighter
     {
         // --- Resource Changes (UI & Status) ---
+
+        /// <summary>
+        /// Triggered whenever a fighter's Health Points (HP) change.
+        /// Params: fighterObj, currentHp, maxHp
+        /// </summary>
         public static event Action<GameObject, int, int> OnHpChanged;
         public static void TriggerHpChanged(GameObject fighterObj, int currentHp, int maxHp)
             => OnHpChanged?.Invoke(fighterObj, currentHp, maxHp);
 
+        /// <summary>
+        /// Triggered whenever a fighter's Psynergy Points (PP) change.
+        /// Params: fighterObj, currentPp, maxPp
+        /// </summary>
         public static event Action<GameObject, int, int> OnPpChanged;
         public static void TriggerPpChanged(GameObject fighterObj, int currentPp, int maxPp)
             => OnPpChanged?.Invoke(fighterObj, currentPp, maxPp);
 
         // --- Impact & Damage Events (Floating Text, Animations & SFX) ---
+
+        /// <summary>
+        /// Triggered when a fighter receives damage in battle or overworld.
+        /// Params: fighterObj, amount, isCritical, elementalType
+        /// </summary>
         public static event Action<GameObject, int, bool, ElementalType> OnDamaged;
         public static void TriggerDamaged(GameObject fighterObj, int amount, bool isCritical, ElementalType element)
             => OnDamaged?.Invoke(fighterObj, amount, isCritical, element);
 
+        /// <summary>
+        /// Triggered when a fighter is restored HP through healing items or Psynergy.
+        /// Params: fighterObj, amount
+        /// </summary>
         public static event Action<GameObject, int> OnHealed;
         public static void TriggerHealed(GameObject fighterObj, int amount)
             => OnHealed?.Invoke(fighterObj, amount);
 
         // --- Life & Death States ---
+
+        /// <summary>
+        /// Triggered when a fighter reaches 0 HP and enters the downed/knocked out state.
+        /// </summary>
         public static event Action<GameObject> OnFighterDied;
         public static void TriggerFighterDied(GameObject fighterObj)
             => OnFighterDied?.Invoke(fighterObj);
 
+        /// <summary>
+        /// Triggered when a downed fighter is revived back to life.
+        /// </summary>
         public static event Action<GameObject> OnFighterRevived;
         public static void TriggerFighterRevived(GameObject fighterObj)
             => OnFighterRevived?.Invoke(fighterObj);
 
         // --- Status Effects & Modifiers ---
+
+        /// <summary>
+        /// Triggered when an active status effect (poison, stun, buff, etc.) is applied to a fighter.
+        /// </summary>
         public static event Action<GameObject, ActiveStatusEffect> OnStatusEffectAdded;
         public static void TriggerStatusEffectAdded(GameObject fighterObj, ActiveStatusEffect activeEffect)
             => OnStatusEffectAdded?.Invoke(fighterObj, activeEffect);
 
+        /// <summary>
+        /// Triggered when an active status effect is removed or expires from a fighter.
+        /// </summary>
         public static event Action<GameObject, ActiveStatusEffect> OnStatusEffectRemoved;
         public static void TriggerStatusEffectRemoved(GameObject fighterObj, ActiveStatusEffect activeEffect)
             => OnStatusEffectRemoved?.Invoke(fighterObj, activeEffect);
 
+        /// <summary>
+        /// Triggered when all active status effects on a fighter are completely purged.
+        /// </summary>
         public static event Action<GameObject> OnStatusEffectsCleared;
         public static void TriggerStatusEffectsCleared(GameObject fighterObj)
             => OnStatusEffectsCleared?.Invoke(fighterObj);
@@ -789,6 +923,9 @@ public static class GameEvents
         public static void RequestRemoveItem(ItemSO item, int quantity, Action<bool> onResult)
             => OnRequestRemoveItem?.Invoke(item, quantity, onResult);
 
+        /// <summary>
+        /// Request to clear all items across all hero inventories and global bags.
+        /// </summary>
         public static event Action OnClearAllInventoriesRequested;
         public static void RequestClearAllInventories() => OnClearAllInventoriesRequested?.Invoke();
 
@@ -800,6 +937,10 @@ public static class GameEvents
             => OnCheckHasItem?.Invoke(item, amount, onResult);
 
         // TESTING
+
+        /// <summary>
+        /// Debug testing request to populate inventories with all items.
+        /// </summary>
         public static event Action OnAllItemsRequested;
         public static void RequestAllItems() => OnAllItemsRequested?.Invoke();
 
@@ -979,7 +1120,14 @@ public static class GameEvents
     // ==========================================
     public static class Cutscene
     {
+        /// <summary>
+        /// Triggered when a scripted cutscene sequence starts.
+        /// </summary>
         public static event Action<string> OnCutsceneStart;
+
+        /// <summary>
+        /// Triggered when a scripted cutscene sequence ends.
+        /// </summary>
         public static event Action<string> OnCutsceneEnd;
     }
 }

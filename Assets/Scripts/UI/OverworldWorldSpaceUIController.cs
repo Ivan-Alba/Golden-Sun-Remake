@@ -228,7 +228,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"<color=#e67e22>[UIController] Prev target '{prevObj.name}' NOT found in activeProximityElements! Clearing generic prompt instead.</color>");
+                //Debug.LogWarning($"<color=#e67e22>[UIController] Prev target '{prevObj.name}' NOT found in activeProximityElements! Clearing generic prompt instead.</color>");
                 ClearGenericPrompt();
             }
         }

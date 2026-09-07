@@ -47,7 +47,7 @@ public class DialogueController : MonoBehaviour
     private GameObject currentInteractableElement;
 
     // Active choices cache for index resolution
-    private List<DialogueChoice> currentActiveChoices = new List<DialogueChoice>();
+    private readonly List<DialogueChoice> currentActiveChoices = new List<DialogueChoice>();
 
     // Virtual framing targets for eye-level camera focus
     private GameObject playerEyePivot;
@@ -147,10 +147,20 @@ public class DialogueController : MonoBehaviour
 
         DialogueChoice selectedChoice = currentActiveChoices[choiceIndex];
 
-        // Process choice-specific story flag via event bus if set
-        if (!string.IsNullOrEmpty(selectedChoice.setFlagOnSelect))
+        // Process choice-specific story flag via asset or database slug
+        if (selectedChoice.setFlagOnSelect != null)
         {
-            GameEvents.GameState.RequestSetFlag(selectedChoice.setFlagOnSelect, true);
+            GameEvents.World.RequestSetFlag(selectedChoice.setFlagOnSelect, true);
+        }
+        else if (!string.IsNullOrEmpty(selectedChoice.setFlagSlugOnSelect))
+        {
+            GameEvents.Database.RequestFlagBySlug(selectedChoice.setFlagSlugOnSelect, flagAsset =>
+            {
+                if (flagAsset != null)
+                {
+                    GameEvents.World.RequestSetFlag(flagAsset, true);
+                }
+            });
         }
 
         isAwaitingChoice = false;
@@ -206,10 +216,20 @@ public class DialogueController : MonoBehaviour
     {
         DialogueNode node = currentDialogue.nodes[currentNodeIndex];
 
-        // Process node completion flags via event bus if specified
-        if (!string.IsNullOrEmpty(node.setFlagOnComplete))
+        // Process node completion flag via asset or database lookup
+        if (node.setFlagOnComplete != null)
         {
-            GameEvents.GameState.RequestSetFlag(node.setFlagOnComplete, true);
+            GameEvents.World.RequestSetFlag(node.setFlagOnComplete, true);
+        }
+        else if (!string.IsNullOrEmpty(node.setFlagSlugOnComplete))
+        {
+            GameEvents.Database.RequestFlagBySlug(node.setFlagSlugOnComplete, flagAsset =>
+            {
+                if (flagAsset != null)
+                {
+                    GameEvents.World.RequestSetFlag(flagAsset, true);
+                }
+            });
         }
 
         // Resolve localized text line
@@ -282,10 +302,26 @@ public class DialogueController : MonoBehaviour
                 var choice = node.choices[i];
 
                 // Filter out choices restricted by flags via callback request
-                if (!string.IsNullOrEmpty(choice.requiredFlag))
+                if (choice.requiredFlag != null)
                 {
                     bool hasFlag = false;
-                    GameEvents.GameState.RequestFlagState(choice.requiredFlag, state => hasFlag = state);
+                    GameEvents.World.RequestCheckFlag(choice.requiredFlag, state => hasFlag = state);
+
+                    if (!hasFlag)
+                    {
+                        continue;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(choice.requiredFlagSlug))
+                {
+                    bool hasFlag = false;
+                    GameEvents.Database.RequestFlagBySlug(choice.requiredFlagSlug, flagAsset =>
+                    {
+                        if (flagAsset != null)
+                        {
+                            GameEvents.World.RequestCheckFlag(flagAsset, state => hasFlag = state);
+                        }
+                    });
 
                     if (!hasFlag)
                     {
@@ -331,9 +367,19 @@ public class DialogueController : MonoBehaviour
         }
 
         // Set global flag marking this dialogue asset as read via event bus
-        if (currentDialogue != null && currentDialogue.markAsReadOnEnd && !string.IsNullOrEmpty(currentDialogue.dialogueId))
+        if (currentDialogue != null && currentDialogue.markAsReadOnEnd && currentDialogue.readFlag != null)
         {
-            GameEvents.GameState.RequestSetFlag($"SPOKEN_TO_{currentDialogue.dialogueId}", true);
+            GameEvents.World.RequestSetFlag(currentDialogue.readFlag, true);
+        }
+        else if (currentDialogue != null && currentDialogue.markAsReadOnEnd && !string.IsNullOrEmpty(currentDialogue.dialogueId))
+        {
+            GameEvents.Database.RequestFlagBySlug($"SPOKEN_TO_{currentDialogue.dialogueId}", flagAsset =>
+            {
+                if (flagAsset != null)
+                {
+                    GameEvents.World.RequestSetFlag(flagAsset, true);
+                }
+            });
         }
 
         yield return new WaitForSeconds(0.3f);
