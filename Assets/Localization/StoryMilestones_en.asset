@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: StoryMilestones_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 5f314046d50720c42adb2903235394db, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 1448845119488
+    m_Localized: Prologue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702400
+    m_Localized: The Awakening of Adepts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702401
+    m_Localized: A fierce and unnatural storm rages over the peaceful village of
+      Tale at the foot of Mount Aleph. As thunder echoes through the sacred valley,
+      ancient secrets slumbering within Sol Sanctum begin to stir, threatening to
+      break a peaceful era.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702402
+    m_Localized: 'Chapter I: The Awakening of the Adepts'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702403
+    m_Localized: The Storm Over Tale
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702404
+    m_Localized: Three years ago, a terrible disaster struck the village of Tale.
+      Following the collapse of Mount Aleph's boulder, Isaac and Garet vowed to grow
+      stronger to protect their home.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702405
+    m_Localized: 'Chapter II: The Adepts'' Journey'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702406
+    m_Localized: The Theft of the Elemental Stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702407
+    m_Localized: Saturos and Menardi have broken into Sol Sanctum and stolen the
+      Elemental Stars. With Felix and Jenna taken hostage, Isaac and Garet set out
+      across Weyard to prevent the revival of Alchemy.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

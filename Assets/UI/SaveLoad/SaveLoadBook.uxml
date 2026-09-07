@@ -1,0 +1,85 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts"/>
+    <Style src="project://database/Assets/UI/SaveLoad/SaveLoadBook.uss?fileID=7433441132597879392&amp;guid=ff1cf662563c4124081a6a097d872b6a&amp;type=3#SaveLoadBook"/>
+    <ui:VisualElement name="save-book-root" picking-mode="Ignore" class="save-book-root">
+        <ui:VisualElement name="container_book" picking-mode="Ignore" class="container-book">
+            <ui:VisualElement name="header_top" picking-mode="Ignore" class="header-top-book">
+                <ui:Label name="book-mode-title-label" text="REGISTRO DE AVENTURA" class="book-title-label"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="book_pages_container" picking-mode="Ignore" class="book-pages-container">
+                <ui:VisualElement name="left_page" picking-mode="Ignore" class="book-page page-left">
+                    <ui:VisualElement class="page-inner-content">
+                        <ui:Label name="chronicle-chapter-title" text="Capítulo I: Las Sombras de Tale" class="chronicle-chapter-text"/>
+                        
+                        <!-- Milestone Title Container with Golden Quest Diamond Marker -->
+                        <ui:VisualElement class="chronicle-milestone-row">
+                            <ui:VisualElement class="quest-marker-icon" />
+                            <ui:Label name="chronicle-milestone-title" text="Reúnete con Kraden al oeste del pueblo" class="chronicle-milestone-text"/>
+                        </ui:VisualElement>
+
+                        <ui:VisualElement name="chronicle-illustration-image" class="chronicle-illustration-box"/>
+                        
+                        <!-- Chronicle Journal Lore Box Container -->
+                        <ui:VisualElement name="lore_box" class="lore-box">
+                            <ui:VisualElement class="quote-mark quote-open" />
+                            <ui:Label name="chronicle-summary-text" text="Han transcurrido tres años desde aquella fatídica noche en que la gran roca se desprendió del Monte Aleph. Hans y Garet han dedicado este tiempo a entrenar sin descanso y a dominar sus facultades de Psinergia. Hoy se dirigen, junto a Nadia, a la cabaña del anciano Kraden al oeste del pueblo para proseguir con sus lecciones sobre la Alquimia y la verdad oculta tras el templo de Sol." class="chronicle-summary-paragraph"/>
+                            <ui:VisualElement class="quote-mark quote-close" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement name="global-chronicle-metrics" picking-mode="Ignore" class="chronicle-metrics-box">
+                            <ui:VisualElement class="chronicle-metric-column">
+                                <ui:Label text="Oro Acumulado:" class="section-header-title chronicle-metric-title"/>
+                                <ui:VisualElement class="chronicle-metric-value-row">
+                                    <ui:VisualElement class="header-icon icon-gold"/>
+                                    <ui:Label name="chronicle-gold-count" text="40.722 G" class="chronicle-metric-value-text"/>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="chronicle-metric-column djinn-column">
+                                <ui:Label text="Djinns Encontrados:" class="section-header-title chronicle-metric-title"/>
+                                <ui:VisualElement class="chronicle-djinn-row">
+                                    <ui:VisualElement class="djinn-counter-item">
+                                        <ui:VisualElement class="pip-icon icon-venus"/>
+                                        <ui:Label name="global-venus-count" text="0" class="pip-count"/>
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="djinn-counter-item">
+                                        <ui:VisualElement class="pip-icon icon-mars"/>
+                                        <ui:Label name="global-mars-count" text="0" class="pip-count"/>
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="djinn-counter-item">
+                                        <ui:VisualElement class="pip-icon icon-jupiter"/>
+                                        <ui:Label name="global-jupiter-count" text="0" class="pip-count"/>
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="djinn-counter-item">
+                                        <ui:VisualElement class="pip-icon icon-mercury"/>
+                                        <ui:Label name="global-mercury-count" text="0" class="pip-count"/>
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="chronicle-metric-column align-right">
+                                <ui:Label text="Tiempo Jugado:" class="section-header-title chronicle-metric-title"/>
+                                <ui:VisualElement class="chronicle-metric-value-row">
+                                    <ui:VisualElement class="header-icon icon-time"/>
+                                    <ui:Label name="chronicle-playtime-count" text="15h 23m" class="chronicle-metric-value-text"/>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="book_spine_divider" picking-mode="Ignore" class="book-spine-divider"/>
+                <ui:VisualElement name="right_page" picking-mode="Ignore" class="book-page page-right">
+                    <ui:VisualElement class="page-inner-content">
+                        <ui:VisualElement name="autosave-slot-container" class="autosave-pinboard-container"/>
+                        <ui:VisualElement class="slots-divider-line"/>
+                        <ui:ScrollView name="slots-scroll-container" show-vertical-scroller="true" class="slots-scroll-view"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="control_prompts_bar" class="control-prompts-bar">
+                <ui:Label text="[Navegar] - Seleccionar Ranura" class="prompt-text"/>
+                <ui:Label text="[Aceptar] - Confirmar" class="prompt-text"/>
+                <ui:Label text="[Cancelar / ESC] - Volver" class="prompt-text"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

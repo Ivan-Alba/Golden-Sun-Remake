@@ -1,0 +1,81 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts"/>
+    <Style src="project://database/Assets/UI/SaveLoad/SaveLoadBook.uss?fileID=7433441132597879392&amp;guid=ff1cf662563c4124081a6a097d872b6a&amp;type=3#SaveLoadBook"/>
+    
+    <ui:VisualElement name="slot-container" class="save-slot-card ui-interactive">
+        
+        <!-- NEW SAVE OVERLAY LAYER -->
+        <ui:VisualElement name="new-slot-overlay" class="new-save-overlay">
+            <ui:VisualElement class="new-save-plus-icon">
+                <ui:Label text="+" class="plus-symbol" />
+            </ui:VisualElement>
+            <ui:VisualElement class="new-save-text-column">
+                <ui:Label text="NUEVO REGISTRO" class="new-save-title-text" />
+                <ui:Label text="Crear una nueva partida guardada en esta ranura" class="new-save-subtitle-text" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- MAIN CARD CONTAINER -->
+        <ui:VisualElement class="slot-card-content">
+            
+            <!-- FULL-HEIGHT LEFT BLOCK: SCREENSHOT THUMBNAIL -->
+            <ui:VisualElement name="thumbnail-image" class="slot-thumbnail-box"/>
+            
+            <!-- RIGHT CONTENT COLUMN: TOP ROW + FOOTER -->
+            <ui:VisualElement class="slot-right-column">
+                
+                <!-- TOP ROW: INFO, HEROES, DATE & TIME -->
+                <ui:VisualElement class="slot-top-row">
+                    
+                    <!-- BLOCK 1: SLOT NUMBER, LOCATION AND CHAPTER TITLE -->
+                    <ui:VisualElement class="slot-info-block">
+                        <ui:Label name="slot-number-label" text="RANURA 1" class="slot-number-text"/>
+                        <ui:Label name="location-name-label" text="Pueblo de Tale" class="slot-location-text"/>
+                        <ui:Label name="chapter-title-label" text="Capítulo I: Las Sombras de Tale" class="slot-chapter-text"/>
+                    </ui:VisualElement>
+                    
+                    <!-- BLOCK 2: VERTICAL HEROES PARTY PREVIEW -->
+                    <ui:VisualElement name="party-preview-container" class="slot-party-block"/>
+                    
+                    <!-- BLOCK 3: SPLIT DATE AND TIME -->
+                    <ui:VisualElement class="slot-date-block">
+                        <ui:Label name="date-label" text="2026-09-07" class="slot-date-text"/>
+                        <ui:Label name="time-label" text="13:18:18" class="slot-time-text"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- BOTTOM FOOTER ROW: PLAYTIME, DJINNS, GOLD -->
+                <ui:VisualElement class="slot-footer-row">
+                    <!-- LEFT METRIC: PLAYTIME -->
+                    <ui:Label name="playtime-label" text="14h 22m" class="slot-metric-text"/>
+                    
+                    <!-- CENTER METRIC: DJINNS CONTAINER -->
+                    <ui:VisualElement name="djinn-preview-container" class="slot-djinn-group">
+                        <ui:VisualElement class="djinn-mini-item">
+                            <ui:VisualElement class="pip-icon icon-venus"/>
+                            <ui:Label name="venus-count-label" text="0" class="djinn-count-text"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="djinn-mini-item">
+                            <ui:VisualElement class="pip-icon icon-mars"/>
+                            <ui:Label name="mars-count-label" text="0" class="djinn-count-text"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="djinn-mini-item">
+                            <ui:VisualElement class="pip-icon icon-jupiter"/>
+                            <ui:Label name="jupiter-count-label" text="0" class="djinn-count-text"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="djinn-mini-item">
+                            <ui:VisualElement class="pip-icon icon-mercury"/>
+                            <ui:Label name="mercury-count-label" text="0" class="djinn-count-text"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <!-- RIGHT METRIC: GOLD -->
+                    <ui:Label name="gold-label" text="1.450 G" class="slot-metric-gold"/>
+                </ui:VisualElement>
+            
+            </ui:VisualElement>
+            
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

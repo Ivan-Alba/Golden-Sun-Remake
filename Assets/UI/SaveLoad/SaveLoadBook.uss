@@ -1,0 +1,673 @@
+@import url('project://database/Assets/UI/Global_Theme.uss');
+
+/* ==========================================
+   SAVE/LOAD BOOK ROOT & CONTAINER SETUP
+   ========================================== */
+.save-book-root {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Identical frame layout as MainMenu's container_book */
+#container_book, .container-book {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 4%;
+    bottom: 4%;
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: rgba(18, 18, 22, 0.92);
+    border-width: 2px;
+    border-color: rgba(218, 165, 32, 0.4);
+    border-radius: 12px;
+    padding: 10px;
+    color: #FFFFFF;
+    overflow: hidden;
+}
+
+/* Global label reset to match MainMenu standards */
+.container-book Label {
+    margin: 0;
+    padding: 0;
+}
+
+/* ==========================================
+   HEADER SECTION
+   ========================================== */
+.header-top-book {
+    background-color: rgba(30, 30, 38, 0.85);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 215, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.book-title-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #FFD700);
+    letter-spacing: 1px;
+    -unity-text-align: middle-center;
+}
+
+/* ==========================================
+   BOOK PAGES LAYOUT (2 SYMMETRICAL COLUMNS)
+   ========================================== */
+.book-pages-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background-color: rgba(25, 25, 30, 0.5);
+    border-radius: 8px;
+    padding: 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    overflow: hidden;
+}
+
+.book-page {
+    width: 49%;
+    height: 100%;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.page-inner-content {
+    width: 100%;
+    height: 100%;
+    padding: 14px;
+    background-color: rgba(20, 20, 26, 0.75);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.25);
+    border-radius: 6px;
+    justify-content: flex-start;
+}
+
+/* Enhanced Padding Frame for Left Page */
+.page-left .page-inner-content {
+    padding: 16px 28px;
+}
+
+.book-spine-divider {
+    width: 2%;
+    height: 100%;
+    background-color: rgba(10, 10, 12, 0.8);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-color: rgba(218, 165, 32, 0.3);
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+/* ==========================================
+   LEFT PAGE: CHRONICLE & DIARY STYLES
+   ========================================== */
+.container-book .chronicle-chapter-text {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #FFD700);
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+    -unity-text-align: middle-center;
+}
+
+.chronicle-milestone-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+.container-book .quest-marker-icon {
+    width: 10px;
+    height: 10px;
+    background-color: var(--color-gold-bright, #FFD700);
+    rotate: 45deg;
+    margin-right: 8px;
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: #000000;
+}
+
+.container-book .chronicle-milestone-text {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #60A5FA;
+    -unity-text-align: middle-center;
+}
+
+/* Fixed Height Rigid Illustration Frame */
+.chronicle-illustration-box {
+    width: 100%;
+    height: 42%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    background-color: rgba(10, 10, 12, 0.9);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    margin-bottom: 14px;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+/* Styling for the Chronicle Narrative Paragraph (Journal/Ancient Book Style) */
+.container-book .chronicle-summary-paragraph {
+    font-size: 16px;
+    -unity-font-style: italic;
+    color: #D3C399;
+    white-space: normal;
+    -unity-paragraph-spacing: 6px;
+    -unity-text-align: middle-center;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    flex-grow: 1;
+}
+
+/* 3-COLUMN METRICS FOOTER ROW */
+.chronicle-metrics-box {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.chronicle-metric-column {
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.chronicle-metric-column.align-right {
+    align-items: flex-end;
+}
+
+.chronicle-metric-column.djinn-column {
+    align-items: center;
+}
+
+.container-book .chronicle-metric-title {
+    margin-bottom: 6px;
+}
+
+.chronicle-metric-value-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.container-book .chronicle-metric-value-text {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+.chronicle-djinn-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.djinn-counter-item {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.container-book .pip-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 4px;
+    border-width: 1px;
+    flex-shrink: 0;
+}
+
+.container-book .pip-count {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(240, 240, 240);
+    min-width: 16px;
+}
+
+/* ==========================================
+   RIGHT PAGE: SLOTS & SCROLLVIEW STYLES
+   ========================================== */
+.autosave-pinboard-container {
+    width: 100%;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+.slots-divider-line {
+    width: 100%;
+    height: 1px;
+    background-color: rgba(218, 165, 32, 0.3);
+    margin-bottom: 8px;
+}
+
+.slots-scroll-view {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.slots-scroll-view .unity-scroll-view__content-viewport {
+    width: 100%;
+    align-items: stretch;
+}
+
+.slots-scroll-view .unity-scroll-view__content-container {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: flex-start;
+}
+
+.slots-scroll-view .unity-scroller--vertical,
+.slots-scroll-view .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.slots-scroll-view .unity-scroller__low-button,
+.slots-scroll-view .unity-scroller__high-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.slots-scroll-view .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
+    background-color: rgba(10, 15, 24, 0.8);
+    border-width: 1px;
+    border-color: rgba(31, 45, 64, 0.6);
+    border-radius: 3px;
+    margin: 0;
+}
+
+.slots-scroll-view .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.9);
+    border-radius: 3px;
+}
+
+.slots-scroll-view .unity-base-slider__dragger:hover {
+    background-color: var(--color-gold-bright, #FFD700);
+}
+
+.slots-scroll-view .unity-base-slider__dragger:active {
+    background-color: #FFA500;
+}
+
+/* ==========================================
+   BOTTOM CONTROL PROMPTS BAR
+   ========================================== */
+.control-prompts-bar {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    background-color: rgba(15, 15, 20, 0.85);
+    border-width: 1px;
+    border-color: rgba(218, 165, 32, 0.25);
+    border-radius: 6px;
+    padding: 0 12px;
+    margin-top: 4px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.container-book .prompt-text {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #CCCCCC;
+    letter-spacing: 0.5px;
+    -unity-text-align: middle-center;
+}
+
+/* ==========================================
+   SAVE SLOT CARD COMPONENT STYLES
+   ========================================== */
+.save-slot-card {
+    position: relative;
+    width: 100%;
+    height: 128px;
+    background-color: rgba(30, 30, 40, 0.85);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 3px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.save-slot-card Label {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-left;
+}
+
+.save-slot-card:hover, .save-slot-card:focus {
+    border-color: var(--color-gold-bright, #FFD700);
+    background-color: rgba(45, 45, 60, 0.95);
+}
+
+.save-slot--empty {
+    opacity: 0.6;
+}
+
+.save-slot--readonly {
+    opacity: 0.5;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Internal Layout Wrapper: Full horizontal split */
+.slot-card-content {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* ==========================================
+   FULL-HEIGHT LEFT BLOCK: EXPANDED THUMBNAIL
+   ========================================== */
+.slot-thumbnail-box {
+    width: 170px;
+    height: 100%;
+    background-color: rgba(10, 10, 12, 0.9);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    margin-right: 12px;
+    background-position: center;
+    -unity-background-scale-mode: scale-and-crop;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   RIGHT CONTENT COLUMN (TOP ROW + FOOTER)
+   ========================================== */
+.slot-right-column {
+    flex-grow: 1;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.slot-top-row {
+    flex-direction: row;
+    width: 100%;
+    height: 78%;
+    align-items: center;
+}
+
+/* SLOT NUMBER, LOCATION & CHAPTER */
+.slot-info-block {
+    width: 150px;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.slot-number-text {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #FFD700);
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.slot-location-text {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    margin-bottom: 2px;
+}
+
+.slot-chapter-text {
+    font-size: 11px;
+    color: #94A3B8;
+    white-space: normal;
+}
+
+/* VERTICAL HERO PORTRAITS */
+.slot-party-block {
+    flex-grow: 1;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: 12px;
+}
+
+.hero-preview-vertical-item {
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 95%;
+    width: 60px;
+    margin-right: 10px;
+    padding: 0;
+    background-color: transparent;
+    border-width: 0;
+}
+
+/* Beveled Fantasy Portrait Frame matching HeroStatusCard */
+.hero-avatar-portrait {
+    width: 100%;
+    height: 72%;
+    border-radius: 10px;
+    border-top-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-width: 2px;
+    border-color: var(--color-gold-sun, #FFD700);
+    background-color: rgba(10, 10, 12, 0.9);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+.hero-preview-name {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    -unity-text-align: middle-center;
+    margin-top: 2px;
+}
+
+.hero-preview-level {
+    font-size: 10px;
+    color: #60A5FA;
+    -unity-text-align: middle-center;
+}
+
+/* CENTERED DATE & TIME */
+.slot-date-block {
+    width: 95px;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.slot-date-text {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #CBD5E1;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+}
+
+.slot-time-text {
+    font-size: 11px;
+    color: #94A3B8;
+    -unity-text-align: middle-center;
+}
+
+/* ==========================================
+   BOTTOM FOOTER METRICS & DJINNS
+   ========================================== */
+.slot-footer-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.12);
+    padding-top: 4px;
+    padding-left: 2px;
+    padding-right: 2px;
+    height: 22px;
+    width: 100%;
+}
+
+.slot-metric-text {
+    font-size: 12px;
+    color: #E2E8F0;
+}
+
+.slot-metric-gold {
+    font-size: 12px;
+    color: var(--color-gold-bright, #FFD700);
+    -unity-font-style: bold;
+}
+
+.slot-djinn-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.djinn-mini-item {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.djinn-count-text {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #E2E8F0;
+    margin-left: 3px;
+}
+
+.save-slot-card .pip-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 2px;
+}
+
+/* ==========================================
+   NEW SAVE OVERLAY STYLES
+   ========================================== */
+.new-save-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #141923;
+    border-width: 2px;
+    border-color: rgba(218, 165, 32, 0.6);
+    border-radius: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px 18px;
+    display: none;
+    z-index: 10;
+}
+
+.save-slot-card.save-slot--new .new-save-overlay {
+    display: flex;
+}
+
+.save-slot-card.save-slot--new .slot-card-content {
+    display: none;
+}
+
+.save-slot-card.save-slot--new:hover .new-save-overlay,
+.save-slot-card.save-slot--new:focus .new-save-overlay {
+    border-color: var(--color-gold-bright, #FFD700);
+    background-color: #1E2636;
+}
+
+.new-save-plus-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(218, 165, 32, 0.15);
+    border-width: 2px;
+    border-color: var(--color-gold-bright, #FFD700);
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.new-save-plus-icon .plus-symbol {
+    font-size: 28px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #FFD700);
+    -unity-text-align: middle-center;
+    margin-top: -3px;
+}
+
+.new-save-text-column {
+    flex-direction: column;
+    justify-content: center;
+}
+
+.new-save-title-text {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #FFD700);
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
+}
+
+.new-save-subtitle-text {
+    font-size: 11.5px;
+    color: #94A3B8;
+}

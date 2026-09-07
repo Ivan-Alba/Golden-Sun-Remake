@@ -40,14 +40,17 @@ public static class SaveManager
             // 1. Broadcast collection request to all active systems
             GameEvents.SaveLoad.TriggerCollectSaveData(dataToSave);
 
-            // 2. Serialize GameData container to JSON
+            // 2. Post-process header metadata (Calculate compact Djinn counts derived from collected Djinns)
+            CalculateHeaderDjinnMetrics(dataToSave);
+
+            // 3. Serialize GameData container to JSON
             string json = JsonConvert.SerializeObject(dataToSave, Formatting.Indented, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore
             });
 
-            // 3. Write JSON file to disk
+            // 4. Write JSON file to disk
             string filePath = GetSaveFilePath(slotIndex);
             File.WriteAllText(filePath, json);
 
@@ -60,6 +63,37 @@ public static class SaveManager
             Debug.LogError($"[SaveManager] Failed to save game to Slot {slotIndex}: {ex.Message}");
             GameEvents.SaveLoad.TriggerSaveCompleted(slotIndex, false);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the sum of collected Djinns grouped by elemental index for header UI previews.
+    /// </summary>
+    private static void CalculateHeaderDjinnMetrics(GameData saveData)
+    {
+        if (saveData == null || saveData.header == null) return;
+
+        saveData.header.djinnCountByElement = new int[4];
+
+        if (saveData.collectedDjinn == null || saveData.collectedDjinn.Count == 0) return;
+
+        for (int i = 0; i < saveData.collectedDjinn.Count; i++)
+        {
+            DjinnSaveData djinnData = saveData.collectedDjinn[i];
+            if (djinnData == null || string.IsNullOrEmpty(djinnData.djinnSlug)) continue;
+
+            // Query DjinnSO asset asynchronously/cached via GameEvents.Database
+            DjinnSO djinnAsset = null;
+            GameEvents.Database.RequestDjinnBySlug(djinnData.djinnSlug, asset => djinnAsset = asset);
+
+            if (djinnAsset != null)
+            {
+                int elementIndex = (int)djinnAsset.Element; // 0: Venus, 1: Mars, 2: Jupiter, 3: Mercury
+                if (elementIndex >= 0 && elementIndex < 4)
+                {
+                    saveData.header.djinnCountByElement[elementIndex]++;
+                }
+            }
         }
     }
 
@@ -172,7 +206,7 @@ public static class SaveManager
     }
 
     /// <summary>
-    /// Scans persistent storage and retrieves all valid save headers for save slot selection UI UI.
+    /// Scans persistent storage and retrieves all valid save headers for save slot selection UI.
     /// </summary>
     public static List<SaveHeaderData> GetAllSaveHeaders(int maxSlotsToScan = 10)
     {

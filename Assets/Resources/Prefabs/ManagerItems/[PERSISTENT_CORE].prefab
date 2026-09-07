@@ -190,6 +190,77 @@ MonoBehaviour:
   targetSingleIcon: {fileID: 21300000, guid: e3173de33f199924bbfabdbee13f46c9, type: 3}
   targetGroupIcon: {fileID: 21300000, guid: dfcb0962f2ee1ca4790a67043d25e3a5, type: 3}
   psynergyCardAsset: {fileID: 9197481963319205126, guid: d0857cca93cf2e346a53b707de93fe8c, type: 3}
+--- !u!1 &3214754077590982565
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3895532615123073319}
+  - component: {fileID: 3033620622543060680}
+  - component: {fileID: 4947224505966827385}
+  m_Layer: 0
+  m_Name: SaveLoadUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3895532615123073319
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3214754077590982565}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5727421889252197966}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3033620622543060680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3214754077590982565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 178ad3a4867b6f24196c1d6ada8f3c5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SaveLoadBookUIController
+  uiDocument: {fileID: 4947224505966827385}
+  totalSaveSlots: 5
+  slotTemplateUXML: {fileID: 9197481963319205126, guid: e7ea56a0e08c6724ea97e1bd2e39fae3, type: 3}
+--- !u!114 &4947224505966827385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3214754077590982565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: edc9866850350044ea36cbbd41cb6989, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 72be67e10985b8c41b4d82e8dc5f1fd0, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!1 &3497608232433387732
 GameObject:
   m_ObjectHideFlags: 0
@@ -1989,6 +2060,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: hero_ivan
   fighterName: Ivan
   turnBarImage: {fileID: 21300000, guid: e84181df675538a4d98d40751504245d, type: 3}
   baseMaxHp: 30
@@ -4453,6 +4525,7 @@ Transform:
   m_Children:
   - {fileID: 2646836108197275439}
   - {fileID: 8459378966195427848}
+  - {fileID: 3895532615123073319}
   m_Father: {fileID: 8459378967151069452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7217382519630986101
@@ -4466,7 +4539,7 @@ GameObject:
   - component: {fileID: 8779504141696145061}
   - component: {fileID: 7700643203374725642}
   m_Layer: 0
-  m_Name: WolrdStateController
+  m_Name: WorldStateController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4499,6 +4572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d844282cfe1798348b5e99b36783c59f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldStateController
+  defaultChronicleFlag: {fileID: 11400000, guid: cd0184a3e0e370e42b08c47df1581f9c, type: 2}
 --- !u!1 &7541982528034364972
 GameObject:
   m_ObjectHideFlags: 0
@@ -4508,8 +4582,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9191381432304862827}
+  - component: {fileID: 5599489764712349995}
   m_Layer: 0
-  m_Name: SaveManager
+  m_Name: SaveManagerService
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4530,6 +4605,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8459378967151069452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5599489764712349995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7541982528034364972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1297b8790920cd4d887180f29e968d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AutoSaveManager
 --- !u!1 &7552845445124519208
 GameObject:
   m_ObjectHideFlags: 0
@@ -11937,6 +12024,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: hero_garet
   fighterName: Garet
   turnBarImage: {fileID: 21300000, guid: 871e824b80aa56740b49ddd478e360ac, type: 3}
   baseMaxHp: 36
@@ -43200,6 +43288,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1bbd83f525b284684a1c31e4817e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: 
   fighterName: 
   turnBarImage: {fileID: 0}
   baseMaxHp: 100
@@ -44728,6 +44817,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc42418f9bbb0c408e07349bf8ad9db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: hero_isaac
   fighterName: Hans
   turnBarImage: {fileID: 21300000, guid: 6ae044384bd8fd44e986f93f593155f5, type: 3}
   baseMaxHp: 32

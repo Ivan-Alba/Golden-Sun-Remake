@@ -4,13 +4,25 @@ using UnityEngine;
 /// <summary>
 /// Manages the runtime state of all world flags, open chests, solved puzzles, and story triggers.
 /// Decoupled via GameEvents.World and handles persistence via GameEvents.SaveLoad.
+/// Tracks the latest active chronicle flag for header metadata rendering.
 /// </summary>
 public class WorldStateController : MonoBehaviour
 {
+    #region Serialized Fields
+
+    [Header("Default Story Settings")]
+    [Tooltip("Default prologue flag used when no other story flags have been activated.")]
+    [SerializeField] private FlagSO defaultChronicleFlag;
+
+    #endregion
+
     #region Private Fields
 
     // Runtime state tracking flags by their unique FlagSlug
     private readonly Dictionary<string, bool> flagMap = new Dictionary<string, bool>();
+
+    // Tracks the most recently activated FlagSO slug that contains chronicle updates
+    private string lastChronicleFlagSlug = string.Empty;
 
     #endregion
 
@@ -61,20 +73,34 @@ public class WorldStateController : MonoBehaviour
     {
         if (flag == null || string.IsNullOrEmpty(flag.FlagSlug)) return;
 
+        bool stateChanged = false;
+
         if (flagMap.ContainsKey(flag.FlagSlug))
         {
             if (flagMap[flag.FlagSlug] != value)
             {
                 flagMap[flag.FlagSlug] = value;
-                GameEvents.World.TriggerFlagChanged(flag, value);
+                stateChanged = true;
                 Debug.Log($"<color=yellow>[WorldStateController] Flag '{flag.FlagSlug}' updated to: {value}</color>");
             }
         }
         else
         {
             flagMap.Add(flag.FlagSlug, value);
-            GameEvents.World.TriggerFlagChanged(flag, value);
+            stateChanged = true;
             Debug.Log($"<color=yellow>[WorldStateController] Flag '{flag.FlagSlug}' initialized to: {value}</color>");
+        }
+
+        if (stateChanged)
+        {
+            // If the flag is set to true and has chronicle metadata, update the last chronicle flag reference
+            if (value && flag.UpdatesChronicle)
+            {
+                lastChronicleFlagSlug = flag.FlagSlug;
+                Debug.Log($"<color=cyan>[WorldStateController] Last Chronicle Flag updated to: '{lastChronicleFlagSlug}'</color>");
+            }
+
+            GameEvents.World.TriggerFlagChanged(flag, value);
         }
     }
 
@@ -98,6 +124,7 @@ public class WorldStateController : MonoBehaviour
     {
         if (saveData == null) return;
 
+        // 1. Persist runtime flag states
         saveData.gameFlags.Clear();
 
         foreach (var kvp in flagMap)
@@ -105,7 +132,21 @@ public class WorldStateController : MonoBehaviour
             saveData.gameFlags.Add(new GameFlagData(kvp.Key, kvp.Value));
         }
 
-        Debug.Log($"<color=green>[WorldStateController] Collected save data for {saveData.gameFlags.Count} world flag(s).</color>");
+        // 2. Resolve active chronicle flag slug
+        string targetChronicleSlug = lastChronicleFlagSlug;
+
+        if (string.IsNullOrEmpty(targetChronicleSlug) && defaultChronicleFlag != null)
+        {
+            targetChronicleSlug = defaultChronicleFlag.FlagSlug;
+        }
+
+        // 3. Persist the last chronicle flag slug into header metadata
+        if (saveData.header != null)
+        {
+            saveData.header.lastChronicleFlagSlug = targetChronicleSlug;
+        }
+
+        Debug.Log($"<color=green>[WorldStateController] Collected save data for {saveData.gameFlags.Count} world flag(s). Last Chronicle Flag: '{targetChronicleSlug}'</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)
@@ -114,6 +155,7 @@ public class WorldStateController : MonoBehaviour
 
         flagMap.Clear();
 
+        // 1. Restore runtime flag states
         for (int i = 0; i < saveData.gameFlags.Count; i++)
         {
             GameFlagData flagData = saveData.gameFlags[i];
@@ -122,7 +164,13 @@ public class WorldStateController : MonoBehaviour
             flagMap[flagData.key] = flagData.state;
         }
 
-        Debug.Log($"<color=cyan>[WorldStateController] Successfully restored {flagMap.Count} world flags from save data.</color>");
+        // 2. Restore last chronicle flag slug reference
+        if (saveData.header != null)
+        {
+            lastChronicleFlagSlug = saveData.header.lastChronicleFlagSlug ?? string.Empty;
+        }
+
+        Debug.Log($"<color=cyan>[WorldStateController] Successfully restored {flagMap.Count} world flags from save data. Restored Chronicle Flag: '{lastChronicleFlagSlug}'</color>");
     }
 
     #endregion

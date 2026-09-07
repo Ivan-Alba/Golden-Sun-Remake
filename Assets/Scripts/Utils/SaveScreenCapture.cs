@@ -19,6 +19,18 @@ public static class SaveScreenCapture
     #region Public API
 
     /// <summary>
+    /// Static entry point to capture an in-game thumbnail asynchronously without needing a MonoBehaviour reference.
+    /// Finds or creates a temporary runner to execute the capture coroutine.
+    /// </summary>
+    /// <param name="onCaptured">Callback providing the resulting Base64 JPG string.</param>
+    /// <param name="targetCamera">Optional specific camera reference. Defaults to Camera.main if null.</param>
+    public static void CaptureScreenshotBase64(Action<string> onCaptured, Camera targetCamera = null)
+    {
+        // 1. Ensure we have an active runner MonoBehaviour to execute the coroutine
+        CoroutineRunner.Run(Routine_CaptureSaveThumbnail(targetCamera, onCaptured));
+    }
+
+    /// <summary>
     /// Captures a frame directly from the target main camera (ignoring UI canvases)
     /// and delivers a lightweight Base64-encoded JPG string via callback.
     /// </summary>
@@ -102,6 +114,30 @@ public static class SaveScreenCapture
         }
 
         return null;
+    }
+
+    #endregion
+
+    #region Internal Coroutine Runner Helper
+
+    /// <summary>
+    /// Lightweight persistent helper MonoBehaviour used exclusively to host static coroutines.
+    /// </summary>
+    private class CoroutineRunner : MonoBehaviour
+    {
+        private static CoroutineRunner instance;
+
+        public static void Run(IEnumerator coroutine)
+        {
+            if (instance == null)
+            {
+                GameObject runnerObj = new GameObject("[SaveScreenCapture_Runner]");
+                instance = runnerObj.AddComponent<CoroutineRunner>();
+                DontDestroyOnLoad(runnerObj);
+            }
+
+            instance.StartCoroutine(coroutine);
+        }
     }
 
     #endregion

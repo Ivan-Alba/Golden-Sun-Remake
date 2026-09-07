@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: StoryMilestones_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: 5f314046d50720c42adb2903235394db, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 1448845119488
+    m_Localized: "Pr\xF3logo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702400
+    m_Localized: El Despertar de los Adeptos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702401
+    m_Localized: "Una feroz e innatural tormenta descarga su furia sobre la tranquila
+      aldea de Tale, a los pies del sagrado Monte Aleph. Mientras los truenos resuenan
+      en el valle, los antiguos secretos que yac\xEDan dormidos en las profundidades
+      del Templo de Sol comienzan a despertar, amenazando con romper una era de paz."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702402
+    m_Localized: "Cap\xEDtulo I: El Despertar de los Adeptos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702403
+    m_Localized: La Tormenta sobre Tale
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702404
+    m_Localized: "Tres a\xF1os atr\xE1s, una terrible cat\xE1strofe azot\xF3 el pueblo
+      de Tale. Tras la ca\xEDda del pe\xF1asco del Monte Aleph, Hans y Garet prometieron
+      hacerse m\xE1s fuertes para proteger su hogar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702405
+    m_Localized: "Cap\xEDtulo II: La Aventura de los Adeptos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702406
+    m_Localized: El Robo de las Estrellas Elementales
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1448857702407
+    m_Localized: "Saturos y Menardi han irrumpido en las ruinas del Templo Sonne
+      apoder\xE1ndose de las Estrellas Elementales. Con Kraden y Nadia secuestrados,
+      Hans y Garet emprenden su viaje por Weyard para evitar el despertar de la Alquimia."
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -28,6 +28,13 @@ MonoBehaviour:
     - Locale-en
     - Preload
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f49553273117964baee31d5639c2178
+    m_Address: StoryMilestones_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    - Preload
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 83dd84eb93eeb694694e77b976e07a6a
     m_Address: Dialogue_Strings_en
     m_ReadOnly: 1

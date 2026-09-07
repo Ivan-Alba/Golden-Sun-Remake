@@ -23,7 +23,7 @@ public class HeroPreviewData
 
 /// <summary>
 /// Lightweight metadata header container used by UI to list save slots without loading full game states.
-/// Includes encoded thumbnail image for modern UI save cards.
+/// Includes encoded thumbnail image and chronicle flag slug for dynamic localized rendering.
 /// </summary>
 [Serializable]
 public class SaveHeaderData
@@ -33,8 +33,21 @@ public class SaveHeaderData
     public float totalTime;
     public int totalGold;
     public string locationName;
+
+    /// <summary>
+    /// Unique flagSlug of the latest story/milestone flag with updatesChronicle enabled.
+    /// Used by UI to dynamically resolve localized chapter title, milestone info, and illustration.
+    /// </summary>
+    public string lastChronicleFlagSlug;
+
     public string saveThumbnailBase64;
     public List<HeroPreviewData> partyPreview = new List<HeroPreviewData>();
+
+    /// <summary>
+    /// Compact counter of collected Djinns grouped by element index:
+    /// [0] Venus, [1] Mars, [2] Jupiter, [3] Mercury.
+    /// </summary>
+    public int[] djinnCountByElement = new int[4];
 }
 
 #endregion
@@ -191,6 +204,8 @@ public class HeroStoryPsynergyData
     public List<string> unlockedStoryPsynergySlugs = new List<string>();
 }
 
+#endregion
+
 #region Golden Sun Djinn & World Flags DTOs
 
 /// <summary>
@@ -234,8 +249,6 @@ public class GameFlagData
         this.state = state;
     }
 }
-
-#endregion
 
 /// <summary>
 /// Serializable DTO storing assigned field Psynergy shortcuts (D-Pad / Hotline) for a hero.

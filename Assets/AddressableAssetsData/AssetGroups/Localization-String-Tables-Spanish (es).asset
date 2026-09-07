@@ -21,6 +21,13 @@ MonoBehaviour:
     m_SerializedLabels:
     - Locale-es
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2d3ac371cf594d04b983d22ad655a3e7
+    m_Address: StoryMilestones_es
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-es
+    - Preload
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4dca6b28b6a8286478f2e217df496120
     m_Address: Dialogue_Strings_es
     m_ReadOnly: 1

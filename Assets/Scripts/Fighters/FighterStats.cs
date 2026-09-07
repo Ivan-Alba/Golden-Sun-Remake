@@ -21,6 +21,8 @@ public class FighterStats : MonoBehaviour
     #region Serialized Fields
 
     [Header("Fighter Identity & Basic Info")]
+    [Tooltip("Unique database slug identifier (e.g., 'hero_isaac', 'enemy_goblin').")]
+    [SerializeField] protected string fighterSlug;
     [SerializeField] protected string fighterName;
     [SerializeField] protected Sprite turnBarImage;
 
@@ -87,6 +89,7 @@ public class FighterStats : MonoBehaviour
 
     #region Properties - Identity & Resources
 
+    public string FighterSlug { get => fighterSlug; set => fighterSlug = value; }
     public string Name { get => fighterName; set => fighterName = value; }
     public Sprite TurnBarImage { get => turnBarImage; set => turnBarImage = value; }
     public List<PsynergySO> Psynergies { get => psynergies; set => psynergies = value; }
@@ -522,7 +525,6 @@ public class FighterStats : MonoBehaviour
         {
             if (bonus == null) continue;
 
-            // Zero-allocation modifier construction
             float scaledValue = bonus.value * activeEffect.CurrentStacks;
             StatModifier mod = new StatModifier(scaledValue, bonus.modifierType, activeEffect, isTemporary: true);
 

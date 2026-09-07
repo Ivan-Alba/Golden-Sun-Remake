@@ -475,6 +475,14 @@ public static class GameEvents
     // ==========================================
     public static class Scene
     {
+
+        /// <summary>
+        /// Sets the currently active spawn point ID in GameManager for save state tracking.
+        /// </summary>
+        public static event Action<string> OnSetCurrentSpawnPoint;
+        public static void SetCurrentSpawnPoint(string spawnID)
+            => OnSetCurrentSpawnPoint?.Invoke(spawnID);
+
         /// <summary>
         /// Request to reset progress metrics and boot up a new game sequence.
         /// Params: firstSceneName, initialSpawnID
@@ -726,6 +734,15 @@ public static class GameEvents
         public static event Action OnHeroStatusChanged;
         public static void TriggerHeroStatusChanged()
             => OnHeroStatusChanged?.Invoke();
+
+        /// <summary>
+        /// Requests the portrait Sprite for a specific hero by name/identifier.
+        /// Listened by GameManager or persistent hero systems.
+        /// Params: heroName, callbackReturningSprite
+        /// </summary>
+        public static event Action<string, Action<Sprite>> OnRequestHeroPortrait;
+        public static void RequestHeroPortrait(string heroName, Action<Sprite> callback)
+            => OnRequestHeroPortrait?.Invoke(heroName, callback);
     }
 
     // ==========================================
@@ -1046,6 +1063,24 @@ public static class GameEvents
         public static event Action<int> OnSelectDialogueChoiceRequested;
         public static void RequestSelectDialogueChoice(int choiceIndex)
             => OnSelectDialogueChoiceRequested?.Invoke(choiceIndex);
+
+        // ==========================================
+        // SAVE / LOAD BOOK UI EVENTS
+        // ==========================================
+        public enum SaveBookMode
+        {
+            Save,
+            Load
+        }
+
+        // Dentro de GameEvents.UI o GameEvents.SaveLoad:
+        public static event Action<SaveBookMode> OnOpenSaveLoadBookRequested;
+        public static void RequestOpenSaveLoadBook(SaveBookMode mode)
+            => OnOpenSaveLoadBookRequested?.Invoke(mode);
+
+        public static event Action OnCloseSaveLoadBookRequested;
+        public static void RequestCloseSaveLoadBook()
+            => OnCloseSaveLoadBookRequested?.Invoke();
     }
 
     // ==========================================

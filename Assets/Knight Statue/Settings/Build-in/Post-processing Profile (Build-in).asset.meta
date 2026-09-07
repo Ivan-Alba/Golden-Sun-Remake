@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bf9d412d0d9e49a395c28cf771c89020
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 295214
+  packageName: Knight Statue
+  packageVersion: 1.2
+  assetPath: Assets/Knight Statue/Settings/Build-in/Post-processing Profile (Build-in).asset
+  uploadId: 741075

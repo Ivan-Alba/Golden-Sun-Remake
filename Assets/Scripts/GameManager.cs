@@ -108,10 +108,13 @@ public class GameManager : MonoBehaviour
         // Scene Transition Event Subscriptions
         GameEvents.Scene.OnStartNewGameRequested += HandleStartNewGameRequest;
         GameEvents.Scene.OnChangeSceneRequested += HandleChangeSceneRequest;
+        GameEvents.Scene.OnSetCurrentSpawnPoint += HandleSetCurrentSpawnPoint;
 
         // Save / Load Event Subscriptions
         GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
         GameEvents.SaveLoad.OnRestoreSaveData += HandleRestoreSaveData;
+
+        GameEvents.Hero.OnRequestHeroPortrait += HandleRequestHeroPortrait;
     }
 
     private void OnDisable()
@@ -136,10 +139,13 @@ public class GameManager : MonoBehaviour
         // Scene Transition Event Unsubscriptions
         GameEvents.Scene.OnStartNewGameRequested -= HandleStartNewGameRequest;
         GameEvents.Scene.OnChangeSceneRequested -= HandleChangeSceneRequest;
+        GameEvents.Scene.OnSetCurrentSpawnPoint -= HandleSetCurrentSpawnPoint;
 
         // Save / Load Event Unsubscriptions
         GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
         GameEvents.SaveLoad.OnRestoreSaveData -= HandleRestoreSaveData;
+
+        GameEvents.Hero.OnRequestHeroPortrait -= HandleRequestHeroPortrait;
     }
 
     private void Update()
@@ -212,6 +218,27 @@ public class GameManager : MonoBehaviour
 
     #region Party & Economy Event Handlers
 
+    private void HandleRequestHeroPortrait(string heroName, Action<Sprite> callback)
+    {
+        if (string.IsNullOrEmpty(heroName) || callback == null) return;
+
+        // Buscar el héroe en la lista disponible centralizada del GameManager
+        GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(heroName, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedHero != null)
+        {
+            // Intentar obtener el retrato desde HeroStats o FighterStats
+            if (matchedHero.TryGetComponent<FighterStats>(out var stats))
+            {
+                // Usamos TurnBarImage o un campo Portrait según tengas en tu componente
+                callback.Invoke(stats.TurnBarImage);
+                return;
+            }
+        }
+
+        callback.Invoke(null);
+    }
+
     private void HandleModifyGoldRequest(int amount)
     {
         int newGold = Mathf.Max(0, totalGold + amount);
@@ -262,6 +289,18 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Scene Flow & Zone Event Handlers
+
+    private void HandleSetCurrentSpawnPoint(string spawnID)
+    {
+        if (string.IsNullOrEmpty(spawnID)) return;
+
+        if (SpawnPoint.AllSpawnPoints.TryGetValue(spawnID, out SpawnPoint sp))
+        {
+            currentUsedSpawnPoint = sp;
+            UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+            Debug.Log($"[GameManager] Current active SpawnPoint set to: {spawnID}");
+        }
+    }
 
     private void HandleStartNewGameRequest(string firstSceneName, string initialSpawnID)
     {
@@ -327,6 +366,7 @@ public class GameManager : MonoBehaviour
         if (scene.name.Equals("Title") || scene.name.Equals("MainMenu"))
         {
             SetGameState(GameState.TitleScreen);
+            loadingData = false;
             return;
         }
 
@@ -388,6 +428,7 @@ public class GameManager : MonoBehaviour
 
         // 5. Activate target game state (WorldExploration)
         SetGameState(pendingTargetState);
+        loadingData = false;
     }
 
     #endregion
@@ -458,7 +499,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < saveData.partyState.partyMemberNames.Count; i++)
             {
                 string targetName = saveData.partyState.partyMemberNames[i];
-                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName));
+                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
                 if (matchedHero != null)
                 {
                     activeParty.Add(matchedHero);
@@ -469,7 +510,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < saveData.partyState.reserveHeroNames.Count; i++)
             {
                 string targetName = saveData.partyState.reserveHeroNames[i];
-                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName));
+                GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
                 if (matchedHero != null)
                 {
                     reserveParty.Add(matchedHero);
@@ -479,7 +520,7 @@ public class GameManager : MonoBehaviour
             // Restore Active Overworld Leader
             if (!string.IsNullOrEmpty(saveData.partyState.activeLeaderHeroName))
             {
-                activeLeaderHero = availableHeroes.Find(h => h != null && h.name.Equals(saveData.partyState.activeLeaderHeroName));
+                activeLeaderHero = availableHeroes.Find(h => h != null && h.name.Equals(saveData.partyState.activeLeaderHeroName, StringComparison.OrdinalIgnoreCase));
             }
         }
 
@@ -488,22 +529,59 @@ public class GameManager : MonoBehaviour
             activeLeaderHero = activeParty[0];
         }
 
-        // 3. Relocate Player Position
-        Vector3 targetPos = new Vector3(saveData.worldState.playerPosition[0], saveData.worldState.playerPosition[1], saveData.worldState.playerPosition[2]);
-        Quaternion targetRot = Quaternion.Euler(0, saveData.worldState.playerRotation[1], 0);
+        // 3. Handle Scene Transition or Covered Immediate Teleport
+        string targetScene = saveData.worldState.currentSceneName;
+        string savedSpawnID = saveData.worldState.spawnPointID;
 
-        if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
+        pendingSpawnID = savedSpawnID;
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+
+        // If restoring in the SAME scene (e.g. loading from Pause Menu within exploration)
+        if (activeSceneName.Equals(targetScene, StringComparison.OrdinalIgnoreCase))
         {
-            targetPos.y = hit.point.y;
+            // Request full curtain transition: cover screen -> restore position/states -> reveal screen
+            GameEvents.Scene.RequestFullTransition(() =>
+            {
+                Vector3 targetPos;
+                Quaternion targetRot;
+
+                // Priority 1: Check if a valid SpawnPoint exists for this save state
+                if (!string.IsNullOrEmpty(savedSpawnID) && SpawnPoint.AllSpawnPoints.TryGetValue(savedSpawnID, out SpawnPoint sp))
+                {
+                    currentUsedSpawnPoint = sp;
+                    UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+
+                    targetPos = sp.transform.position;
+                    targetRot = sp.transform.rotation;
+                }
+                else
+                {
+                    // Priority 2: Fallback to exact saved coordinates if no SpawnPoint was set
+                    targetPos = new Vector3(saveData.worldState.playerPosition[0], saveData.worldState.playerPosition[1], saveData.worldState.playerPosition[2]);
+                    targetRot = Quaternion.Euler(0, saveData.worldState.playerRotation[1], 0);
+                }
+
+                // Snap target position to ground level via Raycast
+                if (Physics.Raycast(targetPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
+                {
+                    targetPos.y = hit.point.y;
+                }
+
+                GameEvents.Player.RequestTeleport(targetPos, targetRot);
+                ResetCameraBehindPlayer(targetPos, targetRot);
+
+                NotifyPartyChanged();
+                GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+
+                loadingData = false;
+            });
         }
-
-        GameEvents.Player.RequestTeleport(targetPos, targetRot);
-        ResetCameraBehindPlayer(targetPos, targetRot);
-
-        NotifyPartyChanged();
-        GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
-
-        loadingData = false;
+        else
+        {
+            // If restoring from TitleScreen/MainMenu or across different scenes
+            HandleChangeSceneRequest(targetScene, savedSpawnID, GameState.WorldExploration);
+        }
     }
 
     #endregion
