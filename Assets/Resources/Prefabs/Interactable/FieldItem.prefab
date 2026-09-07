@@ -4976,6 +4976,7 @@ GameObject:
   - component: {fileID: 1572714192713929016}
   - component: {fileID: 1572714192713929015}
   - component: {fileID: 1572714192713929012}
+  - component: {fileID: 5243655071434039273}
   m_Layer: 11
   m_Name: FieldItem
   m_TagString: Untagged
@@ -5064,8 +5065,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionText: Recoger
   keyPrompt: SPC
-  promptAnchor: {fileID: 0}
-  promptOffset: {x: 0, y: 0.8, z: 0}
   itemData: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
   itemQuantity: 1
   playerPickDuration: 2.2
@@ -5083,3 +5082,19 @@ MonoBehaviour:
   references:
     version: 2
     RefIds: []
+--- !u!114 &5243655071434039273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1572714192713929019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81414fc7303be4e4d90c224b25406abe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
+  uiType: 0
+  entitySubTitle: 
+  uiAnchor: {fileID: 0}
+  defaultHeightOffset: 0.8

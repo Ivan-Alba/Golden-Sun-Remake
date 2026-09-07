@@ -16,12 +16,10 @@ MonoBehaviour:
   slugName: lightning_slash
   description: Un poderoso golpe a la velocidad del rayo. Puede paralizar al enemigo.
   icon: {fileID: 21300000, guid: 645d966e5591dc74486ae22ed7794b8a, type: 3}
-  element: 3
+  element: 2
   damageMultiplier: 1.5
   flatBonusDamage: 0
-  statusEffects:
-  - {fileID: 11400000, guid: c68c99b96598bc64e9bfd3bdbd513095, type: 2}
-  statusChance: 0.4
+  secondaryEffects: []
   hitFXType: 0
   customHitVFX: {fileID: 0}
   casterAuraVFX: {fileID: 0}

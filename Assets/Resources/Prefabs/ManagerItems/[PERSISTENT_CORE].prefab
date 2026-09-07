@@ -106,6 +106,70 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2048
   maxReevaluationColliders: 8
+--- !u!1 &1473572417053901562
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6909279889425843909}
+  - component: {fileID: 16239948210667421}
+  - component: {fileID: 6251219118649836350}
+  m_Layer: 0
+  m_Name: DEBUG
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6909279889425843909
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473572417053901562}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8459378967151069452}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &16239948210667421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473572417053901562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2cee9a68fa67754e93bdaa863ecbe40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugFlagsUtility
+  testFlagsToSet:
+  - {fileID: 11400000, guid: 7a7e4fcf9b3223045b09a9780ff870c7, type: 2}
+  - {fileID: 11400000, guid: f1238374c3421ae42952022a0e2ba50f, type: 2}
+  applyOnStart: 1
+--- !u!114 &6251219118649836350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473572417053901562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6857767d44599924d81376ca211c4147, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameSpeedDebugController
+  toggleKey: 94
+  fastSpeed: 2
+  normalSpeed: 1
 --- !u!1 &2136101172524261315
 GameObject:
   m_ObjectHideFlags: 0
@@ -12041,7 +12105,7 @@ MonoBehaviour:
   baseResistMars: 105
   baseResistJupiter: 100
   baseResistMercury: 100
-  baseElement: 2
+  baseElement: 1
   baseProgression: {fileID: 11400000, guid: 28e7b6c41810c074ab43c48929488e8a, type: 2}
   level: 1
   currentXp: 1550
@@ -18514,6 +18578,7 @@ MonoBehaviour:
   normalStaminaColor: {r: 0.94, g: 0.71, b: 0, a: 1}
   lowStaminaColor: {r: 1, g: 0, b: 0, a: 1}
   notificationCardTemplate: {fileID: 9197481963319205126, guid: b76923ad1c1c7c942b1bc8c645ae5864, type: 3}
+  choiceItemTemplate: {fileID: 9197481963319205126, guid: 56d9c601143429b4b9f836a4a903fc66, type: 3}
   minimapCustomRenderTexture: {fileID: 8600000, guid: d3b4ad743b9b60a4e9d632ec5832d6fb, type: 2}
 --- !u!114 &6147482466788152970
 MonoBehaviour:
@@ -44834,7 +44899,7 @@ MonoBehaviour:
   baseResistMars: 100
   baseResistJupiter: 100
   baseResistMercury: 100
-  baseElement: 1
+  baseElement: 0
   baseProgression: {fileID: 11400000, guid: afb6123f5fb8203448273304cef8aa04, type: 2}
   level: 1
   currentXp: 2500
@@ -47739,6 +47804,7 @@ Transform:
   - {fileID: 8459378967203041517}
   - {fileID: 8459378967380799441}
   - {fileID: 8459378967795981437}
+  - {fileID: 6909279889425843909}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8459378967151069453

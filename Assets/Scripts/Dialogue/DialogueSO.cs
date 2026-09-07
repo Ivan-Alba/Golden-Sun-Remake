@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Localization;
+using UnityEngine.Events;
 
 public enum DialogueChoiceType
 {
@@ -18,17 +19,14 @@ public class DialogueChoice
     public DialogueSO nextDialogue;
 
     [Header("Flag Conditions & Mutations")]
-    [Tooltip("FlagScriptableObject requerida para que esta respuesta aparezca disponible (opcional).")]
     public FlagSO requiredFlag;
-
-    [Tooltip("Slug alternativo de la flag si no se asigna el ScriptableObject directamente.")]
     public string requiredFlagSlug;
-
-    [Tooltip("FlagScriptableObject que se activa globalmente si el jugador elige esta opción.")]
     public FlagSO setFlagOnSelect;
-
-    [Tooltip("Slug alternativo para activar si no se asigna el ScriptableObject directamente.")]
     public string setFlagSlugOnSelect;
+
+    [Header("Modular Actions")]
+    [Tooltip("Lista de acciones desacopladas que se ejecutarán al seleccionar esta opción.")]
+    public List<DialogueActionSO> actionsOnSelect = new List<DialogueActionSO>();
 }
 
 [System.Serializable]

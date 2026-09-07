@@ -286,6 +286,12 @@ public static class GameEvents
         /// </summary>
         public static event Action<Action<int>> OnRequestGold;
         public static void RequestGold(Action<int> callback) => OnRequestGold?.Invoke(callback);
+
+        /// <summary>
+        /// Request to query current live elemental Djinn counts (array of 4 elements) via callback.
+        /// </summary>
+        public static event Action<Action<int[]>> OnRequestDjinnCounts;
+        public static void RequestDjinnCounts(Action<int[]> callback) => OnRequestDjinnCounts?.Invoke(callback);
     }
 
     // ==========================================
@@ -355,6 +361,14 @@ public static class GameEvents
         public static event Action<FlagSO, Action<bool>> OnCheckFlagRequested;
         public static void RequestCheckFlag(FlagSO flag, Action<bool> callback)
             => OnCheckFlagRequested?.Invoke(flag, callback);
+
+        /// <summary>
+        /// Request to retrieve the last active chronicle flag slug via callback.
+        /// Listened by WorldStateController.
+        /// </summary>
+        public static event Action<Action<string>> OnRequestLastChronicleFlagSlug;
+        public static void RequestLastChronicleFlagSlug(Action<string> callback)
+            => OnRequestLastChronicleFlagSlug?.Invoke(callback);
 
         /// <summary>
         /// Broadcasted whenever any world flag value is updated at runtime.
@@ -1073,7 +1087,6 @@ public static class GameEvents
             Load
         }
 
-        // Dentro de GameEvents.UI o GameEvents.SaveLoad:
         public static event Action<SaveBookMode> OnOpenSaveLoadBookRequested;
         public static void RequestOpenSaveLoadBook(SaveBookMode mode)
             => OnOpenSaveLoadBookRequested?.Invoke(mode);

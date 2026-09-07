@@ -274,19 +274,13 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
     {
         if (entity == null) return;
 
-        //Debug.Log($"<color=#1abc9c>[UIController] HandleEntityEnteredProximity: {entity.name}</color>");
+        if (activeProximityElements.ContainsKey(entity)) return;
 
-        if (activeProximityElements.ContainsKey(entity))
-        {
-            Debug.LogWarning($"[UIController] Entity '{entity.name}' already exists in activeProximityElements.");
-            return;
-        }
+        if (!entity.TryGetComponent<WorldSpaceUIProvider>(out var provider)) return;
 
-        if (!entity.TryGetComponent<WorldSpaceUIProvider>(out var provider))
-        {
-            Debug.LogWarning($"[UIController] Entity '{entity.name}' has NO WorldSpaceUIProvider!");
-            return;
-        }
+        // If the provider type is None, this entity acts purely as a spatial anchor (e.g. Chests, Doors) 
+        // and does not require a persistent proximity nameplate.
+        if (provider.UIType == WorldSpaceUIType.None) return;
 
         VisualTreeAsset selectedTemplate = GetTemplateForType(provider.UIType);
         if (selectedTemplate == null || rootContainer == null) return;
@@ -298,9 +292,8 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         tracked.Presenter.Setup(provider.EntityName, provider.EntitySubTitle, provider.EntityLevel);
 
         activeProximityElements.Add(entity, tracked);
-        //Debug.Log($"<color=#2ecc71>[UIController] Successfully added Proximity Nameplate for: {entity.name} (Total tracked: {activeProximityElements.Count})</color>");
 
-        // If player was already focusing this target when entering proximity radius, display embedded prompt
+        // Handle embedded prompt if player is already targeting this entity
         if (currentInteractionTarget != null && currentInteractionTarget.gameObject == entity)
         {
             ClearGenericPrompt();
@@ -375,7 +368,17 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         Camera cam = ActiveCamera;
         if (cam == null || currentInteractionTarget == null || genericPromptTracked == null || rootContainer == null || rootContainer.panel == null) return;
 
-        Vector3 worldPos = currentInteractionTarget.PromptWorldPosition;
+        // Resolve world position uniformly via WorldSpaceUIProvider if available, otherwise fallback to object transform position
+        Vector3 worldPos;
+        if (currentInteractionTarget.TryGetComponent<WorldSpaceUIProvider>(out var provider))
+        {
+            worldPos = provider.AnchorPosition;
+        }
+        else
+        {
+            worldPos = currentInteractionTarget.transform.position + Vector3.up * 1.5f; // Fallback height offset
+        }
+
         Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
 
         bool isVisible = screenPos.z > 0;

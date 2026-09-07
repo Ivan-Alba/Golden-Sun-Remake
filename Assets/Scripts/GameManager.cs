@@ -102,6 +102,7 @@ public class GameManager : MonoBehaviour
         // Party & Economy Event Subscriptions
         GameEvents.Party.OnModifyGoldRequested += HandleModifyGoldRequest;
         GameEvents.Party.OnRequestGold += HandleRequestGold;
+        GameEvents.Party.OnRequestDjinnCounts += HandleRequestDjinnCounts;
         GameEvents.Party.OnActiveHeroIndexChangeRequested += HandleActiveHeroIndexChangeRequest;
         GameEvents.Party.OnActiveHeroChangeRequested += HandleActiveHeroChangeRequest;
 
@@ -133,6 +134,7 @@ public class GameManager : MonoBehaviour
         // Party & Economy Event Unsubscriptions
         GameEvents.Party.OnModifyGoldRequested -= HandleModifyGoldRequest;
         GameEvents.Party.OnRequestGold -= HandleRequestGold;
+        GameEvents.Party.OnRequestDjinnCounts -= HandleRequestDjinnCounts;
         GameEvents.Party.OnActiveHeroIndexChangeRequested -= HandleActiveHeroIndexChangeRequest;
         GameEvents.Party.OnActiveHeroChangeRequested -= HandleActiveHeroChangeRequest;
 
@@ -222,15 +224,12 @@ public class GameManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(heroName) || callback == null) return;
 
-        // Buscar el héroe en la lista disponible centralizada del GameManager
         GameObject matchedHero = availableHeroes.Find(h => h != null && h.name.Equals(heroName, StringComparison.OrdinalIgnoreCase));
 
         if (matchedHero != null)
         {
-            // Intentar obtener el retrato desde HeroStats o FighterStats
             if (matchedHero.TryGetComponent<FighterStats>(out var stats))
             {
-                // Usamos TurnBarImage o un campo Portrait según tengas en tu componente
                 callback.Invoke(stats.TurnBarImage);
                 return;
             }
@@ -253,6 +252,35 @@ public class GameManager : MonoBehaviour
     private void HandleRequestGold(Action<int> callback)
     {
         callback?.Invoke(totalGold);
+    }
+
+    private void HandleRequestDjinnCounts(Action<int[]> callback)
+    {
+        if (callback == null) return;
+
+        int[] totalDjinnCounts = new int[4]; // [0] Venus, [1] Mars, [2] Jupiter, [3] Mercury
+
+        // Helper function to process a list of heroes (Active or Reserve)
+        void AccumulateDjinnCounts(List<GameObject> partyList)
+        {
+            for (int i = 0; i < partyList.Count; i++)
+            {
+                GameObject hero = partyList[i];
+                if (hero != null && hero.TryGetComponent<HeroDjinnController>(out var djinnController))
+                {
+                    djinnController.GetSetDjinnCountsSinglePass(out int venus, out int mars, out int jupiter, out int mercury);
+                    totalDjinnCounts[0] += venus;
+                    totalDjinnCounts[1] += mars;
+                    totalDjinnCounts[2] += jupiter;
+                    totalDjinnCounts[3] += mercury;
+                }
+            }
+        }
+
+        AccumulateDjinnCounts(activeParty);
+        AccumulateDjinnCounts(reserveParty);
+
+        callback.Invoke(totalDjinnCounts);
     }
 
     private void HandleActiveHeroIndexChangeRequest(int index)
@@ -363,7 +391,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"[GameManager] Level Loaded in background: {scene.name}");
 
-        if (scene.name.Equals("Title") || scene.name.Equals("MainMenu"))
+        if (scene.name.Equals("Title"))
         {
             SetGameState(GameState.TitleScreen);
             loadingData = false;
@@ -406,10 +434,17 @@ public class GameManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
         yield return new WaitForFixedUpdate();
 
-        // 3. Start revealing the screen via event bus
+        // 3. Trigger AutoSave if changing scenes during normal gameplay (not when restoring a save)
+        if (!loadingData && !SceneManager.GetActiveScene().name.Equals("Title"))
+        {
+            Debug.Log("<color=cyan>[GameManager] AutoSave triggered upon entering new scene.</color>");
+            GameEvents.SaveLoad.TriggerRequestAutoSave();
+        }
+
+        // 4. Start revealing the screen via event bus
         GameEvents.Scene.RequestFadeInScene();
 
-        // 4. Handle Arrival vs Immediate Entry
+        // 5. Handle Arrival vs Immediate Entry
         bool isGameplayTeleport = !loadingData && currentUsedSpawnPoint != null;
 
         if (pendingTargetState == GameState.WorldExploration && isGameplayTeleport && currentUsedSpawnPoint.AutoWalkOnArrival)
@@ -426,7 +461,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(transitionDuration);
         }
 
-        // 5. Activate target game state (WorldExploration)
+        // 6. Activate target game state (WorldExploration)
         SetGameState(pendingTargetState);
         loadingData = false;
     }
@@ -579,7 +614,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // If restoring from TitleScreen/MainMenu or across different scenes
+            // If restoring from TitleScreen or across different scenes
             HandleChangeSceneRequest(targetScene, savedSpawnID, GameState.WorldExploration);
         }
     }
@@ -660,6 +695,8 @@ public class GameManager : MonoBehaviour
                 orbitalFollow.HorizontalAxis.Value = targetRotation.eulerAngles.y;
                 orbitalFollow.VerticalAxis.Value = 0.5f;
             }
+
+            freeLookCamera.PreviousStateIsValid = false;
         }
     }
 

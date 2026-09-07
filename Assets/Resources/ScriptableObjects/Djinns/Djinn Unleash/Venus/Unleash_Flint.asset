@@ -32,14 +32,24 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   icon: {fileID: 0}
-  element: 1
+  element: 0
   targetsAlly: 0
   isAreaOfEffect: 0
   damageMultiplier: 1.25
   flatBonusDamage: 0
-  statusEffects:
-  - {fileID: 11400000, guid: 05fb25099c9fc6b4dbf0f9e66929e5ae, type: 2}
-  statusChance: 0.5
+  hasSecondaryHit: 0
+  secondaryHitChance: 0.5
+  secondaryDamageMultiplier: 1
+  secondaryFlatBonusDamage: 0
+  restoresHp: 0
+  healValue: 0
+  isHpPercentage: 0
+  restoresPp: 0
+  ppHealValue: 0
+  isPpPercentage: 0
+  canRevive: 0
+  reviveSuccessChance: 1
+  secondaryEffects: []
   hitFXType: 0
   customHitVFX: {fileID: 0}
   casterAuraVFX: {fileID: 0}

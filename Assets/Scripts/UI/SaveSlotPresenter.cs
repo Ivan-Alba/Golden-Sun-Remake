@@ -37,6 +37,7 @@ public class SaveSlotPresenter
     private const string CLASS_FILLED_SLOT = "save-slot--filled";
     private const string CLASS_READONLY_SLOT = "save-slot--readonly";
     private const string CLASS_NEW_SLOT = "save-slot--new";
+    private const string CLASS_SELECTED_SLOT = "save-slot--selected"; // Clase USS para mantener el borde/estado activo persistente
 
     #endregion
 
@@ -126,6 +127,7 @@ public class SaveSlotPresenter
         onSlotHoveredCallback = onHovered;
 
         SetNewSaveState(false);
+        SetSelectedState(false);
 
         if (slotNumberLabel != null)
         {
@@ -157,7 +159,22 @@ public class SaveSlotPresenter
     }
 
     /// <summary>
-    /// Toggles the read-only visual state (e.g., disabling AutoSave selection during Save mode).
+    /// Marks or unmarks this slot as visually selected/active to keep borders highlighted persistently.
+    /// </summary>
+    public void SetSelectedState(bool isSelected)
+    {
+        if (isSelected)
+        {
+            rootElement.AddToClassList(CLASS_SELECTED_SLOT);
+        }
+        else
+        {
+            rootElement.RemoveFromClassList(CLASS_SELECTED_SLOT);
+        }
+    }
+
+    /// <summary>
+    /// Toggles the read-only visual state and completely deactivates pointer picking/focus when readOnly is true.
     /// </summary>
     public void SetReadOnlyState(bool readOnly)
     {
@@ -167,11 +184,19 @@ public class SaveSlotPresenter
         {
             rootElement.AddToClassList(CLASS_READONLY_SLOT);
             rootElement.focusable = false;
+
+            // Desactivar completamente la interacción de ratón en el slot y todos sus hijos para evitar hovers
+            rootElement.pickingMode = PickingMode.Ignore;
+            rootElement.Query().ForEach(child => child.pickingMode = PickingMode.Ignore);
         }
         else
         {
             rootElement.RemoveFromClassList(CLASS_READONLY_SLOT);
             rootElement.focusable = true;
+
+            // Restaurar la interactividad normal
+            rootElement.pickingMode = PickingMode.Position;
+            rootElement.Query().ForEach(child => child.pickingMode = PickingMode.Position);
         }
     }
 
@@ -350,11 +375,13 @@ public class SaveSlotPresenter
 
     private void OnPointerEnter(PointerEnterEvent evt)
     {
+        if (isReadOnly) return;
         onSlotHoveredCallback?.Invoke(currentSlotIndex);
     }
 
     private void OnFocus(FocusEvent evt)
     {
+        if (isReadOnly) return;
         onSlotHoveredCallback?.Invoke(currentSlotIndex);
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,6 +34,7 @@ public class WorldStateController : MonoBehaviour
         // World Domain Subscriptions
         GameEvents.World.OnSetFlagRequested += HandleSetFlagRequested;
         GameEvents.World.OnCheckFlagRequested += HandleCheckFlagRequested;
+        GameEvents.World.OnRequestLastChronicleFlagSlug += HandleRequestLastChronicleFlagSlug;
 
         // Save & Load Event Subscriptions
         GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
@@ -44,6 +46,7 @@ public class WorldStateController : MonoBehaviour
         // World Domain Unsubscriptions
         GameEvents.World.OnSetFlagRequested -= HandleSetFlagRequested;
         GameEvents.World.OnCheckFlagRequested -= HandleCheckFlagRequested;
+        GameEvents.World.OnRequestLastChronicleFlagSlug -= HandleRequestLastChronicleFlagSlug;
 
         // Save & Load Event Unsubscriptions
         GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
@@ -63,6 +66,18 @@ public class WorldStateController : MonoBehaviour
     {
         bool value = GetFlag(flag);
         onResult?.Invoke(value);
+    }
+
+    private void HandleRequestLastChronicleFlagSlug(Action<string> onResult)
+    {
+        string targetChronicleSlug = lastChronicleFlagSlug;
+
+        if (string.IsNullOrEmpty(targetChronicleSlug) && defaultChronicleFlag != null)
+        {
+            targetChronicleSlug = defaultChronicleFlag.FlagSlug;
+        }
+
+        onResult?.Invoke(targetChronicleSlug);
     }
 
     #endregion

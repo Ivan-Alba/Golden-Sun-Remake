@@ -65,7 +65,7 @@ MonoBehaviour:
   - statType: 9
     modifierType: 0
     value: 5
-  element: 4
+  element: 3
   elementalPowerBonus: 0
   isCursed: 0
   useInBattle: 1

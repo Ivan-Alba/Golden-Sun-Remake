@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// World interaction spot for Save/Load points (e.g. Sanctum altars, monuments, resting spots).
 /// Inherits from Interactable to integrate seamlessly with interaction prompts and player orientation.
-/// Triggers the Save/Load Book UI directly via GameEvents and notifies GameManager of the active SpawnPoint.
+/// Triggers an introductory dialogue choice or the Save/Load Book UI directly via GameEvents.
 /// </summary>
 public class SavePointSpot : Interactable
 {
@@ -12,6 +12,12 @@ public class SavePointSpot : Interactable
     [Header("Save Point Settings")]
     [SerializeField] private string savePointName = "Monumento del Sol";
     [SerializeField] private GameEvents.UI.SaveBookMode defaultMode = GameEvents.UI.SaveBookMode.Save;
+
+    [Header("Dialogue Integration (Optional)")]
+    [Tooltip("Optional dialogue asset containing choices (Save / Load / Cancel). If assigned, triggers a dialogue prompt before opening the book.")]
+    [SerializeField] private DialogueSO savePointDialogue;
+    [SerializeField] private string speakerName = "Altar Sagrado";
+    [SerializeField] private Sprite speakerPortrait;
 
     [Header("Spawn Point Reference")]
     [Tooltip("Reference to the SpawnPoint associated with this save spot where the player will reappear upon loading.")]
@@ -59,19 +65,23 @@ public class SavePointSpot : Interactable
         // 4. Optional interaction SFX
         GameEvents.Audio.RequestPlaySFX(interactionSFX);
 
-        // TODO: In the future, trigger a dialogue/choice window (Save / Load / Cancel)
-        // prior to opening the book. For now, open the book directly in the mode configured.
-        /*
-        GameEvents.UI.RequestStartChoiceDialogue(
-            "¿Deseas registrar tus avances o rememorar tus viajes?",
-            new string[] { "Guardar", "Cargar", "Cancelar" },
-            selectedIndex => { ... }
-        );
-        */
+        // 5. Check if we have an interactive dialogue choice set up
+        if (savePointDialogue != null)
+        {
+            Debug.Log($"<color=cyan>[SavePointSpot] Interacted with '{savePointName}'. Starting choice dialogue.</color>");
 
-        // 5. Request opening Save/Load Book UI via decoupled event bus
-        Debug.Log($"<color=yellow>[SavePointSpot] Interacted with '{savePointName}'. Opening Save/Load Book in {defaultMode} mode.</color>");
-        GameEvents.UI.RequestOpenSaveLoadBook(defaultMode);
+            // Disparamos el evento de diálogo que el DialogueController ya está escuchando
+            GameEvents.UI.RequestStartDialogue(savePointDialogue, speakerName, gameObject, speakerPortrait);
+
+            // Nota: Las opciones de "Guardar", "Cargar" o "Cancelar" dentro del DialogueSO 
+            // deben invocar las acciones correspondientes (ej. abrir libro en Save, Load o cerrar).
+        }
+        else
+        {
+            // Fallback directo por si no se quiere usar diálogo previo
+            Debug.Log($"<color=yellow>[SavePointSpot] Opening Save/Load Book directly in {defaultMode} mode.</color>");
+            GameEvents.UI.RequestOpenSaveLoadBook(defaultMode);
+        }
     }
 
     #endregion

@@ -22,6 +22,32 @@ MonoBehaviour:
     m_Localized: Your inventory is full.
     m_Metadata:
       m_Items: []
+  - m_Id: 1770147281244160
+    m_Localized: Auto-save completed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770149965598720
+    m_Localized: A new respawn point has been set up.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770153232961536
+    m_Localized: A strange energy flows from the monument, resonating with the latent
+      Alchemy within you. Do you wish to record your progress or reminisce upon your
+      journeys?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771757482938368
+    m_Localized: Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771805763571712
+    m_Localized: Load
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771853981290496
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

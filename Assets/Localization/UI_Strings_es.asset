@@ -22,6 +22,32 @@ MonoBehaviour:
     m_Localized: "Tus mochilas est\xE1n llenas."
     m_Metadata:
       m_Items: []
+  - m_Id: 1770147281244160
+    m_Localized: Autoguardado realizado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770149965598720
+    m_Localized: "Se ha establecido un nuevo punto de reaparici\xF3n."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770153232961536
+    m_Localized: "Una extra\xF1a energ\xEDa fluye desde el monumento, resonando con
+      la Alquimia latente en tu interior. \xBFDeseas registrar tus avances o rememorar
+      tus viajes?\n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771757482938368
+    m_Localized: Guardar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771805763571712
+    m_Localized: Cargar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771853981290496
+    m_Localized: Cancelar
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -175,6 +175,7 @@ GameObject:
   - component: {fileID: 4026299312855817950}
   - component: {fileID: 4026299314619900600}
   - component: {fileID: 4782556760297396801}
+  - component: {fileID: 1590719404682880469}
   - component: {fileID: -1826962399097632765}
   m_Layer: 11
   m_Name: DjinnVenus
@@ -257,13 +258,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionText: Hablar
   keyPrompt: SPC
-  promptAnchor: {fileID: 0}
-  promptOffset: {x: 0, y: 1, z: 0}
   npcName: "S\xEDlex"
   rotationSpeed: 4
   portraitSprite: {fileID: 0}
   defaultDialogue: {fileID: 0}
   conditionalDialogues: []
+--- !u!114 &1590719404682880469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4260722136541047085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268779038287d654581a470f3d7451fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusTarget
   eyeHeightOffset: 0.9
 --- !u!114 &-1826962399097632765
 MonoBehaviour:
@@ -280,7 +291,7 @@ MonoBehaviour:
   uiType: 2
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 2
+  defaultHeightOffset: 1.8
 --- !u!1 &4392989081439046763
 GameObject:
   m_ObjectHideFlags: 0

@@ -22,7 +22,7 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   djinnSlug: granite
-  element: 1
+  element: 0
   icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
   description:
     m_TableReference:
@@ -45,7 +45,25 @@ MonoBehaviour:
     value: 2
   unleashEffect: {fileID: 11400000, guid: 52c6a1aabc59aba4384b72df889520fe, type: 2}
   baseRecoveryTurns: 2
-  leaderPassiveEffect: {fileID: 11400000, guid: 4157abea7d062b543a5de5153186dd23, type: 2}
+  leaderPassiveName:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveDescription:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveEffects: []
   references:
     version: 2
     RefIds: []

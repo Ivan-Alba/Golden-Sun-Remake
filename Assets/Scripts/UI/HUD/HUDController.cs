@@ -24,6 +24,9 @@ public class HUDController : MonoBehaviour
     [Header("Notification Template")]
     [SerializeField] private VisualTreeAsset notificationCardTemplate;
 
+    [Header("Dialogue Templates")]
+    [SerializeField] private VisualTreeAsset choiceItemTemplate;
+
     [Header("Minimap Setup")]
     [Tooltip("Assign the Custom RenderTexture processed by CRT_MinimapProcessed shader here.")]
     [SerializeField] private CustomRenderTexture minimapCustomRenderTexture;
@@ -88,6 +91,7 @@ public class HUDController : MonoBehaviour
     private Label _labelDialogueText;
     private VisualElement _dialoguePortraitFrame;
     private VisualElement _dialoguePortraitImg;
+    private VisualElement _dialogueChoicesContainer;
 
     #endregion
 
@@ -215,6 +219,7 @@ public class HUDController : MonoBehaviour
         _labelDialogueText = _root.Q<Label>("label_dialogue_text");
         _dialoguePortraitFrame = _root.Q<VisualElement>("dialogue_portrait_frame");
         _dialoguePortraitImg = _root.Q<VisualElement>("dialogue_portrait_img");
+        _dialogueChoicesContainer = _root.Q<VisualElement>("dialogue_choices_container");
 
         // Query and Bind Party Cards
         InitializePartyCardControllers();
@@ -525,6 +530,79 @@ public class HUDController : MonoBehaviour
             else
             {
                 _dialoguePortraitFrame.style.display = DisplayStyle.None;
+            }
+        }
+
+        // --- Dialogue Choices Handling ---
+        if (_dialogueChoicesContainer != null)
+        {
+            _dialogueChoicesContainer.Clear();
+
+            if (choices != null && choices.Count > 0)
+            {
+                _dialogueChoicesContainer.style.display = DisplayStyle.Flex;
+
+                // Toggle binary layout mode if choice type is Yes/No or Binary style
+                if (choiceType == DialogueChoiceType.BinaryYesNo)
+                {
+                    _dialogueChoicesContainer.AddToClassList("binary-mode");
+                }
+                else
+                {
+                    _dialogueChoicesContainer.RemoveFromClassList("binary-mode");
+                }
+                for (int i = 0; i < choices.Count; i++)
+                {
+                    var choiceData = choices[i];
+
+                    if (choiceItemTemplate != null)
+                    {
+                        VisualElement choiceInstance = choiceItemTemplate.Instantiate();
+
+                        // Get the actual choice item root element inside the template container wrapper
+                        VisualElement choiceRoot = choiceInstance.Q<VisualElement>("dialogue_choice_item");
+                        Label choiceLabel = choiceInstance.Q<Label>("label_choice_text");
+
+                        if (choiceLabel != null)
+                        {
+                            choiceLabel.text = choiceData.localizedChoiceText;
+                        }
+
+                        // Mark the first option as selected by default on the actual root element
+                        if (i == 0 && choiceRoot != null)
+                        {
+                            choiceRoot.AddToClassList("selected");
+                        }
+
+                        int capturedIndex = choiceData.choiceIndex;
+
+                        choiceInstance.RegisterCallback<ClickEvent>(evt =>
+                        {
+                            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
+                            GameEvents.UI.RequestSelectDialogueChoice(capturedIndex);
+                        });
+
+                        // Hover feedback: update selected class on mouse enter using choiceRoot
+                        if (choiceRoot != null)
+                        {
+                            choiceInstance.RegisterCallback<MouseEnterEvent>(evt =>
+                            {
+                                foreach (var child in _dialogueChoicesContainer.Children())
+                                {
+                                    var innerRoot = child.Q<VisualElement>("dialogue_choice_item");
+                                    if (innerRoot != null) innerRoot.RemoveFromClassList("selected");
+                                }
+                                choiceRoot.AddToClassList("selected");
+                            });
+                        }
+
+                        _dialogueChoicesContainer.Add(choiceInstance);
+                    }
+                }
+            }
+            else
+            {
+                _dialogueChoicesContainer.style.display = DisplayStyle.None;
             }
         }
     }

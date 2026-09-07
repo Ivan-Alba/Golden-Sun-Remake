@@ -36,7 +36,7 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  chronicleIllustration: {fileID: 0}
+  chronicleIllustration: {fileID: 21300000, guid: 7e38e48fc19a5564aaed8c29ffadd5fd, type: 3}
   chronicleSummaryText:
     m_TableReference:
       m_TableCollectionName: GUID:5f314046d50720c42adb2903235394db

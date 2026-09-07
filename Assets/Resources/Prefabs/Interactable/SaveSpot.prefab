@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 291912683955922894}
   - component: {fileID: 8599470018428302246}
   - component: {fileID: -8679251788529552080}
+  - component: {fileID: -7521523704773720585}
   m_Layer: 11
   m_Name: SaveSpot
   m_TagString: Untagged
@@ -163,10 +164,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SavePointSpot
   actionText: Guardar
   keyPrompt: SPC
-  promptAnchor: {fileID: 0}
-  promptOffset: {x: 0, y: 2.5, z: 0}
   savePointName: Llanura de Tale
   defaultMode: 0
+  savePointDialogue: {fileID: 11400000, guid: 4e991c7975cfe8c48be51d6c33b18ea7, type: 2}
+  speakerName: Altar Sagrado
+  speakerPortrait: {fileID: 0}
+  linkedSpawnPoint: {fileID: 0}
   interactionSFX: 1
 --- !u!65 &8599470018428302246
 BoxCollider:
@@ -202,9 +205,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 2
-  entitySubTitle: ESTATUA DE GUARDADO
+  customEntityName: Estatua de guardado
+  entitySubTitle: "Punto de reaparici\xF3n"
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2
+--- !u!114 &-7521523704773720585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2765376183041821729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268779038287d654581a470f3d7451fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusTarget
+  eyeHeightOffset: 4
 --- !u!1 &8702843926803891404
 GameObject:
   m_ObjectHideFlags: 0

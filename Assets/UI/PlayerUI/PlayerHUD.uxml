@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="HeroStatusCardTemplate" src="project://database/Assets/UI/Components/HeroStatusCardTemplate.uxml?fileID=9197481963319205126&amp;guid=559dfa0c9a67e66478431b26f0540ca8&amp;type=3#HeroStatusCardTemplate"/>
+    <ui:Template name="DialogueChoiceItemTemplate" src="project://database/Assets/UI/Components/Dialogue/DialogueChoiceItemTemplate.uxml?fileID=..."/>
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss?fileID=7433441132597879392&amp;guid=2fd1775c5a3f56947945b46434856b8e&amp;type=3#PlayerHUD"/>
     <ui:VisualElement name="hud_root" picking-mode="Ignore" class="hud-root">
@@ -95,6 +96,8 @@
             </ui:VisualElement>
             <ui:VisualElement name="world_interaction_prompts_container" class="world-interaction-prompts-container"/>
         </ui:VisualElement>
+
+
         <ui:VisualElement name="hud_dialogue_layer" class="hud-layer dialogue-layer">
             <ui:VisualElement name="dialogue_box_container" class="dialogue-box-container">
                 <ui:VisualElement name="dialogue_portrait_frame" class="dialogue-portrait-frame">
@@ -106,9 +109,14 @@
                     </ui:VisualElement>
                     <ui:Label name="label_dialogue_text" text="¡Increíble! La energía de la Psinergía en este santuario es mucho más densa de lo que sospechaba..." class="label-dialogue-text"/>
                     <ui:VisualElement name="dialogue_next_prompt" class="dialogue-next-prompt"/>
+                    
+                    <ui:VisualElement name="dialogue_choices_container" class="dialogue-choices-container">
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
+
+
         <ui:VisualElement name="hud_notifications_layer" class="hud-layer notifications-layer">
             <ui:VisualElement name="notifications_stream_container" class="notifications-stream-container"/>
         </ui:VisualElement>

@@ -19,6 +19,32 @@ MonoBehaviour:
     m_Key: inventory_full
     m_Metadata:
       m_Items: []
+  - m_Id: 1770147281244160
+    m_Key: autosave_complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770149965598720
+    m_Key: respawn_point_updated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1770153232961536
+    m_Key: save_point_spot_dialogue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771757482938368
+    m_Key: 'save_action
+
+'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771805763571712
+    m_Key: load_action
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1771853981290496
+    m_Key: cancel_action
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

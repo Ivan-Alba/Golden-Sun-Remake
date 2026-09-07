@@ -2965,6 +2965,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1508293450}
     m_Modifications:
+    - target: {fileID: -1826962399097632765, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
+      propertyPath: entitySubTitle
+      value: ALL ITEMS
+      objectReference: {fileID: 0}
+    - target: {fileID: -1826962399097632765, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
+      propertyPath: customEntityName
+      value: Debug
+      objectReference: {fileID: 0}
     - target: {fileID: 3488865405057659799, guid: 318a190d97ad9454eab0a71e40cab6a5, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -4271,6 +4279,10 @@ PrefabInstance:
     - target: {fileID: 7919796269552047344, guid: b3983b2b6b915d14e8cc3cb5f5cee874, type: 3}
       propertyPath: m_Name
       value: LoadSpot (DEBUG)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7919796269552047344, guid: b3983b2b6b915d14e8cc3cb5f5cee874, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

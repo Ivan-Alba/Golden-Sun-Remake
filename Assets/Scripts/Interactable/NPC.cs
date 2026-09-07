@@ -36,9 +36,6 @@ public class NPC : Interactable
     [Tooltip("Conditional dialogue rules evaluated in top-to-bottom order of priority.")]
     [SerializeField] private List<NPCDialogueRule> conditionalDialogues = new List<NPCDialogueRule>();
 
-    [Header("Camera Framing")]
-    [SerializeField] private float eyeHeightOffset = 1.4f;
-
     #endregion
 
     #region Private Fields
@@ -54,7 +51,6 @@ public class NPC : Interactable
     public string NpcName { get => npcName; set => npcName = value; }
     public Sprite PortraitSprite => portraitSprite;
     public bool LookAtPlayer { get => lookAtPlayer; set => lookAtPlayer = value; }
-    public float EyeHeightOffset => eyeHeightOffset;
 
     #endregion
 
@@ -167,26 +163,6 @@ public class NPC : Interactable
         lookAtPlayer = false;
         cachedPlayerTransform = null;
     }
-
-    #endregion
-
-    #region Editor Gizmos
-
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        // Calculate the world position of the eye pivot
-        Vector3 eyePos = transform.position + Vector3.up * eyeHeightOffset;
-
-        // Draw a cyan wireframe sphere at eye level
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(eyePos, 0.15f);
-
-        // Draw a vertical line from root position to the eye height
-        Gizmos.color = new Color(0f, 1f, 1f, 0.5f);
-        Gizmos.DrawLine(transform.position, eyePos);
-    }
-#endif
 
     #endregion
 }

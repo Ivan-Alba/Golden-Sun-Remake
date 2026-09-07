@@ -82,6 +82,10 @@ public class SaveLoadBookUIController : MonoBehaviour
     private GameEvents.UI.SaveBookMode currentMode = GameEvents.UI.SaveBookMode.Save;
     private bool isOpen = false;
 
+    // Playtime Live Tracking Fields (for active Save Mode live ticking)
+    private float cachedLivePlayTime = 0f;
+    private int lastDisplayedSecond = -1;
+
     #endregion
 
     #region Helper Structs
@@ -130,6 +134,21 @@ public class SaveLoadBookUIController : MonoBehaviour
         GameEvents.SaveLoad.OnLoadCompleted -= HandleLoadCompleted;
     }
 
+    private void Update()
+    {
+        // Si el libro está abierto en modo Save, mantenemos el tiempo de juego corriendo en vivo en la página izquierda
+        if (!isOpen || currentMode != GameEvents.UI.SaveBookMode.Save) return;
+
+        cachedLivePlayTime += Time.unscaledDeltaTime;
+        int currentSecond = Mathf.FloorToInt(cachedLivePlayTime);
+
+        if (currentSecond != lastDisplayedSecond)
+        {
+            lastDisplayedSecond = currentSecond;
+            UpdateLivePlaytimeText();
+        }
+    }
+
     #endregion
 
     #region UI Toolkit Binding & Initialization
@@ -169,7 +188,6 @@ public class SaveLoadBookUIController : MonoBehaviour
 
     private void HandleOpenRequested(GameEvents.UI.SaveBookMode mode)
     {
-        // In Load mode, verify if at least one save file exists before opening
         if (mode == GameEvents.UI.SaveBookMode.Load && !HasAnySaveFile())
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
@@ -215,12 +233,10 @@ public class SaveLoadBookUIController : MonoBehaviour
                 : "MEMORIAS DE WEYARD (CARGAR)";
         }
 
-        // 1. In Save mode, collect and render current live game state on the left page
+        // 1. In Save mode, query live game state via events and render current game state on the left page ONCE
         if (currentMode == GameEvents.UI.SaveBookMode.Save)
         {
-            GameData tempRuntimeData = new GameData();
-            GameEvents.SaveLoad.TriggerCollectSaveData(tempRuntimeData);
-            RenderLeftChroniclePage(tempRuntimeData.header);
+            RenderLiveChroniclePage();
         }
 
         // 2. Render save slots on the right page
@@ -273,9 +289,6 @@ public class SaveLoadBookUIController : MonoBehaviour
 
     #region Left Page Rendering (Chronicle & Journal)
 
-    /// <summary>
-    /// Renders the left page using the header metadata of a specific GameData/Header instance.
-    /// </summary>
     private void RenderLeftChroniclePage(SaveHeaderData headerData)
     {
         string lastFlagSlug = headerData != null ? headerData.lastChronicleFlagSlug : string.Empty;
@@ -312,10 +325,7 @@ public class SaveLoadBookUIController : MonoBehaviour
         }
         else
         {
-            if (chapterTitleLabel != null) chapterTitleLabel.text = string.Empty;
-            if (milestoneTitleLabel != null) milestoneTitleLabel.text = string.Empty;
-            if (summaryTextLabel != null) summaryTextLabel.text = string.Empty;
-            if (illustrationImage != null) illustrationImage.style.backgroundImage = null;
+            ClearChronicleVisuals();
         }
 
         // Render total gold metric
@@ -335,13 +345,115 @@ public class SaveLoadBookUIController : MonoBehaviour
             leftPlaytimeCountLabel.text = "00:00:00";
         }
 
-        // Render Djinn counters on the left page
-        int[] djinnCounts = headerData != null ? headerData.djinnCountByElement : new int[4];
+        // Render Djinn counters directly from headerData and manage visibility
+        int[] djinnCounts = (headerData != null && headerData.djinnCountByElement != null) ? headerData.djinnCountByElement : new int[4];
+        int totalDjinns = djinnCounts[0] + djinnCounts[1] + djinnCounts[2] + djinnCounts[3];
+
+        if (leftDjinnContainer != null)
+        {
+            leftDjinnContainer.style.display = totalDjinns > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
 
         if (leftVenusCountLabel != null) leftVenusCountLabel.text = djinnCounts[0].ToString();
         if (leftMarsCountLabel != null) leftMarsCountLabel.text = djinnCounts[1].ToString();
         if (leftJupiterCountLabel != null) leftJupiterCountLabel.text = djinnCounts[2].ToString();
         if (leftMercuryCountLabel != null) leftMercuryCountLabel.text = djinnCounts[3].ToString();
+    }
+
+    /// <summary>
+    /// Renders the left chronicle page in real-time using decoupled query events for active live game data.
+    /// </summary>
+    private void RenderLiveChroniclePage()
+    {
+        // 1. Request last active chronicle flag slug from WorldStateController
+        GameEvents.World.RequestLastChronicleFlagSlug(flagSlug =>
+        {
+            if (!string.IsNullOrEmpty(flagSlug))
+            {
+                GameEvents.Database.RequestFlagBySlug(flagSlug, flagAsset =>
+                {
+                    if (flagAsset != null)
+                    {
+                        if (chapterTitleLabel != null)
+                            chapterTitleLabel.text = (flagAsset.ChapterTitle != null && !flagAsset.ChapterTitle.IsEmpty)
+                                ? flagAsset.ChapterTitle.GetLocalizedString()
+                                : string.Empty;
+
+                        if (milestoneTitleLabel != null)
+                            milestoneTitleLabel.text = (flagAsset.MilestoneTitle != null && !flagAsset.MilestoneTitle.IsEmpty)
+                                ? flagAsset.MilestoneTitle.GetLocalizedString()
+                                : string.Empty;
+
+                        if (summaryTextLabel != null)
+                            summaryTextLabel.text = (flagAsset.ChronicleSummaryText != null && !flagAsset.ChronicleSummaryText.IsEmpty)
+                                ? flagAsset.ChronicleSummaryText.GetLocalizedString()
+                                : string.Empty;
+
+                        if (illustrationImage != null)
+                        {
+                            illustrationImage.style.backgroundImage = flagAsset.ChronicleIllustration != null
+                                ? new StyleBackground(flagAsset.ChronicleIllustration)
+                                : null;
+                        }
+                    }
+                });
+            }
+            else
+            {
+                ClearChronicleVisuals();
+            }
+        });
+
+        // 2. Request live total gold
+        GameEvents.Party.RequestGold(gold =>
+        {
+            if (leftGoldCountLabel != null)
+            {
+                leftGoldCountLabel.text = $"{gold} G";
+            }
+        });
+
+        // 3. Request live playtime and synchronize cache for live ticking
+        GameEvents.GameState.RequestPlayTime(playTime =>
+        {
+            cachedLivePlayTime = playTime;
+            lastDisplayedSecond = Mathf.FloorToInt(cachedLivePlayTime);
+            UpdateLivePlaytimeText();
+        });
+
+        // 4. Request live elemental Djinn counts across active and reserve party
+        GameEvents.Party.RequestDjinnCounts(djinnCounts =>
+        {
+            int[] counts = djinnCounts ?? new int[4];
+            int totalDjinns = counts[0] + counts[1] + counts[2] + counts[3];
+
+            if (leftDjinnContainer != null)
+            {
+                leftDjinnContainer.style.display = totalDjinns > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            if (leftVenusCountLabel != null) leftVenusCountLabel.text = counts[0].ToString();
+            if (leftMarsCountLabel != null) leftMarsCountLabel.text = counts[1].ToString();
+            if (leftJupiterCountLabel != null) leftJupiterCountLabel.text = counts[2].ToString();
+            if (leftMercuryCountLabel != null) leftMercuryCountLabel.text = counts[3].ToString();
+        });
+    }
+
+    private void ClearChronicleVisuals()
+    {
+        if (chapterTitleLabel != null) chapterTitleLabel.text = string.Empty;
+        if (milestoneTitleLabel != null) milestoneTitleLabel.text = string.Empty;
+        if (summaryTextLabel != null) summaryTextLabel.text = string.Empty;
+        if (illustrationImage != null) illustrationImage.style.backgroundImage = null;
+    }
+
+    private void UpdateLivePlaytimeText()
+    {
+        if (leftPlaytimeCountLabel != null)
+        {
+            TimeSpan timeSpan = TimeSpan.FromSeconds(cachedLivePlayTime);
+            leftPlaytimeCountLabel.text = $"{((int)timeSpan.TotalHours):D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+        }
     }
 
     #endregion
@@ -356,18 +468,33 @@ public class SaveLoadBookUIController : MonoBehaviour
         slotsScrollContainer.Clear();
         activeSlotPresenters.Clear();
 
-        GameData tempRuntimeData = new GameData();
-        GameEvents.SaveLoad.TriggerCollectSaveData(tempRuntimeData);
+        // Check live unlocked Djinns to configure the "NEW GAME" slot card correctly
+        bool isDjinnUnlocked = false;
+        int[] liveDjinnCounts = new int[4];
 
-        int[] djinnCounts = tempRuntimeData.header != null ? tempRuntimeData.header.djinnCountByElement : new int[4];
-        bool isDjinnUnlocked = (djinnCounts[0] + djinnCounts[1] + djinnCounts[2] + djinnCounts[3]) > 0;
+        GameEvents.Party.RequestDjinnCounts(counts =>
+        {
+            if (counts != null)
+            {
+                liveDjinnCounts = counts;
+                isDjinnUnlocked = (counts[0] + counts[1] + counts[2] + counts[3]) > 0;
+            }
+        });
 
         // 1. Slot 0 (AUTOSAVE) Pinboard setup
         SaveHeaderData autosaveHeader = SaveManager.LoadHeader(0);
         VisualElement autosaveInstance = slotTemplateUXML != null ? slotTemplateUXML.Instantiate() : new VisualElement();
 
         autosavePresenter = new SaveSlotPresenter(autosaveInstance);
-        autosavePresenter.SetupSlot(0, autosaveHeader, isDjinnUnlocked, OnSlotSelected, OnSlotHovered);
+
+        bool autosaveDjinnUnlocked = isDjinnUnlocked;
+        if (autosaveHeader != null && autosaveHeader.djinnCountByElement != null)
+        {
+            int autoTotal = autosaveHeader.djinnCountByElement[0] + autosaveHeader.djinnCountByElement[1] + autosaveHeader.djinnCountByElement[2] + autosaveHeader.djinnCountByElement[3];
+            autosaveDjinnUnlocked = autoTotal > 0;
+        }
+
+        autosavePresenter.SetupSlot(0, autosaveHeader, autosaveDjinnUnlocked, OnSlotSelected, OnSlotHovered);
 
         if (currentMode == GameEvents.UI.SaveBookMode.Save)
         {
@@ -409,7 +536,14 @@ public class SaveLoadBookUIController : MonoBehaviour
                 VisualElement slotInstance = slotTemplateUXML != null ? slotTemplateUXML.Instantiate() : new VisualElement();
                 SaveSlotPresenter presenter = new SaveSlotPresenter(slotInstance);
 
-                presenter.SetupSlot(slotWrapper.SlotIndex, slotWrapper.Header, isDjinnUnlocked, OnSlotSelected, OnSlotHovered);
+                bool slotDjinnUnlocked = isDjinnUnlocked;
+                if (slotWrapper.Header != null && slotWrapper.Header.djinnCountByElement != null)
+                {
+                    int wrapperTotal = slotWrapper.Header.djinnCountByElement[0] + slotWrapper.Header.djinnCountByElement[1] + slotWrapper.Header.djinnCountByElement[2] + slotWrapper.Header.djinnCountByElement[3];
+                    slotDjinnUnlocked = wrapperTotal > 0;
+                }
+
+                presenter.SetupSlot(slotWrapper.SlotIndex, slotWrapper.Header, slotDjinnUnlocked, OnSlotSelected, OnSlotHovered);
 
                 activeSlotPresenters.Add(presenter);
                 slotsScrollContainer.Add(slotInstance);
@@ -427,7 +561,14 @@ public class SaveLoadBookUIController : MonoBehaviour
                 VisualElement slotInstance = slotTemplateUXML != null ? slotTemplateUXML.Instantiate() : new VisualElement();
                 SaveSlotPresenter presenter = new SaveSlotPresenter(slotInstance);
 
-                presenter.SetupSlot(slotWrapper.SlotIndex, slotWrapper.Header, isDjinnUnlocked, OnSlotSelected, OnSlotHovered);
+                bool slotDjinnUnlocked = false;
+                if (slotWrapper.Header != null && slotWrapper.Header.djinnCountByElement != null)
+                {
+                    int wrapperTotal = slotWrapper.Header.djinnCountByElement[0] + slotWrapper.Header.djinnCountByElement[1] + slotWrapper.Header.djinnCountByElement[2] + slotWrapper.Header.djinnCountByElement[3];
+                    slotDjinnUnlocked = wrapperTotal > 0;
+                }
+
+                presenter.SetupSlot(slotWrapper.SlotIndex, slotWrapper.Header, slotDjinnUnlocked, OnSlotSelected, OnSlotHovered);
 
                 activeSlotPresenters.Add(presenter);
                 slotsScrollContainer.Add(slotInstance);
@@ -486,14 +627,27 @@ public class SaveLoadBookUIController : MonoBehaviour
 
     private void OnSlotHovered(int slotIndex)
     {
-        // In Load mode, dynamically update the left page according to the inspected slot header
+        // En Modo Save, la pantalla izquierda es estática y NUNCA debe cambiar al hacer hover sobre las ranuras.
+        if (currentMode == GameEvents.UI.SaveBookMode.Save) return;
+
+        // Actualizar el estado visual persistente en las tarjetas de la derecha (Modo Load)
+        if (autosavePresenter != null)
+        {
+            autosavePresenter.SetSelectedState(autosavePresenter.SlotIndex == slotIndex);
+        }
+
+        foreach (var presenter in activeSlotPresenters)
+        {
+            presenter.SetSelectedState(presenter.SlotIndex == slotIndex);
+        }
+
+        // El comportamiento de hover con previsualización queda reservado exclusivamente para el Modo Load.
         if (currentMode == GameEvents.UI.SaveBookMode.Load)
         {
             SaveHeaderData headerData = SaveManager.LoadHeader(slotIndex);
             RenderLeftChroniclePage(headerData);
         }
     }
-
     private void OnSlotSelected(int slotIndex)
     {
         if (currentMode == GameEvents.UI.SaveBookMode.Save)
@@ -504,7 +658,6 @@ public class SaveLoadBookUIController : MonoBehaviour
 
             SaveScreenCapture.CaptureScreenshotBase64(base64Image =>
             {
-                // Subscribe transient handler to inject screenshot payload into save header
                 Action<GameData> injectThumbnailHandler = null;
                 injectThumbnailHandler = (dataToSave) =>
                 {
@@ -517,7 +670,6 @@ public class SaveLoadBookUIController : MonoBehaviour
 
                 GameEvents.SaveLoad.OnCollectSaveData += injectThumbnailHandler;
 
-                // Trigger Save sequence
                 GameEvents.SaveLoad.RequestSaveGame(slotIndex);
             });
         }

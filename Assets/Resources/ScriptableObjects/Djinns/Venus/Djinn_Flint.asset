@@ -22,7 +22,7 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   djinnSlug: flint
-  element: 1
+  element: 0
   icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
   description:
     m_TableReference:
@@ -42,7 +42,25 @@ MonoBehaviour:
     value: 4
   unleashEffect: {fileID: 11400000, guid: be8e5aa35b4e24941b7341d35842d4c9, type: 2}
   baseRecoveryTurns: 2
-  leaderPassiveEffect: {fileID: 11400000, guid: c8643129b21db7e4bbeebad50f45edb3, type: 2}
+  leaderPassiveName:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveDescription:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveEffects: []
   references:
     version: 2
     RefIds: []

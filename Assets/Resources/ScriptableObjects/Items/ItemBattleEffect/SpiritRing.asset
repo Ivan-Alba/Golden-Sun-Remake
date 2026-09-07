@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f1012de4f4fba4587d1906e59be35f, type: 3}
   m_Name: SpiritRing
   m_EditorClassIdentifier: Assembly-CSharp::ItemBattleEffectSO
-  element: 4
+  element: 3
   targetsAlly: 1
   isAreaOfEffect: 1
   restoresHp: 1

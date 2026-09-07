@@ -75,7 +75,12 @@ public class SaveManagerService : MonoBehaviour
 
         // TODO (FASE 2): Trigger "Saving..." UI animation indicator (e.g., animated Djinn icon in corner)
 
-        // 1. Capture clean, UI-free thumbnail from Main Camera
+        // 1. Wait until physics and Cinemachine camera settle after player relocation
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForEndOfFrame();
+
+        // 2. Capture clean, UI-free thumbnail from Main Camera
         string thumbnailBase64 = string.Empty;
         Camera mainCam = Camera.main;
 
@@ -91,7 +96,7 @@ public class SaveManagerService : MonoBehaviour
             Debug.LogWarning("[SaveManagerService] Camera.main is null during auto-save capture. Proceeding without thumbnail.");
         }
 
-        // 2. Transient handler to inject thumbnail and auto-save flag during collection
+        // 3. Transient handler to inject thumbnail and auto-save flag during collection
         Action<GameData> autoSaveCollectHandler = null;
         autoSaveCollectHandler = (dataToSave) =>
         {
@@ -108,7 +113,7 @@ public class SaveManagerService : MonoBehaviour
 
         GameEvents.SaveLoad.OnCollectSaveData += autoSaveCollectHandler;
 
-        // 3. Save file to disk in Slot 0
+        // 4. Save file to disk in Slot 0
         bool success = SaveManager.Save(AUTOSAVE_SLOT_INDEX);
 
         if (success)

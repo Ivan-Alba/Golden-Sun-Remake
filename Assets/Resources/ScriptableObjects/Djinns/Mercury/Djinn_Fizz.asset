@@ -22,7 +22,7 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   djinnSlug: fizz
-  element: 4
+  element: 3
   icon: {fileID: 21300000, guid: e45c3409db645454eb9516f68cb8ed31, type: 3}
   description:
     m_TableReference:
@@ -45,7 +45,25 @@ MonoBehaviour:
     value: 1
   unleashEffect: {fileID: 11400000, guid: 1868c6ffa177d47418ed979881fe0c0a, type: 2}
   baseRecoveryTurns: 2
-  leaderPassiveEffect: {fileID: 0}
+  leaderPassiveName:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveDescription:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  leaderPassiveEffects: []
   references:
     version: 2
     RefIds: []

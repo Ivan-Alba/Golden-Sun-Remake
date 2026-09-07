@@ -51,7 +51,7 @@ public class DialogueController : MonoBehaviour
 
     // Virtual framing targets for eye-level camera focus
     private GameObject playerEyePivot;
-    private GameObject npcEyePivot;
+    private GameObject targetEyePivot;
 
     // Local GameState cache
     private GameManager.GameState _cachedGameState;
@@ -156,15 +156,24 @@ public class DialogueController : MonoBehaviour
         {
             GameEvents.Database.RequestFlagBySlug(selectedChoice.setFlagSlugOnSelect, flagAsset =>
             {
-                if (flagAsset != null)
-                {
-                    GameEvents.World.RequestSetFlag(flagAsset, true);
-                }
+                if (flagAsset != null) GameEvents.World.RequestSetFlag(flagAsset, true);
             });
         }
 
         isAwaitingChoice = false;
         currentActiveChoices.Clear();
+
+        // Execute modular actions assigned to this choice (Polymorphic data-driven actions)
+        if (selectedChoice.actionsOnSelect != null)
+        {
+            for (int i = 0; i < selectedChoice.actionsOnSelect.Count; i++)
+            {
+                if (selectedChoice.actionsOnSelect[i] != null)
+                {
+                    selectedChoice.actionsOnSelect[i].ExecuteAction();
+                }
+            }
+        }
 
         // Branch to next dialogue if assigned, otherwise advance to next node or finish
         if (selectedChoice.nextDialogue != null)
@@ -398,17 +407,17 @@ public class DialogueController : MonoBehaviour
 
     #region Camera Focus Helpers
 
-    private void FocusDialogueCamera(GameObject npcTarget)
+    private void FocusDialogueCamera(GameObject targetElement)
     {
-        if (dialogueCamera == null || npcTarget == null) return;
+        if (dialogueCamera == null || targetElement == null) return;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj == null) return;
 
-        // 1. Setup eye-level pivots
-        SetupEyePivots(playerObj.transform, npcTarget.transform);
+        // 1. Setup eye-level pivots for the target and player
+        SetupEyePivots(playerObj.transform, targetElement.transform);
 
-        // 2. Assign targets to TargetGroup
+        // 2. Assign targets to Cinemachine TargetGroup
         if (targetGroup != null)
         {
             targetGroup.Targets.Clear();
@@ -420,12 +429,16 @@ public class DialogueController : MonoBehaviour
                 Radius = 0.8f
             });
 
-            targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+            // Only add target eye pivot to the group if it was successfully created
+            if (targetEyePivot != null)
             {
-                Object = npcEyePivot.transform,
-                Weight = 1f,
-                Radius = 0.8f
-            });
+                targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+                {
+                    Object = targetEyePivot.transform,
+                    Weight = 1f,
+                    Radius = 0.8f
+                });
+            }
 
             dialogueCamera.Follow = targetGroup.transform;
             dialogueCamera.LookAt = targetGroup.transform;
@@ -448,26 +461,28 @@ public class DialogueController : MonoBehaviour
         dialogueCamera.Priority.Value = activeCameraPriority;
     }
 
-    private void SetupEyePivots(Transform playerTransform, Transform npcTransform)
+    private void SetupEyePivots(Transform playerTransform, Transform targetTransform)
     {
         CleanupEyePivots();
 
-        // 1. Player Pivot
+        // 1. Setup Player Pivot
         playerEyePivot = new GameObject("Player_EyePivot");
         playerEyePivot.transform.position = playerTransform.position + Vector3.up * eyeHeightOffset;
-
-        // 2. NPC Pivot (Reads custom height offset if available)
-        float npcOffset = eyeHeightOffset;
-        if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<NPC>(out var npcScript))
-        {
-            npcOffset = npcScript.EyeHeightOffset;
-        }
-
-        npcEyePivot = new GameObject("NPC_EyePivot");
-        npcEyePivot.transform.position = npcTransform.position + Vector3.up * npcOffset;
-
         playerEyePivot.transform.SetParent(playerTransform, true);
-        npcEyePivot.transform.SetParent(npcTransform, true);
+
+        // 2. Setup Target Pivot (Checks universally for DialogueFocusTarget component)
+        if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<DialogueFocusTarget>(out var focusTarget))
+        {
+            targetEyePivot = new GameObject("Target_EyePivot");
+            targetEyePivot.transform.position = targetTransform.position + Vector3.up * focusTarget.EyeHeightOffset;
+            targetEyePivot.transform.SetParent(targetTransform, true);
+        }
+        else
+        {
+            // Fallback safety: If no DialogueFocusTarget is present, do not create a forced low pivot.
+            // The camera will naturally focus on the object's transform root without failing.
+            targetEyePivot = null;
+        }
     }
 
     private void CleanupEyePivots()
@@ -478,10 +493,10 @@ public class DialogueController : MonoBehaviour
             playerEyePivot = null;
         }
 
-        if (npcEyePivot != null)
+        if (targetEyePivot != null)
         {
-            Destroy(npcEyePivot);
-            npcEyePivot = null;
+            Destroy(targetEyePivot);
+            targetEyePivot = null;
         }
     }
 

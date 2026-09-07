@@ -32,11 +32,23 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   icon: {fileID: 0}
-  element: 2
+  element: 1
   targetsAlly: 1
   isAreaOfEffect: 1
   damageMultiplier: 1
   flatBonusDamage: 0
+  hasSecondaryHit: 0
+  secondaryHitChance: 0.5
+  secondaryDamageMultiplier: 1
+  secondaryFlatBonusDamage: 0
+  restoresHp: 0
+  healValue: 0
+  isHpPercentage: 0
+  restoresPp: 0
+  ppHealValue: 0
+  isPpPercentage: 0
+  canRevive: 0
+  reviveSuccessChance: 1
   secondaryEffects:
   - statusEffect: {fileID: 11400000, guid: 21f4ade35a31aab45a97e2e84bc4df1d, type: 2}
     applicationChance: 1

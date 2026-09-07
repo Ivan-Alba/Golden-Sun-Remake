@@ -775,6 +775,91 @@
 }
 
 /* =========================================================================
+   DIALOGUE CHOICES SYSTEM (MODULAR MENU CONTAINER & ITEMS)
+   ========================================================================= */
+
+/* Main Choices Container: Anked cleanly to the top-right inside the dialogue text box */
+.dialogue-choices-container {
+    position: absolute;
+    bottom: 125px;
+    right: 15px;
+    
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 25;
+    
+    transition-property: opacity, scale;
+    transition-duration: 0.15s;
+}
+
+/* Modifier class for binary choices (Yes/No) */
+.dialogue-choices-container.binary-mode {
+    flex-direction: row;
+    justify-content: space-around;
+    min-width: 160px;
+}
+
+/* Individual Choice Item Root */
+.dialogue-choice-item {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: link;
+    transition-property: background-color;
+    transition-duration: 0.1s;
+}
+
+/* Hover effect for mouse navigation on PC */
+.dialogue-choice-item:hover {
+    background-color: var(--color-hover-subtle-bg);
+}
+
+/* Active/Keyboard/Gamepad Selected State (Clean background tint instead of harsh borders) */
+.dialogue-choice-item.selected {
+    background-color: rgba(241, 196, 15, 0.2);
+}
+
+/* Classic Golden Sun Diamond Indicator */
+.dialogue-choice-selector {
+    width: 7px;
+    height: 7px;
+    background-color: var(--color-gold-bright);
+    rotate: 45deg;
+    margin-right: 10px;
+    flex-shrink: 0;
+    border-width: 1px;
+    border-color: #000000;
+    visibility: hidden; /* Hidden by default */
+}
+
+.dialogue-choice-item.selected .dialogue-choice-selector {
+    visibility: visible;
+}
+
+/* Choice Text Label Style */
+.label-choice-text {
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    margin: 0;
+    padding: 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.dialogue-choice-item:hover .label-choice-text,
+.dialogue-choice-item.selected .label-choice-text {
+    color: var(--color-gold-bright);
+}
+
+/* =========================================================================
    LAYER 3: PERSISTENT NOTIFICATIONS (GLOBAL)
    ========================================================================= */
 

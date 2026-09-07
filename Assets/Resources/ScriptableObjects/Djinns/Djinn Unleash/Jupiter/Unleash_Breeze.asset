@@ -32,7 +32,7 @@ MonoBehaviour:
     m_WaitForCompletion: 0
     m_LocalVariables: []
   icon: {fileID: 0}
-  element: 3
+  element: 2
   targetsAlly: 1
   isAreaOfEffect: 1
   damageMultiplier: 1
