@@ -29,7 +29,7 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private Interactable currentTarget;
     private bool isExplorationActive = true;
-    private bool isAiming = false;
+    private bool isFirstPersonView = false;
 
     #endregion
 
@@ -58,19 +58,19 @@ public class PlayerInteractionDetector : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
-        GameEvents.Player.OnFirstPersonViewStateChanged += HandleAimStateChanged;
+        GameEvents.Player.OnFirstPersonViewStateChanged += HandleFirstPersonViewChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
-        GameEvents.Player.OnFirstPersonViewStateChanged -= HandleAimStateChanged;
+        GameEvents.Player.OnFirstPersonViewStateChanged -= HandleFirstPersonViewChanged;
         ClearAllCandidates();
     }
 
     private void Update()
     {
-        if (!isExplorationActive || isAiming) return;
+        if (!isExplorationActive || isFirstPersonView) return;
 
         EvaluateBestCandidate();
     }
@@ -81,7 +81,7 @@ public class PlayerInteractionDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!isExplorationActive || isAiming) return;
+        if (!isExplorationActive || isFirstPersonView) return;
 
         // 1. Layer Mask check
         if (((1 << other.gameObject.layer) & interactableLayer) == 0) return;
@@ -122,7 +122,7 @@ public class PlayerInteractionDetector : MonoBehaviour
     {
         isExplorationActive = (newState == GameManager.GameState.WorldExploration);
 
-        if (isExplorationActive && !isAiming)
+        if (isExplorationActive && !isFirstPersonView)
         {
             ReevaluateInteractionArea();
         }
@@ -132,11 +132,11 @@ public class PlayerInteractionDetector : MonoBehaviour
         }
     }
 
-    private void HandleAimStateChanged(bool aiming)
+    private void HandleFirstPersonViewChanged(bool active)
     {
-        isAiming = aiming;
+        isFirstPersonView = active;
 
-        if (isAiming)
+        if (isFirstPersonView)
         {
             ClearAllCandidates();
         }

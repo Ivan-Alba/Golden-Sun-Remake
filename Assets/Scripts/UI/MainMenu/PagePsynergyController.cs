@@ -803,11 +803,32 @@ public class PagePsynergyController : IDisposable
 
     private HeroStats GetHeroStatsByIdx(int index)
     {
-        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
+        if (_cachedActiveParty == null)
         {
-            return _cachedActiveParty[index]?.GetComponent<HeroStats>();
+            Debug.LogWarning("[PagePsynergyController] _cachedActiveParty is NULL! Event was likely missed.");
+            return null;
         }
-        return null;
+
+        if (index < 0 || index >= _cachedActiveParty.Count)
+        {
+            Debug.LogWarning($"[PagePsynergyController] Index {index} is out of bounds for party count: {_cachedActiveParty.Count}");
+            return null;
+        }
+
+        GameObject heroObj = _cachedActiveParty[index];
+        if (heroObj == null)
+        {
+            Debug.LogWarning($"[PagePsynergyController] GameObject at index {index} is null!");
+            return null;
+        }
+
+        HeroStats stats = heroObj.GetComponent<HeroStats>();
+        if (stats == null)
+        {
+            Debug.LogWarning($"[PagePsynergyController] GameObject '{heroObj.name}' does not have a HeroStats component attached!");
+        }
+
+        return stats;
     }
 
     public void CancelPsynergyTargeting()

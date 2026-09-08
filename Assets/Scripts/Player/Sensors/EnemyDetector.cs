@@ -13,9 +13,9 @@ public enum EncounterType
 }
 
 /// <summary>
-/// Detects physical contacts between the player and overworld enemies.
+/// Detects physical contacts between the player sensors and overworld enemies.
 /// Calculates encounter orientation advantages, plays impact feedback via GameEvents, 
-/// and initiates battle transitions cleanly without direct manager coupling.
+/// and initiates battle transitions cleanly.
 /// </summary>
 public class EnemyDetector : MonoBehaviour
 {
@@ -24,6 +24,10 @@ public class EnemyDetector : MonoBehaviour
     [Header("References")]
     [Tooltip("Optional reference to the root persistent Player GameObject. Auto-assigned in Awake if null.")]
     [SerializeField] private GameObject player;
+
+    [Header("Detection Configuration")]
+    [Tooltip("Layer mask specifying the Enemy layer(s).")]
+    [SerializeField] private LayerMask enemyLayerMask;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioClip audioCollision;
@@ -48,10 +52,16 @@ public class EnemyDetector : MonoBehaviour
 
     private void Awake()
     {
-        // Locate root persistent Player object once on Awake
+        // Locate root persistent Player object once on Awake (climbing up the hierarchy from Sensors)
         if (player == null && transform.root != null)
         {
             player = transform.root.gameObject;
+        }
+
+        // Defensive check to ensure a collider exists for trigger detection
+        if (!TryGetComponent<Collider>(out var col) || !col.isTrigger)
+        {
+            Debug.LogWarning($"[{nameof(EnemyDetector)}] Warning: No trigger collider found on {gameObject.name}. Enemy collision detection might fail!", this);
         }
     }
 
@@ -88,12 +98,13 @@ public class EnemyDetector : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (battleLaunched) return;
+        if (_cachedGameState != GameManager.GameState.WorldExploration) return;
 
-        // Clean validation: check for AI/Enemy component instead of string tag comparison
+        // 1. Filter strictly by LayerMask first (High performance & architectural consistency)
+        if (((1 << other.gameObject.layer) & enemyLayerMask) == 0) return;
+
+        // 2. Component validation
         if (!other.TryGetComponent<OverworldEnemyAI>(out _) && !other.TryGetComponent<EnemyStats>(out _))
-            return;
-
-        if (_cachedGameState != GameManager.GameState.WorldExploration)
             return;
 
         ExecuteEncounterTrigger(other);
@@ -114,8 +125,6 @@ public class EnemyDetector : MonoBehaviour
 
         // 2. Determine encounter type based on impact angle
         EncounterType encounterType = CalculateEncounterType(enemyCollider.transform);
-
-        Debug.Log($"Encounter Type: {encounterType}");
 
         // 3. Play collision sound via Audio events
         if (audioCollision != null)

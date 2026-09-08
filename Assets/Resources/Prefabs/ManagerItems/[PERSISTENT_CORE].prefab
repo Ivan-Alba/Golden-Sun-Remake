@@ -4714,6 +4714,7 @@ Transform:
   - {fileID: 6689745849218032598}
   - {fileID: 2529354617419248913}
   - {fileID: 3364061706925296293}
+  - {fileID: 8459378967306837171}
   m_Father: {fileID: 8459378967203041517}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &5388470505944884901
@@ -49507,7 +49508,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8459378965970709028}
-  - {fileID: 8459378967306837171}
   - {fileID: 8037381580445055636}
   m_Father: {fileID: 8459378967151069452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -51566,7 +51566,7 @@ GameObject:
   - component: {fileID: 8459378967306837167}
   - component: {fileID: 8459378967306837168}
   - component: {fileID: 8459378967306837169}
-  m_Layer: 2
+  m_Layer: 13
   m_Name: EnemyDetector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -51581,12 +51581,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378967306837172}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.769, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.76900005, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8459378967203041517}
+  m_Father: {fileID: 8037381580445055636}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8459378967306837167
 MeshFilter:
@@ -51615,10 +51615,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.4162418
-  m_Height: 2.1893842
+  m_Radius: 0.55234146
+  m_Height: 3.0785236
   m_Direction: 1
-  m_Center: {x: -0.008868049, y: 0.09469256, z: 0.008226282}
+  m_Center: {x: 0.0053100586, y: 0.66797924, z: -0.00947094}
 --- !u!114 &8459378967306837169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51632,6 +51632,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 8459378967203041518}
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 4096
   audioCollision: {fileID: 8300000, guid: 2d1fca9f906f6c347a912638feef7be6, type: 3}
   backstabAngleThreshold: 60
 --- !u!1 &8459378967307289664
