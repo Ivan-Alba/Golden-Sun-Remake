@@ -1,14 +1,23 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// Controls the main menu UI overlay, handling tab navigation (Status, Items, Psynergy, Djinn, Encyclopedia),
-/// hero selection, sub-page controllers lifecycle, and header data refresh.
-/// Reacts to decoupled input commands via GameEvents.Input, GameEvents.Party, GameEvents.GameState, and GameEvents.Economy.
+/// Interface contract for all modular main menu sub-page controllers.
+/// Ensures consistent lifecycle and data binding across status, items, psynergy, and djinn pages.
+/// </summary>
+public interface IMenuPageController : IDisposable
+{
+    void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex);
+    bool IsTargeting { get; }
+    void CancelTargeting();
+}
+
+/// <summary>
+/// Controls the main menu UI overlay, handling tab navigation, hero selection, 
+/// sub-page lifecycle management, and centralized global header refresh.
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
@@ -28,7 +37,7 @@ public class MainMenuController : MonoBehaviour
     #region Serialized & Private Fields
 
     [Header("UI Document Reference")]
-    private UIDocument uiDocument;
+    [SerializeField] private UIDocument uiDocument;
     private VisualElement rootElement;
 
     [Header("Page Assets")]
@@ -64,19 +73,14 @@ public class MainMenuController : MonoBehaviour
     // Content Area
     private VisualElement pageContent;
 
-    // Djinn Views Containers (Sister Elements in DOM)
+    // Djinn Views Containers
     private VisualElement djinnViewAContainer;
     private VisualElement djinnViewBContainer;
 
     // Bookmarks (Tabs)
-    private Button btnStatus;
-    private Button btnItems;
-    private Button btnPsynergy;
-    private Button btnDjinn;
-    private Button btnEncyclopedia;
     private readonly Dictionary<MenuTab, Button> bookmarkDictionary = new Dictionary<MenuTab, Button>();
 
-    // Hero Selection Header Cards
+    // Hero Selection Header Cards UI References & Cached Delegates
     private readonly Button[] btnHeroes = new Button[4];
     private readonly VisualElement[] imgHeroPortraits = new VisualElement[4];
     private readonly Label[] labelHeroNames = new Label[4];
@@ -86,11 +90,10 @@ public class MainMenuController : MonoBehaviour
     private readonly VisualElement[] barHeroHpFills = new VisualElement[4];
     private readonly VisualElement[] barHeroPpFills = new VisualElement[4];
 
-    // Page Controllers
-    private PageStatusController statusPageController;
-    private PageItemsController itemsPageController;
-    private PagePsynergyController psynergyPageController;
-    private PageDjinnController djinnPageController;
+    private readonly EventCallback<ClickEvent>[] heroClickCallbacks = new EventCallback<ClickEvent>[4];
+
+    // Active Sub-Page Controller
+    private IMenuPageController activePageController;
 
     // State Trackers
     private MenuTab currentTab = MenuTab.Status;
@@ -104,7 +107,6 @@ public class MainMenuController : MonoBehaviour
     private float _cachedPlayTime;
     private int _lastDisplayedSecond = -1;
 
-    // CSS Active Class Name (Matches MainMenu.uss)
     private const string ACTIVE_CLASS = "active";
 
     #endregion
@@ -113,7 +115,10 @@ public class MainMenuController : MonoBehaviour
 
     private void Awake()
     {
-        uiDocument = GetComponent<UIDocument>();
+        if (uiDocument == null)
+        {
+            uiDocument = GetComponent<UIDocument>();
+        }
     }
 
     private void OnEnable()
@@ -135,6 +140,8 @@ public class MainMenuController : MonoBehaviour
     {
         UnsubscribeFromInputEvents();
         UnregisterUICallbacks();
+        activePageController?.Dispose();
+        activePageController = null;
     }
 
     private void Update()
@@ -170,20 +177,13 @@ public class MainMenuController : MonoBehaviour
 
         pageContent = rootElement.Q<VisualElement>("page_content");
 
-        btnStatus = rootElement.Q<Button>("btn_status");
-        btnItems = rootElement.Q<Button>("btn_items");
-        btnPsynergy = rootElement.Q<Button>("btn_psynergy");
-        btnDjinn = rootElement.Q<Button>("btn_djinn");
-        btnEncyclopedia = rootElement.Q<Button>("btn_encyclopedia");
-
         bookmarkDictionary.Clear();
-        if (btnStatus != null) bookmarkDictionary.Add(MenuTab.Status, btnStatus);
-        if (btnItems != null) bookmarkDictionary.Add(MenuTab.Items, btnItems);
-        if (btnPsynergy != null) bookmarkDictionary.Add(MenuTab.Psynergy, btnPsynergy);
-        if (btnDjinn != null) bookmarkDictionary.Add(MenuTab.Djinn, btnDjinn);
-        if (btnEncyclopedia != null) bookmarkDictionary.Add(MenuTab.Encyclopedia, btnEncyclopedia);
+        AddBookmark(MenuTab.Status, "btn_status");
+        AddBookmark(MenuTab.Items, "btn_items");
+        AddBookmark(MenuTab.Psynergy, "btn_psynergy");
+        AddBookmark(MenuTab.Djinn, "btn_djinn");
+        AddBookmark(MenuTab.Encyclopedia, "btn_encyclopedia");
 
-        // Disable native focus on bookmark buttons to prevent UI Navigation conflicts with keyboard/gamepad
         foreach (var btn in bookmarkDictionary.Values)
         {
             if (btn != null) btn.focusable = false;
@@ -192,14 +192,9 @@ public class MainMenuController : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             btnHeroes[i] = rootElement.Q<Button>($"btn_hero{i}");
-            if (btnHeroes[i] != null)
-            {
-                btnHeroes[i].focusable = false; // Disable native focus on hero cards
-            }
+            if (btnHeroes[i] != null) btnHeroes[i].focusable = false;
 
-            imgHeroPortraits[i] = rootElement.Q<VisualElement>($"header_hero_portrait_{i}")
-                                ?? btnHeroes[i]?.Q<VisualElement>(className: "header-hero-portrait");
-
+            imgHeroPortraits[i] = rootElement.Q<VisualElement>($"header_hero_portrait_{i}") ?? btnHeroes[i]?.Q<VisualElement>(className: "header-hero-portrait");
             labelHeroNames[i] = rootElement.Q<Label>($"label_hero_name_{i}");
             labelHeroLevels[i] = rootElement.Q<Label>($"label_hero_level_{i}");
             labelHeroHpVals[i] = rootElement.Q<Label>($"label_hero_hp_val_{i}");
@@ -209,33 +204,42 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
+    private void AddBookmark(MenuTab tab, string elementName)
+    {
+        Button btn = rootElement.Q<Button>(elementName);
+        if (btn != null) bookmarkDictionary.Add(tab, btn);
+    }
+
     private void RegisterUICallbacks()
     {
-        btnStatus?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Status));
-        btnItems?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Items));
-        btnPsynergy?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Psynergy));
-        btnDjinn?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Djinn));
-        btnEncyclopedia?.RegisterCallback<ClickEvent>(e => SelectTab(MenuTab.Encyclopedia));
+        foreach (var kvp in bookmarkDictionary)
+        {
+            MenuTab tab = kvp.Key;
+            kvp.Value?.RegisterCallback<ClickEvent>(e => SelectTab(tab));
+        }
 
         for (int i = 0; i < btnHeroes.Length; i++)
         {
             int index = i;
-            btnHeroes[i]?.RegisterCallback<ClickEvent>(e => SelectHero(index));
+            heroClickCallbacks[i] = e => SelectHero(index);
+            btnHeroes[i]?.RegisterCallback(heroClickCallbacks[i]);
         }
     }
 
     private void UnregisterUICallbacks()
     {
-        btnStatus?.UnregisterCallback<ClickEvent>(e => SelectTab(MenuTab.Status));
-        btnItems?.UnregisterCallback<ClickEvent>(e => SelectTab(MenuTab.Items));
-        btnPsynergy?.UnregisterCallback<ClickEvent>(e => SelectTab(MenuTab.Psynergy));
-        btnDjinn?.UnregisterCallback<ClickEvent>(e => SelectTab(MenuTab.Djinn));
-        btnEncyclopedia?.UnregisterCallback<ClickEvent>(e => SelectTab(MenuTab.Encyclopedia));
+        foreach (var kvp in bookmarkDictionary)
+        {
+            MenuTab tab = kvp.Key;
+            kvp.Value?.UnregisterCallback<ClickEvent>(e => SelectTab(tab));
+        }
 
         for (int i = 0; i < btnHeroes.Length; i++)
         {
-            int index = i;
-            btnHeroes[i]?.UnregisterCallback<ClickEvent>(e => SelectHero(index));
+            if (btnHeroes[i] != null && heroClickCallbacks[i] != null)
+            {
+                btnHeroes[i].UnregisterCallback(heroClickCallbacks[i]);
+            }
         }
     }
 
@@ -284,7 +288,7 @@ public class MainMenuController : MonoBehaviour
         if (isMenuOpen)
         {
             RefreshGlobalHeaderInfo();
-            RefreshActiveTabHeroData();
+            activePageController?.PopulateData(_cachedActiveParty, selectedHeroIndex);
         }
     }
 
@@ -308,7 +312,7 @@ public class MainMenuController : MonoBehaviour
         }
         else
         {
-            SetMenuVisibility(false);
+            HandleCancelInput();
         }
     }
 
@@ -316,9 +320,9 @@ public class MainMenuController : MonoBehaviour
     {
         if (!isMenuOpen) return;
 
-        if (itemsPageController != null && itemsPageController.IsTargetingItem)
+        if (activePageController != null && activePageController.IsTargeting)
         {
-            itemsPageController.CancelItemTargeting();
+            activePageController.CancelTargeting();
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
             return;
         }
@@ -326,11 +330,34 @@ public class MainMenuController : MonoBehaviour
         SetMenuVisibility(false);
     }
 
-    private void HandleNextTab() => CycleTab(1);
-    private void HandlePreviousTab() => CycleTab(-1);
+    private void HandleNextTab()
+    {
+        if (IsAnySubPageTargeting()) return;
+        CycleTab(1);
+    }
 
-    private void HandleNextHero() => CycleHero(1);
-    private void HandlePreviousHero() => CycleHero(-1);
+    private void HandlePreviousTab()
+    {
+        if (IsAnySubPageTargeting()) return;
+        CycleTab(-1);
+    }
+
+    private void HandleNextHero()
+    {
+        if (IsAnySubPageTargeting()) return;
+        CycleHero(1);
+    }
+
+    private void HandlePreviousHero()
+    {
+        if (IsAnySubPageTargeting()) return;
+        CycleHero(-1);
+    }
+
+    private bool IsAnySubPageTargeting()
+    {
+        return activePageController != null && activePageController.IsTargeting;
+    }
 
     #endregion
 
@@ -346,17 +373,14 @@ public class MainMenuController : MonoBehaviour
         if (visible)
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
-
             _lastDisplayedSecond = -1;
 
-            // Fetch current play time via callback once upon opening menu
             GameEvents.GameState.RequestPlayTime(time =>
             {
                 _cachedPlayTime = time;
                 UpdatePlayTimeText();
             });
 
-            // Fetch current gold via callback if opening fresh
             GameEvents.Party.RequestGold(gold =>
             {
                 _cachedGold = gold;
@@ -369,21 +393,24 @@ public class MainMenuController : MonoBehaviour
         else
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
-
-            itemsPageController?.CancelItemTargeting();
-            psynergyPageController?.CancelPsynergyTargeting();
+            activePageController?.CancelTargeting();
+            activePageController?.Dispose();
+            activePageController = null;
         }
     }
 
     public void SelectTab(MenuTab tab, bool playSound = true)
     {
+        if (IsAnySubPageTargeting()) return;
+
         if (playSound && currentTab != tab)
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
         }
 
-        itemsPageController?.CancelItemTargeting();
-        psynergyPageController?.CancelPsynergyTargeting();
+        activePageController?.CancelTargeting();
+        activePageController?.Dispose();
+        activePageController = null;
 
         currentTab = tab;
 
@@ -400,11 +427,7 @@ public class MainMenuController : MonoBehaviour
 
     public void SelectHero(int heroIndex)
     {
-        if ((itemsPageController != null && itemsPageController.IsTargetingItem) ||
-            (psynergyPageController != null && psynergyPageController.IsTargetingPsynergy))
-        {
-            return;
-        }
+        if (IsAnySubPageTargeting()) return;
 
         List<HeroStats> party = GetPartyHeroStatsList();
         int targetIndex = 0;
@@ -426,7 +449,7 @@ public class MainMenuController : MonoBehaviour
 
     private void CycleHero(int direction)
     {
-        if (!IsHeroSelectorVisible()) return;
+        if (!IsHeroSelectorVisible() || IsAnySubPageTargeting()) return;
 
         List<HeroStats> party = GetPartyHeroStatsList();
         if (party == null || party.Count <= 1) return;
@@ -440,7 +463,6 @@ public class MainMenuController : MonoBehaviour
         foreach (var kvp in bookmarkDictionary)
         {
             if (kvp.Value == null) continue;
-
             bool isCurrent = (kvp.Key == currentTab);
             kvp.Value.EnableInClassList(ACTIVE_CLASS, isCurrent);
         }
@@ -451,7 +473,6 @@ public class MainMenuController : MonoBehaviour
         for (int i = 0; i < btnHeroes.Length; i++)
         {
             if (btnHeroes[i] == null) continue;
-
             bool isSelected = (i == selectedHeroIndex);
             btnHeroes[i].EnableInClassList(ACTIVE_CLASS, isSelected);
         }
@@ -459,6 +480,7 @@ public class MainMenuController : MonoBehaviour
 
     private void CycleTab(int direction)
     {
+        if (IsAnySubPageTargeting()) return;
         int totalTabs = Enum.GetValues(typeof(MenuTab)).Length;
         int nextTab = ((int)currentTab + direction + totalTabs) % totalTabs;
         SelectTab((MenuTab)nextTab);
@@ -478,10 +500,8 @@ public class MainMenuController : MonoBehaviour
         if (pageContent == null) return;
 
         pageContent.Clear();
-        statusPageController = null;
-        itemsPageController = null;
-        psynergyPageController = null;
-        djinnPageController = null;
+        activePageController?.Dispose();
+        activePageController = null;
 
         switch (tab)
         {
@@ -511,8 +531,9 @@ public class MainMenuController : MonoBehaviour
         statusInstance.style.flexGrow = 1;
         pageContent.Add(statusInstance);
 
-        statusPageController = new PageStatusController(statusInstance);
-        statusPageController.PopulateData(GetPartyHeroStatsList());
+        var pageController = new PageStatusController(statusInstance);
+        pageController.PopulateData(_cachedActiveParty, selectedHeroIndex);
+        activePageController = pageController;
     }
 
     private void LoadItemsPage()
@@ -523,23 +544,16 @@ public class MainMenuController : MonoBehaviour
         itemsInstance.style.flexGrow = 1;
         pageContent.Add(itemsInstance);
 
-        itemsPageController = new PageItemsController(itemsInstance);
-        itemsPageController.SetParty(GetPartyHeroStatsList());
-        itemsPageController.SetExtraInfoTemplates(
-            templateInfoConsumable,
-            templateInfoEquipable,
-            templateInfoWeapon,
-            templateInfoPsynergyRelic,
-            templateInfoKeyItem
-        );
+        var pageController = new PageItemsController(itemsInstance);
 
-        itemsPageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
+        // AQUÍ ESTABA FALTANDO ASIGNAR EL TEMPLATE DEL SLOT DE ITEMS:
+        pageController.SetItemSlotAsset(itemSlotAsset);
 
-        HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
-        HeroInventory selectedHeroInventory = GetPartyMemberComponent<HeroInventory>(selectedHeroIndex);
-        HeroEquipment selectedHeroEquipment = GetPartyMemberComponent<HeroEquipment>(selectedHeroIndex);
+        pageController.SetExtraInfoTemplates(templateInfoConsumable, templateInfoEquipable, templateInfoWeapon, templateInfoPsynergyRelic, templateInfoKeyItem);
+        pageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
 
-        itemsPageController.PopulateData(selectedHeroStats, selectedHeroInventory, selectedHeroEquipment, itemSlotAsset);
+        pageController.PopulateData(_cachedActiveParty, selectedHeroIndex);
+        activePageController = pageController;
     }
 
     private void LoadPsynergyPage()
@@ -550,13 +564,12 @@ public class MainMenuController : MonoBehaviour
         psynergyInstance.style.flexGrow = 1;
         pageContent.Add(psynergyInstance);
 
-        psynergyPageController = new PagePsynergyController(psynergyInstance);
-        psynergyPageController.OnPsynergyUsedOnHero += RefreshHeaderHeroCards;
+        var pageController = new PagePsynergyController(psynergyInstance);
+        pageController.SetPsynergyCardTemplate(psynergyCardAsset);
+        pageController.OnPsynergyUsedOnHero += RefreshHeaderHeroCards;
 
-        HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
-        GameObject selectedHeroObj = GetPartyMemberGameObject(selectedHeroIndex);
-
-        psynergyPageController.PopulateData(selectedHeroStats, selectedHeroObj, psynergyCardAsset);
+        pageController.PopulateData(_cachedActiveParty, selectedHeroIndex);
+        activePageController = pageController;
     }
 
     private void LoadDjinnPage()
@@ -577,17 +590,16 @@ public class MainMenuController : MonoBehaviour
         djinnViewAContainer = instanceA;
         djinnViewBContainer = instanceB;
 
-        djinnPageController = new PageDjinnController(instanceA, instanceB);
-        djinnPageController.SetParty(GetPartyHeroStatsList());
-        djinnPageController.SetTemplates(psynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
-        djinnPageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
+        var pageController = new PageDjinnController(instanceA, instanceB);
+        pageController.SetTemplates(psynergyCardAsset, djinnSlotCardAAsset, djinnSlotCardBAsset);
+        pageController.SetTargetIcons(targetSingleIcon, targetGroupIcon);
 
-        djinnPageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
-        djinnPageController.OnToggleTopHeroesBar += SetHeaderHeroesBarVisibility;
-        djinnPageController.OnRequestViewChange += HandleDjinnViewChange;
+        pageController.OnDjinnStateChanged += RefreshHeaderHeroCards;
+        pageController.OnToggleTopHeroesBar += SetHeaderHeroesBarVisibility;
+        pageController.OnRequestViewChange += HandleDjinnViewChange;
 
-        HeroStats selectedHeroStats = GetPartyMemberComponent<HeroStats>(selectedHeroIndex);
-        djinnPageController.PopulateData(selectedHeroStats);
+        pageController.PopulateData(_cachedActiveParty, selectedHeroIndex);
+        activePageController = pageController;
     }
 
     private void SetHeaderHeroesBarVisibility(bool visible)
@@ -615,13 +627,12 @@ public class MainMenuController : MonoBehaviour
 
     private void LoadEncyclopediaPage()
     {
-        // TODO: Render Encyclopedia / Bestiary sub-page once UI Toolkit asset is created
+        activePageController = null;
     }
 
     private void RefreshActiveTabHeroData()
     {
         if (!IsHeroSelectorVisible()) return;
-
         LoadTabContent(currentTab);
     }
 
@@ -643,28 +654,6 @@ public class MainMenuController : MonoBehaviour
             }
         }
         return partyHeroStats;
-    }
-
-    private T GetPartyMemberComponent<T>(int index) where T : Component
-    {
-        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
-        {
-            GameObject memberObj = _cachedActiveParty[index];
-            if (memberObj != null && memberObj.TryGetComponent<T>(out T component))
-            {
-                return component;
-            }
-        }
-        return null;
-    }
-
-    private GameObject GetPartyMemberGameObject(int index)
-    {
-        if (_cachedActiveParty != null && index >= 0 && index < _cachedActiveParty.Count)
-        {
-            return _cachedActiveParty[index];
-        }
-        return null;
     }
 
     #endregion

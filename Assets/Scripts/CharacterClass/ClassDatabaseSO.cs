@@ -59,7 +59,7 @@ public class ClassDatabaseSO : ScriptableObject
         // Auto-sort entries by priority descending to optimize evaluation loops in runtime
         if (classEntries != null && classEntries.Count > 1)
         {
-            classEntries.Sort((a, b) => b.priority.CompareTo(a.priority));
+            classEntries.Sort((a, b) => b.baseElement.CompareTo(a.baseElement));
         }
     }
 #endif

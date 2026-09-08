@@ -83,9 +83,9 @@ public struct PendingSplitTransaction
 
 /// <summary>
 /// Controller for the Main Menu Inventory & Equipment Page UI.
-/// Manages drag and drop interactions, equipment slots, item details, and listens to GameEvents.Hero.
+/// Manages drag and drop interactions, equipment slots, item details, and implements IMenuPageController.
 /// </summary>
-public class PageItemsController : IDisposable
+public class PageItemsController : IMenuPageController
 {
     #region Events & Properties
 
@@ -97,8 +97,9 @@ public class PageItemsController : IDisposable
 
     /// <summary>
     /// Indicates if an item is currently active in targeting mode for usage on a hero.
+    /// Implements IMenuPageController contract.
     /// </summary>
-    public bool IsTargetingItem => isTargetingItem;
+    public bool IsTargeting => isTargetingItem;
 
     #endregion
 
@@ -130,6 +131,7 @@ public class PageItemsController : IDisposable
     private VisualTreeAsset templateInfoWeapon;
     private VisualTreeAsset templateInfoPsynergyRelic;
     private VisualTreeAsset templateInfoKeyItem;
+    private VisualTreeAsset itemSlotAssetTemplate;
 
     // Stack Splitter Overlay Popup Elements
     private VisualElement splitPopupOverlay;
@@ -146,20 +148,20 @@ public class PageItemsController : IDisposable
     private PendingSplitTransaction pendingSplit;
 
     // Fixed Equipment Slots (7 Slots)
-    private VisualElement[] gearSlots = new VisualElement[7];
+    private readonly VisualElement[] gearSlots = new VisualElement[7];
 
     // Fixed Psynergy Relic Slots (4 Slots)
-    private VisualElement[] relicSlots = new VisualElement[4];
+    private readonly VisualElement[] relicSlots = new VisualElement[4];
 
     // Inventory Slots Cache
-    private List<VisualElement> spawnedInventorySlots = new List<VisualElement>();
-    private List<VisualElement> spawnedGlobalBagSlots = new List<VisualElement>();
+    private readonly List<VisualElement> spawnedInventorySlots = new List<VisualElement>();
+    private readonly List<VisualElement> spawnedGlobalBagSlots = new List<VisualElement>();
 
     // Callback Memory tracking to prevent duplicate listener accumulation
-    private Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
+    private readonly Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
 
-    // Party Data Source
-    private List<HeroStats> partyHeroes = new List<HeroStats>();
+    // Party Data Source Cache
+    private IReadOnlyList<GameObject> cachedActiveParty;
 
     // Current Focused Data Sources
     private HeroStats currentHero;
@@ -180,7 +182,7 @@ public class PageItemsController : IDisposable
     private float lastClickTime = 0f;
     private int lastClickSlotIndex = -1;
     private DragSourceType lastClickSourceType;
-    private const float DOUBLE_CLICK_TIME_THRESHOLD = 0.3f; // 300 ms double-click window
+    private const float DOUBLE_CLICK_TIME_THRESHOLD = 0.3f;
 
     // Item Targeting State Tracking
     private bool isTargetingItem = false;
@@ -195,22 +197,22 @@ public class PageItemsController : IDisposable
     // Equipment slot type mapping matching gearSlots[0..6] indices
     private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
     {
-        EquipmentSlot.Weapon,    // gearSlots[0] -> slot_weapon
-        EquipmentSlot.Shield,    // gearSlots[1] -> slot_shield
-        EquipmentSlot.Armor,     // gearSlots[2] -> slot_armor
-        EquipmentSlot.Helmet,    // gearSlots[3] -> slot_helm
-        EquipmentSlot.Hands,     // gearSlots[4] -> slot_hands
-        EquipmentSlot.Boots,     // gearSlots[5] -> slot_boots
-        EquipmentSlot.Accessory  // gearSlots[6] -> slot_acc
+        EquipmentSlot.Weapon,
+        EquipmentSlot.Shield,
+        EquipmentSlot.Armor,
+        EquipmentSlot.Helmet,
+        EquipmentSlot.Hands,
+        EquipmentSlot.Boots,
+        EquipmentSlot.Accessory
     };
 
     // Slot Dimension Constants for Layout Calculations
     private const float SLOT_SIZE = 80f;
-    private const float SLOT_MARGIN_TOTAL = 6f; // 3px left + 3px right (matches .slot-box margin: 3px)
+    private const float SLOT_MARGIN_TOTAL = 6f;
 
     #endregion
 
-    #region Constructor & Disposal
+    #region Constructor & IMenuPageController Implementation
 
     public PageItemsController(VisualElement root)
     {
@@ -220,14 +222,67 @@ public class PageItemsController : IDisposable
         SubscribeToGlobalEvents();
     }
 
+    public void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex)
+    {
+        cachedActiveParty = activeParty;
+
+        if (activeParty != null && selectedHeroIndex >= 0 && selectedHeroIndex < activeParty.Count)
+        {
+            GameObject heroObj = activeParty[selectedHeroIndex];
+            if (heroObj != null)
+            {
+                currentHero = heroObj.GetComponent<HeroStats>();
+                currentInventory = heroObj.GetComponent<HeroInventory>();
+                currentEquipment = heroObj.GetComponent<HeroEquipment>();
+            }
+        }
+
+        UpdateHeaderHeroInfo();
+
+        int personalCapacity = (currentInventory != null) ? currentInventory.MaxBackpackSlots : 18;
+        int columns = Mathf.CeilToInt(personalCapacity / 3.0f);
+        int globalCapacity = columns * 2;
+
+        PopulateInventoryGrid(personalCapacity, columns, itemSlotAssetTemplate);
+        PopulateGlobalBagGrid(globalCapacity, columns, itemSlotAssetTemplate);
+
+        RefreshAllData();
+        ClearInfoPanel();
+    }
+
+    public void CancelTargeting()
+    {
+        CancelItemTargeting();
+    }
+
     public void Dispose()
     {
         UnsubscribeFromGlobalEvents();
+        CancelItemTargeting();
+        RemoveGhostElement();
+        CloseSplitModal();
+
+        foreach (var slotUI in spawnedInventorySlots)
+        {
+            UnregisterPointerCallbacks(slotUI);
+        }
+        spawnedInventorySlots.Clear();
+
+        foreach (var slotUI in spawnedGlobalBagSlots)
+        {
+            UnregisterPointerCallbacks(slotUI);
+        }
+        spawnedGlobalBagSlots.Clear();
+
+        rootElement = null;
+        currentHero = null;
+        currentInventory = null;
+        currentEquipment = null;
     }
 
     #endregion
 
-    #region Event Subscriptions
+    #region Event Subscriptions (Reliable Event-Driven Pattern)
 
     private void SubscribeToGlobalEvents()
     {
@@ -241,6 +296,7 @@ public class PageItemsController : IDisposable
 
     private void HandleHeroEquipmentChanged(GameObject heroObj)
     {
+        // Refresh UI only if the equipment change belongs to the currently inspected hero
         if (currentHero != null && heroObj == currentHero.gameObject)
         {
             RefreshAllData();
@@ -249,7 +305,7 @@ public class PageItemsController : IDisposable
 
     #endregion
 
-    #region Helper Methods for Global Panel Access
+    #region Configuration Helpers
 
     public void SetExtraInfoTemplates(
         VisualTreeAsset consumableTpl,
@@ -263,6 +319,11 @@ public class PageItemsController : IDisposable
         templateInfoWeapon = weaponTpl;
         templateInfoPsynergyRelic = relicTpl;
         templateInfoKeyItem = keyItemTpl;
+    }
+
+    public void SetItemSlotAsset(VisualTreeAsset slotAsset)
+    {
+        itemSlotAssetTemplate = slotAsset;
     }
 
     private VisualElement GetTopRootElement()
@@ -365,30 +426,6 @@ public class PageItemsController : IDisposable
     #endregion
 
     #region Data Population & Initialization
-
-    public void SetParty(List<HeroStats> party)
-    {
-        partyHeroes = party ?? new List<HeroStats>();
-    }
-
-    public void PopulateData(HeroStats hero, HeroInventory inventory, HeroEquipment equipment, VisualTreeAsset itemSlotAsset)
-    {
-        currentHero = hero;
-        currentInventory = inventory;
-        currentEquipment = equipment;
-
-        UpdateHeaderHeroInfo();
-
-        int personalCapacity = (currentInventory != null) ? currentInventory.MaxBackpackSlots : 18;
-        int columns = Mathf.CeilToInt(personalCapacity / 3.0f);
-        int globalCapacity = columns * 2;
-
-        PopulateInventoryGrid(personalCapacity, columns, itemSlotAsset);
-        PopulateGlobalBagGrid(globalCapacity, columns, itemSlotAsset);
-
-        RefreshAllData();
-        ClearInfoPanel();
-    }
 
     private void UpdateHeaderHeroInfo()
     {
@@ -823,7 +860,6 @@ public class PageItemsController : IDisposable
     {
         if (item == null) return;
 
-        // 1. Actions from Personal Inventory
         if (sourceType == DragSourceType.PersonalInventory)
         {
             if (item is EquipableSO equipable)
@@ -864,7 +900,6 @@ public class PageItemsController : IDisposable
                 StartItemTargeting(slotIndex, item);
             }
         }
-        // 2. Actions from Standard Gear Slots
         else if (sourceType == DragSourceType.Equipment)
         {
             if (currentEquipment == null || currentInventory == null) return;
@@ -888,7 +923,6 @@ public class PageItemsController : IDisposable
                 }
             }
         }
-        // 3. Actions from Relic Slots
         else if (sourceType == DragSourceType.Relic)
         {
             if (currentEquipment == null || currentInventory == null) return;
@@ -1019,9 +1053,13 @@ public class PageItemsController : IDisposable
 
     private HeroStats GetHeroStatsByIdx(int index)
     {
-        if (partyHeroes != null && index >= 0 && index < partyHeroes.Count)
+        if (cachedActiveParty != null && index >= 0 && index < cachedActiveParty.Count)
         {
-            return partyHeroes[index];
+            GameObject heroObj = cachedActiveParty[index];
+            if (heroObj != null)
+            {
+                return heroObj.GetComponent<HeroStats>();
+            }
         }
         return null;
     }
@@ -1060,7 +1098,7 @@ public class PageItemsController : IDisposable
         }
     }
 
-    public void CancelItemTargeting()
+    private void CancelItemTargeting()
     {
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
@@ -1186,7 +1224,7 @@ public class PageItemsController : IDisposable
         return false;
     }
 
-    private VisualElement FindParentMatching(VisualElement element, System.Predicate<VisualElement> predicate)
+    private VisualElement FindParentMatching(VisualElement element, Predicate<VisualElement> predicate)
     {
         VisualElement current = element;
         while (current != null)
@@ -1391,7 +1429,7 @@ public class PageItemsController : IDisposable
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
             {
-                Debug.LogWarning($"[PageItems] Cannot transfer item to {targetHeroInv.gameObject.name}. Backpack is full!");
+                Debug.LogWarning($"[PageItems] Cannot transfer item to target backpack. Backpack is full!");
                 return;
             }
 
@@ -1423,7 +1461,7 @@ public class PageItemsController : IDisposable
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
             {
-                Debug.LogWarning($"[PageItems] Cannot transfer equipped item to {targetHeroInv.gameObject.name}. Target backpack full!");
+                Debug.LogWarning($"[PageItems] Cannot transfer equipped item to target backpack. Target backpack full!");
                 return;
             }
 
@@ -1450,9 +1488,13 @@ public class PageItemsController : IDisposable
 
     private HeroInventory GetHeroInventoryByIdx(int index)
     {
-        if (partyHeroes != null && index >= 0 && index < partyHeroes.Count)
+        if (cachedActiveParty != null && index >= 0 && index < cachedActiveParty.Count)
         {
-            return partyHeroes[index]?.GetComponent<HeroInventory>();
+            GameObject heroObj = cachedActiveParty[index];
+            if (heroObj != null)
+            {
+                return heroObj.GetComponent<HeroInventory>();
+            }
         }
         return null;
     }
@@ -1879,13 +1921,13 @@ public class PageItemsController : IDisposable
             VisualElement badgeMenuUse = instance.Q<VisualElement>("badge_menu_use");
             if (badgeMenuUse != null)
             {
-                badgeBattleUseClassToggle(badgeMenuUse, consumable.UseInMenu);
+                BadgeBattleUseClassToggle(badgeMenuUse, consumable.UseInMenu);
             }
 
             VisualElement badgeBattleUse = instance.Q<VisualElement>("badge_battle_use");
             if (badgeBattleUse != null)
             {
-                badgeBattleUseClassToggle(badgeBattleUse, consumable.UseInBattle);
+                BadgeBattleUseClassToggle(badgeBattleUse, consumable.UseInBattle);
             }
 
             VisualElement effectsContainer = instance.Q<VisualElement>("effects_list_container");
@@ -1990,7 +2032,7 @@ public class PageItemsController : IDisposable
         container.Add(row);
     }
 
-    private void badgeBattleUseClassToggle(VisualElement elem, bool active)
+    private void BadgeBattleUseClassToggle(VisualElement elem, bool active)
     {
         elem.RemoveFromClassList("badge-active");
         elem.RemoveFromClassList("badge-inactive");

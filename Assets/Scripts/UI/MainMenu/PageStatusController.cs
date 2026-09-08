@@ -2,34 +2,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class PageStatusController
+/// <summary>
+/// Controls the main menu Status sub-page, rendering a global summary view 
+/// of all active party members' stats, levels, elemental pips, and main Djinn configuration.
+/// Implements IMenuPageController for unified lifecycle integration.
+/// </summary>
+public class PageStatusController : IMenuPageController
 {
+    #region Private Fields
+
     private VisualElement rootContainer;
-    private VisualElement[] heroCards = new VisualElement[4];
+    private readonly VisualElement[] heroCards = new VisualElement[4];
 
-    public PageStatusController(VisualElement root)
-    {
-        rootContainer = root;
-        BindCards();
-    }
+    #endregion
 
-    private void BindCards()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            heroCards[i] = rootContainer.Q<VisualElement>($"hero_card_{i}");
-        }
-    }
-
-    #region Data Population
+    #region Interface Properties & Implementation
 
     /// <summary>
-    /// Populates party status cards with actual data from active hero party members.
-    /// Uses live calculated properties provided by HeroStats via StatCalculator.
+    /// Status page is purely informational and never enters targeting mode.
     /// </summary>
-    /// <param name="partyMembers">List of party member HeroStats.</param>
-    public void PopulateData(List<HeroStats> partyMembers)
+    public bool IsTargeting => false;
+
+    /// <summary>
+    /// Populates party status cards using the centralized active party GameObjects list.
+    /// </summary>
+    public void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex)
     {
+        List<HeroStats> partyMembers = ExtractHeroStatsList(activeParty);
         int partyCount = partyMembers != null ? partyMembers.Count : 0;
 
         for (int i = 0; i < 4; i++)
@@ -48,6 +47,57 @@ public class PageStatusController
         }
     }
 
+    public void CancelTargeting()
+    {
+        // Status page does not support targeting operations, nothing to cancel.
+    }
+
+    public void Dispose()
+    {
+        // Clean up references when page is closed or disposed.
+        rootContainer = null;
+    }
+
+    #endregion
+
+    #region Constructor & Binding
+
+    public PageStatusController(VisualElement root)
+    {
+        rootContainer = root;
+        BindCards();
+    }
+
+    private void BindCards()
+    {
+        if (rootContainer == null) return;
+
+        for (int i = 0; i < 4; i++)
+        {
+            heroCards[i] = rootContainer.Q<VisualElement>($"hero_card_{i}");
+        }
+    }
+
+    private List<HeroStats> ExtractHeroStatsList(IReadOnlyList<GameObject> activeParty)
+    {
+        List<HeroStats> partyStats = new List<HeroStats>();
+        if (activeParty != null)
+        {
+            foreach (GameObject memberObj in activeParty)
+            {
+                if (memberObj != null && memberObj.TryGetComponent<HeroStats>(out HeroStats heroStats))
+                {
+                    partyStats.Add(heroStats);
+                }
+            }
+        }
+        return partyStats;
+    }
+
+    #endregion
+
+    #region Data Population & Card Rendering
+
     private void FillCardData(int index, HeroStats stats)
     {
         VisualElement card = heroCards[index];
@@ -55,8 +105,7 @@ public class PageStatusController
 
         HeroDjinnController djinnController = stats.GetComponent<HeroDjinnController>();
 
-        // --- 1. HEADER SECTION (Instanced HeroSummaryHeader) ---
-        // English comment: Direct queries targeting the elements inside the HeroSummaryHeader component template instance.
+        // --- 1. HEADER SECTION (Hero Avatar, Name, Level, Exp, Class) ---
         var portrait = card.Q<VisualElement>("hero_avatar_icon");
         if (portrait != null && stats.TurnBarImage != null)
         {
@@ -111,12 +160,10 @@ public class PageStatusController
             ppBar.value = Mathf.Clamp01((float)stats.CurrPp / stats.MaxPp) * 100f;
         }
 
-        // --- 3. MAIN STATS GRID (2x2) ---
-        // English comment: Reads live calculated core stats from HeroStats overrides.
+        // --- 3. MAIN STATS GRID (2x2 Core Attributes) ---
         SetStatGridValue(card, stats);
 
         // --- 4. ELEMENTAL AFFINITY TABLE ---
-        // English comment: Reads live calculated elemental powers and resistances from HeroStats overrides.
         SetElementGridValue(card, stats);
 
         // --- 5. MAIN DJINN SECTION ---
@@ -125,7 +172,6 @@ public class PageStatusController
 
     private void PopulateElementPips(VisualElement card, HeroDjinnController djinnController)
     {
-        // English comment: Direct queries targeting the pip count labels inside the template instance.
         var labelVenus = card.Q<Label>("label_pip_venus");
         var labelMars = card.Q<Label>("label_pip_mars");
         var labelJupiter = card.Q<Label>("label_pip_jupiter");
@@ -138,7 +184,6 @@ public class PageStatusController
 
         if (djinnController != null)
         {
-            // English comment: Query counts directly using HeroDjinnController API helpers.
             venusSet = djinnController.GetSetCountByElement(ElementalType.Venus);
             venusTotal = djinnController.GetTotalCountByElement(ElementalType.Venus);
 
@@ -185,7 +230,6 @@ public class PageStatusController
 
             UpdateDjinnElementStyles(djinnBody, djinnElementIcon, data.Element);
 
-            // English comment: Check if Leader Djinn defines at least one valid passive status effect application.
             bool hasLeaderPassive = false;
             if (data.LeaderPassiveEffects != null && data.LeaderPassiveEffects.Count > 0)
             {

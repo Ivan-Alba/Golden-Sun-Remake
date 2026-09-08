@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 
 public enum DjinnViewMode
 {
-    Individual, // Vista A
-    Global      // Vista B
+    Individual, // View A
+    Global      // View B
 }
 
 public enum PsynergyCardState
@@ -18,7 +18,7 @@ public enum PsynergyCardState
     Locked      // Placeholder locked with level requirement
 }
 
-#region Drag & Drop Data Structures (Vista B)
+#region Drag & Drop Data Structures (View B)
 
 public class DjinnDragContext
 {
@@ -50,13 +50,24 @@ public struct DjinnDropTargetInfo
 
 #endregion
 
-public class PageDjinnController
+/// <summary>
+/// Controller for the Main Menu Djinn Page UI.
+/// Manages individual stats/djinn management (View A) and global party-wide drag-and-drop organization (View B).
+/// Implements IMenuPageController.
+/// </summary>
+public class PageDjinnController : IMenuPageController
 {
-    #region Events
+    #region Events & Properties
 
     public event Action OnDjinnStateChanged;
     public event Action<bool> OnToggleTopHeroesBar;
     public event Action<DjinnViewMode> OnRequestViewChange;
+
+    /// <summary>
+    /// Indicates if a targeting operation is active. Always false for Djinn page.
+    /// Implements IMenuPageController contract.
+    /// </summary>
+    public bool IsTargeting => false;
 
     #endregion
 
@@ -172,6 +183,7 @@ public class PageDjinnController
     private List<HeroStats> partyHeroes = new List<HeroStats>();
     private HeroStats currentHero;
     private HeroDjinnController currentHeroDjinnController;
+    private int selectedHeroIndexCache = 0;
 
     private VisualTreeAsset psynergyCardAsset;
     private VisualTreeAsset djinnSlotCardAAsset;
@@ -186,7 +198,7 @@ public class PageDjinnController
 
     #endregion
 
-    #region Private Fields - Drag & Drop System (Vista B - Pattern Items)
+    #region Private Fields - Drag & Drop System (View B)
 
     private DjinnDragContext currentDragContext;
     private VisualElement ghostElement;
@@ -266,7 +278,6 @@ public class PageDjinnController
     private ModalHeroPanelUI modalLeftUI;
     private ModalHeroPanelUI modalRightUI;
 
-    // Center Action Box Elements
     private VisualElement compareCenterActionBox;
     private Label labelCompareTitle;
     private VisualElement compareExchangeVisual;
@@ -281,7 +292,7 @@ public class PageDjinnController
 
     #endregion
 
-    #region Constructor
+    #region Constructor & IMenuPageController Implementation
 
     public PageDjinnController(VisualElement viewA, VisualElement viewB)
     {
@@ -290,6 +301,84 @@ public class PageDjinnController
 
         BindUIElements();
         BindEvents();
+    }
+
+    public void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex)
+    {
+        partyHeroes.Clear();
+        if (activeParty != null)
+        {
+            foreach (var heroObj in activeParty)
+            {
+                if (heroObj != null)
+                {
+                    HeroStats stats = heroObj.GetComponent<HeroStats>();
+                    if (stats != null) partyHeroes.Add(stats);
+                }
+            }
+        }
+
+        selectedHeroIndexCache = selectedHeroIndex;
+        if (partyHeroes.Count > 0 && selectedHeroIndex >= 0 && selectedHeroIndex < partyHeroes.Count)
+        {
+            SetHero(partyHeroes[selectedHeroIndex]);
+        }
+        else if (partyHeroes.Count > 0)
+        {
+            SetHero(partyHeroes[0]);
+        }
+    }
+
+    public void CancelTargeting()
+    {
+        // No targeting used on this page
+    }
+
+    public void Dispose()
+    {
+        if (currentHeroDjinnController != null)
+        {
+            currentHeroDjinnController.OnDjinnSetupUpdated -= RefreshAllData;
+        }
+
+        RemoveGhostElement();
+        CloseSwapConfirmationModal();
+    }
+
+    #endregion
+
+    #region Configuration Helpers (Setters called by MainMenuController)
+
+    public void SetTemplates(VisualTreeAsset psynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
+    {
+        psynergyCardAsset = psynergyCard;
+        djinnSlotCardAAsset = djinnSlotCardA;
+        djinnSlotCardBAsset = djinnSlotCardB;
+    }
+
+    public void SetTargetIcons(Sprite singleTarget, Sprite groupTarget)
+    {
+        iconTargetSingle = singleTarget;
+        iconTargetGroup = groupTarget;
+    }
+
+    private void SetHero(HeroStats hero)
+    {
+        if (currentHeroDjinnController != null)
+        {
+            currentHeroDjinnController.OnDjinnSetupUpdated -= RefreshAllData;
+        }
+
+        currentHero = hero;
+        selectedDjinnForDetails = null;
+        currentHeroDjinnController = (hero != null) ? hero.GetComponent<HeroDjinnController>() : null;
+
+        if (currentHeroDjinnController != null)
+        {
+            currentHeroDjinnController.OnDjinnSetupUpdated += RefreshAllData;
+        }
+
+        RefreshAllData();
     }
 
     #endregion
@@ -338,14 +427,17 @@ public class PageDjinnController
             labelDeltaAgi = rootViewA.Q<Label>("label_delta_agi");
             labelDeltaSue = rootViewA.Q<Label>("label_delta_sue");
 
-            labelPowVenus = djinnSummarySection.Q<Label>("elem_power_venus");
-            labelResVenus = djinnSummarySection.Q<Label>("elem_resistance_venus");
-            labelPowMars = djinnSummarySection.Q<Label>("elem_power_mars");
-            labelResMars = djinnSummarySection.Q<Label>("elem_resistance_mars");
-            labelPowJupiter = djinnSummarySection.Q<Label>("elem_power_jupiter");
-            labelResJupiter = djinnSummarySection.Q<Label>("elem_resistance_jupiter");
-            labelPowMercury = djinnSummarySection.Q<Label>("elem_power_mercury");
-            labelResMercury = djinnSummarySection.Q<Label>("elem_resistance_mercury");
+            if (djinnSummarySection != null)
+            {
+                labelPowVenus = djinnSummarySection.Q<Label>("elem_power_venus");
+                labelResVenus = djinnSummarySection.Q<Label>("elem_resistance_venus");
+                labelPowMars = djinnSummarySection.Q<Label>("elem_power_mars");
+                labelResMars = djinnSummarySection.Q<Label>("elem_resistance_mars");
+                labelPowJupiter = djinnSummarySection.Q<Label>("elem_power_jupiter");
+                labelResJupiter = djinnSummarySection.Q<Label>("elem_resistance_jupiter");
+                labelPowMercury = djinnSummarySection.Q<Label>("elem_power_mercury");
+                labelResMercury = djinnSummarySection.Q<Label>("elem_resistance_mercury");
+            }
 
             scrollClassPsynergies = rootViewA.Q<ScrollView>("scroll_class_psynergies");
 
@@ -362,21 +454,24 @@ public class PageDjinnController
             labelDjinnRecovery = rootViewA.Q<Label>("label_djinn_recovery");
             labelDjinnDesc = rootViewA.Q<Label>("label_djinn_desc");
 
-            labelSetBonusMaxHP = djinnInfoPanel.Q<Label>("label_stat_max_hp");
-            labelSetBonusMaxPP = djinnInfoPanel.Q<Label>("label_stat_max_pp");
-            labelSetBonusAtq = djinnInfoPanel.Q<Label>("label_stat_atq");
-            labelSetBonusDef = djinnInfoPanel.Q<Label>("label_stat_def");
-            labelSetBonusAgi = djinnInfoPanel.Q<Label>("label_stat_agi");
-            labelSetBonusSue = djinnInfoPanel.Q<Label>("label_stat_sue");
+            if (djinnInfoPanel != null)
+            {
+                labelSetBonusMaxHP = djinnInfoPanel.Q<Label>("label_stat_max_hp");
+                labelSetBonusMaxPP = djinnInfoPanel.Q<Label>("label_stat_max_pp");
+                labelSetBonusAtq = djinnInfoPanel.Q<Label>("label_stat_atq");
+                labelSetBonusDef = djinnInfoPanel.Q<Label>("label_stat_def");
+                labelSetBonusAgi = djinnInfoPanel.Q<Label>("label_stat_agi");
+                labelSetBonusSue = djinnInfoPanel.Q<Label>("label_stat_sue");
 
-            labelSetPowVenus = djinnInfoPanel.Q<Label>("elem_power_venus");
-            labelSetResVenus = djinnInfoPanel.Q<Label>("elem_resistance_venus");
-            labelSetPowMars = djinnInfoPanel.Q<Label>("elem_power_mars");
-            labelSetResMars = djinnInfoPanel.Q<Label>("elem_resistance_mars");
-            labelSetPowJupiter = djinnInfoPanel.Q<Label>("elem_power_jupiter");
-            labelSetResJupiter = djinnInfoPanel.Q<Label>("elem_resistance_jupiter");
-            labelSetPowMercury = djinnInfoPanel.Q<Label>("elem_power_mercury");
-            labelSetResMercury = djinnInfoPanel.Q<Label>("elem_resistance_mercury");
+                labelSetPowVenus = djinnInfoPanel.Q<Label>("elem_power_venus");
+                labelSetResVenus = djinnInfoPanel.Q<Label>("elem_resistance_venus");
+                labelSetPowMars = djinnInfoPanel.Q<Label>("elem_power_mars");
+                labelSetResMars = djinnInfoPanel.Q<Label>("elem_resistance_mars");
+                labelSetPowJupiter = djinnInfoPanel.Q<Label>("elem_power_jupiter");
+                labelSetResJupiter = djinnInfoPanel.Q<Label>("elem_resistance_jupiter");
+                labelSetPowMercury = djinnInfoPanel.Q<Label>("elem_power_mercury");
+                labelSetResMercury = djinnInfoPanel.Q<Label>("elem_resistance_mercury");
+            }
 
             boxUnleashStatusEffectInfo = rootViewA.Q<VisualElement>("box_unleash_status_effect_info");
             labelUnleashName = rootViewA.Q<Label>("label_unleash_name");
@@ -386,18 +481,13 @@ public class PageDjinnController
 
             labelLeaderPassiveTitle = rootViewA.Q<Label>("label_leader_passive_title");
             labelLeaderPassiveDesc = rootViewA.Q<Label>("label_leader_passive_desc");
-
-            if (modalOverlayCompare != null)
-            {
-                modalOverlayCompare.style.display = DisplayStyle.None;
-            }
         }
 
         if (rootViewB != null)
         {
             sectionVistaB = rootViewB.Q<VisualElement>("page_djinn_global_container")
-                         ?? rootViewB.Q<VisualElement>("djinn_global_section")
-                         ?? rootViewB;
+                          ?? rootViewB.Q<VisualElement>("djinn_global_section")
+                          ?? rootViewB;
 
             partyColumnsContainer = rootViewB.Q<VisualElement>("party_columns_container");
             modalOverlayCompare = rootViewB.Q<VisualElement>("compare_modal_overlay");
@@ -405,6 +495,8 @@ public class PageDjinnController
 
             if (modalOverlayCompare != null)
             {
+                modalOverlayCompare.style.display = DisplayStyle.None;
+
                 modalHeroLeftRoot = modalOverlayCompare.Q<VisualElement>("modal_hero_left");
                 if (modalHeroLeftRoot != null)
                 {
@@ -516,54 +608,18 @@ public class PageDjinnController
 
     #region Data Initialization & Layout Setup
 
-    public void SetParty(List<HeroStats> party)
-    {
-        partyHeroes = party ?? new List<HeroStats>();
-    }
-
-    public void SetTemplates(VisualTreeAsset psynergyCard, VisualTreeAsset djinnSlotCardA, VisualTreeAsset djinnSlotCardB)
-    {
-        psynergyCardAsset = psynergyCard;
-        djinnSlotCardAAsset = djinnSlotCardA;
-        djinnSlotCardBAsset = djinnSlotCardB;
-    }
-
-    public void SetTargetIcons(Sprite singleTarget, Sprite groupTarget)
-    {
-        iconTargetSingle = singleTarget;
-        iconTargetGroup = groupTarget;
-    }
-
-    public void PopulateData(HeroStats hero)
-    {
-        if (currentHeroDjinnController != null)
-        {
-            currentHeroDjinnController.OnDjinnSetupUpdated -= RefreshAllData;
-        }
-
-        currentHero = hero;
-        selectedDjinnForDetails = null;
-        currentHeroDjinnController = (hero != null) ? hero.GetComponent<HeroDjinnController>() : null;
-
-        if (currentHeroDjinnController != null)
-        {
-            currentHeroDjinnController.OnDjinnSetupUpdated += RefreshAllData;
-        }
-
-        currentViewMode = DjinnViewMode.Individual;
-        RefreshAllData();
-    }
-
     public void RefreshAllData()
     {
-        if (currentHero == null) return;
-
         if (currentViewMode == DjinnViewMode.Individual)
         {
+            if (rootViewA != null) rootViewA.style.display = DisplayStyle.Flex;
+            if (rootViewB != null) rootViewB.style.display = DisplayStyle.None;
             RefreshVistaA();
         }
         else
         {
+            if (rootViewA != null) rootViewA.style.display = DisplayStyle.None;
+            if (rootViewB != null) rootViewB.style.display = DisplayStyle.Flex;
             RefreshVistaB();
         }
 
@@ -593,7 +649,6 @@ public class PageDjinnController
 
         UpdateElementalPips(currentHeroDjinnController, labelPipVenus, labelPipMars, labelPipJupiter, labelPipMercury);
 
-        // Directly query live calculated core stats from HeroStats overrides.
         if (labelStatAtq != null) labelStatAtq.text = currentHero.Attack.ToString();
         if (labelStatDef != null) labelStatDef.text = currentHero.Defense.ToString();
         if (labelStatAgi != null) labelStatAgi.text = currentHero.Agility.ToString();
@@ -601,7 +656,6 @@ public class PageDjinnController
         if (labelStatMaxHP != null) labelStatMaxHP.text = currentHero.MaxHp.ToString();
         if (labelStatMaxPP != null) labelStatMaxPP.text = currentHero.MaxPp.ToString();
 
-        // Elemental affinity
         if (labelPowVenus != null) labelPowVenus.text = currentHero.PowerVenus.ToString();
         if (labelResVenus != null) labelResVenus.text = currentHero.ResistVenus.ToString();
         if (labelPowMars != null) labelPowMars.text = currentHero.PowerMars.ToString();
@@ -874,7 +928,6 @@ public class PageDjinnController
             }
         }
 
-        // Checks if Leader Djinn defines at least one valid passive status effect application.
         bool hasLeaderPassive = false;
         if (data.LeaderPassiveEffects != null && data.LeaderPassiveEffects.Count > 0)
         {
@@ -947,13 +1000,11 @@ public class PageDjinnController
                     case StatusEffectCategory.Buff:
                         categoryPrefix = "↑ ";
                         categoryClass = "badge-buff";
-                        effectIcon = null;
                         break;
 
                     case StatusEffectCategory.Debuff:
                         categoryPrefix = "↓ ";
                         categoryClass = "badge-debuff";
-                        effectIcon = null;
                         break;
 
                     case StatusEffectCategory.Ailment:
@@ -1044,24 +1095,24 @@ public class PageDjinnController
             }
         }
 
-        if (labelSetBonusMaxHP != null) labelSetBonusMaxHP.text = formatBonus(maxHp, labelSetBonusMaxHP);
-        if (labelSetBonusMaxPP != null) labelSetBonusMaxPP.text = formatBonus(maxPp, labelSetBonusMaxPP);
-        if (labelSetBonusAtq != null) labelSetBonusAtq.text = formatBonus(atk, labelSetBonusAtq);
-        if (labelSetBonusDef != null) labelSetBonusDef.text = formatBonus(def, labelSetBonusDef);
-        if (labelSetBonusAgi != null) labelSetBonusAgi.text = formatBonus(agi, labelSetBonusAgi);
-        if (labelSetBonusSue != null) labelSetBonusSue.text = formatBonus(sue, labelSetBonusSue);
+        if (labelSetBonusMaxHP != null) labelSetBonusMaxHP.text = FormatBonus(maxHp, labelSetBonusMaxHP);
+        if (labelSetBonusMaxPP != null) labelSetBonusMaxPP.text = FormatBonus(maxPp, labelSetBonusMaxPP);
+        if (labelSetBonusAtq != null) labelSetBonusAtq.text = FormatBonus(atk, labelSetBonusAtq);
+        if (labelSetBonusDef != null) labelSetBonusDef.text = FormatBonus(def, labelSetBonusDef);
+        if (labelSetBonusAgi != null) labelSetBonusAgi.text = FormatBonus(agi, labelSetBonusAgi);
+        if (labelSetBonusSue != null) labelSetBonusSue.text = FormatBonus(sue, labelSetBonusSue);
 
-        if (labelSetPowVenus != null) labelSetPowVenus.text = formatBonus(powVenus, labelSetPowVenus);
-        if (labelSetResVenus != null) labelSetResVenus.text = formatBonus(resVenus, labelSetResVenus);
-        if (labelSetPowMars != null) labelSetPowMars.text = formatBonus(powMars, labelSetPowMars);
-        if (labelSetResMars != null) labelSetResMars.text = formatBonus(resMars, labelSetResMars);
-        if (labelSetPowJupiter != null) labelSetPowJupiter.text = formatBonus(powJupiter, labelSetPowJupiter);
-        if (labelSetResJupiter != null) labelSetResJupiter.text = formatBonus(resJupiter, labelSetResJupiter);
-        if (labelSetPowMercury != null) labelSetPowMercury.text = formatBonus(powMercury, labelSetPowMercury);
-        if (labelSetResMercury != null) labelSetResMercury.text = formatBonus(resMercury, labelSetResMercury);
+        if (labelSetPowVenus != null) labelSetPowVenus.text = FormatBonus(powVenus, labelSetPowVenus);
+        if (labelSetResVenus != null) labelSetResVenus.text = FormatBonus(resVenus, labelSetResVenus);
+        if (labelSetPowMars != null) labelSetPowMars.text = FormatBonus(powMars, labelSetPowMars);
+        if (labelSetResMars != null) labelSetResMars.text = FormatBonus(resMars, labelSetResMars);
+        if (labelSetPowJupiter != null) labelSetPowJupiter.text = FormatBonus(powJupiter, labelSetPowJupiter);
+        if (labelSetResJupiter != null) labelSetResJupiter.text = FormatBonus(resJupiter, labelSetResJupiter);
+        if (labelSetPowMercury != null) labelSetPowMercury.text = FormatBonus(powMercury, labelSetPowMercury);
+        if (labelSetResMercury != null) labelSetResMercury.text = FormatBonus(resMercury, labelSetResMercury);
     }
 
-    private string formatBonus(float val, Label setBonusLabel)
+    private string FormatBonus(float val, Label setBonusLabel)
     {
         if (val > 0)
         {
@@ -1256,14 +1307,14 @@ public class PageDjinnController
 
     private string GetElementCssClass(ElementalType element)
     {
-        switch (element)
+        return element switch
         {
-            case ElementalType.Venus: return "element-venus";
-            case ElementalType.Mars: return "element-mars";
-            case ElementalType.Jupiter: return "element-jupiter";
-            case ElementalType.Mercury: return "element-mercury";
-            default: return "element-venus";
-        }
+            ElementalType.Venus => "element-venus",
+            ElementalType.Mars => "element-mars",
+            ElementalType.Jupiter => "element-jupiter",
+            ElementalType.Mercury => "element-mercury",
+            _ => "element-venus"
+        };
     }
 
     private void RefreshClassPsynergies()
@@ -1350,7 +1401,6 @@ public class PageDjinnController
 
             columnElem.style.display = DisplayStyle.Flex;
 
-            // 1. Header
             VisualElement avatarIcon = columnElem.Q<VisualElement>("hero_avatar_icon");
             Label nameLabel = columnElem.Q<Label>("label_hero_name");
             Label levelLabel = columnElem.Q<Label>("label_hero_level");
@@ -1373,7 +1423,6 @@ public class PageDjinnController
 
             UpdateElementalPips(djinnCtrl, pipVenus, pipMars, pipJupiter, pipMercury);
 
-            // 2. Djinn Slots
             VisualElement slotsContainer = columnElem.Q<VisualElement>(className: "column-slots-container");
             if (slotsContainer == null) continue;
 
@@ -1506,12 +1555,22 @@ public class PageDjinnController
     {
         currentViewMode = newMode;
         OnRequestViewChange?.Invoke(newMode);
+
+        if (newMode == DjinnViewMode.Global)
+        {
+            OnToggleTopHeroesBar?.Invoke(false);
+        }
+        else
+        {
+            OnToggleTopHeroesBar?.Invoke(true);
+        }
+
         RefreshAllData();
     }
 
     #endregion
 
-    #region Pointer & Drag Events (Vista B - Pattern Items)
+    #region Pointer & Drag Events (View B)
 
     private void RegisterPointerCallbacks(VisualElement slotUI, HeroStats hero, DjinnInstance djinn)
     {
@@ -1797,8 +1856,6 @@ public class PageDjinnController
         ghostElement.style.top = 0;
 
         Vector3 targetPos = new Vector3(panelPosition.x - (width / 2f), panelPosition.y - (height / 2f), 0f);
-
-        // Unity 6 UI Toolkit Standard
         ghostElement.style.translate = new Translate(targetPos.x, targetPos.y, 0f);
     }
 
@@ -1930,7 +1987,6 @@ public class PageDjinnController
 
         bool isSwap = (swapTargetDjinn != null);
 
-        // 1. CENTER PANEL
         if (labelCompareTitle != null)
         {
             labelCompareTitle.text = isSwap ? "INTERCAMBIO" : "TRANSFERENCIA";
@@ -1978,11 +2034,9 @@ public class PageDjinnController
             labelExchangeArrow.text = isSwap ? "⇄" : "➔";
         }
 
-        // 2. BASE DATA (SOURCE AND TARGET HEROES)
         PopulateModalHeroBaseData(swapSourceHero, modalLeftUI);
         PopulateModalHeroBaseData(swapTargetHero, modalRightUI);
 
-        // 3. CALCULATE AND PROJECT DELTAS AND PSYNERGIES
         ApplyHeroProjection(swapSourceHero, swapSourceDjinn, swapTargetDjinn, modalLeftUI);
         ApplyHeroProjection(swapTargetHero, swapTargetDjinn, swapSourceDjinn, modalRightUI);
     }
@@ -2006,7 +2060,6 @@ public class PageDjinnController
 
         UpdateElementalPips(djinnCtrl, ui.LabelPipVenus, ui.LabelPipMars, ui.LabelPipJupiter, ui.LabelPipMercury);
 
-        // English comment: Query live calculated core stats from HeroStats overrides.
         if (ui.LabelStatMaxHP != null) ui.LabelStatMaxHP.text = hero.MaxHp.ToString();
         if (ui.LabelStatMaxPP != null) ui.LabelStatMaxPP.text = hero.MaxPp.ToString();
         if (ui.LabelStatAtq != null) ui.LabelStatAtq.text = hero.Attack.ToString();
@@ -2035,7 +2088,6 @@ public class PageDjinnController
         if (ui.LabelDeltaAgi != null) ui.LabelDeltaAgi.style.display = DisplayStyle.None;
         if (ui.LabelDeltaSue != null) ui.LabelDeltaSue.style.display = DisplayStyle.None;
 
-        //Elemental affinity grid
         if (ui.labelDeltaPowVenusB != null) ui.labelDeltaPowVenusB.style.display = DisplayStyle.None;
         if (ui.labelDeltaResVenusB != null) ui.labelDeltaResVenusB.style.display = DisplayStyle.None;
         if (ui.labelDeltaPowMarsB != null) ui.labelDeltaPowMarsB.style.display = DisplayStyle.None;
@@ -2056,7 +2108,6 @@ public class PageDjinnController
         bool removeIsSet = (djinnToRemove != null && djinnToRemove.CurrentState == DjinnState.Set);
         bool addIsSet = (djinnToAdd != null && djinnToAdd.CurrentState == DjinnState.Set);
 
-        // 1. Project new class
         CharacterClassSO currentClassSO = djinnCtrl.CurrentClass;
         CharacterClassSO projectedClassSO = GetProjectedClass(djinnCtrl, djinnToRemove, removeIsSet, djinnToAdd, addIsSet);
 
@@ -2078,7 +2129,6 @@ public class PageDjinnController
             if (ui.LabelClassArrow != null) ui.LabelClassArrow.style.display = DisplayStyle.None;
         }
 
-        // 2. Project Elemental Pips
         int dSetVenus = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Venus ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Venus ? 1 : 0);
         int dSetMars = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Mars ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Mars ? 1 : 0);
         int dSetJup = (addIsSet && djinnToAdd.DjinnData.Element == ElementalType.Jupiter ? 1 : 0) - (removeIsSet && djinnToRemove.DjinnData.Element == ElementalType.Jupiter ? 1 : 0);
@@ -2096,7 +2146,6 @@ public class PageDjinnController
             dTotalVenus, dTotalMars, dTotalJup, dTotalMerc
         );
 
-        // 3. Project Statistical Attributes via StatCalculator API
         StatBlock projectedStats = CalculateProjectedStatsViaCalculator(hero, djinnCtrl, projectedClassSO, djinnToRemove, djinnToAdd);
 
         ApplyStatProjection(ui.LabelStatMaxHP, ui.LabelDeltaMaxHP, hero.MaxHp, projectedStats.MaxHP);
@@ -2105,7 +2154,7 @@ public class PageDjinnController
         ApplyStatProjection(ui.LabelStatDef, ui.LabelDeltaDef, hero.Defense, projectedStats.Defense);
         ApplyStatProjection(ui.LabelStatAgi, ui.LabelDeltaAgi, hero.Agility, projectedStats.Agility);
         ApplyStatProjection(ui.LabelStatSue, ui.LabelDeltaSue, hero.Luck, projectedStats.Luck);
-        // 3.1 Elemental power/resistance
+
         ApplyStatProjection(ui.labelPowVenusB, ui.labelDeltaPowVenusB, hero.PowerVenus, projectedStats.PowerVenus);
         ApplyStatProjection(ui.labelResVenusB, ui.labelDeltaResVenusB, hero.ResistVenus, projectedStats.ResistVenus);
         ApplyStatProjection(ui.labelPowMarsB, ui.labelDeltaPowMarsB, hero.PowerMars, projectedStats.PowerMars);
@@ -2115,7 +2164,6 @@ public class PageDjinnController
         ApplyStatProjection(ui.labelPowMercuryB, ui.labelDeltaPowMercuryB, hero.PowerMercury, projectedStats.PowerMercury);
         ApplyStatProjection(ui.labelResMercuryB, ui.labelDeltaResMercuryB, hero.ResistMercury, projectedStats.ResistMercury);
 
-        // 4. Project Psynergies
         List<PsynergySO> currentPsynergies = hero.Psynergies != null ? new List<PsynergySO>(hero.Psynergies) : new List<PsynergySO>();
         List<PsynergySO> projectedPsynergies = GetProjectedConsolidatedPsynergies(hero, projectedClassSO);
 
@@ -2187,10 +2235,6 @@ public class PageDjinnController
             : djinnCtrl.CurrentClass;
     }
 
-    /// <summary>
-    /// Builds a StatEvaluationContext with base stats, class multipliers, and simulated Djinn/Equipment/Leader modifiers,
-    /// then passes it to StatCalculator.Evaluate to produce a projected StatBlock.
-    /// </summary>
     private StatBlock CalculateProjectedStatsViaCalculator(
         HeroStats hero,
         HeroDjinnController djinnCtrl,
@@ -2202,13 +2246,11 @@ public class PageDjinnController
 
         if (hero == null) return StatCalculator.Evaluate(context);
 
-        // 1. Assign Base Stats (pure character base stats without modifiers across all Core & Elemental stats)
         foreach (StatType statType in Enum.GetValues(typeof(StatType)))
         {
             context.SetBaseStat(statType, hero.GetStat(statType)?.BaseValue ?? 0);
         }
 
-        // 2. Assign Class Multipliers from projected class across all stats
         if (projectedClass != null)
         {
             foreach (StatType statType in Enum.GetValues(typeof(StatType)))
@@ -2217,7 +2259,6 @@ public class PageDjinnController
             }
         }
 
-        // 3. Build simulated list of assigned Djinns after transaction
         List<DjinnInstance> simulatedDjinns = new List<DjinnInstance>();
         if (djinnCtrl != null && djinnCtrl.AssignedDjinns != null)
         {
@@ -2235,7 +2276,6 @@ public class PageDjinnController
             simulatedDjinns.Add(djinnToAdd);
         }
 
-        // 4. Collect Modifiers from Djinns in Set state
         foreach (var djinn in simulatedDjinns)
         {
             if (djinn != null && djinn.CurrentState == DjinnState.Set && djinn.DjinnData != null && djinn.DjinnData.SetStatModifiers != null)
@@ -2248,7 +2288,6 @@ public class PageDjinnController
             }
         }
 
-        // 5. Collect Modifiers from Leader Passive Effects
         IReadOnlyList<StatusEffectApplication> simulatedLeaderEffects = SimulateLeaderPassiveApplications(djinnCtrl, djinnToRemove, simulatedDjinns);
         if (simulatedLeaderEffects != null)
         {
@@ -2264,7 +2303,6 @@ public class PageDjinnController
             }
         }
 
-        // 6. Collect Equipment Modifiers
         HeroEquipment equipment = hero.GetComponent<HeroEquipment>();
         if (equipment != null && equipment.EquippedItems != null)
         {
@@ -2281,13 +2319,9 @@ public class PageDjinnController
             }
         }
 
-        // Delegate to StatCalculator engine
         return StatCalculator.Evaluate(context);
     }
 
-    /// <summary>
-    /// Evaluates which Leader Djinn passive applications will be active in the projected state.
-    /// </summary>
     private IReadOnlyList<StatusEffectApplication> SimulateLeaderPassiveApplications(
         HeroDjinnController djinnCtrl,
         DjinnInstance djinnToRemove,

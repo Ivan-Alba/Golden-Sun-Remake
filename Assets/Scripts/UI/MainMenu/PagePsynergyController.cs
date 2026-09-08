@@ -54,7 +54,11 @@ public struct PsynergyDropTargetInfo
 
 #endregion
 
-public class PagePsynergyController : IDisposable
+/// <summary>
+/// Controller for the Main Menu Psynergy Page UI.
+/// Manages exploration shortcuts, filtering tabs, details panel, and implements IMenuPageController.
+/// </summary>
+public class PagePsynergyController : IMenuPageController
 {
     #region Events & Properties
 
@@ -66,8 +70,9 @@ public class PagePsynergyController : IDisposable
 
     /// <summary>
     /// Indicates if a Psynergy is currently in targeting mode to be cast on a hero.
+    /// Implements IMenuPageController contract.
     /// </summary>
-    public bool IsTargetingPsynergy => isTargetingPsynergy;
+    public bool IsTargeting => isTargetingPsynergy;
 
     #endregion
 
@@ -76,7 +81,7 @@ public class PagePsynergyController : IDisposable
     private VisualElement rootElement;
 
     // Local Party Cache
-    private IReadOnlyList<GameObject> _cachedActiveParty;
+    private IReadOnlyList<GameObject> cachedActiveParty;
 
     // Psynergy Card Template
     private VisualTreeAsset psynergyCardTemplate;
@@ -85,8 +90,8 @@ public class PagePsynergyController : IDisposable
     private VisualElement heroPortraitImage;
     private Label labelHeroName;
 
-    private VisualElement[] dpadSlotUI = new VisualElement[4]; // Up, Left, Right, Down
-    private VisualElement[] dpadIconUI = new VisualElement[4];
+    private readonly VisualElement[] dpadSlotUI = new VisualElement[4]; // Up, Left, Right, Down
+    private readonly VisualElement[] dpadIconUI = new VisualElement[4];
     private PsynergySO[] assignedShortcuts = new PsynergySO[4];
 
     // Center Panel: Filter Tabs & Scroll View
@@ -109,10 +114,10 @@ public class PagePsynergyController : IDisposable
     // Data Sources
     private HeroStats currentHeroStats;
     private GameObject currentHeroObj;
-    private List<PsynergySO> availablePsynergies = new List<PsynergySO>();
+    private readonly List<PsynergySO> availablePsynergies = new List<PsynergySO>();
 
     // Callback Memory tracking to prevent duplicate listener accumulation
-    private Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
+    private readonly Dictionary<VisualElement, EventCallback<PointerDownEvent>> registeredPointerDownCallbacks = new Dictionary<VisualElement, EventCallback<PointerDownEvent>>();
 
     // Drag & Drop State Tracking
     private PsynergyDragContext currentDragContext;
@@ -144,7 +149,7 @@ public class PagePsynergyController : IDisposable
 
     #endregion
 
-    #region Constructor & Cleanup
+    #region Constructor & IMenuPageController Implementation
 
     public PagePsynergyController(VisualElement root)
     {
@@ -156,54 +161,69 @@ public class PagePsynergyController : IDisposable
     }
 
     /// <summary>
-    /// Unsubscribes event listeners to avoid leaks when page is destroyed or hidden.
+    /// Populates data for the active hero based on the global menu selection.
+    /// Implements IMenuPageController contract.
     /// </summary>
+    public void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex)
+    {
+        cachedActiveParty = activeParty;
+
+        if (activeParty != null && selectedHeroIndex >= 0 && selectedHeroIndex < activeParty.Count)
+        {
+            currentHeroObj = activeParty[selectedHeroIndex];
+            if (currentHeroObj != null)
+            {
+                currentHeroStats = currentHeroObj.GetComponent<HeroStats>();
+            }
+        }
+
+        UpdateLeftPanelHeroInfo();
+        FetchHeroPsynergies();
+        LoadShortcutsFromWorldController();
+        FilterCards(currentFilterIndex);
+        ClearInfoPanel();
+    }
+
+    public void CancelTargeting()
+    {
+        CancelPsynergyTargeting();
+    }
+
     public void Dispose()
     {
         UnsubscribeEvents();
-    }
+        CancelPsynergyTargeting();
+        RemoveGhostElement();
 
-    private void SubscribeEvents()
-    {
-        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
-        GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
-
-        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
-        GameEvents.Party.OnPartyChanged += HandlePartyChanged;
-    }
-
-    private void UnsubscribeEvents()
-    {
-        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
-        GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
-    }
-
-    private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
-    {
-        _cachedActiveParty = activeParty;
-    }
-
-    private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
-    {
-        if (currentHeroObj != null && hero == currentHeroObj)
+        foreach (var pair in registeredPointerDownCallbacks)
         {
-            assignedShortcuts = shortcuts ?? new PsynergySO[4];
-            RefreshShortcutsDisplay();
+            if (pair.Key != null)
+            {
+                pair.Key.UnregisterCallback(pair.Value);
+            }
         }
+        registeredPointerDownCallbacks.Clear();
+
+        rootElement = null;
+        currentHeroStats = null;
+        currentHeroObj = null;
+        cachedActiveParty = null;
     }
 
     #endregion
 
-    #region Helper Methods
+    #region Configuration Helpers
+
+    public void SetPsynergyCardTemplate(VisualTreeAsset template)
+    {
+        psynergyCardTemplate = template;
+    }
 
     private VisualElement GetTopRootElement()
     {
         return rootElement?.panel?.visualTree ?? rootElement;
     }
 
-    /// <summary>
-    /// Highlights the active Psynergy card or shortcut slot currently displayed in the right detail panel.
-    /// </summary>
     private void SetSelectedCardUI(VisualElement newSelectedCard)
     {
         if (currentlySelectedCardUI != null)
@@ -219,14 +239,10 @@ public class PagePsynergyController : IDisposable
         }
     }
 
-    /// <summary>
-    /// Restores selection UI targeting the card or shortcut associated with selectedPsynergy.
-    /// </summary>
     private void RestoreSelectionUI()
     {
         if (selectedPsynergy == null) return;
 
-        // 1. Check if selected from D-Pad shortcuts
         for (int i = 0; i < assignedShortcuts.Length; i++)
         {
             if (assignedShortcuts[i] == selectedPsynergy && dpadSlotUI[i] != null)
@@ -236,7 +252,6 @@ public class PagePsynergyController : IDisposable
             }
         }
 
-        // 2. Search in spawned scroll view cards
         if (psynergyCardsScroll != null)
         {
             foreach (VisualElement card in psynergyCardsScroll.Children())
@@ -252,17 +267,39 @@ public class PagePsynergyController : IDisposable
 
     #endregion
 
+    #region Event Management
+
+    private void SubscribeEvents()
+    {
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+        GameEvents.Psynergy.OnShortcutsChanged += HandleShortcutsChanged;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+    }
+
+    private void HandleShortcutsChanged(GameObject hero, PsynergySO[] shortcuts)
+    {
+        if (currentHeroObj != null && hero == currentHeroObj)
+        {
+            assignedShortcuts = shortcuts ?? new PsynergySO[4];
+            RefreshShortcutsDisplay();
+        }
+    }
+
+    #endregion
+
     #region UI Binding
 
     private void BindUIElements()
     {
         if (rootElement == null) return;
 
-        // Left Panel Elements
         heroPortraitImage = rootElement.Q<VisualElement>("hero_portrait_image");
         labelHeroName = rootElement.Q<Label>("label_hero_name");
 
-        // D-Pad Shortcut Slots
         dpadSlotUI[(int)DPadDirection.Up] = rootElement.Q<VisualElement>("slot_shortcut_up");
         dpadSlotUI[(int)DPadDirection.Left] = rootElement.Q<VisualElement>("slot_shortcut_left");
         dpadSlotUI[(int)DPadDirection.Right] = rootElement.Q<VisualElement>("slot_shortcut_right");
@@ -273,14 +310,12 @@ public class PagePsynergyController : IDisposable
         dpadIconUI[(int)DPadDirection.Right] = rootElement.Q<VisualElement>("slot_shortcut_right_icon");
         dpadIconUI[(int)DPadDirection.Down] = rootElement.Q<VisualElement>("slot_shortcut_down_icon");
 
-        // Center Panel Elements
         btnTabAll = rootElement.Q<Button>("btn_tab_all");
         btnTabWorld = rootElement.Q<Button>("btn_tab_world");
         btnTabMenu = rootElement.Q<Button>("btn_tab_menu");
         btnTabBattle = rootElement.Q<Button>("btn_tab_battle");
         psynergyCardsScroll = rootElement.Q<ScrollView>("psynergy_cards_scroll");
 
-        // Right Panel Elements
         psynergyIconPreview = rootElement.Q<VisualElement>("psynergy_icon_preview");
         detailPsynergyIcon = rootElement.Q<VisualElement>("detail_psynergy_icon");
         labelPsynergyName = rootElement.Q<Label>("label_psynergy_name");
@@ -320,7 +355,7 @@ public class PagePsynergyController : IDisposable
 
     private void OnDPadSlotPointerDown(PointerDownEvent evt, int slotIdx, VisualElement slotUI)
     {
-        if (evt.button == 1) // Right Click -> Clear
+        if (evt.button == 1)
         {
             ClearShortcut(slotIdx);
             ClearInfoPanel();
@@ -328,7 +363,7 @@ public class PagePsynergyController : IDisposable
             return;
         }
 
-        if (evt.button == 0) // Left Click -> Inspect & Prepare Drag
+        if (evt.button == 0)
         {
             if (assignedShortcuts != null && slotIdx < assignedShortcuts.Length)
             {
@@ -356,19 +391,6 @@ public class PagePsynergyController : IDisposable
     #endregion
 
     #region Data Population & Initialization
-
-    public void PopulateData(HeroStats heroStats, GameObject heroObj, VisualTreeAsset psynergyCard)
-    {
-        currentHeroStats = heroStats;
-        currentHeroObj = heroObj;
-        psynergyCardTemplate = psynergyCard;
-
-        UpdateLeftPanelHeroInfo();
-        FetchHeroPsynergies();
-        LoadShortcutsFromWorldController();
-        BuildPsynergyCardsList();
-        ClearInfoPanel();
-    }
 
     private void UpdateLeftPanelHeroInfo()
     {
@@ -529,14 +551,14 @@ public class PagePsynergyController : IDisposable
 
     private string GetElementCssClass(ElementalType element)
     {
-        switch (element)
+        return element switch
         {
-            case ElementalType.Venus: return "element-venus";
-            case ElementalType.Mars: return "element-mars";
-            case ElementalType.Jupiter: return "element-jupiter";
-            case ElementalType.Mercury: return "element-mercury";
-            default: return "element-venus";
-        }
+            ElementalType.Venus => "element-venus",
+            ElementalType.Mars => "element-mars",
+            ElementalType.Jupiter => "element-jupiter",
+            ElementalType.Mercury => "element-mercury",
+            _ => "element-venus"
+        };
     }
 
     #endregion
@@ -562,18 +584,13 @@ public class PagePsynergyController : IDisposable
 
         if (registeredPointerDownCallbacks.TryGetValue(cardUI, out var existingCallback))
         {
-            slotUIUnregisterHelper(cardUI, existingCallback);
+            cardUI.UnregisterCallback(existingCallback);
             registeredPointerDownCallbacks.Remove(cardUI);
         }
 
         cardUI.UnregisterCallback<PointerMoveEvent>(OnCardPointerMove);
         cardUI.UnregisterCallback<PointerUpEvent>(OnCardPointerUp);
         cardUI.UnregisterCallback<PointerCaptureOutEvent>(OnCardPointerCancel);
-    }
-
-    private void slotUIUnregisterHelper(VisualElement element, EventCallback<PointerDownEvent> cb)
-    {
-        element.UnregisterCallback(cb);
     }
 
     private void OnCardPointerDown(PointerDownEvent evt, PsynergySO psynergy, int index, VisualElement cardUI)
@@ -689,13 +706,13 @@ public class PagePsynergyController : IDisposable
 
         if (!psynergy.MenuData.CanBeUsedInMenu)
         {
-            Debug.LogWarning($"[PagePsynergy] '{psynergy.PsynergyName}' no se puede usar en el menú principal.");
+            Debug.LogWarning($"[PagePsynergy] '{psynergy.PsynergyName}' cannot be used in the main menu.");
             return;
         }
 
         if (currentHeroStats != null && currentHeroStats.CurrPp < psynergy.PpCost)
         {
-            Debug.LogWarning($"[PagePsynergy] PP insuficientes para usar '{psynergy.PsynergyName}'. Requerido: {psynergy.PpCost}, Actual: {currentHeroStats.CurrPp}");
+            Debug.LogWarning($"[PagePsynergy] Insufficient PP to use '{psynergy.PsynergyName}'. Required: {psynergy.PpCost}, Current: {currentHeroStats.CurrPp}");
             return;
         }
 
@@ -723,7 +740,6 @@ public class PagePsynergyController : IDisposable
     {
         if (!isTargetingPsynergy) return;
 
-        // Cancel targeting on right click
         if (evt.button == 1)
         {
             CancelPsynergyTargeting();
@@ -732,7 +748,6 @@ public class PagePsynergyController : IDisposable
             return;
         }
 
-        // Left click execution
         if (evt.button == 0)
         {
             if (TryGetDropTarget(evt.position, out PsynergyDropTargetInfo targetInfo) && targetInfo.IsHeroCard)
@@ -770,11 +785,9 @@ public class PagePsynergyController : IDisposable
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
         if (targetHero == null)
         {
-            Debug.LogWarning($"[PagePsynergy] HeroStats no encontrado para el índice {targetHeroIdx}.");
+            Debug.LogWarning($"[PagePsynergy] HeroStats not found for index {targetHeroIdx}.");
             return;
         }
-
-        Debug.Log($"[PagePsynergy] Intentando lanzar '{targetingPsynergy.PsynergyName}' sobre {targetHero.Name}...");
 
         bool effectApplied = targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
 
@@ -785,7 +798,6 @@ public class PagePsynergyController : IDisposable
 
             OnPsynergyUsedOnHero?.Invoke();
 
-            // Refresh cards maintaining the current filter predicate
             FilterCards(currentFilterIndex);
 
             if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
@@ -797,41 +809,23 @@ public class PagePsynergyController : IDisposable
         else
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
-            Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' no tuvo efecto sobre {targetHero.Name}. No se consumen PP.");
+            Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' had no effect on {targetHero.Name}. PP not consumed.");
         }
     }
 
     private HeroStats GetHeroStatsByIdx(int index)
     {
-        if (_cachedActiveParty == null)
-        {
-            Debug.LogWarning("[PagePsynergyController] _cachedActiveParty is NULL! Event was likely missed.");
-            return null;
-        }
+        if (cachedActiveParty == null) return null;
 
-        if (index < 0 || index >= _cachedActiveParty.Count)
-        {
-            Debug.LogWarning($"[PagePsynergyController] Index {index} is out of bounds for party count: {_cachedActiveParty.Count}");
-            return null;
-        }
+        if (index < 0 || index >= cachedActiveParty.Count) return null;
 
-        GameObject heroObj = _cachedActiveParty[index];
-        if (heroObj == null)
-        {
-            Debug.LogWarning($"[PagePsynergyController] GameObject at index {index} is null!");
-            return null;
-        }
+        GameObject heroObj = cachedActiveParty[index];
+        if (heroObj == null) return null;
 
-        HeroStats stats = heroObj.GetComponent<HeroStats>();
-        if (stats == null)
-        {
-            Debug.LogWarning($"[PagePsynergyController] GameObject '{heroObj.name}' does not have a HeroStats component attached!");
-        }
-
-        return stats;
+        return heroObj.GetComponent<HeroStats>();
     }
 
-    public void CancelPsynergyTargeting()
+    private void CancelPsynergyTargeting()
     {
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
@@ -895,14 +889,12 @@ public class PagePsynergyController : IDisposable
                 {
                     if (currentHeroObj != null)
                     {
-                        // Request current shortcuts array via GameEvents without querying any Singleton
                         GameEvents.Psynergy.RequestGetShortcuts(currentHeroObj, currentShortcuts =>
                         {
                             PsynergySO targetPsynergy = (currentShortcuts != null && targetSlotIdx < currentShortcuts.Length)
                                 ? currentShortcuts[targetSlotIdx]
                                 : null;
 
-                            // Request swapping shortcuts via GameEvents
                             GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, targetPsynergy, sourceSlotIdx);
                             GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, currentDragContext.Psynergy, targetSlotIdx);
                         });
@@ -934,17 +926,12 @@ public class PagePsynergyController : IDisposable
 
     private void AssignShortcut(DPadDirection direction, PsynergySO psynergy)
     {
-        if (psynergy == null || !psynergy.WorldData.CanBeUsedInWorld)
-        {
-            Debug.LogWarning($"[PagePsynergy] '{psynergy?.PsynergyName}' cannot be assigned to world shortcuts.");
-            return;
-        }
+        if (psynergy == null || !psynergy.WorldData.CanBeUsedInWorld) return;
 
         if (currentHeroObj == null) return;
 
         int slotIndex = (int)direction;
 
-        // Clear psynergy from any other slot first if already assigned
         if (assignedShortcuts != null)
         {
             for (int i = 0; i < assignedShortcuts.Length; i++)
@@ -956,9 +943,7 @@ public class PagePsynergyController : IDisposable
             }
         }
 
-        // Request assignment via GameEvents
         GameEvents.Psynergy.RequestAssignShortcut(currentHeroObj, psynergy, slotIndex);
-        Debug.Log($"[PagePsynergy] Requested assignment of '{psynergy.PsynergyName}' to D-Pad shortcut slot: {direction}");
     }
 
     private void ClearShortcut(int slotIndex)
@@ -1147,20 +1132,19 @@ public class PagePsynergyController : IDisposable
 
         switch (filterIndex)
         {
-            case 0: // All
+            case 0:
                 btnTabAll?.AddToClassList("active");
                 BuildPsynergyCardsList();
                 break;
-
-            case 1: // World
+            case 1:
                 btnTabWorld?.AddToClassList("active");
                 BuildPsynergyCardsList(p => p.WorldData.CanBeUsedInWorld);
                 break;
-            case 2: // Menu
+            case 2:
                 btnTabMenu?.AddToClassList("active");
                 BuildPsynergyCardsList(p => p.MenuData.CanBeUsedInMenu);
                 break;
-            case 3: // Battle
+            case 3:
                 btnTabBattle?.AddToClassList("active");
                 BuildPsynergyCardsList(p => p.IsBattlePsynergy);
                 break;
@@ -1202,28 +1186,28 @@ public class PagePsynergyController : IDisposable
 
     private string FormatTargetTypeSpanish(PsynergyTargetType targetType)
     {
-        switch (targetType)
+        return targetType switch
         {
-            case PsynergyTargetType.Self: return "Mismo usuario";
-            case PsynergyTargetType.SingleAlly: return "1 Aliado";
-            case PsynergyTargetType.MultiEnemyArea: return $"Varios enemigos";
-            case PsynergyTargetType.AllAllies: return "Todos los aliados";
-            case PsynergyTargetType.SingleEnemy: return "1 Enemigo";
-            case PsynergyTargetType.AllEnemies: return "Todos los enemigos";
-            default: return targetType.ToString();
-        }
+            PsynergyTargetType.Self => "Mismo usuario",
+            PsynergyTargetType.SingleAlly => "1 Aliado",
+            PsynergyTargetType.MultiEnemyArea => "Varios enemigos",
+            PsynergyTargetType.AllAllies => "Todos los aliados",
+            PsynergyTargetType.SingleEnemy => "1 Enemigo",
+            PsynergyTargetType.AllEnemies => "Todos los enemigos",
+            _ => targetType.ToString()
+        };
     }
 
     private string GetElementNameSpanish(ElementalType element)
     {
-        switch (element)
+        return element switch
         {
-            case ElementalType.Venus: return "Tierra - Venus";
-            case ElementalType.Mars: return "Fuego - Marte";
-            case ElementalType.Jupiter: return "Viento - Júpiter";
-            case ElementalType.Mercury: return "Agua - Mercurio";
-            default: return element.ToString();
-        }
+            ElementalType.Venus => "Tierra - Venus",
+            ElementalType.Mars => "Fuego - Marte",
+            ElementalType.Jupiter => "Viento - Júpiter",
+            ElementalType.Mercury => "Agua - Mercurio",
+            _ => element.ToString()
+        };
     }
 
     public void ClearInfoPanel()
