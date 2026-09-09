@@ -352,7 +352,7 @@ public class GameManager : MonoBehaviour
 
     private void StartNewGame(string firstSceneName, string initialSpawnID)
     {
-        totalGold = 0;
+        totalGold = 200;
         totalPlayed = 0f;
         activeParty.Clear();
         reserveParty.Clear();

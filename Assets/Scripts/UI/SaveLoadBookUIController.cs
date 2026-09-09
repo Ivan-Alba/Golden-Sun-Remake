@@ -82,6 +82,10 @@ public class SaveLoadBookUIController : MonoBehaviour
     private GameEvents.UI.SaveBookMode currentMode = GameEvents.UI.SaveBookMode.Save;
     private bool isOpen = false;
 
+    // GameState caching for robust exploration/menu restoration
+    private GameManager.GameState _cachedGameState;
+    private GameManager.GameState _cachedPreviousGameState;
+
     // Playtime Live Tracking Fields (for active Save Mode live ticking)
     private float cachedLivePlayTime = 0f;
     private int lastDisplayedSecond = -1;
@@ -120,21 +124,23 @@ public class SaveLoadBookUIController : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.UI.OnOpenSaveLoadBookRequested += HandleOpenRequested;
-
         GameEvents.Input.OnMenuCancelPressed += HandleCancelPressed;
 
         GameEvents.SaveLoad.OnSaveCompleted += HandleSaveCompleted;
         GameEvents.SaveLoad.OnLoadCompleted += HandleLoadCompleted;
+
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.UI.OnOpenSaveLoadBookRequested -= HandleOpenRequested;
-
         GameEvents.Input.OnMenuCancelPressed -= HandleCancelPressed;
 
         GameEvents.SaveLoad.OnSaveCompleted -= HandleSaveCompleted;
         GameEvents.SaveLoad.OnLoadCompleted -= HandleLoadCompleted;
+
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
     }
 
     private void Update()
@@ -189,6 +195,11 @@ public class SaveLoadBookUIController : MonoBehaviour
 
     #region Event Handlers & Open/Close Flow
 
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        _cachedGameState = newState;
+    }
+
     private void HandleOpenRequested(GameEvents.UI.SaveBookMode mode)
     {
         if (mode == GameEvents.UI.SaveBookMode.Load && !HasAnySaveFile())
@@ -214,6 +225,9 @@ public class SaveLoadBookUIController : MonoBehaviour
     private void OpenBook()
     {
         if (bookRootContainer == null) BindUXMLElements();
+
+        // Cache previous game state before shifting to InMenu
+        _cachedPreviousGameState = _cachedGameState;
 
         isOpen = true;
 
@@ -252,7 +266,8 @@ public class SaveLoadBookUIController : MonoBehaviour
             bookRootContainer.style.display = DisplayStyle.None;
         }
 
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+        // Return to the exact game state cached before opening the book
+        GameEvents.GameState.RequestGameStateChange(_cachedPreviousGameState);
 
         OnBookClosed?.Invoke();
     }
@@ -648,6 +663,7 @@ public class SaveLoadBookUIController : MonoBehaviour
             RenderLeftChroniclePage(headerData);
         }
     }
+
     private void OnSlotSelected(int slotIndex)
     {
         if (currentMode == GameEvents.UI.SaveBookMode.Save)
