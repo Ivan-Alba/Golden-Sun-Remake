@@ -181,6 +181,9 @@ public class DialogueController : MonoBehaviour
 
             if (waitingForAnyAction)
             {
+                // Ocultamos la UI de diálogo por completo mientras el menú externo esté abierto
+                GameEvents.UI.RequestSetDialogueUIVisible(false);
+
                 isWaitingForAction = true;
 
                 foreach (var action in selectedChoice.actionsOnSelect)
@@ -201,7 +204,6 @@ public class DialogueController : MonoBehaviour
                         else
                         {
                             action.ExecuteAction();
-                            currentActiveChoices.Clear();
                         }
                     }
                 }
@@ -225,6 +227,16 @@ public class DialogueController : MonoBehaviour
     private void ResumeDialogueAfterAction(DialogueChoice selectedChoice)
     {
         isWaitingForAction = false;
+
+        // Solo reactivamos la visibilidad de la UI si realmente hay un siguiente diálogo o nodo al que avanzar.
+        // Si no hay siguiente diálogo y estamos en el último nodo, el flujo cerrará limpiamente sin mostrar elementos fantasma.
+        bool willContinue = (selectedChoice.nextDialogue != null) || (currentNodeIndex + 1 < currentDialogue.nodes.Count);
+
+        if (willContinue)
+        {
+            GameEvents.UI.RequestSetDialogueUIVisible(true);
+        }
+
         ContinueDialogueFlow(selectedChoice);
     }
 
@@ -258,6 +270,9 @@ public class DialogueController : MonoBehaviour
         currentInteractableElement = element;
         isAwaitingChoice = false;
         isWaitingForAction = false;
+
+        // Asegurar que la UI esté visible al iniciar un nuevo bloque de diálogo
+        GameEvents.UI.RequestSetDialogueUIVisible(true);
 
         FocusDialogueCamera(element);
         DisplayCurrentNode();
@@ -420,6 +435,9 @@ public class DialogueController : MonoBehaviour
     private IEnumerator CloseDialogueRoutine()
     {
         if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+
+        // Asegurarnos de que la UI del diálogo esté oculta al iniciar el cierre final
+        GameEvents.UI.RequestSetDialogueUIVisible(false);
 
         if (dialogueCamera != null)
         {

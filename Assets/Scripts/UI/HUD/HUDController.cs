@@ -273,6 +273,8 @@ public class HUDController : MonoBehaviour
 
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
         GameEvents.UI.OnUpdateDialogueRequested += UpdateDialogueUI;
+        GameEvents.UI.OnSetDialogueUIVisible -= HandleSetDialogueUIVisible;
+        GameEvents.UI.OnSetDialogueUIVisible += HandleSetDialogueUIVisible;
 
         // GameEvents.Player
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
@@ -313,6 +315,7 @@ public class HUDController : MonoBehaviour
         GameEvents.UI.OnSetFirstPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
 
         GameEvents.UI.OnUpdateDialogueRequested -= UpdateDialogueUI;
+        GameEvents.UI.OnSetDialogueUIVisible -= HandleSetDialogueUIVisible;
 
         GameEvents.Player.OnStaminaChanged -= UpdateStamina;
 
@@ -326,6 +329,18 @@ public class HUDController : MonoBehaviour
         GameEvents.Fighter.OnFighterDied -= HandleFighterDied;
 
         GameEvents.Psynergy.OnShortcutsChanged -= HandleShortcutsChanged;
+    }
+
+    private void HandleSetDialogueUIVisible(bool visible)
+    {
+        if (visible)
+        {
+            _dialogueLayer.style.display = DisplayStyle.Flex;
+        }
+        else
+        {
+            _dialogueLayer.style.display = DisplayStyle.None;
+        }
     }
 
     #endregion

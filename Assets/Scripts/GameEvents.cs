@@ -1078,6 +1078,9 @@ public static class GameEvents
         public static void RequestSelectDialogueChoice(int choiceIndex)
             => OnSelectDialogueChoiceRequested?.Invoke(choiceIndex);
 
+        public static event Action<bool> OnSetDialogueUIVisible;
+        public static void RequestSetDialogueUIVisible(bool visible) => OnSetDialogueUIVisible?.Invoke(visible);
+
         // ==========================================
         // SAVE / LOAD BOOK UI EVENTS
         // ==========================================
