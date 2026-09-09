@@ -123,6 +123,8 @@ public class PagePsynergyController : IMenuPageController
     private PsynergyDragContext currentDragContext;
     private VisualElement ghostElement;
     private bool isDragging = false;
+    // Click suppression flag to swallow synthetic click events right after consuming the last resource/action
+    private bool suppressClickThisFrame = false;
 
     // Pointer Tracking & Drag Threshold
     private Vector2 pointerStartPosition;
@@ -187,6 +189,16 @@ public class PagePsynergyController : IMenuPageController
     public void CancelTargeting()
     {
         CancelPsynergyTargeting();
+    }
+
+    /// <summary>
+    /// Implements IMenuPageController contract. Executed by MainMenuController when 
+    /// a header hero card is clicked while this page is actively in Psynergy targeting mode.
+    /// </summary>
+    public void ExecuteTargetingOnHero(int heroIndex)
+    {
+        if (!isTargetingPsynergy) return;
+        ExecutePsynergyOnHero(heroIndex);
     }
 
     public void Dispose()
@@ -731,35 +743,7 @@ public class PagePsynergyController : IMenuPageController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
-            topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
-        }
-    }
-
-    private void OnGlobalPointerDownTargeting(PointerDownEvent evt)
-    {
-        if (!isTargetingPsynergy) return;
-
-        if (evt.button == 1)
-        {
-            CancelPsynergyTargeting();
-            ClearInfoPanel();
-            evt.StopPropagation();
-            return;
-        }
-
-        if (evt.button == 0)
-        {
-            if (TryGetDropTarget(evt.position, out PsynergyDropTargetInfo targetInfo) && targetInfo.IsHeroCard)
-            {
-                evt.StopImmediatePropagation();
-                ExecutePsynergyOnHero(targetInfo.HeroIndex);
-            }
-            else
-            {
-                CancelPsynergyTargeting();
-                ClearInfoPanel();
-            }
         }
     }
 
@@ -791,26 +775,25 @@ public class PagePsynergyController : IMenuPageController
 
         bool effectApplied = targetingPsynergy.ExecuteMenuEffect(currentHeroStats, new List<FighterStats> { targetHero });
 
-        if (effectApplied)
+        if (!effectApplied)
         {
-            GameEvents.Audio.RequestPlaySFXClip(targetingPsynergy.MenuData.MenuSoundEffect);
-            currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
-
-            OnPsynergyUsedOnHero?.Invoke();
-
-            FilterCards(currentFilterIndex);
-
-            if (currentHeroStats.CurrPp < targetingPsynergy.PpCost)
-            {
-                CancelPsynergyTargeting();
-                ClearInfoPanel();
-            }
+            return;
         }
-        else
+
+        GameEvents.Audio.RequestPlaySFXClip(targetingPsynergy.MenuData.MenuSoundEffect);
+        currentHeroStats.ConsumePP(targetingPsynergy.PpCost);
+
+        OnPsynergyUsedOnHero?.Invoke();
+
+        FilterCards(currentFilterIndex);
+
+        if (currentHeroStats.CurrPp >= targetingPsynergy.PpCost)
         {
-            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
-            Debug.LogWarning($"[PagePsynergy] '{targetingPsynergy.PsynergyName}' had no effect on {targetHero.Name}. PP not consumed.");
+            return;
         }
+
+        ClearInfoPanel();
+        CancelPsynergyTargetingDeferred();
     }
 
     private HeroStats GetHeroStatsByIdx(int index)
@@ -830,7 +813,6 @@ public class PagePsynergyController : IMenuPageController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
-            topRoot.UnregisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.UnregisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
         }
 
@@ -838,6 +820,25 @@ public class PagePsynergyController : IMenuPageController
 
         isTargetingPsynergy = false;
         targetingPsynergy = null;
+    }
+
+    private void CancelPsynergyTargetingDeferred()
+    {
+        suppressClickThisFrame = true;
+
+        if (rootElement != null)
+        {
+            rootElement.schedule.Execute(() =>
+            {
+                CancelPsynergyTargeting();
+                suppressClickThisFrame = false;
+            }).ExecuteLater(50);
+        }
+        else
+        {
+            CancelPsynergyTargeting();
+            suppressClickThisFrame = false;
+        }
     }
 
     private void CreateTargetingGhost(Sprite icon)
@@ -1013,17 +1014,6 @@ public class PagePsynergyController : IMenuPageController
             if (dpadSlotUI[i] != null && IsElementOrChildOf(picked, dpadSlotUI[i]))
             {
                 targetInfo = new PsynergyDropTargetInfo(true, (DPadDirection)i, false, -1);
-                return true;
-            }
-        }
-
-        VisualElement heroCard = FindParentMatching(picked, elem => elem.name != null && elem.name.StartsWith("btn_hero"));
-        if (heroCard != null)
-        {
-            string nameStr = heroCard.name.Replace("btn_hero", "");
-            if (int.TryParse(nameStr, out int heroIdx))
-            {
-                targetInfo = new PsynergyDropTargetInfo(false, DPadDirection.Up, true, heroIdx);
                 return true;
             }
         }

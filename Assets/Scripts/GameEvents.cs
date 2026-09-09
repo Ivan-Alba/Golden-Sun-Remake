@@ -1090,10 +1090,6 @@ public static class GameEvents
         public static event Action<SaveBookMode> OnOpenSaveLoadBookRequested;
         public static void RequestOpenSaveLoadBook(SaveBookMode mode)
             => OnOpenSaveLoadBookRequested?.Invoke(mode);
-
-        public static event Action OnCloseSaveLoadBookRequested;
-        public static void RequestCloseSaveLoadBook()
-            => OnCloseSaveLoadBookRequested?.Invoke();
     }
 
     // ==========================================

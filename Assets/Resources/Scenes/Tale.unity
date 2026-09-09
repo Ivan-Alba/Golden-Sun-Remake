@@ -10540,8 +10540,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df66976fbcd76bc4b8f062eacaab2105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnID: tale_entrance_from_tale_plains
-  zoneName: Entrada Llanura
+  spawnID: crystal_zone
+  zoneName: "Cristal Psin\xE9rgico"
   regionName: Aldea de Tale
   autoWalkOnArrival: 0
   arrivalWalkTarget: {fileID: 0}
@@ -10556,7 +10556,7 @@ Transform:
   m_GameObject: {fileID: 1079867975}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.33331448, z: -0, w: 0.9428158}
-  m_LocalPosition: {x: 371.14, y: 10.52, z: -431.27}
+  m_LocalPosition: {x: 377.89, y: 10.52, z: -429.82}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -86,6 +86,11 @@ public class SaveLoadBookUIController : MonoBehaviour
     private float cachedLivePlayTime = 0f;
     private int lastDisplayedSecond = -1;
 
+    /// <summary>
+    /// Event triggered when the Save/Load book is closed.
+    /// </summary>
+    public static event Action OnBookClosed;
+
     #endregion
 
     #region Helper Structs
@@ -115,7 +120,6 @@ public class SaveLoadBookUIController : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.UI.OnOpenSaveLoadBookRequested += HandleOpenRequested;
-        GameEvents.UI.OnCloseSaveLoadBookRequested += HandleCloseRequested;
 
         GameEvents.Input.OnMenuCancelPressed += HandleCancelPressed;
 
@@ -126,7 +130,6 @@ public class SaveLoadBookUIController : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.UI.OnOpenSaveLoadBookRequested -= HandleOpenRequested;
-        GameEvents.UI.OnCloseSaveLoadBookRequested -= HandleCloseRequested;
 
         GameEvents.Input.OnMenuCancelPressed -= HandleCancelPressed;
 
@@ -199,11 +202,6 @@ public class SaveLoadBookUIController : MonoBehaviour
         OpenBook();
     }
 
-    private void HandleCloseRequested()
-    {
-        CloseBook();
-    }
-
     private void HandleCancelPressed()
     {
         if (isOpen)
@@ -255,6 +253,8 @@ public class SaveLoadBookUIController : MonoBehaviour
         }
 
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+
+        OnBookClosed?.Invoke();
     }
 
     private void HideBookImmediately()

@@ -14,7 +14,7 @@ public enum EmoteType
 }
 
 /// <summary>
-/// Manages active dialogue execution, typewriter animations, Cinemachine camera framing, 
+/// Manages active dialogue execution, typewriter animations, Cinemachine camera framing,  
 /// story flag progression, and branching choice resolution.
 /// Reacts to input events via GameEvents.Input and decoupled GameEvents.GameState.
 /// </summary>
@@ -41,6 +41,7 @@ public class DialogueController : MonoBehaviour
     private Coroutine typewriterCoroutine;
     private bool isTyping;
     private bool isAwaitingChoice;
+    private bool isWaitingForAction;
 
     private string defaultSpeakerName;
     private Sprite defaultPortrait;
@@ -128,8 +129,8 @@ public class DialogueController : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InDialogue) return;
 
-        // Block manual advancement if the UI is currently displaying choices and waiting for input
-        if (isAwaitingChoice) return;
+        // Block manual advancement if waiting for choices or executing a blocking action
+        if (isAwaitingChoice || isWaitingForAction) return;
 
         if (isTyping)
         {
@@ -163,18 +164,72 @@ public class DialogueController : MonoBehaviour
         isAwaitingChoice = false;
         currentActiveChoices.Clear();
 
-        // Execute modular actions assigned to this choice (Polymorphic data-driven actions)
-        if (selectedChoice.actionsOnSelect != null)
+        // Execute modular actions assigned to this choice with support for asynchronous/blocking actions
+        if (selectedChoice.actionsOnSelect != null && selectedChoice.actionsOnSelect.Count > 0)
         {
-            for (int i = 0; i < selectedChoice.actionsOnSelect.Count; i++)
+            bool waitingForAnyAction = false;
+            int actionsRemaining = 0;
+
+            foreach (var action in selectedChoice.actionsOnSelect)
             {
-                if (selectedChoice.actionsOnSelect[i] != null)
+                if (action != null && action.RequiresWaiting)
                 {
-                    selectedChoice.actionsOnSelect[i].ExecuteAction();
+                    waitingForAnyAction = true;
+                    actionsRemaining++;
+                }
+            }
+
+            if (waitingForAnyAction)
+            {
+                isWaitingForAction = true;
+
+                foreach (var action in selectedChoice.actionsOnSelect)
+                {
+                    if (action != null)
+                    {
+                        if (action.RequiresWaiting)
+                        {
+                            action.ExecuteAction(() =>
+                            {
+                                actionsRemaining--;
+                                if (actionsRemaining <= 0)
+                                {
+                                    ResumeDialogueAfterAction(selectedChoice);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            action.ExecuteAction();
+                            currentActiveChoices.Clear();
+                        }
+                    }
+                }
+                return; // Pause dialogue flow here until all blocking actions invoke their completion callback
+            }
+            else
+            {
+                for (int i = 0; i < selectedChoice.actionsOnSelect.Count; i++)
+                {
+                    if (selectedChoice.actionsOnSelect[i] != null)
+                    {
+                        selectedChoice.actionsOnSelect[i].ExecuteAction();
+                    }
                 }
             }
         }
 
+        ContinueDialogueFlow(selectedChoice);
+    }
+
+    private void ResumeDialogueAfterAction(DialogueChoice selectedChoice)
+    {
+        isWaitingForAction = false;
+        ContinueDialogueFlow(selectedChoice);
+    }
+
+    private void ContinueDialogueFlow(DialogueChoice selectedChoice)
+    {
         // Branch to next dialogue if assigned, otherwise advance to next node or finish
         if (selectedChoice.nextDialogue != null)
         {
@@ -202,6 +257,7 @@ public class DialogueController : MonoBehaviour
         defaultPortrait = portrait;
         currentInteractableElement = element;
         isAwaitingChoice = false;
+        isWaitingForAction = false;
 
         FocusDialogueCamera(element);
         DisplayCurrentNode();
@@ -398,6 +454,7 @@ public class DialogueController : MonoBehaviour
         currentDialogue = null;
         currentNodeIndex = 0;
         isAwaitingChoice = false;
+        isWaitingForAction = false;
         currentActiveChoices.Clear();
 
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
@@ -480,7 +537,6 @@ public class DialogueController : MonoBehaviour
         else
         {
             // Fallback safety: If no DialogueFocusTarget is present, do not create a forced low pivot.
-            // The camera will naturally focus on the object's transform root without failing.
             targetEyePivot = null;
         }
     }

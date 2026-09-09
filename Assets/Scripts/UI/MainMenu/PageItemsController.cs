@@ -172,6 +172,8 @@ public class PageItemsController : IMenuPageController
     private DragContext currentDragContext;
     private VisualElement ghostElement;
     private bool isDragging = false;
+    // Click suppression flag to swallow synthetic click events right after consuming the last item
+    private bool suppressClickThisFrame = false;
 
     // Pointer Tracking & Drag Threshold
     private Vector2 pointerStartPosition;
@@ -253,6 +255,16 @@ public class PageItemsController : IMenuPageController
     public void CancelTargeting()
     {
         CancelItemTargeting();
+    }
+
+    /// <summary>
+    /// Implements IMenuPageController contract. Executed by MainMenuController when 
+    /// a header hero card is clicked while this page is actively in item targeting mode.
+    /// </summary>
+    public void ExecuteTargetingOnHero(int heroIndex)
+    {
+        if (!isTargetingItem) return;
+        ExecuteConsumableUsageOnHero(heroIndex);
     }
 
     public void Dispose()
@@ -757,8 +769,8 @@ public class PageItemsController : IMenuPageController
 
         float currentTime = Time.unscaledTime;
         bool isDoubleClick = (currentTime - lastClickTime <= DOUBLE_CLICK_TIME_THRESHOLD)
-                             && (lastClickSlotIndex == slotIndex)
-                             && (lastClickSourceType == sourceType);
+                           && (lastClickSlotIndex == slotIndex)
+                           && (lastClickSourceType == sourceType);
 
         if (isDoubleClick)
         {
@@ -908,7 +920,6 @@ public class PageItemsController : IMenuPageController
             int targetInvIndex = GetFirstEmptyInventoryIndex();
             if (targetInvIndex == -1)
             {
-                Debug.LogWarning("[PageItems] Cannot unequip: Personal inventory is full.");
                 return;
             }
 
@@ -930,7 +941,6 @@ public class PageItemsController : IMenuPageController
             int targetInvIndex = GetFirstEmptyInventoryIndex();
             if (targetInvIndex == -1)
             {
-                Debug.LogWarning("[PageItems] Cannot unequip relic: Personal inventory is full.");
                 return;
             }
 
@@ -973,33 +983,7 @@ public class PageItemsController : IMenuPageController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
-            topRoot.RegisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.RegisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
-        }
-    }
-
-    private void OnGlobalPointerDownTargeting(PointerDownEvent evt)
-    {
-        if (!isTargetingItem) return;
-
-        if (evt.button == 1)
-        {
-            CancelItemTargeting();
-            evt.StopPropagation();
-            return;
-        }
-
-        if (evt.button == 0)
-        {
-            if (TryGetDropTarget(evt.position, out DropTargetInfo targetInfo) && targetInfo.TargetType == DropTargetType.HeroCard)
-            {
-                evt.StopImmediatePropagation();
-                ExecuteConsumableUsageOnHero(targetInfo.Index);
-            }
-            else
-            {
-                CancelItemTargeting();
-            }
         }
     }
 
@@ -1029,26 +1013,31 @@ public class PageItemsController : IMenuPageController
         }
 
         HeroStats targetHero = GetHeroStatsByIdx(targetHeroIdx);
-        if (targetHero == null) return;
+        if (targetHero == null)
+        {
+            CancelItemTargeting();
+            return;
+        }
 
         bool effectApplied = consumable.ExecuteMenuEffect(targetHero);
 
-        if (effectApplied)
+        if (!effectApplied)
         {
-            currentInventory.RemoveFromSlot(targetingSourceIndex, 1);
-            RefreshAllData();
+            return;
+        }
 
-            InventorySlot updatedSlot = currentInventory.GetSlot(targetingSourceIndex);
-            if (updatedSlot == null || updatedSlot.IsEmpty || updatedSlot.Quantity <= 0)
-            {
-                ClearInfoPanel();
-                CancelItemTargeting();
-            }
-        }
-        else
+        currentInventory.RemoveFromSlot(targetingSourceIndex, 1);
+        RefreshAllData();
+
+        InventorySlot updatedSlot = currentInventory.GetSlot(targetingSourceIndex);
+
+        if (updatedSlot != null && !updatedSlot.IsEmpty && updatedSlot.Quantity > 0)
         {
-            Debug.LogWarning($"[Consumable] '{consumable.ItemName}' had no effect on {targetHero.Name}. Item was not consumed.");
+            return;
         }
+
+        ClearInfoPanel();
+        CancelItemTargetingDeferred();
     }
 
     private HeroStats GetHeroStatsByIdx(int index)
@@ -1103,7 +1092,6 @@ public class PageItemsController : IMenuPageController
         VisualElement topRoot = GetTopRootElement();
         if (topRoot != null)
         {
-            topRoot.UnregisterCallback<PointerDownEvent>(OnGlobalPointerDownTargeting, TrickleDown.TrickleDown);
             topRoot.UnregisterCallback<PointerMoveEvent>(OnGlobalPointerMoveTargeting, TrickleDown.TrickleDown);
         }
 
@@ -1112,6 +1100,25 @@ public class PageItemsController : IMenuPageController
         isTargetingItem = false;
         targetingSourceIndex = -1;
         targetingItem = null;
+    }
+
+    private void CancelItemTargetingDeferred()
+    {
+        suppressClickThisFrame = true;
+
+        if (rootElement != null)
+        {
+            rootElement.schedule.Execute(() =>
+            {
+                CancelItemTargeting();
+                suppressClickThisFrame = false;
+            }).ExecuteLater(50);
+        }
+        else
+        {
+            CancelItemTargeting();
+            suppressClickThisFrame = false;
+        }
     }
 
     #endregion
@@ -1429,7 +1436,6 @@ public class PageItemsController : IMenuPageController
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
             {
-                Debug.LogWarning($"[PageItems] Cannot transfer item to target backpack. Backpack is full!");
                 return;
             }
 
@@ -1461,7 +1467,6 @@ public class PageItemsController : IMenuPageController
         {
             if (!targetHeroInv.CanAddItem(currentDragContext.Item, 1))
             {
-                Debug.LogWarning($"[PageItems] Cannot transfer equipped item to target backpack. Target backpack full!");
                 return;
             }
 
@@ -1703,11 +1708,11 @@ public class PageItemsController : IMenuPageController
         if (labelItemSellPrice != null)
         {
             labelItemSellPrice.text = item.CanSell
-                ? $"Se vende por:   {item.SellPrice} monedas"
+                ? $"Se vende por:    {item.SellPrice} monedas"
                 : "No se puede vender";
         }
 
-        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack:   {item.MaxStack}";
+        if (labelItemMaxStack != null) labelItemMaxStack.text = $"Máx. stack:    {item.MaxStack}";
         if (labelItemDesc != null) labelItemDesc.text = item.ItemDescription;
 
         if (itemIconPreview != null && item.Icon != null)
@@ -2094,8 +2099,8 @@ public class PageItemsController : IMenuPageController
         if (equipable == null) return;
 
         VisualElement statsContainer = rootInstance.Q<VisualElement>("stats_grid") ??
-                                       rootInstance.Q<VisualElement>("stats_list_container") ??
-                                       rootInstance.Q<VisualElement>("stat_modifiers_box");
+                                     rootInstance.Q<VisualElement>("stats_list_container") ??
+                                     rootInstance.Q<VisualElement>("stat_modifiers_box");
 
         IReadOnlyList<StatBonus> modifiers = equipable.StatModifiers;
         if (modifiers == null || modifiers.Count == 0 || statsContainer == null) return;
@@ -2130,8 +2135,8 @@ public class PageItemsController : IMenuPageController
         if (currentHero == null || currentEquipment == null || newEquipable == null) return;
 
         VisualElement deltaContainer = rootInstance.Q<VisualElement>("comparison_rows_container") ??
-                                       rootInstance.Q<VisualElement>("delta_comparison_container") ??
-                                       rootInstance.Q<VisualElement>("stat_delta_box");
+                                     rootInstance.Q<VisualElement>("delta_comparison_container") ??
+                                     rootInstance.Q<VisualElement>("stat_delta_box");
 
         if (deltaContainer == null) return;
 
@@ -2370,7 +2375,6 @@ public class PageItemsController : IMenuPageController
 
     public void HandleConfirm()
     {
-        Debug.Log("[PageItems] Confirm action triggered.");
     }
 
     #endregion

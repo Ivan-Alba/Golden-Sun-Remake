@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Action_OpenLoadBook
+  m_Script: {fileID: 11500000, guid: 393ba71b6441acb41846d2cc6124dd67, type: 3}
+  m_Name: Action_OpenSaveBook
   m_EditorClassIdentifier: Assembly-CSharp::OpenSaveBookActionSO
-  mode: 1
+  mode: 0

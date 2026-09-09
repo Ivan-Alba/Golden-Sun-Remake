@@ -52,7 +52,7 @@ MonoBehaviour:
       setFlagOnSelect: {fileID: 0}
       setFlagSlugOnSelect: 
       actionsOnSelect:
-      - {fileID: 11400000, guid: 1507906d0332b7b45bcc54dc6d9e22ab, type: 2}
+      - {fileID: 11400000, guid: d3c7816f5b09ffe47b243090fbe96841, type: 2}
     - localizedChoiceText:
         m_TableReference:
           m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
@@ -68,7 +68,7 @@ MonoBehaviour:
       setFlagOnSelect: {fileID: 0}
       setFlagSlugOnSelect: 
       actionsOnSelect:
-      - {fileID: 11400000, guid: fc571e984cf32914c925f6babe2eed9a, type: 2}
+      - {fileID: 11400000, guid: 532bf9337721fd545a7823dff919dd30, type: 2}
     - localizedChoiceText:
         m_TableReference:
           m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13

@@ -47,6 +47,14 @@ public class PageStatusController : IMenuPageController
         }
     }
 
+    /// <summary>
+    /// Implements IMenuPageController contract. Not used on this page.
+    /// </summary>
+    public void ExecuteTargetingOnHero(int heroIndex)
+    {
+        // No-op for pages that do not support targeting
+    }
+
     public void CancelTargeting()
     {
         // Status page does not support targeting operations, nothing to cancel.

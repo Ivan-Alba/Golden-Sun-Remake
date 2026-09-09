@@ -13,6 +13,11 @@ public interface IMenuPageController : IDisposable
     void PopulateData(IReadOnlyList<GameObject> activeParty, int selectedHeroIndex);
     bool IsTargeting { get; }
     void CancelTargeting();
+
+    /// <summary>
+    /// Executes the active targeting action (item usage or psynergy casting) on the specified hero index.
+    /// </summary>
+    void ExecuteTargetingOnHero(int heroIndex);
 }
 
 /// <summary>
@@ -221,7 +226,7 @@ public class MainMenuController : MonoBehaviour
         for (int i = 0; i < btnHeroes.Length; i++)
         {
             int index = i;
-            heroClickCallbacks[i] = e => SelectHero(index);
+            heroClickCallbacks[i] = e => OnHeroHeaderClicked(index);
             btnHeroes[i]?.RegisterCallback(heroClickCallbacks[i]);
         }
     }
@@ -425,6 +430,25 @@ public class MainMenuController : MonoBehaviour
         UpdateHeroCardsHighlight();
     }
 
+    /// <summary>
+    /// Handles interactions on hero header cards. If the subpage is in targeting mode,
+    /// it delegates the usage action to the active controller instead of changing tabs/selection.
+    /// </summary>
+    private void OnHeroHeaderClicked(int heroIndex)
+    {
+        if (activePageController != null && activePageController.IsTargeting)
+        {
+            List<HeroStats> party = GetPartyHeroStatsList();
+            if (party != null && heroIndex >= 0 && heroIndex < party.Count)
+            {
+                activePageController.ExecuteTargetingOnHero(heroIndex);
+            }
+            return;
+        }
+
+        SelectHero(heroIndex);
+    }
+
     public void SelectHero(int heroIndex)
     {
         if (IsAnySubPageTargeting()) return;
@@ -545,10 +569,7 @@ public class MainMenuController : MonoBehaviour
         pageContent.Add(itemsInstance);
 
         var pageController = new PageItemsController(itemsInstance);
-
-        // AQUÍ ESTABA FALTANDO ASIGNAR EL TEMPLATE DEL SLOT DE ITEMS:
         pageController.SetItemSlotAsset(itemSlotAsset);
-
         pageController.SetExtraInfoTemplates(templateInfoConsumable, templateInfoEquipable, templateInfoWeapon, templateInfoPsynergyRelic, templateInfoKeyItem);
         pageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
 
