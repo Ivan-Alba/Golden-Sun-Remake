@@ -238,6 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a42aa40b4dab3024b8ba5acf7dced859, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  uiDocument: {fileID: 0}
   pageStatusAsset: {fileID: 9197481963319205126, guid: d7c5c68794b10a040a2fbae0d0a44844, type: 3}
   pageItemsAsset: {fileID: 9197481963319205126, guid: 437816b739eea074eb22c349a21b9858, type: 3}
   pagePsynergyAsset: {fileID: 9197481963319205126, guid: 2074efc47207d5145a30135d3a29bcff, type: 3}
@@ -4792,7 +4793,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -49487,6 +49488,7 @@ GameObject:
   - component: {fileID: 8459378967203041515}
   - component: {fileID: 8944529262397290032}
   - component: {fileID: 4133397475642961524}
+  - component: {fileID: 5169046451630479117}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -49614,19 +49616,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVisualManager
   modelContainer: {fileID: 8459378965970709029}
-  playerAnimator: {fileID: 0}
-  footstepEmitter: {fileID: 0}
+  playerAnimator: {fileID: 8459378967203041515}
+  footstepEmitter: {fileID: 4133397475642961524}
+  focusProvider: {fileID: 5169046451630479117}
   heroVisuals:
   - heroId: Isaac
     worldModelObject: {fileID: 8459378967120531118}
     animatorController: {fileID: 9100000, guid: a4fa2f55f5498aa408b7a54902ec74bd, type: 2}
     avatar: {fileID: 9000000, guid: 17e666193fb1d4c41a49cfebabc41d04, type: 2}
     footstepProfile: {fileID: 0}
+    eyeHeightOffset: 2.5
+    framingCenterOffset: 1.4
+    targetRadius: 1.5
   - heroId: Garet
     worldModelObject: {fileID: 8459378967716165046}
     animatorController: {fileID: 9100000, guid: a483c1b7602fffa4e85815c8395f7cbf, type: 2}
     avatar: {fileID: 9000000, guid: 70b5de8e275f0574297ba6de256b89f1, type: 2}
     footstepProfile: {fileID: 0}
+    eyeHeightOffset: 2.7
+    framingCenterOffset: 1.6
+    targetRadius: 1.7
 --- !u!114 &4133397475642961524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49649,6 +49658,22 @@ MonoBehaviour:
   baseVolume: 0.8
   volumeVariance: 0.05
   defaultProfile: {fileID: 11400000, guid: 18278ff9a85916f4895af0641c6542cb, type: 2}
+--- !u!114 &5169046451630479117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8459378967203041518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268779038287d654581a470f3d7451fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusProvider
+  eyeHeightOffset: 2.7
+  framingCenterOffset: 1.6
+  targetRadius: 1.7
+  customDialogueCamera: {fileID: 0}
 --- !u!1 &8459378967206741298
 GameObject:
   m_ObjectHideFlags: 0
@@ -52254,9 +52279,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dialogueCamera: {fileID: 8025452197950221508}
   targetGroup: {fileID: 8459378966254215154}
+  playerFocusProvider: {fileID: 5169046451630479117}
   activeCameraPriority: 20
   inactiveCameraPriority: 0
-  eyeHeightOffset: 1.4
   charactersPerSecond: 30
 --- !u!1 &8459378967318386842
 GameObject:

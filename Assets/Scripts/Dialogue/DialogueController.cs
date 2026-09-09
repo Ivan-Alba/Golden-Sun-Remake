@@ -14,7 +14,7 @@ public enum EmoteType
 }
 
 /// <summary>
-/// Manages active dialogue execution, typewriter animations, Cinemachine camera framing,  
+/// Manages active dialogue execution, typewriter animations, Cinemachine camera framing (supporting 3 levels),  
 /// story flag progression, and branching choice resolution.
 /// Reacts to input events via GameEvents.Input and decoupled GameEvents.GameState.
 /// </summary>
@@ -25,9 +25,9 @@ public class DialogueController : MonoBehaviour
     [Header("Camera Control")]
     [SerializeField] private CinemachineCamera dialogueCamera;
     [SerializeField] private CinemachineTargetGroup targetGroup;
+    [SerializeField] private DialogueFocusProvider playerFocusProvider;
     [SerializeField] private int activeCameraPriority = 20;
     [SerializeField] private int inactiveCameraPriority = 0;
-    [SerializeField] private float eyeHeightOffset = 1.4f;
 
     [Header("Typewriter Settings")]
     [SerializeField] private float charactersPerSecond = 30f;
@@ -50,12 +50,19 @@ public class DialogueController : MonoBehaviour
     // Active choices cache for index resolution
     private readonly List<DialogueChoice> currentActiveChoices = new List<DialogueChoice>();
 
-    // Virtual framing targets for eye-level camera focus
+    // Virtual framing and look-at targets for camera focus and zoom calculations
     private GameObject playerEyePivot;
+    private GameObject playerFramingPivot;
     private GameObject targetEyePivot;
+    private GameObject targetFramingPivot;
+    private GameObject groupLookAtPivot; // Pivote intermedio inteligente para el punto medio de los ojos
 
-    // Local GameState cache
+    // Local GameState caches
     private GameManager.GameState _cachedGameState;
+    private GameManager.GameState _cachedPreviousGameState;
+
+    // Active custom cinematic camera tracking (Level 2)
+    private CinemachineCamera activeCustomDialogueCamera;
 
     #endregion
 
@@ -181,7 +188,7 @@ public class DialogueController : MonoBehaviour
 
             if (waitingForAnyAction)
             {
-                // Ocultamos la UI de diálogo por completo mientras el menú externo esté abierto
+                // Hide dialogue HUD completely while external menu is active
                 GameEvents.UI.RequestSetDialogueUIVisible(false);
 
                 isWaitingForAction = true;
@@ -207,7 +214,7 @@ public class DialogueController : MonoBehaviour
                         }
                     }
                 }
-                return; // Pause dialogue flow here until all blocking actions invoke their completion callback
+                return;
             }
             else
             {
@@ -228,8 +235,7 @@ public class DialogueController : MonoBehaviour
     {
         isWaitingForAction = false;
 
-        // Solo reactivamos la visibilidad de la UI si realmente hay un siguiente diálogo o nodo al que avanzar.
-        // Si no hay siguiente diálogo y estamos en el último nodo, el flujo cerrará limpiamente sin mostrar elementos fantasma.
+        // Restore dialogue HUD visibility only if there is a subsequent dialogue node or branch
         bool willContinue = (selectedChoice.nextDialogue != null) || (currentNodeIndex + 1 < currentDialogue.nodes.Count);
 
         if (willContinue)
@@ -261,6 +267,9 @@ public class DialogueController : MonoBehaviour
     {
         if (dialogue == null || dialogue.nodes == null || dialogue.nodes.Count == 0) return;
 
+        // Cache previous state before shifting to InDialogue (crucial for Cutscenes support)
+        _cachedPreviousGameState = _cachedGameState;
+
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InDialogue);
 
         currentDialogue = dialogue;
@@ -271,10 +280,12 @@ public class DialogueController : MonoBehaviour
         isAwaitingChoice = false;
         isWaitingForAction = false;
 
-        // Asegurar que la UI esté visible al iniciar un nuevo bloque de diálogo
+        // Ensure dialogue HUD is visible on startup
         GameEvents.UI.RequestSetDialogueUIVisible(true);
 
-        FocusDialogueCamera(element);
+        // Setup cameras based on the 3 levels architecture
+        SetupDialogueCamera(element);
+
         DisplayCurrentNode();
     }
 
@@ -436,12 +447,20 @@ public class DialogueController : MonoBehaviour
     {
         if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
 
-        // Asegurarnos de que la UI del diálogo esté oculta al iniciar el cierre final
+        // Ensure dialogue UI is hidden when closing
         GameEvents.UI.RequestSetDialogueUIVisible(false);
 
+        // Reset generic dialogue camera priority
         if (dialogueCamera != null)
         {
             dialogueCamera.Priority.Value = inactiveCameraPriority;
+        }
+
+        // Reset custom cinematic camera priority (Level 2) if active
+        if (activeCustomDialogueCamera != null)
+        {
+            activeCustomDialogueCamera.Priority.Value = inactiveCameraPriority;
+            activeCustomDialogueCamera = null;
         }
 
         if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<NPC>(out var npc))
@@ -475,48 +494,85 @@ public class DialogueController : MonoBehaviour
         isWaitingForAction = false;
         currentActiveChoices.Clear();
 
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+        // Return to the exact game state cached before starting dialogue (Exploration, Cutscene, etc.)
+        GameEvents.GameState.RequestGameStateChange(_cachedPreviousGameState);
     }
 
     #endregion
 
-    #region Camera Focus Helpers
+    #region Camera Focus Helpers (3-Levels Architecture)
 
-    private void FocusDialogueCamera(GameObject targetElement)
+    private void SetupDialogueCamera(GameObject targetElement)
     {
+        activeCustomDialogueCamera = null;
+
+        // Check if a DialogueFocusProvider is attached to the interactable element
+        DialogueFocusProvider focusProvider = targetElement != null ? targetElement.GetComponent<DialogueFocusProvider>() : null;
+
+        if (focusProvider == null)
+        {
+            // LEVEL 0: No Provider (Text-only / Cutscene overlay mode)
+            if (dialogueCamera != null)
+            {
+                dialogueCamera.Priority.Value = inactiveCameraPriority;
+            }
+            return;
+        }
+
+        // LEVEL 2: Custom Cinematic Camera defined on the provider
+        if (focusProvider.CustomDialogueCamera != null)
+        {
+            activeCustomDialogueCamera = focusProvider.CustomDialogueCamera;
+
+            if (dialogueCamera != null)
+            {
+                dialogueCamera.Priority.Value = inactiveCameraPriority;
+            }
+
+            activeCustomDialogueCamera.Priority.Value = activeCameraPriority;
+            return;
+        }
+
+        // LEVEL 1: Standard NPC / Object framing using generic dialogue camera & TargetGroup
         if (dialogueCamera == null || targetElement == null) return;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj == null) return;
 
-        // 1. Setup eye-level pivots for the target and player
-        SetupEyePivots(playerObj.transform, targetElement.transform);
+        // 1. Setup eye, framing and group look-at pivots for both Player and Target using their providers
+        SetupPivotsWithProvider(playerObj.transform, targetElement.transform, playerFocusProvider, focusProvider);
 
-        // 2. Assign targets to Cinemachine TargetGroup
+        // 2. Assign targets to Cinemachine TargetGroup (Separating LookAt target from Framing bounds)
         if (targetGroup != null)
         {
             targetGroup.Targets.Clear();
 
-            targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+            // Player framing target (Controls zoom/bounds including feet, using active hero configuration)
+            if (playerFramingPivot != null)
             {
-                Object = playerEyePivot.transform,
-                Weight = 1f,
-                Radius = 0.8f
-            });
-
-            // Only add target eye pivot to the group if it was successfully created
-            if (targetEyePivot != null)
-            {
+                float playerRadius = playerFocusProvider != null ? playerFocusProvider.TargetRadius : 0.8f;
                 targetGroup.Targets.Add(new CinemachineTargetGroup.Target
                 {
-                    Object = targetEyePivot.transform,
+                    Object = playerFramingPivot.transform,
                     Weight = 1f,
-                    Radius = 0.8f
+                    Radius = playerRadius
                 });
             }
 
+            // Target framing center (Controls zoom and bounds with dynamic radius including base/feet)
+            if (targetFramingPivot != null)
+            {
+                targetGroup.Targets.Add(new CinemachineTargetGroup.Target
+                {
+                    Object = targetFramingPivot.transform,
+                    Weight = 1f,
+                    Radius = focusProvider.TargetRadius > 0f ? focusProvider.TargetRadius : 0.8f
+                });
+            }
+
+            // Follow tracks the TargetGroup center (body framing), LookAt targets the precise middle point between both eye levels
             dialogueCamera.Follow = targetGroup.transform;
-            dialogueCamera.LookAt = targetGroup.transform;
+            dialogueCamera.LookAt = groupLookAtPivot != null ? groupLookAtPivot.transform : targetEyePivot.transform;
         }
 
         // 3. Align dialogue camera start position with main exploration camera
@@ -528,35 +584,45 @@ public class DialogueController : MonoBehaviour
             dialogueCamera.transform.position = startPos;
             dialogueCamera.transform.rotation = startRot;
 
-            // Force Cinemachine to warp internal state to current exploration position instantly
             dialogueCamera.ForceCameraPosition(startPos, startRot);
         }
 
-        // 4. Elevate priority to trigger Cinemachine's smooth framing blend
+        // 4. Elevate generic dialogue camera priority
         dialogueCamera.Priority.Value = activeCameraPriority;
     }
 
-    private void SetupEyePivots(Transform playerTransform, Transform targetTransform)
+    private void SetupPivotsWithProvider(Transform playerTransform, Transform targetTransform, DialogueFocusProvider playerProvider, DialogueFocusProvider targetProvider)
     {
         CleanupEyePivots();
 
-        // 1. Setup Player Pivot
+        // 1. Setup Player Eye Pivot
+        float playerEyeHeight = playerProvider != null ? playerProvider.EyeHeightOffset : 1.4f;
         playerEyePivot = new GameObject("Player_EyePivot");
-        playerEyePivot.transform.position = playerTransform.position + Vector3.up * eyeHeightOffset;
+        playerEyePivot.transform.position = playerTransform.position + Vector3.up * playerEyeHeight;
         playerEyePivot.transform.SetParent(playerTransform, true);
 
-        // 2. Setup Target Pivot (Checks universally for DialogueFocusTarget component)
-        if (currentInteractableElement != null && currentInteractableElement.TryGetComponent<DialogueFocusTarget>(out var focusTarget))
-        {
-            targetEyePivot = new GameObject("Target_EyePivot");
-            targetEyePivot.transform.position = targetTransform.position + Vector3.up * focusTarget.EyeHeightOffset;
-            targetEyePivot.transform.SetParent(targetTransform, true);
-        }
-        else
-        {
-            // Fallback safety: If no DialogueFocusTarget is present, do not create a forced low pivot.
-            targetEyePivot = null;
-        }
+        // 2. Setup Player Framing Pivot (For group bounding including feet)
+        float playerFramingCenter = playerProvider != null ? playerProvider.FramingCenterOffset : 1.0f;
+        playerFramingPivot = new GameObject("Player_FramingPivot");
+        playerFramingPivot.transform.position = playerTransform.position + Vector3.up * playerFramingCenter;
+        playerFramingPivot.transform.SetParent(playerTransform, true);
+
+        // 3. Setup Target Eye Pivot
+        targetEyePivot = new GameObject("Target_EyePivot");
+        targetEyePivot.transform.position = targetTransform.position + Vector3.up * targetProvider.EyeHeightOffset;
+        targetEyePivot.transform.SetParent(targetTransform, true);
+
+        // 4. Setup Target Framing Pivot
+        targetFramingPivot = new GameObject("Target_FramingPivot");
+        targetFramingPivot.transform.position = targetTransform.position + Vector3.up * targetProvider.FramingCenterOffset;
+        targetFramingPivot.transform.SetParent(targetTransform, true);
+
+        // 5. Setup Group Look-At Pivot (Calculates the exact middle point between Player's Eyes and Target's Eyes)
+        groupLookAtPivot = new GameObject("Group_LookAtPivot");
+        Vector3 middleEyePosition = Vector3.Lerp(playerEyePivot.transform.position, targetEyePivot.transform.position, 0.5f);
+        groupLookAtPivot.transform.position = middleEyePosition;
+        // Parent it to the target element or leave in world space so it sits stably between them
+        groupLookAtPivot.transform.SetParent(targetTransform, true);
     }
 
     private void CleanupEyePivots()
@@ -567,10 +633,28 @@ public class DialogueController : MonoBehaviour
             playerEyePivot = null;
         }
 
+        if (playerFramingPivot != null)
+        {
+            Destroy(playerFramingPivot);
+            playerFramingPivot = null;
+        }
+
         if (targetEyePivot != null)
         {
             Destroy(targetEyePivot);
             targetEyePivot = null;
+        }
+
+        if (targetFramingPivot != null)
+        {
+            Destroy(targetFramingPivot);
+            targetFramingPivot = null;
+        }
+
+        if (groupLookAtPivot != null)
+        {
+            Destroy(groupLookAtPivot);
+            groupLookAtPivot = null;
         }
     }
 

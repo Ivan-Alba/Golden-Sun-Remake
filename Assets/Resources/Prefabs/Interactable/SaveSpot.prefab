@@ -222,6 +222,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusTarget
   eyeHeightOffset: 4
+  framingCenterOffset: 2
+  targetRadius: 2.2
+  customDialogueCamera: {fileID: 0}
 --- !u!1 &8702843926803891404
 GameObject:
   m_ObjectHideFlags: 0

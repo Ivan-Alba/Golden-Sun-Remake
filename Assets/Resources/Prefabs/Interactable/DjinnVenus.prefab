@@ -275,7 +275,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 268779038287d654581a470f3d7451fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusTarget
-  eyeHeightOffset: 0.9
+  eyeHeightOffset: 0.8
+  framingCenterOffset: 0.6
+  targetRadius: 0.9
+  customDialogueCamera: {fileID: 0}
 --- !u!114 &-1826962399097632765
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -289,6 +292,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 2
+  customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 1.8

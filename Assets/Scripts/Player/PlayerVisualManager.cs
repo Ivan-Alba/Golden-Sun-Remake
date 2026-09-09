@@ -15,7 +15,7 @@ public enum PlayerInteractionAnimType
 }
 
 /// <summary>
-/// Container for inspector-assigned visual and audio references of a playable hero in the world map.
+/// Container for inspector-assigned visual, audio, and dialogue framing references of a playable hero in the world map.
 /// </summary>
 [Serializable]
 public class HeroVisualData
@@ -34,11 +34,20 @@ public class HeroVisualData
 
     [Tooltip("Footstep audio profile assigned to this specific hero.")]
     public HeroFootstepProfileSO footstepProfile;
-}
 
+    [Header("Dialogue Framing Configuration")]
+    [Tooltip("Eye height offset specific to this hero's anatomy for camera focus.")]
+    public float eyeHeightOffset = 1.4f;
+
+    [Tooltip("Framing center offset specific to this hero for group bounds.")]
+    public float framingCenterOffset = 1.0f;
+
+    [Tooltip("Framing radius specific to this hero for Cinemachine target group scaling.")]
+    public float targetRadius = 0.8f;
+}
 /// <summary>
 /// Manages player model swapping, mesh visibility, animator controller assignments,
-/// interaction animations, and active footstep audio profile synchronization.
+/// interaction animations, active footstep audio profile synchronization, and dialogue focus provider updates.
 /// </summary>
 public class PlayerVisualManager : MonoBehaviour
 {
@@ -58,6 +67,7 @@ public class PlayerVisualManager : MonoBehaviour
     [SerializeField] private GameObject modelContainer;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private FootstepAudioEmitter footstepEmitter;
+    [SerializeField] private DialogueFocusProvider focusProvider;
 
     [Header("Hero Visual Configurations")]
     [SerializeField] private List<HeroVisualData> heroVisuals = new List<HeroVisualData>();
@@ -75,24 +85,6 @@ public class PlayerVisualManager : MonoBehaviour
 
     private void Awake()
     {
-        if (playerAnimator == null)
-        {
-            playerAnimator = GetComponent<Animator>();
-            if (playerAnimator == null)
-            {
-                playerAnimator = GetComponentInParent<Animator>();
-            }
-        }
-
-        if (footstepEmitter == null)
-        {
-            footstepEmitter = GetComponent<FootstepAudioEmitter>();
-            if (footstepEmitter == null)
-            {
-                footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
-            }
-        }
-
         InitializeLookupDictionary();
     }
 
@@ -143,7 +135,8 @@ public class PlayerVisualManager : MonoBehaviour
     #region Visual & Audio Swap Logic
 
     /// <summary>
-    /// Swaps active model mesh, updates AnimatorController + Avatar, and synchronizes footstep audio profile.
+    /// Swaps active model mesh, updates AnimatorController + Avatar, synchronizes footstep audio profile, 
+    /// and updates the DialogueFocusProvider offsets for the target hero.
     /// </summary>
     public void SwapToHero(string heroId)
     {
@@ -191,6 +184,12 @@ public class PlayerVisualManager : MonoBehaviour
         if (footstepEmitter != null)
         {
             footstepEmitter.SetActiveProfile(visualData.footstepProfile);
+        }
+
+        // 5. Update DialogueFocusProvider parameters dynamically based on current hero anatomy
+        if (focusProvider != null)
+        {
+            focusProvider.UpdateProfile(visualData.eyeHeightOffset, visualData.framingCenterOffset, visualData.targetRadius);
         }
     }
 
