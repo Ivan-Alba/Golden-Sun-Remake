@@ -276,10 +276,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SavePointSpot
   actionText: Cargar
   keyPrompt: SPC
-  promptAnchor: {fileID: 0}
-  promptOffset: {x: 0, y: 2.5, z: 0}
+  directionType: 1
   savePointName: Llanura de Tale
   defaultMode: 1
+  savePointDialogue: {fileID: 0}
+  speakerName: Altar Sagrado
+  speakerPortrait: {fileID: 0}
   linkedSpawnPoint: {fileID: 0}
   interactionSFX: 1
 --- !u!65 &1410683412601644491
@@ -316,6 +318,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 2
+  customEntityName: 
   entitySubTitle: ESTATUA DE CARGA
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2

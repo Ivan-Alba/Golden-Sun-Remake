@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Passive physics trigger sensor attached to the Player's interaction sensor transform.
 /// Tracks nearby interactables entering the physical trigger and evaluates viewing angle cones
-/// to identify the best candidate, emitting global events upon focus shifts.
+/// and directional restrictions to identify the best candidate, emitting global events upon focus shifts.
 /// </summary>
 [RequireComponent(typeof(SphereCollider))]
 public class PlayerInteractionDetector : MonoBehaviour
@@ -14,6 +14,12 @@ public class PlayerInteractionDetector : MonoBehaviour
     [Header("Detection Parameters")]
     [SerializeField] private float maxInteractionAngle = 50f;
     [SerializeField] private LayerMask interactableLayer;
+
+    [Header("Directional Restrictions Settings")]
+    [Tooltip("Dot product threshold for FrontalCone restriction (~0.0 means 180º front hemisphere).")]
+    [SerializeField] private float frontalConeThreshold = 0.3f;
+    [Tooltip("Dot product threshold for ExactFacing restriction (~0.7 means tighter frontal alignment).")]
+    [SerializeField] private float exactFacingThreshold = 0.7f;
 
     [Header("Re-evaluation Settings")]
     [SerializeField] private int maxReevaluationColliders = 8;
@@ -190,7 +196,8 @@ public class PlayerInteractionDetector : MonoBehaviour
     #region Candidate Evaluation Logic
 
     /// <summary>
-    /// Evaluates nearby candidates inside the trigger and selects the closest target within the viewing angle cone.
+    /// Evaluates nearby candidates inside the trigger and selects the closest target within the viewing angle cone
+    /// and satisfying any required directional restrictions (e.g., FrontalCone for chests and statues).
     /// </summary>
     private void EvaluateBestCandidate()
     {
@@ -224,16 +231,22 @@ public class PlayerInteractionDetector : MonoBehaviour
                 directionToTarget.Normalize();
             }
 
+            // 1. Check player's viewing angle cone towards the target
             float angle = Vector3.Angle(playerForward, directionToTarget);
+            if (angle > maxInteractionAngle) continue;
 
-            if (angle <= maxInteractionAngle)
+            // 2. Check object's specific directional restriction (DirectionType)
+            if (!SatisfiesDirectionalRestriction(interactable, originPos))
             {
-                float distance = Vector3.Distance(new Vector3(originPos.x, 0, originPos.z), new Vector3(targetPos.x, 0, targetPos.z));
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    bestCandidate = interactable;
-                }
+                continue;
+            }
+
+            // 3. Evaluate distance to find the best candidate
+            float distance = Vector3.Distance(new Vector3(originPos.x, 0, originPos.z), new Vector3(targetPos.x, 0, targetPos.z));
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                bestCandidate = interactable;
             }
         }
 
@@ -246,6 +259,46 @@ public class PlayerInteractionDetector : MonoBehaviour
         {
             currentTarget = bestCandidate;
             GameEvents.World.TriggerInteractableTargetChanged(currentTarget);
+        }
+    }
+
+    /// <summary>
+    /// Validates if the player meets the directional requirement imposed by the interactable object.
+    /// </summary>
+    private bool SatisfiesDirectionalRestriction(Interactable interactable, Vector3 playerPos)
+    {
+        if (interactable.DirectionType == InteractionDirectionType.AnyDirection)
+        {
+            return true;
+        }
+
+        // Vector pointing from the interactable object towards the player
+        Vector3 objectToPlayer = playerPos - interactable.transform.position;
+        objectToPlayer.y = 0f;
+
+        if (objectToPlayer.sqrMagnitude < 0.0001f) return true;
+        objectToPlayer.Normalize();
+
+        // Object's forward facing direction
+        Vector3 objectForward = interactable.transform.forward;
+        objectForward.y = 0f;
+        objectForward.Normalize();
+
+        // Dot product measures alignment: 1 = directly in front, 0 = perpendicular (sides), -1 = directly behind
+        float dotAlignment = Vector3.Dot(objectForward, objectToPlayer);
+
+        switch (interactable.DirectionType)
+        {
+            case InteractionDirectionType.FrontalCone:
+                // Must be within the object's front hemisphere/cone (dot > threshold)
+                return dotAlignment >= frontalConeThreshold;
+
+            case InteractionDirectionType.ExactFacing:
+                // Must be tightly aligned with the front
+                return dotAlignment >= exactFacingThreshold;
+
+            default:
+                return true;
         }
     }
 

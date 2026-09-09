@@ -318,7 +318,7 @@ public class OverworldWorldSpaceUIController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[UIController] HandleEntityExitedProximity received for '{entity.name}', but it was NOT in activeProximityElements!");
+            //Debug.LogWarning($"[UIController] HandleEntityExitedProximity received for '{entity.name}', but it was NOT in activeProximityElements!");
         }
     }
 

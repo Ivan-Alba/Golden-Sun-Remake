@@ -105,6 +105,8 @@ MonoBehaviour:
   interactableLayer:
     serializedVersion: 2
     m_Bits: 2048
+  frontalConeThreshold: 0.3
+  exactFacingThreshold: 0.7
   maxReevaluationColliders: 8
 --- !u!1 &1473572417053901562
 GameObject:
@@ -8488,8 +8490,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459378965870332871}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.0000000019361492, y: 0.9915228, z: -0.12993279, w: -0.00000001477484}
-  m_LocalPosition: {x: 0, y: 0.8, z: 3}
+  m_LocalRotation: {x: 5.96852e-10, y: 0.9992035, z: -0.039904393, w: 0.000000014945133}
+  m_LocalPosition: {x: 0, y: 0.8, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8556,7 +8558,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 0, y: 0, z: 0}
     QuaternionDamping: 0
-  FollowOffset: {x: 0, y: 0.8, z: 3}
+  FollowOffset: {x: 0, y: 0.8, z: 10}
 --- !u!114 &1910512986214434790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8599,12 +8601,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineGroupFraming
   FramingMode: 2
-  FramingSize: 0.55
-  CenterOffset: {x: 0, y: -0.3}
+  FramingSize: 0.45
+  CenterOffset: {x: 0, y: 0}
   Damping: 0.6
-  SizeAdjustment: 0
+  SizeAdjustment: 2
   LateralAdjustment: 0
-  FovRange: {x: 3, y: 60}
+  FovRange: {x: 35, y: 45}
   DollyRange: {x: 2, y: 8}
   OrthoSizeRange: {x: 1, y: 5000}
 --- !u!114 &8490861867400041978

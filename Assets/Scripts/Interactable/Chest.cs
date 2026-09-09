@@ -31,12 +31,13 @@ public class Chest : Interactable
     [Tooltip("Localized entry for full inventory warning (e.g. 'Your inventory is full').")]
     [SerializeField] private LocalizedString inventoryFullMessage;
 
+    [SerializeField] private Animator chestAnimator;
+
     #endregion
 
     #region Private Fields & Runtime State
 
     private bool chestOpened;
-    private Animator chestAnimator;
     private int originalLayer;
     private static readonly int OpenChestHash = Animator.StringToHash("openChest");
     private static readonly int CloseChestHash = Animator.StringToHash("closeChest");
@@ -47,7 +48,6 @@ public class Chest : Interactable
 
     private void Awake()
     {
-        chestAnimator = GetComponent<Animator>();
         originalLayer = gameObject.layer;
     }
 
