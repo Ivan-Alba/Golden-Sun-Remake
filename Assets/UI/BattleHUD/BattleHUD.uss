@@ -1,0 +1,324 @@
+/* =========================================================================
+   BattleHUD.uss
+   Styles for Battle HUD, Turn Timeline, Radial Menu, Target Info & Submenus
+   Matches the design system and variables defined in PlayerHUD.uss / Global_theme.uss
+   ========================================================================= */
+
+/* --- Root Container & Layers --- */
+.battle-hud-root {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    justify-content: space-between;
+    align-items: stretch;
+    picking-mode: ignore; /* Allows clicks to pass through transparent combat areas */
+}
+
+/* =========================================================================
+   1. TOP-LEFT: ACTIVE HERO CLOSE-UP VIEWPORT (BLUE DRAGON STYLE)
+   ========================================================================= */
+
+.portrait-viewport-frame {
+    position: absolute;
+    top: 44px;
+    left: 44px;
+    width: 240px;
+    height: 320px;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-bright);
+    border-width: 2.5px;
+    border-top-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    overflow: hidden;
+    
+    /* Smooth CSS transition for full-screen expand wipe effect */
+    transition-property: width, height, top, left, opacity, border-radius;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-out-cubic;
+}
+
+/* Dynamic class applied via C# when active hero frame expands to full-screen */
+.portrait-viewport-frame.expanded-fullscreen {
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    border-width: 0px;
+    border-radius: 0px;
+}
+
+.portrait-viewport-render {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.portrait-viewport-border {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-color: var(--color-gold-sun);
+    border-width: 1px;
+    picking-mode: ignore;
+}
+
+/* Hero Badge Name Overlay */
+.active-hero-badge-label {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-radius: 6px;
+    padding: 3px 12px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
+}
+
+/* =========================================================================
+   2. TOP-CENTER: SELECTED TARGET INFORMATION CARD
+   ========================================================================= */
+
+.target-info-container {
+    position: absolute;
+    top: 36px;
+    left: 32%;
+    right: 32%;
+    align-items: center;
+    picking-mode: ignore;
+}
+
+.target-info-card {
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 2px;
+    border-radius: 10px;
+    padding: 10px 24px;
+    width: 100%;
+    align-items: center;
+}
+
+.target-name-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    letter-spacing: 1.5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.95);
+    margin: 0;
+    padding: 0;
+}
+
+.target-level-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    margin-bottom: 6px;
+}
+
+.target-hp-bar-bg {
+    width: 100%;
+    height: 12px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1.5px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.target-hp-bar-fill {
+    width: 100%;
+    height: 100%;
+    background-color: #E74C3C; /* Enemy HP fill color */
+}
+
+.target-weaknesses-container {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+/* =========================================================================
+   3. TOP-RIGHT: TURN TIMELINE / ACTION QUEUE
+   ========================================================================= */
+
+.turn-timeline-container {
+    position: absolute;
+    top: 44px;
+    right: 44px;
+    width: 500px;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 2px;
+    border-radius: 12px;
+    padding: 8px 12px;
+}
+
+.timeline-title-label {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.turn-timeline-scroll {
+    flex-direction: row;
+    height: 64px;
+}
+
+/* =========================================================================
+   4. FLOATING CENTER: COMMAND RADIAL MENU (WORLD-TO-SCREEN PROJECTION)
+   ========================================================================= */
+
+.floating-radial-menu-container {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    align-items: center;
+    justify-content: center;
+    /* Top and Left properties updated in C# using Camera.WorldToScreenPoint */
+}
+
+.radial-menu-ring {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+}
+
+.radial-btn {
+    width: 52px;
+    height: 52px;
+    position: absolute;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 2px;
+    border-radius: 26px;
+    align-items: center;
+    justify-content: center;
+    transition-property: scale, border-color, background-color;
+    transition-duration: 0.15s;
+}
+
+.radial-btn:hover,
+.radial-btn:focus {
+    scale: 1.15;
+    border-color: var(--color-gold-bright);
+    background-color: var(--color-hover-subtle-bg);
+}
+
+.selected-cmd-label {
+    position: absolute;
+    bottom: -24px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-gold-sun);
+    border-width: 1.5px;
+    border-radius: 6px;
+    padding: 2px 10px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* =========================================================================
+   5. SCREEN CENTER: QTE / TIMING OVERLAY
+   ========================================================================= */
+
+.qte-overlay-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    picking-mode: ignore;
+}
+
+/* =========================================================================
+   6. BOTTOM-LEFT: HERO STATUS CARDS CONTAINER (COMPACT SCALE)
+   ========================================================================= */
+
+/* Matches exactly the bottom-left container margins from PlayerHUD.uss */
+.party-cards-battle-container {
+    position: absolute;
+    left: 44px;
+    bottom: 44px;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    /* Reduced compact scale factor for combat HUD real estate optimization */
+    scale: 0.85;
+    transform-origin: bottom left;
+}
+
+/* =========================================================================
+   7. BOTTOM-RIGHT: ACTION DETAILS SUBMENU PANEL (PSYNERGY/DJINN/ITEMS)
+   ========================================================================= */
+
+.action-details-panel {
+    position: absolute;
+    bottom: 44px;
+    right: 44px;
+    width: 380px;
+    height: 260px;
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 2.5px;
+    border-radius: 14px;
+    padding: 16px;
+    display: none; /* Toggled dynamically in C# when browsing action submenus */
+}
+
+.details-title-label {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    border-bottom-width: 1.5px;
+    border-bottom-color: var(--color-gold-sun);
+    padding-bottom: 4px;
+}
+
+.details-list-scroll {
+    flex-grow: 1;
+    margin-bottom: 10px;
+}
+
+.action-description-box {
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1.5px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-description-text {
+    font-size: 13px;
+    color: var(--color-text-white);
+    flex-grow: 1;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.action-cost-text {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-accent-blue);
+    margin-left: 12px;
+    margin: 0;
+    padding: 0;
+}

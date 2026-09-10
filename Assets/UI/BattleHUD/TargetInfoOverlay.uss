@@ -1,0 +1,118 @@
+/* =========================================================================
+   TargetInfoOverlay.uss
+   Floating 3D World-Space Nameplates for Battle Target Selection
+   ========================================================================= */
+
+/* --- Root Container Positioned Over 3D Anchor --- */
+.target-overlay-root {
+    position: absolute;
+    flex-direction: column; /* Stacks the diamond and the nameplate vertically */
+    align-items: center;
+    justify-content: flex-end; /* Align bottom so the anchor point is consistent */
+    translate: -50% -100%; /* Centers horizontally, anchors bottom to the top of the character */
+    
+    opacity: 1;
+    scale: 1 1;
+    
+    /* CSS Transition Smoothness */
+    transition-property: opacity, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+    
+    picking-mode: ignore;
+}
+
+.target-overlay-root.hidden {
+    opacity: 0;
+    scale: 0.5 0.5;
+}
+
+/* Modifier class for area/spread damage targets (smaller UI) */
+.target-overlay-root.secondary-target {
+    scale: 0.7 0.7;
+    opacity: 0.8;
+}
+
+/* --- Golden Sun Style Selection Pointer (Diamond) --- */
+.selection-diamond {
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-jupiter); /* Purple/Jupiter color for selection */
+    rotate: 45deg; /* Rotates a square to make a diamond */
+    border-width: 1.5px;
+    border-color: #000000;
+    margin-bottom: 8px; /* Space between diamond and nameplate */
+    align-items: center;
+    justify-content: center;
+    
+    /* Optional bobbing animation via CSS if supported, or via script */
+}
+
+/* Inner highlight for the diamond */
+.diamond-core {
+    width: 10px;
+    height: 10px;
+    background-color: #FFFFFF;
+    opacity: 0.6;
+}
+
+/* --- Main Name Frame --- */
+.target-nameplate-frame {
+    background-color: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    border-width: 1.5px;
+    border-radius: 6px;
+    padding: 3px 8px;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+}
+
+/* Header Row (Entity Name + Level) */
+.nameplate-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.label-target-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--color-text-white);
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    margin: 0;
+    padding: 0;
+}
+
+.label-target-level {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright);
+    margin-left: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- HP Bar (Reserved for future) --- */
+.target-hp-bar {
+    width: 100%;
+    height: 4px;
+    margin-top: 4px;
+    background-color: var(--color-subbox-bg);
+    border-color: var(--color-subbox-border);
+    border-width: 1px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.target-hp-bar .unity-progress-bar__background {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.target-hp-bar .unity-progress-bar__progress {
+    background-color: var(--color-venus); /* Earth/Healing green or red */
+    border-radius: 1px;
+}

@@ -645,6 +645,24 @@ public static class GameEvents
         public static event Action<List<GameObject>, bool> OnRequestEventBattle;
         public static void RequestEventBattle(List<GameObject> preSetEnemies, bool isBossBattle = false)
             => OnRequestEventBattle?.Invoke(preSetEnemies, isBossBattle);
+
+        /// <summary>
+        /// Notifies the UI of the updated fighter turn timeline sequence.
+        /// The first element in the list represents the currently active fighter.
+        /// Params: turnQueue (ordered list of active fighters/stats)
+        /// </summary>
+        public static event Action<IReadOnlyList<GameObject>> OnTurnQueueUpdated;
+        public static void TriggerTurnQueueUpdated(IReadOnlyList<GameObject> turnQueue)
+            => OnTurnQueueUpdated?.Invoke(turnQueue);
+
+        /// <summary>
+        /// Notifies the UI of the target(s) currently highlighted for selection.
+        /// Params: targets (list of highlighted fighters), mainTarget (primary target for AoE spread scaling)
+        /// Send null or empty list to clear current target overlays.
+        /// </summary>
+        public static event Action<IReadOnlyList<GameObject>, GameObject> OnTargetSelectionChanged;
+        public static void TriggerTargetSelectionChanged(IReadOnlyList<GameObject> targets, GameObject mainTarget = null)
+            => OnTargetSelectionChanged?.Invoke(targets, mainTarget);
     }
 
     // ==========================================
