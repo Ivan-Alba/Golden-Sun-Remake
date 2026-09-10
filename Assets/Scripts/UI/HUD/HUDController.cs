@@ -12,6 +12,8 @@ using UnityEngine.UIElements;
 /// </summary>
 public class HUDController : MonoBehaviour
 {
+    private const string ACTIVE_HERO_CLASS = "active-hero";
+
     #region Serialized Fields & UI Toolkit Document
 
     [Header("UI Document Reference")]
@@ -20,6 +22,9 @@ public class HUDController : MonoBehaviour
     [Header("Stamina Colors")]
     [SerializeField] private Color normalStaminaColor = new Color(0.18f, 0.8f, 0.44f); // #2ECC71
     [SerializeField] private Color lowStaminaColor = new Color(0.9f, 0.3f, 0.23f);     // Red
+
+    [Header("Party Card Template")]
+    [SerializeField] private VisualTreeAsset heroStatusCardTemplate;
 
     [Header("Notification Template")]
     [SerializeField] private VisualTreeAsset notificationCardTemplate;
@@ -132,7 +137,7 @@ public class HUDController : MonoBehaviour
     {
         HandleGameStateChanged(GameManager.GameState.None, _cachedGameState);
 
-        RefreshPartyInfo();
+        RebuildPartyCards();
         RefreshShortcuts();
     }
 
@@ -221,8 +226,8 @@ public class HUDController : MonoBehaviour
         _dialoguePortraitImg = _root.Q<VisualElement>("dialogue_portrait_img");
         _dialogueChoicesContainer = _root.Q<VisualElement>("dialogue_choices_container");
 
-        // Query and Bind Party Cards
-        InitializePartyCardControllers();
+        // Dynamic rebuild for party cards
+        RebuildPartyCards();
     }
 
     private void SetupMinimap()
@@ -236,19 +241,6 @@ public class HUDController : MonoBehaviour
         }
 
         minimapViewport.style.backgroundImage = Background.FromRenderTexture(minimapCustomRenderTexture);
-    }
-
-    private void InitializePartyCardControllers()
-    {
-        _partyCardPresenters.Clear();
-
-        if (_bottomLeftPartyContainer == null) return;
-
-        VisualElement card0 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_0");
-        VisualElement card1 = _bottomLeftPartyContainer.Q<VisualElement>("hero_status_card_1");
-
-        if (card0 != null) _partyCardPresenters.Add(new HeroStatusCardPresenter(card0));
-        if (card1 != null) _partyCardPresenters.Add(new HeroStatusCardPresenter(card1));
     }
 
     #endregion
@@ -391,13 +383,13 @@ public class HUDController : MonoBehaviour
     private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
     {
         _cachedActiveParty = activeParty;
-        RefreshPartyInfo();
+        RebuildPartyCards();
     }
 
     private void HandleActiveHeroChanged(GameObject activeHero)
     {
         _currentActiveHero = activeHero;
-        RefreshPartyInfo();
+        UpdateActiveHeroHighlight();
         RefreshShortcuts();
     }
 
@@ -651,8 +643,57 @@ public class HUDController : MonoBehaviour
 
     #endregion
 
-    #region Party Info Methods
+    #region Party Info & Dynamic Card Instantiate Methods
 
+    /// <summary>
+    /// Clears and instantiates fresh HeroStatusCards inside the bottom left container based on the template.
+    /// </summary>
+    private void RebuildPartyCards()
+    {
+        _partyCardPresenters.Clear();
+
+        if (_bottomLeftPartyContainer == null) return;
+
+        _bottomLeftPartyContainer.Clear();
+
+        if (heroStatusCardTemplate == null)
+        {
+            Debug.LogWarning($"[{nameof(HUDController)}] HeroStatusCardTemplate is missing. Cannot instantiate party cards!");
+            return;
+        }
+
+        if (_cachedActiveParty == null || _cachedActiveParty.Count == 0) return;
+
+        for (int i = 0; i < _cachedActiveParty.Count; i++)
+        {
+            GameObject hero = _cachedActiveParty[i];
+            if (hero == null) continue;
+
+            TemplateContainer cardInstance = heroStatusCardTemplate.Instantiate();
+            VisualElement cardRoot = cardInstance.Q<VisualElement>("hero_status_card") ?? cardInstance;
+
+            bool isActive = (hero == _currentActiveHero);
+            if (isActive)
+            {
+                cardRoot.AddToClassList(ACTIVE_HERO_CLASS);
+            }
+            else
+            {
+                cardRoot.RemoveFromClassList(ACTIVE_HERO_CLASS);
+            }
+
+            HeroStatusCardPresenter presenter = new HeroStatusCardPresenter(cardRoot, hero);
+            _partyCardPresenters.Add(presenter);
+
+            _bottomLeftPartyContainer.Add(cardInstance);
+        }
+
+        RefreshPartyInfo();
+    }
+
+    /// <summary>
+    /// Updates data for each active HeroStatusCardPresenter.
+    /// </summary>
     private void RefreshPartyInfo()
     {
         if (_cachedActiveParty == null || _cachedActiveParty.Count == 0) return;
@@ -661,14 +702,41 @@ public class HUDController : MonoBehaviour
         {
             if (i < _cachedActiveParty.Count && _cachedActiveParty[i] != null)
             {
-                HeroStats stats = _cachedActiveParty[i].GetComponent<HeroStats>();
-                bool isActive = (_cachedActiveParty[i] == _currentActiveHero);
+                GameObject heroObj = _cachedActiveParty[i];
+                HeroStats stats = heroObj.GetComponent<HeroStats>();
+                bool isActive = (heroObj == _currentActiveHero);
 
-                _partyCardPresenters[i].UpdateData(stats, _cachedActiveParty[i].name, keyNumber: i + 1, isActiveHero: isActive);
+                _partyCardPresenters[i].UpdateData(stats, heroObj.name, keyNumber: i + 1, isActiveHero: isActive);
             }
             else
             {
                 _partyCardPresenters[i].SetVisible(false);
+            }
+        }
+
+        UpdateActiveHeroHighlight();
+    }
+
+    /// <summary>
+    /// Evaluates which card represents the current active hero and toggles the CSS active-hero class.
+    /// </summary>
+    private void UpdateActiveHeroHighlight()
+    {
+        for (int i = 0; i < _partyCardPresenters.Count; i++)
+        {
+            var presenter = _partyCardPresenters[i];
+            bool isActive = (presenter.BoundHero == _currentActiveHero);
+
+            if (presenter.RootElement != null)
+            {
+                if (isActive)
+                {
+                    presenter.RootElement.AddToClassList(ACTIVE_HERO_CLASS);
+                }
+                else
+                {
+                    presenter.RootElement.RemoveFromClassList(ACTIVE_HERO_CLASS);
+                }
             }
         }
     }

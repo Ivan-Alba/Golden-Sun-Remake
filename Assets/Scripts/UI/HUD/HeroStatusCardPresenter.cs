@@ -1,8 +1,17 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using static GameEvents;
 
 public class HeroStatusCardPresenter
 {
+    #region Public Properties
+
+    // ADDED: Permiten al HUDController identificar la tarjeta y consultar su estado
+    public VisualElement RootElement => _rootElement;
+    public GameObject BoundHero { get; private set; }
+
+    #endregion
+
     #region UI Elements References
 
     private readonly VisualElement _rootElement;
@@ -24,9 +33,10 @@ public class HeroStatusCardPresenter
     /// <summary>
     /// Constructor that queries and binds all UXML elements inside the HeroStatusCard template.
     /// </summary>
-    public HeroStatusCardPresenter(VisualElement root)
+    public HeroStatusCardPresenter(VisualElement root, GameObject hero = null)
     {
         _rootElement = root;
+        BoundHero = hero; // ADDED: Guardamos la referencia al héroe asignado
 
         if (_rootElement == null)
         {
@@ -86,6 +96,14 @@ public class HeroStatusCardPresenter
             {
                 _portraitImg.style.backgroundImage = Background.FromSprite(stats.TurnBarImage);
             }
+        }
+
+        if (_elementGem != null)
+        {
+            GameEvents.Database.RequestElementIcon(stats.BaseElement, (elemSprite) =>
+            {
+                _elementGem.style.backgroundImage = Background.FromSprite(elemSprite);
+            });
         }
 
         // 6. Toggle Active Hero Highlight Style

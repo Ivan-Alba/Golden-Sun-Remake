@@ -365,13 +365,13 @@ public class GameManager : MonoBehaviour
             if (availableHeroes[i] == null) continue;
 
             string heroName = availableHeroes[i].name;
-            if (heroName.Equals("Isaac") || heroName.Equals("Garet"))
+            if (heroName.Equals("Isaac") || heroName.Equals("Garet") || heroName.Equals("Ivan"))
             {
                 activeParty.Add(availableHeroes[i]);
 
                 if (availableHeroes[i].TryGetComponent<HeroStats>(out var stats))
                 {
-                    for (int l = 0; l < 7; l++) stats.LevelUp();
+                    for (int l = 0; l < 11; l++) stats.LevelUp();
                 }
             }
         }

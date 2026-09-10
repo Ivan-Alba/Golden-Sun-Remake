@@ -197,7 +197,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: UsePsynergy
-  m_Speed: 1
+  m_Speed: 1.4
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -2223664322061954}
@@ -370,7 +370,7 @@ AnimatorStateMachine:
     m_Position: {x: 80, y: 90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2637149449061335946}
-    m_Position: {x: 923.72675, y: -37.241455, z: 0}
+    m_Position: {x: 920, y: -40, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions:
   - {fileID: 5975650832450513650}

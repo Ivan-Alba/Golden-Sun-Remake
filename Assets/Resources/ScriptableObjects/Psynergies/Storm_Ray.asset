@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02a153bd3a5b8fd4d9d5e476f6d92fd0, type: 3}
+  m_Name: Storm_Ray
+  m_EditorClassIdentifier: 
+  psynergyName: Rayo Plasma
+  slugName: storm_ray
+  description: 'Invoca esquirlas sobre los enemigos. '
+  icon: {fileID: 21300000, guid: dda12a8210d10424598f3091fd9555ec, type: 3}
+  ppCost: 10
+  element: 2
+  isBattlePsynergy: 1
+  targetType: 2
+  vfxPrefab: {fileID: 1604970523841052, guid: db0fa11071fd8994dbf6de47f0dfcd75, type: 3}
+  soundEffect: {fileID: 0}
+  hitFXType: 0
+  customHitVFX: {fileID: 0}
+  areaRange: 2
+  hasDiminishingSpread: 1
+  worldData:
+    canBeUsedInWorld: 0
+    worldAction: 0
+    worldVfxPrefab: {fileID: 0}
+    worldSoundEffect: {fileID: 0}
+  menuData:
+    canBeUsedInMenu: 0
+    menuSoundEffect: {fileID: 0}
+    menuVfxPrefab: {fileID: 0}
+  basePower: 20
+  scalingType: 0
+  damageMultiplier: 1
+  drainsHp: 0
+  drainsPp: 0
+  drainRatio: 0.5
+  secondaryEffects: []

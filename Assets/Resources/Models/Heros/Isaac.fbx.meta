@@ -1,0 +1,233 @@
+fileFormatVersion: 2
+guid: 59d7cfc8677010f4d89f1a57090e28b9
+ModelImporter:
+  serializedVersion: 24200
+  internalIDToNameTable:
+  - first:
+      74: 4005700512374508713
+    second: Armature.002|mixamo.com|Layer0.001
+  - first:
+      74: -1674677236826625285
+    second: RUN FAST
+  - first:
+      74: 2126459665172807778
+    second: IDLE
+  - first:
+      74: -7153624200747784506
+    second: RUN MEDIUM
+  - first:
+      74: 864546719200000708
+    second: WALK
+  - first:
+      74: 6330412072174222829
+    second: Armature.001|mixamo.com|Layer0
+  - first:
+      74: 5856830977637761650
+    second: Armature.014|mixamo.com|Layer0
+  - first:
+      74: 5611770734428663055
+    second: Armature.014|mixamo.com|Layer0.001
+  - first:
+      74: -1967333679386351634
+    second: Armature.013|mixamo.com|Layer0
+  - first:
+      74: 7632309086071626017
+    second: Armature.012|mixamo.com|Layer0
+  - first:
+      74: 5036426404283756759
+    second: Armature.001|mixamo.com|Layer0.001
+  - first:
+      74: -2854121758031957398
+    second: Armature.002|mixamo.com|Layer0
+  - first:
+      74: 400388381217360161
+    second: Armature.003|mixamo.com|Layer0
+  - first:
+      74: -9080475198040397530
+    second: Armature.004|mixamo.com|Layer0
+  - first:
+      74: -6374172714717223011
+    second: Armature.005|mixamo.com|Layer0
+  - first:
+      74: 3165257566892837452
+    second: Armature.006|mixamo.com|Layer0
+  - first:
+      74: -1363935440452582218
+    second: Armature.007|mixamo.com|Layer0
+  - first:
+      74: -694153827255827705
+    second: Armature.008|mixamo.com|Layer0
+  - first:
+      74: 2859834650935774945
+    second: Armature.009|mixamo.com|Layer0
+  - first:
+      74: -3259164257960130890
+    second: Armature.010|mixamo.com|Layer0
+  - first:
+      74: 7810269646588567709
+    second: Armature.011|mixamo.com|Layer0
+  - first:
+      74: -6037950486495260029
+    second: IDLE.001
+  - first:
+      74: -2270164641487264309
+    second: Armature|BLOCK__WEAPON
+  - first:
+      74: -8276531849647975372
+    second: Armature|BLOCK_HIT
+  - first:
+      74: 2264792044678098394
+    second: Armature|BUFF_01
+  - first:
+      74: -3198579531409552849
+    second: Armature|COMBO_SWORD_01
+  - first:
+      74: -5243142401469002103
+    second: Armature|DEATH_01
+  - first:
+      74: 2890854275033563392
+    second: Armature|HIT_01
+  - first:
+      74: -3753533249084003049
+    second: Armature|IDLE_01
+  - first:
+      74: 1534193712997808810
+    second: Armature|IDLE_02
+  - first:
+      74: 7729464413859676306
+    second: Armature|MAGIC_ATTACK_01
+  - first:
+      74: 553739913705942356
+    second: Armature|MAGIC_ATTACK_02
+  - first:
+      74: 4778854970950807196
+    second: Armature|PICK_ITEM
+  - first:
+      74: -1770283327755918384
+    second: Armature|RUN FAST
+  - first:
+      74: -3145526060872316018
+    second: Armature|RUN MEDIUM
+  - first:
+      74: 6764271521029306719
+    second: Armature|RUN SLOW
+  - first:
+      74: -1155858748878148461
+    second: Armature|RUN_BACKWARDS
+  - first:
+      74: 7678751440374927668
+    second: Armature|RUN_WITH_WEAPON
+  - first:
+      74: 6167486590395094852
+    second: Armature|SWORD_ATTACK_SLASH_01
+  - first:
+      74: -6633981511345727932
+    second: Armature|SWORD_ATTACK_SLASH_02
+  - first:
+      74: 4540250025106317447
+    second: Armature|WALK
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 1
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 3
+  humanoidOversampling: 1
+  avatarSetup: 1
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

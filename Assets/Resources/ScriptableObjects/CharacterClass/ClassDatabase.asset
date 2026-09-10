@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultVenusClass: {fileID: 11400000, guid: 9273884ce75f3a2418927f97fa902732, type: 2}
   defaultMarsClass: {fileID: 11400000, guid: 89ee1dd076550cd47bf873c2a83fc794, type: 2}
-  defaultJupiterClass: {fileID: 0}
+  defaultJupiterClass: {fileID: 11400000, guid: d6ab3b84796a8d14e84c6d093259f1e4, type: 2}
   defaultMercuryClass: {fileID: 0}
   classEntries:
-  - baseElement: 0
-    venusCount: 2
+  - baseElement: 1
+    venusCount: 0
     marsCount: 0
-    jupiterCount: 0
-    mercuryCount: 0
+    jupiterCount: 1
+    mercuryCount: 1
     priority: 1
-    targetClass: {fileID: 11400000, guid: e78fb11dadaf59449860e7e2cab5521c, type: 2}
+    targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
   - baseElement: 1
     venusCount: 1
     marsCount: 0
@@ -87,13 +87,13 @@ MonoBehaviour:
     mercuryCount: 0
     priority: 1
     targetClass: {fileID: 11400000, guid: 2571d0f8bc2022a458d06e0d1ffb03d5, type: 2}
-  - baseElement: 0
-    venusCount: 0
+  - baseElement: 1
+    venusCount: 1
     marsCount: 0
     jupiterCount: 1
-    mercuryCount: 1
+    mercuryCount: 0
     priority: 1
-    targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
+    targetClass: {fileID: 11400000, guid: 57a84abd3f31c254a950b9e53e9eae3e, type: 2}
   - baseElement: 0
     venusCount: 0
     marsCount: 1
@@ -103,13 +103,13 @@ MonoBehaviour:
     targetClass: {fileID: 11400000, guid: 012404f4304e5a74a8d4d7a2ede3f136, type: 2}
   - baseElement: 0
     venusCount: 0
-    marsCount: 1
+    marsCount: 0
     jupiterCount: 0
     mercuryCount: 1
     priority: 1
     targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
   - baseElement: 0
-    venusCount: 1
+    venusCount: 0
     marsCount: 1
     jupiterCount: 0
     mercuryCount: 0
@@ -117,18 +117,18 @@ MonoBehaviour:
     targetClass: {fileID: 11400000, guid: a8e672c2c5767664d9817c780743f912, type: 2}
   - baseElement: 0
     venusCount: 0
-    marsCount: 0
+    marsCount: 2
     jupiterCount: 0
-    mercuryCount: 2
+    mercuryCount: 0
     priority: 1
-    targetClass: {fileID: 11400000, guid: 8069ba6b8386412498c5fdb0ad7847b7, type: 2}
+    targetClass: {fileID: 11400000, guid: 8cfed07f39ef0764ca972701c2dc750a, type: 2}
   - baseElement: 0
     venusCount: 0
     marsCount: 0
-    jupiterCount: 0
-    mercuryCount: 1
+    jupiterCount: 1
+    mercuryCount: 0
     priority: 1
-    targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
+    targetClass: {fileID: 11400000, guid: 012404f4304e5a74a8d4d7a2ede3f136, type: 2}
   - baseElement: 0
     venusCount: 0
     marsCount: 0
@@ -140,34 +140,34 @@ MonoBehaviour:
     venusCount: 0
     marsCount: 0
     jupiterCount: 1
-    mercuryCount: 0
+    mercuryCount: 1
     priority: 1
-    targetClass: {fileID: 11400000, guid: 012404f4304e5a74a8d4d7a2ede3f136, type: 2}
+    targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
   - baseElement: 0
     venusCount: 0
-    marsCount: 2
+    marsCount: 0
     jupiterCount: 0
-    mercuryCount: 0
+    mercuryCount: 2
     priority: 1
-    targetClass: {fileID: 11400000, guid: 8cfed07f39ef0764ca972701c2dc750a, type: 2}
+    targetClass: {fileID: 11400000, guid: 8069ba6b8386412498c5fdb0ad7847b7, type: 2}
   - baseElement: 0
-    venusCount: 0
+    venusCount: 1
     marsCount: 1
     jupiterCount: 0
     mercuryCount: 0
     priority: 1
     targetClass: {fileID: 11400000, guid: a8e672c2c5767664d9817c780743f912, type: 2}
-  - baseElement: 1
-    venusCount: 1
-    marsCount: 0
-    jupiterCount: 1
-    mercuryCount: 0
-    priority: 1
-    targetClass: {fileID: 11400000, guid: 57a84abd3f31c254a950b9e53e9eae3e, type: 2}
-  - baseElement: 1
+  - baseElement: 0
     venusCount: 0
-    marsCount: 0
-    jupiterCount: 1
+    marsCount: 1
+    jupiterCount: 0
     mercuryCount: 1
     priority: 1
     targetClass: {fileID: 11400000, guid: c58de48027b9cf9469bcf59aec5a2d1b, type: 2}
+  - baseElement: 0
+    venusCount: 2
+    marsCount: 0
+    jupiterCount: 0
+    mercuryCount: 0
+    priority: 1
+    targetClass: {fileID: 11400000, guid: e78fb11dadaf59449860e7e2cab5521c, type: 2}

@@ -1,58 +1,38 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/Global_Theme.uss" />
-    <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss" />
-    
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
+    <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss?fileID=7433441132597879392&amp;guid=2fd1775c5a3f56947945b46434856b8e&amp;type=3#PlayerHUD"/>
     <ui:VisualElement name="hero_status_card" class="hero-status-card">
-        
-        <!-- Key Badge (Sealed Coin) -->
         <ui:VisualElement name="hero_key_badge" class="hero-key-badge">
-            <ui:Label name="label_key_number" text="1" class="label-key-number" />
+            <ui:Label name="label_key_number" text="1" class="label-key-number"/>
         </ui:VisualElement>
-
-        <!-- Skewed/Rhombus Portrait Frame -->
         <ui:VisualElement name="hero_portrait_frame" class="hero-portrait-frame">
-            <ui:VisualElement name="hero_portrait_img" class="hero-portrait-img" />
+            <ui:VisualElement name="hero_portrait_img" class="hero-portrait-img"/>
         </ui:VisualElement>
-        
-        <!-- Main Stats Block Container -->
         <ui:VisualElement name="hero_info_block" class="hero-info-block">
-            
-            <!-- Header Row: Name, Level & Status Effects -->
             <ui:VisualElement name="hero_header_row" class="hero-header-row">
-                <ui:Label name="label_hero_name" text="HANS" class="label-hud-hero-name" />
-                <ui:Label name="label_hero_level" text="Nv. 8" class="label-hud-hero-level" />
+                <ui:Label name="label_hero_name" text="HANS" class="label-hud-hero-name"/>
+                <ui:Label name="label_hero_level" text="Nv. 8" class="label-hud-hero-level"/>
                 <ui:VisualElement name="status_effects_container" class="status-effects-container">
-                    <ui:VisualElement name="hero_status_effect_icon" class="hero-status-effect-icon" />
+                    <ui:VisualElement name="hero_status_effect_icon" class="hero-status-effect-icon"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-
-            <!-- Stats Rows Block: Row-by-Row Layout for Perfect Alignment -->
             <ui:VisualElement name="hero_stats_rows_container" class="hero-stats-rows-container">
-                
-                <!-- ROW 1: PV / HP -->
                 <ui:VisualElement name="stat_row_hp" class="hud-stat-single-row">
-                    <ui:Label text="PV" class="hud-stat-type-label" />
+                    <ui:Label text="PV" class="hud-stat-type-label"/>
                     <ui:VisualElement name="bar_hp_bg" class="hud-bar-bg">
-                        <ui:VisualElement name="bar_hp_fill" class="hud-bar-hp-fill" />
+                        <ui:VisualElement name="bar_hp_fill" class="hud-bar-hp-fill"/>
                     </ui:VisualElement>
-                    <ui:Label name="label_hp_val" text="80/80" class="hud-stat-value-text" />
+                    <ui:Label name="label_hp_val" text="80/80" class="hud-stat-value-text"/>
                 </ui:VisualElement>
-
-                <!-- ROW 2: PP / MP -->
                 <ui:VisualElement name="stat_row_pp" class="hud-stat-single-row">
-                    <ui:Label text="PP" class="hud-stat-type-label" />
+                    <ui:Label text="PP" class="hud-stat-type-label"/>
                     <ui:VisualElement name="bar_pp_bg" class="hud-bar-bg">
-                        <ui:VisualElement name="bar_pp_fill" class="hud-bar-pp-fill" />
+                        <ui:VisualElement name="bar_pp_fill" class="hud-bar-pp-fill"/>
                     </ui:VisualElement>
-                    <ui:Label name="label_pp_val" text="21/21" class="hud-stat-value-text" />
+                    <ui:Label name="label_pp_val" text="21/21" class="hud-stat-value-text"/>
                 </ui:VisualElement>
-
             </ui:VisualElement>
-
         </ui:VisualElement>
-
-        <!-- Right Rhombus Element Gem / Class Seal -->
-        <ui:VisualElement name="hero_element_gem" class="hero-element-gem icon-venus" />
-
+        <ui:VisualElement name="hero_element_gem" class="hero-element-gem icon-venus"/>
     </ui:VisualElement>
 </ui:UXML>
