@@ -2,16 +2,23 @@
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/BattleHUD/BattleHUD.uss?fileID=7433441132597879392&amp;guid=98def250eaf4dfb4785e76e914f861cf&amp;type=3#BattleHUD"/>
     <ui:VisualElement name="battle_hud_root" class="battle-hud-root">
-        <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame" style="display: flex;">
+        <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame" style="display: none;">
             <ui:VisualElement name="portrait_viewport_render" class="portrait-viewport-render"/>
             <ui:VisualElement name="portrait_viewport_border_overlay" class="portrait-viewport-border"/>
             <ui:Label name="label_active_hero_name" text="HANS" class="active-hero-badge-label"/>
         </ui:VisualElement>
-        <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container">
+
+       <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container">
             <ui:Label text="TURNS" class="timeline-title-label"/>
-            <ui:ScrollView name="turn_timeline_scroll" mode="Horizontal" class="turn-timeline-scroll"/>
+    
+            <ui:VisualElement name="turn_timeline_row" class="turn-timeline-row">
+                <ui:VisualElement name="turn_leader_slot" class="turn-leader-slot"/>
+        
+                <ui:VisualElement name="turn_queue_list" class="turn-queue-list"/>
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="floating_radial_menu_container" class="floating-radial-menu-container">
+
+        <ui:VisualElement name="floating_radial_menu_container" class="floating-radial-menu-container" style="display: none;">
             <ui:VisualElement name="radial_menu_ring" class="radial-menu-ring">
                 <ui:Button name="btn_cmd_attack" tooltip="Attack" class="radial-btn cmd-attack"/>
                 <ui:Button name="btn_cmd_psynergy" tooltip="Psynergy" class="radial-btn cmd-psynergy"/>

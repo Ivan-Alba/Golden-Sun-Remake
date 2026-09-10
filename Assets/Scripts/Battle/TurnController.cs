@@ -23,12 +23,13 @@ public class TurnController : MonoBehaviour
     private Camera turnCamera;
     private GameObject turnCameraMask;
 
-    private BattleUIController battleUIController;
+    // Legacy Canvas UI Controller (Kept commented for reference)
+    // private BattleUIController battleUIController;
 
     #region Properties
 
-    public int MaxTurnBoxes {get => maxTurnBoxes; set => maxTurnBoxes = value; }
-    public FighterController CurrentFighter {get => currentFighter; set => currentFighter = value; }
+    public int MaxTurnBoxes { get => maxTurnBoxes; set => maxTurnBoxes = value; }
+    public FighterController CurrentFighter { get => currentFighter; set => currentFighter = value; }
 
     #endregion
 
@@ -36,7 +37,7 @@ public class TurnController : MonoBehaviour
 
     private void Awake()
     {
-        battleUIController = GetComponent<BattleUIController>();
+        // battleUIController = GetComponent<BattleUIController>();
     }
 
     #endregion
@@ -75,10 +76,16 @@ public class TurnController : MonoBehaviour
 
         // 4. Generate UI turn projection and update UI panel
         List<KeyValuePair<GameObject, int>> turnProjection = BuildTurnProjection();
+
+        // --- Event-Driven Turn Queue Notification (UI Toolkit / Network Ready) ---
+        NotifyTurnQueueUpdated(turnProjection);
+
+        /* Legacy Canvas Setup
         if (battleUIController != null)
         {
             battleUIController.SetTurnsPanel(turnProjection);
         }
+        */
 
         // 5. Trigger Hero Turn UI/Camera if a Hero acts first
         if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
@@ -120,10 +127,16 @@ public class TurnController : MonoBehaviour
 
         // 5. Rebuild UI projection list and refresh UI
         List<KeyValuePair<GameObject, int>> turnProjection = BuildTurnProjection();
+
+        // --- Event-Driven Turn Queue Notification ---
+        NotifyTurnQueueUpdated(turnProjection);
+
+        /* Legacy Canvas Setup
         if (battleUIController != null)
         {
             battleUIController.SetTurnsPanel(turnProjection);
         }
+        */
 
         // 6. Handle camera and UI if the new current fighter is a hero
         if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
@@ -135,6 +148,15 @@ public class TurnController : MonoBehaviour
     #endregion
 
     #region Formula & Helper Methods
+
+    /// <summary>
+    /// Converts projection KeyValuePairs into a pure list of GameObjects and triggers GameEvents.
+    /// </summary>
+    private void NotifyTurnQueueUpdated(List<KeyValuePair<GameObject, int>> projection)
+    {
+        List<GameObject> turnQueue = projection.Select(kvp => kvp.Key).ToList();
+        GameEvents.Battle.TriggerTurnQueueUpdated(turnQueue);
+    }
 
     /// <summary>
     /// Calculates action delay using Inverse Proportional CTB Formula (Option A).
@@ -255,11 +277,13 @@ public class TurnController : MonoBehaviour
             }
         }
 
+        /* Legacy Canvas Setup
         if (battleUIController != null)
         {
             battleUIController.ShowOrdersPanel(true);
             battleUIController.ShowTurnsPanel(true);
         }
+        */
 
         GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
     }

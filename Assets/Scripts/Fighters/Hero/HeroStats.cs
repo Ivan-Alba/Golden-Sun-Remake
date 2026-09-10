@@ -333,6 +333,28 @@ public class HeroStats : FighterStats
 
     #endregion
 
+    #region Resource Event Overrides (UI Synchronization)
+
+    /// <summary>
+    /// Overrides FighterStats HP change pipeline to also broadcast hero status updates to HUD components.
+    /// </summary>
+    public override void NotifyHpChanged()
+    {
+        base.NotifyHpChanged(); // Clamps HP, fires Fighter.TriggerHpChanged, handles death triggers
+        GameEvents.Hero.TriggerHeroStatusChanged(); // Refreshes Hero Status Cards in Battle/Overworld HUD
+    }
+
+    /// <summary>
+    /// Overrides FighterStats PP change pipeline to also broadcast hero status updates to HUD components.
+    /// </summary>
+    public override void NotifyPpChanged()
+    {
+        base.NotifyPpChanged(); // Clamps PP & fires Fighter.TriggerPpChanged
+        GameEvents.Hero.TriggerHeroStatusChanged(); // Refreshes Hero Status Cards in Battle/Overworld HUD
+    }
+
+    #endregion
+
     #region Progression & Experience Logic
 
     private void CalculateNextLevelXp()

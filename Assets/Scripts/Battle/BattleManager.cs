@@ -70,7 +70,8 @@ public class BattleManager : MonoBehaviour
     // Minimap
     private GameObject playerCanvas;
 
-    private BattleUIController battleUIController;
+    // OLD CANVAS UI CONTROLLER (Legacy uGUI - Kept commented for reference during migration)
+    // private BattleUIController battleUIController;
 
     // BATTLE STATE MACHINE
     private BattleState currentBattleState = BattleState.None;
@@ -95,7 +96,7 @@ public class BattleManager : MonoBehaviour
     {
         // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
-        battleUIController = GetComponent<BattleUIController>();
+        // battleUIController = GetComponent<BattleUIController>();
 
         // --- INITIALIZATION ---
         pointerOriginalY = new float[maxEnemiesInBattle];
@@ -181,7 +182,10 @@ public class BattleManager : MonoBehaviour
             case BattleState.CommandSelection:
                 PlaySFX(SFXType.UI_Confirm);
 
-                switch (battleUIController.CommandSelected)
+                // TODO: Replace battleUIController.CommandSelected reading with UI Toolkit state
+                int selectedCmd = 0; // Defaulting to Attack for testing
+
+                switch (selectedCmd)
                 {
                     case 0: // ATTACK
                         currentTargetType = PsynergyTargetType.SingleEnemy;
@@ -192,8 +196,8 @@ public class BattleManager : MonoBehaviour
 
                     case 1: // PSYNERGY
                         currentBattleState = BattleState.SubMenuSelection;
-                        battleUIController.SetContentPanel("Psynergy");
-                        battleUIController.ShowContentPanel(true);
+                        // battleUIController.SetContentPanel("Psynergy");
+                        // battleUIController.ShowContentPanel(true);
                         break;
 
                     case 2: // DJINN
@@ -203,7 +207,7 @@ public class BattleManager : MonoBehaviour
                         break;
 
                     case 4: // DEFENSE
-                        battleUIController.ShowOrdersPanel(false);
+                        // battleUIController.ShowOrdersPanel(false);
                         turnController.HideTurnCamera();
                         currentBattleState = BattleState.WaitingTurnExecution;
                         StartCoroutine(PerformAction());
@@ -226,7 +230,8 @@ public class BattleManager : MonoBehaviour
                 break;
 
             case BattleState.SubMenuSelection:
-                string selectedContent = battleUIController.GetContentItem();
+                // string selectedContent = battleUIController.GetContentItem();
+                string selectedContent = "cure"; // Fallback placeholder
 
                 nextPsynergy = null;
                 GameEvents.Database.RequestPsynergyBySlug(selectedContent, (psy) =>
@@ -239,19 +244,13 @@ public class BattleManager : MonoBehaviour
                     PlaySFX(SFXType.UI_Confirm);
                     currentBattleState = BattleState.TargetSelection;
 
-                    if (battleUIController.CommandSelected == 1) // PSYNERGY
-                    {
-                        currentTargetType = nextPsynergy.TargetType;
-                        currentAreaRange = nextPsynergy.AreaRange;
+                    // assuming command 1 (PSYNERGY)
+                    currentTargetType = nextPsynergy.TargetType;
+                    currentAreaRange = nextPsynergy.AreaRange;
 
-                        SelectDefaultTarget(currentTargetType, currentAreaRange);
+                    SelectDefaultTarget(currentTargetType, currentAreaRange);
 
-                        Debug.Log($"Psinergía {nextPsynergy.PsynergySlug} target tipo: {nextPsynergy.TargetType}");
-                    }
-                    else if (battleUIController.CommandSelected == 5) // ITEMS
-                    {
-                        // TODO: Item targeting logic
-                    }
+                    Debug.Log($"Psinergía {nextPsynergy.PsynergySlug} target tipo: {nextPsynergy.TargetType}");
                 }
                 break;
 
@@ -259,9 +258,9 @@ public class BattleManager : MonoBehaviour
                 PlaySFX(SFXType.UI_Confirm);
 
                 // Hide target selection UI elements
-                battleUIController.ShowOrdersPanel(false);
+                // battleUIController.ShowOrdersPanel(false);
                 turnController.HideTurnCamera();
-                battleUIController.HideSelectedTarget();
+                // battleUIController.HideSelectedTarget();
 
                 HideAllPointers();
 
@@ -289,10 +288,13 @@ public class BattleManager : MonoBehaviour
         {
             case BattleState.TargetSelection:
                 HideAllPointers();
-                battleUIController.HideSelectedTarget();
+                // battleUIController.HideSelectedTarget();
                 PlaySFX(SFXType.UI_Cancel);
 
-                switch (battleUIController.CommandSelected)
+                // TODO: Replace with local/UI Toolkit state check
+                int selectedCmd = 0;
+
+                switch (selectedCmd)
                 {
                     case 0: // ATTACK
                         currentBattleState = BattleState.CommandSelection;
@@ -317,7 +319,7 @@ public class BattleManager : MonoBehaviour
             case BattleState.SubMenuSelection:
                 PlaySFX(SFXType.UI_Cancel);
                 currentBattleState = BattleState.CommandSelection;
-                battleUIController.ShowContentPanel(false);
+                // battleUIController.ShowContentPanel(false);
                 break;
         }
     }
@@ -329,7 +331,7 @@ public class BattleManager : MonoBehaviour
         switch (currentBattleState)
         {
             case BattleState.CommandSelection:
-                battleUIController.ordersPanelMove("LEFT");
+                // battleUIController.ordersPanelMove("LEFT");
                 break;
 
             case BattleState.TargetSelection:
@@ -346,7 +348,7 @@ public class BattleManager : MonoBehaviour
         switch (currentBattleState)
         {
             case BattleState.CommandSelection:
-                battleUIController.ordersPanelMove("RIGHT");
+                // battleUIController.ordersPanelMove("RIGHT");
                 break;
 
             case BattleState.TargetSelection:
@@ -363,7 +365,7 @@ public class BattleManager : MonoBehaviour
         if (currentBattleState == BattleState.SubMenuSelection)
         {
             PlaySFX(SFXType.UI_Move);
-            battleUIController.MoveContentPanel("UP");
+            // battleUIController.MoveContentPanel("UP");
         }
     }
 
@@ -374,7 +376,7 @@ public class BattleManager : MonoBehaviour
         if (currentBattleState == BattleState.SubMenuSelection)
         {
             PlaySFX(SFXType.UI_Move);
-            battleUIController.MoveContentPanel("DOWN");
+            // battleUIController.MoveContentPanel("DOWN");
         }
     }
 
@@ -399,7 +401,8 @@ public class BattleManager : MonoBehaviour
         if (playerCanvas == null)
             playerCanvas = GameObject.Find("PlayerCanvas");
 
-        // Set up UI hero panels according to current party count
+        // Legacy Canvas Hero Panels Setup - Kept commented for reference
+        /*
         if (party != null)
         {
             for (int i = 0; i < 4; i++)
@@ -410,6 +413,7 @@ public class BattleManager : MonoBehaviour
                 }
             }
         }
+        */
 
         enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
         enemyPositions = new GameObject[enemiesOnBattle];
@@ -457,8 +461,8 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // SET INFO ON HERO'S PANEL
-        battleUIController.RefreshHeroInfoPanel();
+        // SET INFO ON HERO'S PANEL (Legacy uGUI - Kept commented)
+        // battleUIController.RefreshHeroInfoPanel();
 
         // SET ENEMIES
         SetEnemiesOnBattle(firstEnemy);
@@ -539,7 +543,7 @@ public class BattleManager : MonoBehaviour
 
     private void InitializeBattleTurns()
     {
-        battleUIController.ShowBattleCanvas(true);
+        // battleUIController.ShowBattleCanvas(true);
         turnsOrdered = turnController.InitializeTurnSystem(fighters);
 
         if (turnController.CurrentFighter != null)
@@ -567,14 +571,16 @@ public class BattleManager : MonoBehaviour
         FighterStats targetStats = null;
         GameObject activeFighter = turnController.CurrentFighter.gameObject;
 
+        int selectedCmd = 0; // Defaulting to attack command
         if (activeFighter.TryGetComponent<EnemyStats>(out _))
         {
-            battleUIController.CommandSelected = Random.Range(0, 1);
+            // battleUIController.CommandSelected = Random.Range(0, 1);
+            selectedCmd = Random.Range(0, 1);
         }
 
         int baseActionCost = 50; // Default action cost (Attack)
 
-        switch (battleUIController.CommandSelected)
+        switch (selectedCmd)
         {
             case 0: // ATTACK
                 baseActionCost = 50;
@@ -621,7 +627,7 @@ public class BattleManager : MonoBehaviour
 
             case 1: // PSYNERGY
                 baseActionCost = 60; // Base Psynergy delay cost
-                battleUIController.ShowContentPanel(false);
+                // battleUIController.ShowContentPanel(false);
 
                 if (nextPsynergy != null && IsAllyTarget(nextPsynergy.TargetType))
                 {
@@ -754,7 +760,7 @@ public class BattleManager : MonoBehaviour
     private IEnumerator BattleWinned()
     {
         currentBattleState = BattleState.ResultsScreen;
-        battleUIController.ShowBattleCanvas(false);
+        // battleUIController.ShowBattleCanvas(false);
 
         GameEvents.Audio.RequestPlayVictoryBGM();
 
@@ -893,6 +899,9 @@ public class BattleManager : MonoBehaviour
                 }
             }
         }
+
+        // Notify UI Toolkit to clear target overlays
+        GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
     }
 
     private void ResetBattleVariables()
@@ -921,6 +930,9 @@ public class BattleManager : MonoBehaviour
         currentTargetType = PsynergyTargetType.SingleEnemy;
         currentAreaRange = 0;
         currentBattleState = BattleState.None;
+
+        // Clear target overlays on UI
+        GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
     }
 
     public void ChangeBattleSpeed()
@@ -935,6 +947,7 @@ public class BattleManager : MonoBehaviour
     private void SelectDefaultTarget(PsynergyTargetType targetType, int areaRange = 0, int initialIndex = 0)
     {
         bool targetIsAlly = IsAllyTarget(targetType);
+        GameObject primaryTargetObj = null;
 
         if (targetIsAlly)
         {
@@ -959,7 +972,7 @@ public class BattleManager : MonoBehaviour
                         pointer.SetActive(true);
                         targetList.Add(party[initialIndex]);
                         actualTarget = initialIndex;
-                        battleUIController.ShowSelectedTarget(targetList);
+                        primaryTargetObj = party[initialIndex];
                         break;
 
                     case PsynergyTargetType.AllAllies:
@@ -973,7 +986,7 @@ public class BattleManager : MonoBehaviour
                             }
                         }
                         actualTarget = 0;
-                        battleUIController.ShowSelectedTarget(targetList);
+                        primaryTargetObj = party.Count > 0 ? party[0] : null;
                         break;
                 }
             }
@@ -1001,7 +1014,7 @@ public class BattleManager : MonoBehaviour
                     pointer.SetActive(true);
                     targetList.Add(enemiesList[initialIndex]);
                     actualTarget = initialIndex;
-                    battleUIController.ShowSelectedTarget(targetList);
+                    primaryTargetObj = enemiesList[initialIndex];
                     break;
 
                 case PsynergyTargetType.MultiEnemyArea:
@@ -1011,6 +1024,7 @@ public class BattleManager : MonoBehaviour
                     }
 
                     actualTarget = initialIndex;
+                    primaryTargetObj = enemiesList[initialIndex];
 
                     // Add primary target
                     targetList.Add(enemiesList[initialIndex]);
@@ -1020,7 +1034,6 @@ public class BattleManager : MonoBehaviour
                     // Add adjacent targets based on areaRange (Golden Sun spread)
                     if (areaRange >= 1)
                     {
-                        // Target to the left/right depending on enemy position index
                         for (int offset = 1; offset <= areaRange; offset++)
                         {
                             int rightIdx = initialIndex + offset;
@@ -1041,8 +1054,6 @@ public class BattleManager : MonoBehaviour
                             }
                         }
                     }
-
-                    battleUIController.ShowSelectedTarget(targetList);
                     break;
 
                 case PsynergyTargetType.AllEnemies:
@@ -1056,10 +1067,13 @@ public class BattleManager : MonoBehaviour
                         }
                     }
                     actualTarget = 0;
-                    battleUIController.ShowSelectedTarget(targetList);
+                    primaryTargetObj = enemiesList.Count > 0 ? enemiesList[0] : null;
                     break;
             }
         }
+
+        // Notify UI Toolkit via Event Bus
+        GameEvents.Battle.TriggerTargetSelectionChanged(targetList, primaryTargetObj);
     }
 
     private void SelectRightTarget()

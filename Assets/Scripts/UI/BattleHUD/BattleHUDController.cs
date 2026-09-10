@@ -12,6 +12,7 @@ public class BattleHUDController : MonoBehaviour
 {
     private const string FULLSCREEN_EXPAND_CLASS = "expanded-fullscreen";
     private const string ACTIVE_HERO_CLASS = "active-hero";
+    private const string TARGET_INDICATOR_HIDDEN_CLASS = "timeline-target-indicator--hidden";
 
     #region Serialized Fields
 
@@ -35,6 +36,9 @@ public class BattleHUDController : MonoBehaviour
     // Floating Target Overlay Presenters
     private readonly List<TargetInfoPresenter> _targetPresenters = new List<TargetInfoPresenter>();
 
+    // Cache mapping fighters in current timeline to their UI target indicator elements
+    private readonly List<KeyValuePair<GameObject, VisualElement>> _timelineTargetIndicators = new List<KeyValuePair<GameObject, VisualElement>>();
+
     #endregion
 
     #region UI Elements References
@@ -45,8 +49,9 @@ public class BattleHUDController : MonoBehaviour
     private VisualElement _portraitViewportFrame;
     private Label _labelActiveHeroName;
 
-    // 3. Turn Timeline ScrollView
-    private ScrollView _turnTimelineScroll;
+    // 3. Turn Timeline
+    private VisualElement _turnLeaderSlot;
+    private VisualElement _turnQueueList;
 
     // 4. Floating Radial Command Menu
     private VisualElement _floatingRadialMenuContainer;
@@ -129,7 +134,8 @@ public class BattleHUDController : MonoBehaviour
         _labelActiveHeroName = _root.Q<Label>("label_active_hero_name");
 
         // Query Turn Timeline
-        _turnTimelineScroll = _root.Q<ScrollView>("turn_timeline_scroll");
+        _turnLeaderSlot = _root.Q<VisualElement>("turn_leader_slot");
+        _turnQueueList = _root.Q<VisualElement>("turn_queue_list");
 
         // Query Radial Command Menu & Buttons
         _floatingRadialMenuContainer = _root.Q<VisualElement>("floating_radial_menu_container");
@@ -152,7 +158,9 @@ public class BattleHUDController : MonoBehaviour
         _labelActionDescription = _root.Q<Label>("label_action_description");
         _labelActionCost = _root.Q<Label>("label_action_cost");
 
-        SetRadialMenuVisible(false);
+        // Direct visibility reset on Awake for turn-dependent elements
+        SetHUDVisible(false);
+        SetHeroTurnUIElementsVisible(false);
         SetActionDetailsPanelVisible(false);
     }
 
@@ -228,11 +236,14 @@ public class BattleHUDController : MonoBehaviour
     {
         if (newState == GameManager.GameState.InBattle)
         {
+            SetHUDVisible(true);
+            SetHeroTurnUIElementsVisible(false); // Default hidden until active turn check
             RebuildPartyCards();
         }
         else
         {
-            SetRadialMenuVisible(false);
+            SetHUDVisible(false);
+            SetHeroTurnUIElementsVisible(false);
             SetActionDetailsPanelVisible(false);
             ClearTargetOverlays();
         }
@@ -242,7 +253,7 @@ public class BattleHUDController : MonoBehaviour
     {
         if (turnQueue == null || turnQueue.Count == 0)
         {
-            SetRadialMenuVisible(false);
+            SetHeroTurnUIElementsVisible(false);
             return;
         }
 
@@ -257,42 +268,47 @@ public class BattleHUDController : MonoBehaviour
         }
 
         UpdateActiveHeroHighlight();
-        SetRadialMenuVisible(isHeroTurn);
+
+        // Show radial menu AND portrait viewport ONLY if it's hero turn
+        SetHeroTurnUIElementsVisible(isHeroTurn);
     }
 
     private void HandleTargetSelectionChanged(IReadOnlyList<GameObject> targets, GameObject mainTarget)
     {
         ClearTargetOverlays();
 
-        if (targets == null || targets.Count == 0 || targetInfoOverlayTemplate == null) return;
-
-        for (int i = 0; i < targets.Count; i++)
+        // Update 3D Floating Target Overlays
+        if (targets != null && targets.Count > 0 && targetInfoOverlayTemplate != null)
         {
-            GameObject fighterObj = targets[i];
-            if (fighterObj == null) continue;
-
-            TemplateContainer overlayInstance = targetInfoOverlayTemplate.Instantiate();
-            VisualElement overlayRoot = overlayInstance.Q<VisualElement>("target_overlay_root") ?? overlayInstance;
-
-            TargetInfoPresenter presenter = new TargetInfoPresenter(overlayRoot, fighterObj);
-
-            // Determine level if FighterStats is attached
-            int level = -1;
-            if (fighterObj.TryGetComponent<FighterStats>(out var stats))
+            for (int i = 0; i < targets.Count; i++)
             {
-                //level = stats.Level;
+                GameObject fighterObj = targets[i];
+                if (fighterObj == null) continue;
+
+                TemplateContainer overlayInstance = targetInfoOverlayTemplate.Instantiate();
+                VisualElement overlayRoot = overlayInstance.Q<VisualElement>("target_overlay_root") ?? overlayInstance;
+
+                TargetInfoPresenter presenter = new TargetInfoPresenter(overlayRoot, fighterObj);
+
+                int level = -1;
+                if (fighterObj.TryGetComponent<FighterStats>(out var stats))
+                {
+                    // level = stats.Level;
+                }
+
+                presenter.UpdateData(fighterObj.name, level);
+
+                bool isPrimary = (mainTarget == null) ? (i == 0) : (fighterObj == mainTarget);
+                presenter.SetPrimaryTarget(isPrimary);
+                presenter.SetVisible(true);
+
+                _targetPresenters.Add(presenter);
+                _root.Add(overlayInstance);
             }
-
-            presenter.UpdateData(fighterObj.name, level);
-
-            // Determine if this is the primary target or secondary (AoE spreading)
-            bool isPrimary = (mainTarget == null) ? (i == 0) : (fighterObj == mainTarget);
-            presenter.SetPrimaryTarget(isPrimary);
-            presenter.SetVisible(true);
-
-            _targetPresenters.Add(presenter);
-            _root.Add(overlayInstance);
         }
+
+        // Update Timeline Portrait Target Markers
+        UpdateTimelineTargetMarkers(targets);
     }
 
     #endregion
@@ -324,18 +340,22 @@ public class BattleHUDController : MonoBehaviour
 
     private void PopulateTurnTimeline(IReadOnlyList<GameObject> turnQueue)
     {
-        if (_turnTimelineScroll == null) return;
+        if (_turnLeaderSlot == null || _turnQueueList == null) return;
 
-        _turnTimelineScroll.Clear();
+        _turnLeaderSlot.Clear();
+        _turnQueueList.Clear();
+        _timelineTargetIndicators.Clear();
 
         for (int i = 0; i < turnQueue.Count; i++)
         {
             GameObject fighterObj = turnQueue[i];
             if (fighterObj == null) continue;
 
-            VisualElement iconBox = new VisualElement();
-            iconBox.AddToClassList("timeline-icon-box");
+            // Slot Container (Vertical Stack: Portrait + Target Marker)
+            VisualElement slotWrapper = new VisualElement();
+            slotWrapper.AddToClassList("timeline-slot-wrapper");
 
+            VisualElement iconBox = new VisualElement();
             VisualElement portrait = new VisualElement();
             portrait.AddToClassList("timeline-portrait-img");
 
@@ -344,14 +364,81 @@ public class BattleHUDController : MonoBehaviour
             {
                 portrait.style.backgroundImage = Background.FromSprite(stats.TurnBarImage);
             }
-
-            if (i == 0)
+            else
             {
-                iconBox.AddToClassList("current-turn-leader");
+                Label fallbackLabel = new Label(fighterObj.name.Substring(0, Mathf.Min(3, fighterObj.name.Length)).ToUpper());
+                fallbackLabel.style.color = Color.white;
+                fallbackLabel.style.fontSize = 10;
+                fallbackLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+                portrait.Add(fallbackLabel);
             }
 
             iconBox.Add(portrait);
-            _turnTimelineScroll.Add(iconBox);
+            slotWrapper.Add(iconBox);
+
+            // Purple Target Diamond Marker
+            VisualElement targetIndicator = new VisualElement();
+            targetIndicator.AddToClassList("timeline-target-indicator");
+            targetIndicator.AddToClassList(TARGET_INDICATOR_HIDDEN_CLASS);
+
+            targetIndicator.schedule.Execute(() =>
+            {
+                targetIndicator.ToggleInClassList("timeline-target-indicator--bounce");
+            }).Every(450);
+
+            slotWrapper.Add(targetIndicator);
+
+            // Register mapping for target updates
+            _timelineTargetIndicators.Add(new KeyValuePair<GameObject, VisualElement>(fighterObj, targetIndicator));
+
+            if (i == 0)
+            {
+                slotWrapper.AddToClassList("leader-wrapper");
+                iconBox.AddToClassList("current-turn-leader");
+
+                iconBox.schedule.Execute(() =>
+                {
+                    iconBox.ToggleInClassList("current-turn-leader--pulse");
+                }).Every(600);
+
+                _turnLeaderSlot.Add(slotWrapper);
+            }
+            else
+            {
+                slotWrapper.AddToClassList("queue-wrapper");
+                iconBox.AddToClassList("timeline-icon-box");
+                _turnQueueList.Add(slotWrapper);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Highlights portraits in the turn timeline matching current targeted fighters.
+    /// </summary>
+    private void UpdateTimelineTargetMarkers(IReadOnlyList<GameObject> targetedFighters)
+    {
+        if (_timelineTargetIndicators.Count == 0) return;
+
+        HashSet<GameObject> targetSet = (targetedFighters != null)
+            ? new HashSet<GameObject>(targetedFighters)
+            : new HashSet<GameObject>();
+
+        for (int i = 0; i < _timelineTargetIndicators.Count; i++)
+        {
+            var pair = _timelineTargetIndicators[i];
+            GameObject fighter = pair.Key;
+            VisualElement indicator = pair.Value;
+
+            if (indicator == null) continue;
+
+            if (fighter != null && targetSet.Contains(fighter))
+            {
+                indicator.RemoveFromClassList(TARGET_INDICATOR_HIDDEN_CLASS);
+            }
+            else
+            {
+                indicator.AddToClassList(TARGET_INDICATOR_HIDDEN_CLASS);
+            }
         }
     }
 
@@ -384,9 +471,6 @@ public class BattleHUDController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Updates the stats data on existing party status cards without re-instantiating elements.
-    /// </summary>
     private void RefreshPartyCardsData()
     {
         if (_partyCardPresenters.Count == 0)
@@ -476,6 +560,28 @@ public class BattleHUDController : MonoBehaviour
         }
     }
 
+    public void SetHUDVisible(bool visible)
+    {
+        if (_root != null)
+        {
+            _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+    }
+
+    /// <summary>
+    /// Controls visibility for elements that must ONLY be active during a hero's command turn.
+    /// </summary>
+    public void SetHeroTurnUIElementsVisible(bool visible)
+    {
+        DisplayStyle display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
+        if (_floatingRadialMenuContainer != null)
+            _floatingRadialMenuContainer.style.display = display;
+
+        if (_portraitViewportFrame != null)
+            _portraitViewportFrame.style.display = display;
+    }
+
     public void SetViewportExpanded(bool expanded)
     {
         if (_portraitViewportFrame == null) return;
@@ -487,14 +593,6 @@ public class BattleHUDController : MonoBehaviour
         else
         {
             _portraitViewportFrame.RemoveFromClassList(FULLSCREEN_EXPAND_CLASS);
-        }
-    }
-
-    public void SetRadialMenuVisible(bool visible)
-    {
-        if (_floatingRadialMenuContainer != null)
-        {
-            _floatingRadialMenuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 

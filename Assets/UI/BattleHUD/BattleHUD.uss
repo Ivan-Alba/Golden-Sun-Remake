@@ -147,31 +147,120 @@
 /* =========================================================================
    3. TOP-RIGHT: TURN TIMELINE / ACTION QUEUE
    ========================================================================= */
-
 .turn-timeline-container {
     position: absolute;
-    top: 44px;
-    right: 44px;
-    width: 500px;
+    top: 36px;
+    right: 36px;
+    width: auto;
     background-color: var(--color-panel-bg);
     border-color: var(--color-panel-border);
     border-width: 2px;
     border-radius: 12px;
-    padding: 8px 12px;
+    padding: 10px 14px 18px 14px; /* Un poco más de padding abajo (18px) para dar aire al rombo */
+    align-items: flex-start;
 }
 
 .timeline-title-label {
-    font-size: 13px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
     letter-spacing: 2px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     text-transform: uppercase;
 }
 
-.turn-timeline-scroll {
+.turn-timeline-row {
     flex-direction: row;
-    height: 64px;
+    align-items: flex-end;
+}
+
+.turn-leader-slot {
+    margin-right: 10px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.turn-queue-list {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+/* Wrapper con posición relativa para poder anclar el rombo sin romper alineaciones */
+.timeline-slot-wrapper {
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.timeline-slot-wrapper.queue-wrapper {
+    margin-right: 8px;
+}
+
+.timeline-icon-box {
+    width: 52px;
+    height: 52px;
+    margin: 0;
+    justify-content: center;
+    align-items: center;
+    border-width: 1.5px;
+    border-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.timeline-portrait-img {
+    width: 100%;
+    height: 100%;
+}
+
+.current-turn-leader {
+    width: 78px;
+    height: 78px;
+    margin: 0;
+    border-width: 3.5px;
+    border-color: #ffcc00;
+    border-radius: 12px;
+    overflow: hidden;
+    scale: 1 1;
+    
+    transition-property: scale, border-color;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+}
+
+.current-turn-leader--pulse {
+    scale: 1.06 1.06;
+    border-color: #ffe680;
+}
+
+/* --- ROMBO PÚRPURA CON ANIMACIÓN DE FLOTACIÓN Y GLOW --- */
+.timeline-target-indicator {
+    position: absolute;
+    bottom: -14px; /* Posicionado por debajo de la casilla */
+    width: 9px;
+    height: 9px;
+    background-color: #c084fc;
+    border-color: #f3e8ff;
+    border-width: 1px;
+    border-radius: 2px;
+    rotate: 45deg;
+    
+    /* Transiciones suaves para visibilidad y animación de movimiento */
+    transition-property: opacity, scale, translate, background-color;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-in-out;
+}
+
+/* Estado animado (sube 3px y brilla) */
+.timeline-target-indicator--bounce {
+    translate: 0 -3px;
+    background-color: #e9d5ff;
+}
+
+.timeline-target-indicator--hidden {
+    opacity: 0;
+    scale: 0 0;
 }
 
 /* =========================================================================

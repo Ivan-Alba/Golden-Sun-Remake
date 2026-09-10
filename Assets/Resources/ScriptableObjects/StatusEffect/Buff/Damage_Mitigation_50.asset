@@ -33,7 +33,7 @@ MonoBehaviour:
   sealItemUsage: 0
   sealDjinnUsage: 0
   incapacitateType: 0
-  damageMitigationPercentage: 1
+  damageMitigationPercentage: 0.5
   aggroMultiplier: 1
   reflectChance: 0
   elementalAbsorb: 0

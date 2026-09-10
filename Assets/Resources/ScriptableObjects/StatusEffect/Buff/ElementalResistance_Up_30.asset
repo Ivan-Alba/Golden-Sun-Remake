@@ -41,15 +41,15 @@ MonoBehaviour:
   statModifiers:
   - statType: 10
     modifierType: 2
-    value: 20
+    value: 0.2
   - statType: 11
     modifierType: 2
-    value: 20
+    value: 0.2
   - statType: 12
     modifierType: 2
-    value: 20
+    value: 0.2
   - statType: 13
     modifierType: 2
-    value: 20
+    value: 0.2
   resourceRegens: []
   damagesOverTime: []
