@@ -80,6 +80,12 @@ public class InputController : MonoBehaviour
         inputActions.Battle.Down.performed += OnBattleDownPerformed;
         inputActions.Battle.Left.performed += OnBattleLeftPerformed;
         inputActions.Battle.Right.performed += OnBattleRightPerformed;
+        inputActions.Battle.BattleCommand_Up.performed += OnBattleCommandUpPerformed;
+        inputActions.Battle.BattleCommand_Left.performed += OnBattleCommandLeftPerformed;
+        inputActions.Battle.BattleCommand_Right.performed += OnBattleCommandRightPerformed;
+        inputActions.Battle.BattleCommand_Down.performed += OnBattleCommandDownPerformed;
+        inputActions.Battle.BattleWing_Left.performed += OnBattleWingLeftPerformed;
+        inputActions.Battle.BattleWing_Right.performed += OnBattleWingRightPerformed;
 
         // --- MENU MAP ---
         inputActions.Menu.ToggleMenu.performed += OnToggleMenuPerformed;
@@ -186,6 +192,14 @@ public class InputController : MonoBehaviour
     private void OnBattleDownPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleDownPressed();
     private void OnBattleLeftPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleLeftPressed();
     private void OnBattleRightPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleRightPressed();
+
+    private void OnBattleCommandUpPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleCommandUpPressed();
+    private void OnBattleCommandLeftPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleCommandLeftPressed();
+    private void OnBattleCommandRightPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleCommandRightPressed();
+    private void OnBattleCommandDownPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleCommandDownPressed();
+    private void OnBattleWingLeftPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleWingLeftPressed();
+    private void OnBattleWingRightPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerBattleWingRightPressed();
+
 
     // --- MENU CALLBACKS ---
     private void OnMenuNextTabPerformed(InputAction.CallbackContext ctx) => GameEvents.Input.TriggerMenuNextTabPressed();

@@ -129,6 +129,48 @@ public static class GameEvents
         public static void TriggerBattleRightPressed()
             => OnBattleRightPressed?.Invoke();
 
+        /// <summary>
+        /// Triggered when the battle command up button is pressed.
+        /// </summary>
+        public static event Action OnBattleCommandUpPressed;
+        public static void TriggerBattleCommandUpPressed()
+            => OnBattleCommandUpPressed?.Invoke();
+
+        /// <summary>
+        /// Triggered when the battle command left button is pressed.
+        /// </summary>
+        public static event Action OnBattleCommandLeftPressed;
+        public static void TriggerBattleCommandLeftPressed()
+            => OnBattleCommandLeftPressed?.Invoke();
+
+        /// <summary>
+        /// Triggered when the battle command right button is pressed.
+        /// </summary>
+        public static event Action OnBattleCommandRightPressed;
+        public static void TriggerBattleCommandRightPressed()
+            => OnBattleCommandRightPressed?.Invoke();
+
+        /// <summary>
+        /// Triggered when the battle command down button is pressed.
+        /// </summary>
+        public static event Action OnBattleCommandDownPressed;
+        public static void TriggerBattleCommandDownPressed()
+            => OnBattleCommandDownPressed?.Invoke();
+
+        /// <summary>
+        /// Triggered when the battle wing left button is pressed.
+        /// </summary>
+        public static event Action OnBattleWingLeftPressed;
+        public static void TriggerBattleWingLeftPressed()
+            => OnBattleWingLeftPressed?.Invoke();
+
+        /// <summary>
+        /// Triggered when the battle wing right button is pressed.
+        /// </summary>
+        public static event Action OnBattleWingRightPressed;
+        public static void TriggerBattleWingRightPressed()
+            => OnBattleWingRightPressed?.Invoke();
+
         // Menu Navigation Inputs
 
         /// <summary>
@@ -645,6 +687,27 @@ public static class GameEvents
         public static event Action<List<GameObject>, bool> OnRequestEventBattle;
         public static void RequestEventBattle(List<GameObject> preSetEnemies, bool isBossBattle = false)
             => OnRequestEventBattle?.Invoke(preSetEnemies, isBossBattle);
+
+        /// <summary>
+        /// Notifies UI and battle systems when the overall battle state changes.
+        /// </summary>
+        public static event Action<BattleState> OnBattleStateChanged;
+        public static void TriggerBattleStateChanged(BattleState newState)
+            => OnBattleStateChanged?.Invoke(newState);
+
+        /// <summary>
+        /// Requests displaying the top-center action banner overlay with title and optional target subtext.
+        /// </summary>
+        public static event Action<string, string> OnRequestActionBanner;
+        public static void RequestActionBanner(string title, string subtext = "")
+            => OnRequestActionBanner?.Invoke(title, subtext);
+
+        /// <summary>
+        /// Requests hiding the top-center action banner overlay.
+        /// </summary>
+        public static event Action OnHideActionBanner;
+        public static void TriggerHideActionBanner()
+            => OnHideActionBanner?.Invoke();
 
         /// <summary>
         /// Notifies the UI of the updated fighter turn timeline sequence.

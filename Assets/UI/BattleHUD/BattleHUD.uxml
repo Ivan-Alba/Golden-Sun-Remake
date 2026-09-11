@@ -1,36 +1,42 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElementsSchema.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/BattleHUD/BattleHUD.uss?fileID=7433441132597879392&amp;guid=98def250eaf4dfb4785e76e914f861cf&amp;type=3#BattleHUD"/>
+    
+    <ui:Template name="CommandCrossOverlay" src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uxml"/>
+
     <ui:VisualElement name="battle_hud_root" class="battle-hud-root">
-        <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame" style="display: none;">
+        
+        <!-- Active Hero Close-Up Viewport -->
+        <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame">
             <ui:VisualElement name="portrait_viewport_render" class="portrait-viewport-render"/>
-            <ui:VisualElement name="portrait_viewport_border_overlay" class="portrait-viewport-border"/>
-            <ui:Label name="label_active_hero_name" text="HANS" class="active-hero-badge-label"/>
         </ui:VisualElement>
 
-       <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container">
+        <!-- Turn Timeline Display -->
+        <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container">
             <ui:Label text="TURNS" class="timeline-title-label"/>
-    
             <ui:VisualElement name="turn_timeline_row" class="turn-timeline-row">
                 <ui:VisualElement name="turn_leader_slot" class="turn-leader-slot"/>
-        
                 <ui:VisualElement name="turn_queue_list" class="turn-queue-list"/>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="floating_radial_menu_container" class="floating-radial-menu-container" style="display: none;">
-            <ui:VisualElement name="radial_menu_ring" class="radial-menu-ring">
-                <ui:Button name="btn_cmd_attack" tooltip="Attack" class="radial-btn cmd-attack"/>
-                <ui:Button name="btn_cmd_psynergy" tooltip="Psynergy" class="radial-btn cmd-psynergy"/>
-                <ui:Button name="btn_cmd_djinn" tooltip="Djinn" class="radial-btn cmd-djinn"/>
-                <ui:Button name="btn_cmd_item" tooltip="Item" class="radial-btn cmd-item"/>
-                <ui:Button name="btn_cmd_defend" tooltip="Defend" class="radial-btn cmd-defend"/>
-                <ui:Button name="btn_cmd_flee" tooltip="Flee" class="radial-btn cmd-flee"/>
+        <!-- Top-Center Active Action Banner Overlay (Hidden by default) -->
+        <ui:VisualElement name="action_banner_container" class="action-banner-container" style="display: none;">
+            <ui:VisualElement class="action-banner-card">
+                <ui:Label name="label_action_banner_title" text="FIREBALL" class="action-banner-label"/>
+                <ui:Label name="label_action_banner_subtext" text="Target: Mushroom Blue" class="action-banner-subtext"/>
             </ui:VisualElement>
-            <ui:Label name="label_selected_cmd_name" text="ATTACK" class="selected-cmd-label"/>
         </ui:VisualElement>
+
+        <!-- Floating Command Cross Anchor -->
+        <ui:VisualElement name="floating_command_menu_container" class="floating-command-menu-container" style="display: none;">
+            <ui:Instance template="CommandCrossOverlay" name="command_cross_overlay"/>
+        </ui:VisualElement>
+
         <ui:VisualElement name="qte_overlay_container" class="qte-overlay-container"/>
         <ui:VisualElement name="bottom_left_party_container" class="party-cards-battle-container"/>
+
+        <!-- Action Details Panel -->
         <ui:VisualElement name="action_details_panel" class="action-details-panel" style="display: none;">
             <ui:Label name="label_details_title" text="PSYNERGY" class="details-title-label"/>
             <ui:ScrollView name="details_list_scroll" class="details-list-scroll"/>
@@ -39,5 +45,6 @@
                 <ui:Label name="label_action_cost" text="PP: 6" class="action-cost-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
+
     </ui:VisualElement>
 </ui:UXML>

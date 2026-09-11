@@ -32,13 +32,13 @@ public class BattleManager : MonoBehaviour
     // Local GameState Cache
     private GameManager.GameState _cachedGameState;
 
-    // TODO REVISAR
+    // TODO: REVISIT MAX ENEMIES CONFIGURATION
     private int maxEnemiesInBattle = 3;
 
     private GameObject mainCamera;
-    private float[] pointerOriginalY;
 
     // NEXT ACTION & TARGETING
+    private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
     private PsynergySO nextPsynergy;
     private ItemSO nextItem;
 
@@ -70,12 +70,19 @@ public class BattleManager : MonoBehaviour
     // Minimap
     private GameObject playerCanvas;
 
-    // OLD CANVAS UI CONTROLLER (Legacy uGUI - Kept commented for reference during migration)
-    // private BattleUIController battleUIController;
+    // BATTLE STATE MACHINE (Encapsulated State Property)
+    private BattleState _currentBattleState = BattleState.None;
+    public BattleState CurrentBattleState
+    {
+        get => _currentBattleState;
+        private set
+        {
+            if (_currentBattleState == value) return;
 
-    // BATTLE STATE MACHINE
-    private BattleState currentBattleState = BattleState.None;
-    public BattleState CurrentBattleState => currentBattleState;
+            _currentBattleState = value;
+            GameEvents.Battle.TriggerBattleStateChanged(_currentBattleState);
+        }
+    }
 
     // AUXILIAR
     private int enemiesOnBattle, enemiesDefeated, deadHeroes;
@@ -84,11 +91,11 @@ public class BattleManager : MonoBehaviour
     // Backwards compatibility getter
     public bool WaitingAction
     {
-        get => currentBattleState == BattleState.CommandSelection;
+        get => CurrentBattleState == BattleState.CommandSelection;
         set
         {
-            if (!value && currentBattleState == BattleState.CommandSelection)
-                currentBattleState = BattleState.WaitingTurnExecution;
+            if (!value && CurrentBattleState == BattleState.CommandSelection)
+                CurrentBattleState = BattleState.WaitingTurnExecution;
         }
     }
 
@@ -96,10 +103,6 @@ public class BattleManager : MonoBehaviour
     {
         // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
-        // battleUIController = GetComponent<BattleUIController>();
-
-        // --- INITIALIZATION ---
-        pointerOriginalY = new float[maxEnemiesInBattle];
 
         // Ensure clean state on scene load
         ResetBattleVariables();
@@ -157,6 +160,14 @@ public class BattleManager : MonoBehaviour
         GameEvents.Input.OnBattleDownPressed += HandleDownPressed;
         GameEvents.Input.OnBattleLeftPressed += HandleLeftPressed;
         GameEvents.Input.OnBattleRightPressed += HandleRightPressed;
+
+        // Command Cross direct hotkey subscriptions
+        GameEvents.Input.OnBattleCommandUpPressed += ExecuteAttackCommand;
+        GameEvents.Input.OnBattleCommandLeftPressed += ExecutePsynergyCommand;
+        GameEvents.Input.OnBattleCommandRightPressed += ExecuteItemCommand;
+        GameEvents.Input.OnBattleCommandDownPressed += ExecuteDefendCommand;
+        GameEvents.Input.OnBattleWingLeftPressed += ExecuteDjinnCommand;
+        GameEvents.Input.OnBattleWingRightPressed += ExecuteSummonCommand;
     }
 
     private void UnsubscribeFromInputEvents()
@@ -167,6 +178,78 @@ public class BattleManager : MonoBehaviour
         GameEvents.Input.OnBattleDownPressed -= HandleDownPressed;
         GameEvents.Input.OnBattleLeftPressed -= HandleLeftPressed;
         GameEvents.Input.OnBattleRightPressed -= HandleRightPressed;
+
+        GameEvents.Input.OnBattleCommandUpPressed -= ExecuteAttackCommand;
+        GameEvents.Input.OnBattleCommandLeftPressed -= ExecutePsynergyCommand;
+        GameEvents.Input.OnBattleCommandRightPressed -= ExecuteItemCommand;
+        GameEvents.Input.OnBattleCommandDownPressed -= ExecuteDefendCommand;
+        GameEvents.Input.OnBattleWingLeftPressed -= ExecuteDjinnCommand;
+        GameEvents.Input.OnBattleWingRightPressed -= ExecuteSummonCommand;
+    }
+
+    #endregion
+
+    #region Direct Command Cross Triggers
+
+    private void ExecuteAttackCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Attack;
+
+        currentTargetType = PsynergyTargetType.SingleEnemy;
+        currentAreaRange = 0;
+        SelectDefaultTarget(currentTargetType, currentAreaRange);
+        CurrentBattleState = BattleState.TargetSelection;
+    }
+
+    private void ExecutePsynergyCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Psynergy;
+        CurrentBattleState = BattleState.SubMenuSelection;
+    }
+
+    private void ExecuteItemCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Item;
+        CurrentBattleState = BattleState.SubMenuSelection;
+    }
+
+    private void ExecuteDefendCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Defend;
+
+        turnController.HideTurnCamera();
+        CurrentBattleState = BattleState.WaitingTurnExecution;
+        StartCoroutine(PerformAction());
+    }
+
+    private void ExecuteDjinnCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Djinn;
+        CurrentBattleState = BattleState.SubMenuSelection;
+    }
+
+    private void ExecuteSummonCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Summon;
+        CurrentBattleState = BattleState.SubMenuSelection;
     }
 
     #endregion
@@ -177,60 +260,9 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        switch (currentBattleState)
+        switch (CurrentBattleState)
         {
-            case BattleState.CommandSelection:
-                PlaySFX(SFXType.UI_Confirm);
-
-                // TODO: Replace battleUIController.CommandSelected reading with UI Toolkit state
-                int selectedCmd = 0; // Defaulting to Attack for testing
-
-                switch (selectedCmd)
-                {
-                    case 0: // ATTACK
-                        currentTargetType = PsynergyTargetType.SingleEnemy;
-                        currentAreaRange = 0;
-                        SelectDefaultTarget(currentTargetType, currentAreaRange);
-                        currentBattleState = BattleState.TargetSelection;
-                        break;
-
-                    case 1: // PSYNERGY
-                        currentBattleState = BattleState.SubMenuSelection;
-                        // battleUIController.SetContentPanel("Psynergy");
-                        // battleUIController.ShowContentPanel(true);
-                        break;
-
-                    case 2: // DJINN
-                        break;
-
-                    case 3: // SUMMON
-                        break;
-
-                    case 4: // DEFENSE
-                        // battleUIController.ShowOrdersPanel(false);
-                        turnController.HideTurnCamera();
-                        currentBattleState = BattleState.WaitingTurnExecution;
-                        StartCoroutine(PerformAction());
-                        break;
-
-                    case 5: // ITEM
-                        if (turnsOrdered != null && turnsOrdered.Count > 0)
-                        {
-                            turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().CurrHp =
-                                turnsOrdered.ElementAt(0).Key.GetComponent<FighterStats>().MaxHp;
-                        }
-                        break;
-
-                    case 6: // ESTADO
-                        break;
-
-                    case 7: // HUIR
-                        break;
-                }
-                break;
-
             case BattleState.SubMenuSelection:
-                // string selectedContent = battleUIController.GetContentItem();
                 string selectedContent = "cure"; // Fallback placeholder
 
                 nextPsynergy = null;
@@ -242,29 +274,23 @@ public class BattleManager : MonoBehaviour
                 if (nextPsynergy != null)
                 {
                     PlaySFX(SFXType.UI_Confirm);
-                    currentBattleState = BattleState.TargetSelection;
+                    CurrentBattleState = BattleState.TargetSelection;
 
-                    // assuming command 1 (PSYNERGY)
                     currentTargetType = nextPsynergy.TargetType;
                     currentAreaRange = nextPsynergy.AreaRange;
 
                     SelectDefaultTarget(currentTargetType, currentAreaRange);
-
-                    Debug.Log($"Psinergía {nextPsynergy.PsynergySlug} target tipo: {nextPsynergy.TargetType}");
+                    Debug.Log($"Psynergy {nextPsynergy.PsynergySlug} target type: {nextPsynergy.TargetType}");
                 }
                 break;
 
             case BattleState.TargetSelection:
                 PlaySFX(SFXType.UI_Confirm);
 
-                // Hide target selection UI elements
-                // battleUIController.ShowOrdersPanel(false);
                 turnController.HideTurnCamera();
-                // battleUIController.HideSelectedTarget();
-
                 HideAllPointers();
 
-                currentBattleState = BattleState.WaitingTurnExecution;
+                CurrentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());
                 break;
 
@@ -284,42 +310,31 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        switch (currentBattleState)
+        switch (CurrentBattleState)
         {
             case BattleState.TargetSelection:
                 HideAllPointers();
-                // battleUIController.HideSelectedTarget();
                 PlaySFX(SFXType.UI_Cancel);
 
-                // TODO: Replace with local/UI Toolkit state check
-                int selectedCmd = 0;
-
-                switch (selectedCmd)
+                switch (_selectedCommandType)
                 {
-                    case 0: // ATTACK
-                        currentBattleState = BattleState.CommandSelection;
+                    case BattleCommandType.Attack:
+                        CurrentBattleState = BattleState.CommandSelection;
                         break;
 
-                    case 1: // PSYNERGY
-                        currentBattleState = BattleState.SubMenuSelection;
+                    case BattleCommandType.Psynergy:
+                    case BattleCommandType.Item:
+                    case BattleCommandType.Djinn:
+                    case BattleCommandType.Summon:
+                        CurrentBattleState = BattleState.SubMenuSelection;
                         nextPsynergy = null;
-                        break;
-
-                    case 2: // DJINN
-                        break;
-
-                    case 3: // SUMMON
-                        break;
-
-                    case 5: // ITEM
                         break;
                 }
                 break;
 
             case BattleState.SubMenuSelection:
                 PlaySFX(SFXType.UI_Cancel);
-                currentBattleState = BattleState.CommandSelection;
-                // battleUIController.ShowContentPanel(false);
+                CurrentBattleState = BattleState.CommandSelection;
                 break;
         }
     }
@@ -328,16 +343,10 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        switch (currentBattleState)
+        if (CurrentBattleState == BattleState.TargetSelection)
         {
-            case BattleState.CommandSelection:
-                // battleUIController.ordersPanelMove("LEFT");
-                break;
-
-            case BattleState.TargetSelection:
-                SelectLeftTarget();
-                PlaySFX(SFXType.UI_Move);
-                break;
+            SelectLeftTarget();
+            PlaySFX(SFXType.UI_Move);
         }
     }
 
@@ -345,16 +354,10 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        switch (currentBattleState)
+        if (CurrentBattleState == BattleState.TargetSelection)
         {
-            case BattleState.CommandSelection:
-                // battleUIController.ordersPanelMove("RIGHT");
-                break;
-
-            case BattleState.TargetSelection:
-                SelectRightTarget();
-                PlaySFX(SFXType.UI_Move);
-                break;
+            SelectRightTarget();
+            PlaySFX(SFXType.UI_Move);
         }
     }
 
@@ -362,10 +365,9 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        if (currentBattleState == BattleState.SubMenuSelection)
+        if (CurrentBattleState == BattleState.SubMenuSelection)
         {
             PlaySFX(SFXType.UI_Move);
-            // battleUIController.MoveContentPanel("UP");
         }
     }
 
@@ -373,10 +375,9 @@ public class BattleManager : MonoBehaviour
     {
         if (_cachedGameState != GameManager.GameState.InBattle) return;
 
-        if (currentBattleState == BattleState.SubMenuSelection)
+        if (CurrentBattleState == BattleState.SubMenuSelection)
         {
             PlaySFX(SFXType.UI_Move);
-            // battleUIController.MoveContentPanel("DOWN");
         }
     }
 
@@ -401,20 +402,6 @@ public class BattleManager : MonoBehaviour
         if (playerCanvas == null)
             playerCanvas = GameObject.Find("PlayerCanvas");
 
-        // Legacy Canvas Hero Panels Setup - Kept commented for reference
-        /*
-        if (party != null)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (i < party.Count)
-                {
-                    battleUIController.SetHeroInfoPanel(i);
-                }
-            }
-        }
-        */
-
         enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
         enemyPositions = new GameObject[enemiesOnBattle];
 
@@ -430,7 +417,7 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator StartBattle(GameObject firstEnemy)
     {
-        currentBattleState = BattleState.IntroTransition;
+        CurrentBattleState = BattleState.IntroTransition;
 
         // TRANSITION MAIN CAMERA TO BATTLE CAMERA
         StartCoroutine(battleCameraController.StartTransition(mainCamera));
@@ -440,7 +427,7 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-        // SET HEROS
+        // SET HEROES
         int i = 0;
         if (party != null && party.Count <= 2) i = 1;
 
@@ -461,9 +448,6 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // SET INFO ON HERO'S PANEL (Legacy uGUI - Kept commented)
-        // battleUIController.RefreshHeroInfoPanel();
-
         // SET ENEMIES
         SetEnemiesOnBattle(firstEnemy);
 
@@ -482,7 +466,7 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
         }
 
-        // ANIMACIÓN CAMARA INTRO BATLLA
+        // BATTLE CAMERA INTRO ANIMATION
         battleCameraController.IntroBattle();
         yield return new WaitForSeconds(2f);
 
@@ -527,23 +511,12 @@ public class BattleManager : MonoBehaviour
 
             enemyPositions[i] = enemyPlace;
             enemiesList.Add(Instantiate(newEnemy, enemyPlace.transform.position, Quaternion.identity));
-            // TODO AUDIOSOURCE MISSING CHECK
-            //enemiesList[i].GetComponent<AudioSource>().spatialBlend = 0;
             fighters.Add(enemiesList[i]);
-
-            pointerOriginalY[i] = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").position.y;
-
-            // SET TOP POINTERS POSITION
-            GameObject topPointer = enemyPositions[i].transform.Find("Pointer").Find("TopPointer").gameObject;
-            topPointer.transform.position = new Vector3(topPointer.transform.position.x,
-                topPointer.transform.position.y + enemiesList[i].GetComponent<BoxCollider>().bounds.size.y,
-                topPointer.transform.position.z);
         }
     }
 
     private void InitializeBattleTurns()
     {
-        // battleUIController.ShowBattleCanvas(true);
         turnsOrdered = turnController.InitializeTurnSystem(fighters);
 
         if (turnController.CurrentFighter != null)
@@ -552,12 +525,12 @@ public class BattleManager : MonoBehaviour
 
             if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
-                currentBattleState = BattleState.WaitingTurnExecution;
+                CurrentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());
             }
             else
             {
-                currentBattleState = BattleState.CommandSelection;
+                CurrentBattleState = BattleState.CommandSelection;
             }
         }
     }
@@ -571,22 +544,22 @@ public class BattleManager : MonoBehaviour
         FighterStats targetStats = null;
         GameObject activeFighter = turnController.CurrentFighter.gameObject;
 
-        int selectedCmd = 0; // Defaulting to attack command
+        // FORCE COMMAND TYPE TO ATTACK FOR ENEMIES TO PREVENT PREVIOUS HERO COMMAND OVERRIDE
         if (activeFighter.TryGetComponent<EnemyStats>(out _))
         {
-            // battleUIController.CommandSelected = Random.Range(0, 1);
-            selectedCmd = Random.Range(0, 1);
+            _selectedCommandType = BattleCommandType.Attack;
         }
 
         int baseActionCost = 50; // Default action cost (Attack)
 
-        switch (selectedCmd)
+        switch (_selectedCommandType)
         {
-            case 0: // ATTACK
+            case BattleCommandType.Attack:
                 baseActionCost = 50;
                 if (activeFighter.TryGetComponent<EnemyStats>(out _))
                 {
-                    // Use EnemyAIController to pick an alive hero
+                    targetList.Clear();
+
                     if (activeFighter.TryGetComponent<EnemyAIController>(out var ai))
                     {
                         GameObject chosenTarget = ai.SelectTarget(heroList);
@@ -596,7 +569,6 @@ public class BattleManager : MonoBehaviour
                         }
                     }
 
-                    // Fallback in case EnemyAIController is missing or returns null
                     if (targetStats == null && heroList != null && heroList.Count > 0)
                     {
                         targetStats = heroList[Random.Range(0, heroList.Count)].GetComponent<FighterStats>();
@@ -625,9 +597,8 @@ public class BattleManager : MonoBehaviour
                 }
                 break;
 
-            case 1: // PSYNERGY
-                baseActionCost = 60; // Base Psynergy delay cost
-                // battleUIController.ShowContentPanel(false);
+            case BattleCommandType.Psynergy:
+                baseActionCost = 60;
 
                 if (nextPsynergy != null && IsAllyTarget(nextPsynergy.TargetType))
                 {
@@ -647,8 +618,8 @@ public class BattleManager : MonoBehaviour
                 nextPsynergy = null;
                 break;
 
-            case 4: // DEFENSE
-                baseActionCost = 30; // Guard is a faster action
+            case BattleCommandType.Defend:
+                baseActionCost = 30;
                 turnController.CurrentFighter.SetUpDefense();
                 yield return new WaitForSeconds(1.5f);
                 break;
@@ -711,7 +682,6 @@ public class BattleManager : MonoBehaviour
     {
         if (enemyStats == null || enemyStats.PossibleDrops == null) return;
 
-        // Evaluate enemy drops from EnemyStats configuration
         List<ItemDropRate> droppedItems = enemyStats.PossibleDrops;
 
         foreach (ItemDropRate droppedItem in droppedItems)
@@ -737,7 +707,6 @@ public class BattleManager : MonoBehaviour
     {
         targetList = new List<GameObject>();
 
-        // Advance turn using TurnController with CTB action cost
         turnController.AdvanceTurn(executedFighter, baseActionCost);
         turnsOrdered = turnController.BuildTurnProjection();
 
@@ -747,20 +716,19 @@ public class BattleManager : MonoBehaviour
 
             if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
-                currentBattleState = BattleState.WaitingTurnExecution;
+                CurrentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());
             }
             else
             {
-                currentBattleState = BattleState.CommandSelection;
+                CurrentBattleState = BattleState.CommandSelection;
             }
         }
     }
 
     private IEnumerator BattleWinned()
     {
-        currentBattleState = BattleState.ResultsScreen;
-        // battleUIController.ShowBattleCanvas(false);
+        CurrentBattleState = BattleState.ResultsScreen;
 
         GameEvents.Audio.RequestPlayVictoryBGM();
 
@@ -785,7 +753,6 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-        // Transition via decoupled event bus (decoupled from SceneTransitionManager.Instance)
         GameEvents.Scene.RequestFullTransition(SetOffBattle);
         yield return null;
     }
@@ -817,7 +784,6 @@ public class BattleManager : MonoBehaviour
 
         if (player != null) player.GetComponent<Animator>().enabled = true;
 
-        // RESTORE WORLD MUSIC VIA AUDIO MANAGER
         GameEvents.Audio.RequestResumeBGM();
 
         if (party != null)
@@ -832,21 +798,12 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < enemiesOnBattle; i++)
-        {
-            if (enemyPositions[i] != null)
-            {
-                Transform currentPosition = enemyPositions[i].transform.Find("Pointer").Find("TopPointer");
-                currentPosition.position = new Vector3(currentPosition.position.x, pointerOriginalY[i], currentPosition.position.z);
-            }
-        }
-
         ResetBattleVariables();
     }
 
     private void GameOver()
     {
-        currentBattleState = BattleState.GameOverScreen;
+        CurrentBattleState = BattleState.GameOverScreen;
 
         GameObject crossfade = transform.Find("Crossfade").gameObject;
         crossfade.SetActive(true);
@@ -900,7 +857,6 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // Notify UI Toolkit to clear target overlays
         GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
     }
 
@@ -925,13 +881,13 @@ public class BattleManager : MonoBehaviour
         deadHeroes = 0;
         actualTarget = 0;
 
+        _selectedCommandType = BattleCommandType.Attack;
         nextPsynergy = null;
         nextItem = null;
         currentTargetType = PsynergyTargetType.SingleEnemy;
         currentAreaRange = 0;
-        currentBattleState = BattleState.None;
+        CurrentBattleState = BattleState.None;
 
-        // Clear target overlays on UI
         GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
     }
 
@@ -951,7 +907,6 @@ public class BattleManager : MonoBehaviour
 
         if (targetIsAlly)
         {
-            GameObject pointer;
             targetList = new List<GameObject>();
 
             if (party != null)
@@ -968,8 +923,6 @@ public class BattleManager : MonoBehaviour
                 {
                     case PsynergyTargetType.SingleAlly:
                     case PsynergyTargetType.Self:
-                        pointer = party[initialIndex].transform.Find("Pointer").gameObject;
-                        pointer.SetActive(true);
                         targetList.Add(party[initialIndex]);
                         actualTarget = initialIndex;
                         primaryTargetObj = party[initialIndex];
@@ -980,8 +933,6 @@ public class BattleManager : MonoBehaviour
                         {
                             if (hero != null)
                             {
-                                pointer = hero.transform.Find("Pointer").gameObject;
-                                pointer.SetActive(true);
                                 targetList.Add(hero);
                             }
                         }
@@ -993,14 +944,7 @@ public class BattleManager : MonoBehaviour
         }
         else
         {
-            GameObject pointer;
             targetList = new List<GameObject>();
-
-            foreach (GameObject position in enemyPositions)
-            {
-                if (position != null)
-                    position.transform.Find("Pointer").gameObject.SetActive(false);
-            }
 
             switch (targetType)
             {
@@ -1010,8 +954,6 @@ public class BattleManager : MonoBehaviour
                         initialIndex++;
                     }
 
-                    pointer = enemyPositions[initialIndex].transform.Find("Pointer").gameObject;
-                    pointer.SetActive(true);
                     targetList.Add(enemiesList[initialIndex]);
                     actualTarget = initialIndex;
                     primaryTargetObj = enemiesList[initialIndex];
@@ -1026,12 +968,8 @@ public class BattleManager : MonoBehaviour
                     actualTarget = initialIndex;
                     primaryTargetObj = enemiesList[initialIndex];
 
-                    // Add primary target
                     targetList.Add(enemiesList[initialIndex]);
-                    pointer = enemyPositions[initialIndex].transform.Find("Pointer").gameObject;
-                    pointer.SetActive(true);
 
-                    // Add adjacent targets based on areaRange (Golden Sun spread)
                     if (areaRange >= 1)
                     {
                         for (int offset = 1; offset <= areaRange; offset++)
@@ -1042,15 +980,11 @@ public class BattleManager : MonoBehaviour
                             if (rightIdx < enemiesList.Count && enemiesList[rightIdx] != null)
                             {
                                 targetList.Add(enemiesList[rightIdx]);
-                                pointer = enemyPositions[rightIdx].transform.Find("Pointer").gameObject;
-                                pointer.SetActive(true);
                             }
 
                             if (leftIdx >= 0 && enemiesList[leftIdx] != null)
                             {
                                 targetList.Add(enemiesList[leftIdx]);
-                                pointer = enemyPositions[leftIdx].transform.Find("Pointer").gameObject;
-                                pointer.SetActive(true);
                             }
                         }
                     }
@@ -1062,8 +996,6 @@ public class BattleManager : MonoBehaviour
                         if (enemiesList[e] != null)
                         {
                             targetList.Add(enemiesList[e]);
-                            pointer = enemyPositions[e].transform.Find("Pointer").gameObject;
-                            pointer.SetActive(true);
                         }
                     }
                     actualTarget = 0;
@@ -1072,7 +1004,6 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // Notify UI Toolkit via Event Bus
         GameEvents.Battle.TriggerTargetSelectionChanged(targetList, primaryTargetObj);
     }
 

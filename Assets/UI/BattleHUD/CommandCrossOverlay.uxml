@@ -1,0 +1,74 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss" />
+    <Style src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uss" />
+
+    <ui:VisualElement name="command_cross_root" class="command-cross-root">
+        
+        <!-- Special Upper Wings Container (Horizontal Pill Badges for Djinn & Summon) -->
+        <ui:VisualElement name="wings_container" class="wings-container">
+            <!-- Left Wing: Djinn (Key 1 / L1) -->
+            <ui:VisualElement name="slot_djinn" class="wing-slot wing-slot--djinn">
+                <ui:VisualElement class="cmd-key-badge wing-key-badge">
+                    <ui:Label text="1" class="label-cmd-key" />
+                </ui:VisualElement>
+                <ui:VisualElement class="wing-icon icon-djinn" />
+                <ui:Label text="DJINN" class="wing-text-label" />
+            </ui:VisualElement>
+
+            <!-- Right Wing: Summon (Key 2 / R1) -->
+            <ui:VisualElement name="slot_summon" class="wing-slot wing-slot--summon">
+                <ui:Label text="SUMMON" class="wing-text-label" />
+                <ui:VisualElement class="wing-icon icon-summon" />
+                <ui:VisualElement class="cmd-key-badge wing-key-badge">
+                    <ui:Label text="2" class="label-cmd-key" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Main Command D-Pad Wheel (1-to-1 Hotkey Mapping: Q, E, R, F) -->
+        <ui:VisualElement name="dpad_wheel" class="dpad-cmd-wheel">
+            <!-- Top Command: Attack (Q) -->
+            <ui:VisualElement name="slot_attack" class="dpad-slot slot-up">
+                <ui:VisualElement class="cmd-icon icon-attack" />
+                <ui:VisualElement class="cmd-key-badge">
+                    <ui:Label text="Q" class="label-cmd-key" />
+                </ui:VisualElement>
+                <ui:Label text="ATTACK" class="cmd-action-label" />
+            </ui:VisualElement>
+
+            <!-- Left Command: Psynergy (E) -->
+            <ui:VisualElement name="slot_psynergy" class="dpad-slot slot-left">
+                <ui:VisualElement class="cmd-icon icon-psynergy" />
+                <ui:VisualElement class="cmd-key-badge">
+                    <ui:Label text="E" class="label-cmd-key" />
+                </ui:VisualElement>
+                <ui:Label text="PSYNERGY" class="cmd-action-label" />
+            </ui:VisualElement>
+
+            <!-- Right Command: Item (R) -->
+            <ui:VisualElement name="slot_item" class="dpad-slot slot-right">
+                <ui:VisualElement class="cmd-icon icon-item" />
+                <ui:VisualElement class="cmd-key-badge">
+                    <ui:Label text="R" class="label-cmd-key" />
+                </ui:VisualElement>
+                <ui:Label text="ITEM" class="cmd-action-label" />
+            </ui:VisualElement>
+
+            <!-- Bottom Command: Defend (F) -->
+            <ui:VisualElement name="slot_defend" class="dpad-slot slot-down">
+                <ui:VisualElement class="cmd-icon icon-defend" />
+                <ui:VisualElement class="cmd-key-badge">
+                    <ui:Label text="F" class="label-cmd-key" />
+                </ui:VisualElement>
+                <ui:Label text="DEFEND" class="cmd-action-label" />
+            </ui:VisualElement>
+
+            <!-- Central Aesthetic Core Gem -->
+            <ui:VisualElement class="dpad-center-gem" />
+        </ui:VisualElement>
+
+        <!-- Bottom Feedback Badge (Toggled dynamically on hover/focus) -->
+        <ui:Label name="label_active_command" text="" class="cmd-selected-badge cmd-selected-badge--hidden" />
+
+    </ui:VisualElement>
+</ui:UXML>

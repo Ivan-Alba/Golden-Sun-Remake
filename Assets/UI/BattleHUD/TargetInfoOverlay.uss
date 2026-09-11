@@ -6,19 +6,9 @@
 /* --- Root Container Positioned Over 3D Anchor --- */
 .target-overlay-root {
     position: absolute;
-    flex-direction: column; /* Stacks the diamond and the nameplate vertically */
     align-items: center;
-    justify-content: flex-end; /* Align bottom so the anchor point is consistent */
-    translate: -50% -100%; /* Centers horizontally, anchors bottom to the top of the character */
-    
-    opacity: 1;
-    scale: 1 1;
-    
-    /* CSS Transition Smoothness */
-    transition-property: opacity, scale;
-    transition-duration: 0.15s;
-    transition-timing-function: ease-out;
-    
+    justify-content: center;
+    translate: -50% -100%;
     picking-mode: ignore;
 }
 

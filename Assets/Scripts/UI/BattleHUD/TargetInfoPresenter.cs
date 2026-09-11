@@ -81,31 +81,34 @@ public class TargetInfoPresenter
     }
 
     /// <summary>
-    /// Projects the 3D position of the bound fighter onto the 2D UI coordinates.
+    /// Projects the 3D position of the bound fighter onto UI Toolkit panel coordinates.
+    /// Centering is handled seamlessly via CSS translate(-50%, -100%).
     /// </summary>
-    public void UpdateScreenPosition(Camera battleCamera, Vector3 verticalOffset)
+    public void UpdatePanelPosition(IPanel panel, Camera battleCamera, Vector3 verticalOffset)
     {
-        if (RootElement == null || BoundFighter == null || battleCamera == null) return;
-        if (RootElement.ClassListContains(HIDDEN_CLASS)) return; // Don't calculate if hidden
+        if (RootElement == null || BoundFighter == null || battleCamera == null || panel == null) return;
+        if (RootElement.ClassListContains(HIDDEN_CLASS)) return;
 
         Vector3 worldPos = BoundFighter.transform.position + verticalOffset;
-        Vector3 screenPos = battleCamera.WorldToScreenPoint(worldPos);
 
         // Hide if behind the camera clipping plane
-        if (screenPos.z < 0)
+        Vector3 screenPoint = battleCamera.WorldToScreenPoint(worldPos);
+        if (screenPoint.z < 0)
         {
-            RootElement.style.display = DisplayStyle.None;
+            RootElement.style.visibility = Visibility.Hidden;
             return;
         }
 
-        RootElement.style.display = DisplayStyle.Flex; // Restore if it was behind camera
+        RootElement.style.visibility = Visibility.Visible;
 
-        // Convert from Screen space (bottom-left) to UI Toolkit space (top-left)
-        float uiX = screenPos.x;
-        float uiY = Screen.height - screenPos.y;
+        // Transform 3D world space position directly to UI Toolkit panel space coordinates
+        Vector2 panelPos = RuntimePanelUtils.CameraTransformWorldToPanel(panel, worldPos, battleCamera);
 
-        RootElement.style.left = uiX;
-        RootElement.style.top = uiY;
+        RootElement.style.position = Position.Absolute;
+
+        // Direct assignment: CSS translate(-50%, -100%) aligns the horizontal center and bottom anchor perfectly
+        RootElement.style.left = panelPos.x;
+        RootElement.style.top = panelPos.y;
     }
 
     /// <summary>

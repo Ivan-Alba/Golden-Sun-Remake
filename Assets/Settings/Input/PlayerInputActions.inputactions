@@ -498,7 +498,7 @@
                     "name": "Confirm",
                     "type": "Button",
                     "id": "6160a06c-06d8-4437-9d64-39961e3af096",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -544,6 +544,60 @@
                     "type": "Button",
                     "id": "ad1e9290-e486-476c-8323-d746bf3f4a21",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleCommand_Up",
+                    "type": "Button",
+                    "id": "f2093c50-d7b3-4a04-a2b0-bea119dd7d21",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleCommand_Left",
+                    "type": "Button",
+                    "id": "110a22fb-bf31-42fb-85eb-6b1f5208650c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleCommand_Right",
+                    "type": "Button",
+                    "id": "ddb30ca2-777c-41b8-8491-7b20e0e9153d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleCommand_Down",
+                    "type": "Button",
+                    "id": "427cecf3-8b75-4649-8d87-77d51a2aee2c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleWing_Left",
+                    "type": "Button",
+                    "id": "9e0a9f17-8c50-4605-8d90-a4d163a671c1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "BattleWing_Right",
+                    "type": "Button",
+                    "id": "5f20868d-a7e1-4199-a121-ec7607278d87",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -613,6 +667,72 @@
                     "processors": "",
                     "groups": "",
                     "action": "Right",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3fb381bf-d1e7-45b0-95ca-bffecb5026f8",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleCommand_Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "09e4be70-f684-4c23-84b8-7e8ae688dfbb",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleCommand_Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e0b82611-9465-4462-9d2c-92f3e20c6637",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleCommand_Right",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "917bd993-9485-4ba7-b8d7-2a01ed0cd25f",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleCommand_Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6536bfbc-48aa-4d4b-bd46-2f5db607719e",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleWing_Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7c3ff28c-9d70-4b02-8ddb-084435e3a926",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BattleWing_Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

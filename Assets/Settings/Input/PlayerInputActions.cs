@@ -584,7 +584,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Confirm"",
                     ""type"": ""Button"",
                     ""id"": ""6160a06c-06d8-4437-9d64-39961e3af096"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -630,6 +630,60 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""type"": ""Button"",
                     ""id"": ""ad1e9290-e486-476c-8323-d746bf3f4a21"",
                     ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleCommand_Up"",
+                    ""type"": ""Button"",
+                    ""id"": ""f2093c50-d7b3-4a04-a2b0-bea119dd7d21"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleCommand_Left"",
+                    ""type"": ""Button"",
+                    ""id"": ""110a22fb-bf31-42fb-85eb-6b1f5208650c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleCommand_Right"",
+                    ""type"": ""Button"",
+                    ""id"": ""ddb30ca2-777c-41b8-8491-7b20e0e9153d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleCommand_Down"",
+                    ""type"": ""Button"",
+                    ""id"": ""427cecf3-8b75-4649-8d87-77d51a2aee2c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleWing_Left"",
+                    ""type"": ""Button"",
+                    ""id"": ""9e0a9f17-8c50-4605-8d90-a4d163a671c1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BattleWing_Right"",
+                    ""type"": ""Button"",
+                    ""id"": ""5f20868d-a7e1-4199-a121-ec7607278d87"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -699,6 +753,72 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Right"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3fb381bf-d1e7-45b0-95ca-bffecb5026f8"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleCommand_Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""09e4be70-f684-4c23-84b8-7e8ae688dfbb"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleCommand_Left"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0b82611-9465-4462-9d2c-92f3e20c6637"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleCommand_Right"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""917bd993-9485-4ba7-b8d7-2a01ed0cd25f"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleCommand_Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6536bfbc-48aa-4d4b-bd46-2f5db607719e"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleWing_Left"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7c3ff28c-9d70-4b02-8ddb-084435e3a926"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BattleWing_Right"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -890,6 +1010,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Battle_Down = m_Battle.FindAction("Down", throwIfNotFound: true);
         m_Battle_Left = m_Battle.FindAction("Left", throwIfNotFound: true);
         m_Battle_Right = m_Battle.FindAction("Right", throwIfNotFound: true);
+        m_Battle_BattleCommand_Up = m_Battle.FindAction("BattleCommand_Up", throwIfNotFound: true);
+        m_Battle_BattleCommand_Left = m_Battle.FindAction("BattleCommand_Left", throwIfNotFound: true);
+        m_Battle_BattleCommand_Right = m_Battle.FindAction("BattleCommand_Right", throwIfNotFound: true);
+        m_Battle_BattleCommand_Down = m_Battle.FindAction("BattleCommand_Down", throwIfNotFound: true);
+        m_Battle_BattleWing_Left = m_Battle.FindAction("BattleWing_Left", throwIfNotFound: true);
+        m_Battle_BattleWing_Right = m_Battle.FindAction("BattleWing_Right", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_ToggleMenu = m_Menu.FindAction("ToggleMenu", throwIfNotFound: true);
@@ -1475,6 +1601,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Battle_Down;
     private readonly InputAction m_Battle_Left;
     private readonly InputAction m_Battle_Right;
+    private readonly InputAction m_Battle_BattleCommand_Up;
+    private readonly InputAction m_Battle_BattleCommand_Left;
+    private readonly InputAction m_Battle_BattleCommand_Right;
+    private readonly InputAction m_Battle_BattleCommand_Down;
+    private readonly InputAction m_Battle_BattleWing_Left;
+    private readonly InputAction m_Battle_BattleWing_Right;
     /// <summary>
     /// Provides access to input actions defined in input action map "Battle".
     /// </summary>
@@ -1510,6 +1642,30 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Battle/Right".
         /// </summary>
         public InputAction @Right => m_Wrapper.m_Battle_Right;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleCommand_Up".
+        /// </summary>
+        public InputAction @BattleCommand_Up => m_Wrapper.m_Battle_BattleCommand_Up;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleCommand_Left".
+        /// </summary>
+        public InputAction @BattleCommand_Left => m_Wrapper.m_Battle_BattleCommand_Left;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleCommand_Right".
+        /// </summary>
+        public InputAction @BattleCommand_Right => m_Wrapper.m_Battle_BattleCommand_Right;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleCommand_Down".
+        /// </summary>
+        public InputAction @BattleCommand_Down => m_Wrapper.m_Battle_BattleCommand_Down;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleWing_Left".
+        /// </summary>
+        public InputAction @BattleWing_Left => m_Wrapper.m_Battle_BattleWing_Left;
+        /// <summary>
+        /// Provides access to the underlying input action "Battle/BattleWing_Right".
+        /// </summary>
+        public InputAction @BattleWing_Right => m_Wrapper.m_Battle_BattleWing_Right;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1554,6 +1710,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Right.started += instance.OnRight;
             @Right.performed += instance.OnRight;
             @Right.canceled += instance.OnRight;
+            @BattleCommand_Up.started += instance.OnBattleCommand_Up;
+            @BattleCommand_Up.performed += instance.OnBattleCommand_Up;
+            @BattleCommand_Up.canceled += instance.OnBattleCommand_Up;
+            @BattleCommand_Left.started += instance.OnBattleCommand_Left;
+            @BattleCommand_Left.performed += instance.OnBattleCommand_Left;
+            @BattleCommand_Left.canceled += instance.OnBattleCommand_Left;
+            @BattleCommand_Right.started += instance.OnBattleCommand_Right;
+            @BattleCommand_Right.performed += instance.OnBattleCommand_Right;
+            @BattleCommand_Right.canceled += instance.OnBattleCommand_Right;
+            @BattleCommand_Down.started += instance.OnBattleCommand_Down;
+            @BattleCommand_Down.performed += instance.OnBattleCommand_Down;
+            @BattleCommand_Down.canceled += instance.OnBattleCommand_Down;
+            @BattleWing_Left.started += instance.OnBattleWing_Left;
+            @BattleWing_Left.performed += instance.OnBattleWing_Left;
+            @BattleWing_Left.canceled += instance.OnBattleWing_Left;
+            @BattleWing_Right.started += instance.OnBattleWing_Right;
+            @BattleWing_Right.performed += instance.OnBattleWing_Right;
+            @BattleWing_Right.canceled += instance.OnBattleWing_Right;
         }
 
         /// <summary>
@@ -1583,6 +1757,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Right.started -= instance.OnRight;
             @Right.performed -= instance.OnRight;
             @Right.canceled -= instance.OnRight;
+            @BattleCommand_Up.started -= instance.OnBattleCommand_Up;
+            @BattleCommand_Up.performed -= instance.OnBattleCommand_Up;
+            @BattleCommand_Up.canceled -= instance.OnBattleCommand_Up;
+            @BattleCommand_Left.started -= instance.OnBattleCommand_Left;
+            @BattleCommand_Left.performed -= instance.OnBattleCommand_Left;
+            @BattleCommand_Left.canceled -= instance.OnBattleCommand_Left;
+            @BattleCommand_Right.started -= instance.OnBattleCommand_Right;
+            @BattleCommand_Right.performed -= instance.OnBattleCommand_Right;
+            @BattleCommand_Right.canceled -= instance.OnBattleCommand_Right;
+            @BattleCommand_Down.started -= instance.OnBattleCommand_Down;
+            @BattleCommand_Down.performed -= instance.OnBattleCommand_Down;
+            @BattleCommand_Down.canceled -= instance.OnBattleCommand_Down;
+            @BattleWing_Left.started -= instance.OnBattleWing_Left;
+            @BattleWing_Left.performed -= instance.OnBattleWing_Left;
+            @BattleWing_Left.canceled -= instance.OnBattleWing_Left;
+            @BattleWing_Right.started -= instance.OnBattleWing_Right;
+            @BattleWing_Right.performed -= instance.OnBattleWing_Right;
+            @BattleWing_Right.canceled -= instance.OnBattleWing_Right;
         }
 
         /// <summary>
@@ -1998,6 +2190,48 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRight(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleCommand_Up" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleCommand_Up(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleCommand_Left" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleCommand_Left(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleCommand_Right" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleCommand_Right(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleCommand_Down" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleCommand_Down(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleWing_Left" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleWing_Left(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BattleWing_Right" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBattleWing_Right(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Menu" which allows adding and removing callbacks.
