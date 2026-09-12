@@ -6294,7 +6294,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3812371230144781346}
   m_Layer: 0
-  m_Name: Enemy2
+  m_Name: Enemy0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9801,7 +9801,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4895241735248938039}
   m_Layer: 0
-  m_Name: Enemy1
+  m_Name: Enemy2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10241,9 +10241,9 @@ Transform:
   - {fileID: 7204424192020651658}
   - {fileID: 1656048532099973190}
   - {fileID: 8208712800179972295}
+  - {fileID: 3812371230144781346}
   - {fileID: 5478427385862171193}
   - {fileID: 4895241735248938039}
-  - {fileID: 3812371230144781346}
   - {fileID: 2426736156265556455}
   m_Father: {fileID: 1739773612400472482}
   m_LocalEulerAnglesHint: {x: 0, y: 7.577, z: 0}
@@ -12138,7 +12138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5478427385862171193}
   m_Layer: 0
-  m_Name: Enemy0
+  m_Name: Enemy1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

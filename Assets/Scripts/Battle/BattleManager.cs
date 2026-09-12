@@ -34,8 +34,8 @@ public class BattleManager : MonoBehaviour
     // Local GameState Cache
     private GameManager.GameState _cachedGameState;
 
-    // TODO: REVISIT MAX ENEMIES CONFIGURATION
-    private int maxEnemiesInBattle = 3;
+    [Header("Enemies Configuration")]
+    [SerializeField] private int maxEnemiesInBattle = 3;
 
     private GameObject mainCamera;
 
@@ -53,7 +53,7 @@ public class BattleManager : MonoBehaviour
     private EnemySpawnZone spawnController;
 
     // LISTS WITH FIGHTERS
-    private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated
+    private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated/empty
     private List<GameObject> heroList = new List<GameObject>();
     private List<GameObject> fighters = new List<GameObject>();
 
@@ -457,7 +457,6 @@ public class BattleManager : MonoBehaviour
             playerCanvas = GameObject.Find("PlayerCanvas");
 
         enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
-        enemyPositions = new GameObject[enemiesOnBattle];
 
         // RESPAWN OBJECTS
         if (spawnZone != null)
@@ -545,28 +544,52 @@ public class BattleManager : MonoBehaviour
 
     private void SetEnemiesOnBattle(GameObject firstEnemy)
     {
-        GameObject enemyPlace;
-        GameObject newEnemy;
+        enemyPositions = new GameObject[maxEnemiesInBattle];
+        enemiesList = new List<GameObject>(new GameObject[maxEnemiesInBattle]); // Initialize fixed-size list with nulls
 
-        Debug.Log($"{enemiesOnBattle} enemigos");
+        int centerIndex = maxEnemiesInBattle / 2;
+
+        // Sequence of slots radiating outward from center: center, left, right, left-2, right-2...
+        List<int> spawnSlotsOrder = CalculateSpawnSlotsOrder(centerIndex, maxEnemiesInBattle);
+
+        Debug.Log($"Spawning {enemiesOnBattle} enemies across {maxEnemiesInBattle} total spatial slots. Center index: {centerIndex}");
 
         for (int i = 0; i < enemiesOnBattle; i++)
         {
-            if (i == 0) // FIRST ENEMY LIKE WORLD ENEMY
-            {
-                enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = spawnController.GetMatchingEnemyPrefab(firstEnemy);
-            }
-            else // NEXT RANDOM FROM RESPAWN CONTROLLER ENEMY LIST
-            {
-                enemyPlace = battleField.transform.Find($"Enemy{i}").gameObject;
-                newEnemy = spawnController.GetRandomEnemyPrefab();
-            }
+            int slotIndex = spawnSlotsOrder[i];
+            GameObject enemyPlace = battleField.transform.Find($"Enemy{slotIndex}").gameObject;
 
-            enemyPositions[i] = enemyPlace;
-            enemiesList.Add(Instantiate(newEnemy, enemyPlace.transform.position, Quaternion.identity));
-            fighters.Add(enemiesList[i]);
+            GameObject enemyPrefab = (i == 0)
+                ? spawnController.GetMatchingEnemyPrefab(firstEnemy)
+                : spawnController.GetRandomEnemyPrefab();
+
+            GameObject spawnedEnemy = Instantiate(enemyPrefab, enemyPlace.transform.position, Quaternion.identity);
+
+            enemyPositions[slotIndex] = enemyPlace;
+            enemiesList[slotIndex] = spawnedEnemy;
+            fighters.Add(spawnedEnemy);
         }
+    }
+
+    /// <summary>
+    /// Calculates slot indices order starting from center and expanding outwards symmetrically.
+    /// Example for 3 slots: [1, 0, 2]
+    /// Example for 7 slots: [3, 2, 4, 1, 5, 0, 6]
+    /// </summary>
+    private List<int> CalculateSpawnSlotsOrder(int centerIndex, int maxSlots)
+    {
+        List<int> order = new List<int> { centerIndex };
+
+        for (int offset = 1; order.Count < maxSlots; offset++)
+        {
+            int left = centerIndex - offset;
+            int right = centerIndex + offset;
+
+            if (left >= 0) order.Add(left);
+            if (right < maxSlots) order.Add(right);
+        }
+
+        return order;
     }
 
     private void InitializeBattleTurns()
@@ -635,7 +658,7 @@ public class BattleManager : MonoBehaviour
                 }
                 else
                 {
-                    if (actualTarget < enemiesList.Count && enemiesList[actualTarget] != null)
+                    if (actualTarget >= 0 && actualTarget < enemiesList.Count && enemiesList[actualTarget] != null)
                     {
                         targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
                     }

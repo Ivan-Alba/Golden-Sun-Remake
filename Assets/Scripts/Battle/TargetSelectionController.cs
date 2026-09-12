@@ -98,13 +98,14 @@ public class TargetSelectionController : MonoBehaviour
 
     /// <summary>
     /// Initializes targeting state for a new selection sequence.
+    /// Pass defaultIndex as -1 to force calculating the center alive enemy.
     /// </summary>
     public void InitializeTargeting(
         ActionTargetType targetType,
         int areaRange,
         IReadOnlyList<GameObject> heroList,
         List<GameObject> enemyList,
-        int defaultIndex = 0)
+        int defaultIndex = -1)
     {
         _currentTargetType = targetType;
         _currentAreaRange = Mathf.Max(0, areaRange);
@@ -316,7 +317,7 @@ public class TargetSelectionController : MonoBehaviour
                         break;
 
                     case ActionTargetType.AllEnemies:
-                        primaryTargetObject = GetFirstAliveEnemy();
+                        primaryTargetObject = GetDefaultCenterEnemyObject();
                         foreach (GameObject enemy in _enemyList)
                         {
                             if (enemy != null) affectedTargets.Add(enemy);
@@ -352,26 +353,56 @@ public class TargetSelectionController : MonoBehaviour
 
         if (_enemyList == null || _enemyList.Count == 0) return 0;
 
-        // If requested index points to a dead slot (null), find closest alive enemy
-        if (requestedIndex < _enemyList.Count && _enemyList[requestedIndex] != null)
+        // If a valid index pointing to an alive enemy is provided, use it
+        if (requestedIndex >= 0 && requestedIndex < _enemyList.Count && _enemyList[requestedIndex] != null)
         {
             return requestedIndex;
         }
 
-        for (int i = 0; i < _enemyList.Count; i++)
+        // Otherwise, find the closest alive enemy starting from center radiating outward
+        return GetDefaultCenterEnemyIndex();
+    }
+
+    /// <summary>
+    /// Searches for the first alive enemy starting at the grid center and expanding outward:
+    /// Center -> Center+1 -> Center-1 -> Center+2 -> Center-2 ...
+    /// </summary>
+    private int GetDefaultCenterEnemyIndex()
+    {
+        if (_enemyList == null || _enemyList.Count == 0) return 0;
+
+        int centerIndex = _enemyList.Count / 2;
+
+        if (_enemyList[centerIndex] != null)
         {
-            if (_enemyList[i] != null) return i;
+            return centerIndex;
+        }
+
+        for (int offset = 1; offset < _enemyList.Count; offset++)
+        {
+            int rightIndex = centerIndex + offset;
+            int leftIndex = centerIndex - offset;
+
+            if (rightIndex < _enemyList.Count && _enemyList[rightIndex] != null)
+            {
+                return rightIndex;
+            }
+
+            if (leftIndex >= 0 && _enemyList[leftIndex] != null)
+            {
+                return leftIndex;
+            }
         }
 
         return 0;
     }
 
-    private GameObject GetFirstAliveEnemy()
+    private GameObject GetDefaultCenterEnemyObject()
     {
-        if (_enemyList == null) return null;
-        foreach (GameObject enemy in _enemyList)
+        int index = GetDefaultCenterEnemyIndex();
+        if (_enemyList != null && index >= 0 && index < _enemyList.Count)
         {
-            if (enemy != null) return enemy;
+            return _enemyList[index];
         }
         return null;
     }
