@@ -98,23 +98,11 @@ public class DjinnUnleashSO : ScriptableObject
 
     #endregion
 
-    #region VFX & SFX Assets
+    #region Battle Presentation FX
 
-    [Header("VFX & SFX Assets")]
-    [Tooltip("Impact visual effect type applied on the target.")]
-    [SerializeField] private HitFXType hitFXType = HitFXType.None;
-
-    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
-    [SerializeField] private GameObject customHitVFX;
-
-    [Tooltip("VFX instantiated around the caster when initiating the Djinn Unleash.")]
-    [SerializeField] private GameObject casterAuraVFX;
-
-    [Tooltip("Main sequence VFX Prefab executed over the target/area.")]
-    [SerializeField] private GameObject unleashMainVFX;
-
-    [Tooltip("Optional direct Audio Clip executed via 3D Audio Pool on unleash execution.")]
-    [SerializeField] private AudioClip soundEffect;
+    [Header("Battle Presentation FX")]
+    [Tooltip("Unified visual and audio FX configuration for combat execution.")]
+    [SerializeField] private BattleActionFXConfig battleFXConfig;
 
     #endregion
 
@@ -160,11 +148,7 @@ public class DjinnUnleashSO : ScriptableObject
     public IReadOnlyList<StatusEffectApplication> SecondaryEffects => secondaryEffects;
 
     // Visual & Audio Assets
-    public HitFXType HitFXType => hitFXType;
-    public GameObject CustomHitVFX => customHitVFX;
-    public GameObject CasterAuraVFX => casterAuraVFX;
-    public GameObject UnleashMainVFX => unleashMainVFX;
-    public AudioClip SoundEffect => soundEffect;
+    public BattleActionFXConfig BattleFXConfig => battleFXConfig;
 
     #endregion
 

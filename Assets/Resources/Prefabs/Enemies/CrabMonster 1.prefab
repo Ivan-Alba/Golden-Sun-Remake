@@ -1906,6 +1906,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3742de0bb7c33e74699178d91f88af89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: 
   fighterName: Crab Monster
   turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
   baseMaxHp: 45
@@ -1925,8 +1926,8 @@ MonoBehaviour:
   xpReward: 50
   coinsReward: 20
   possibleDrops:
-  - itemSlug: Great_Axe
-    dropChancePercentage: 3
+  - itemSlug: great_axe
+    dropChancePercentage: 0.02
 --- !u!114 &8900637917120452832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2104,6 +2105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 1
+  customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2

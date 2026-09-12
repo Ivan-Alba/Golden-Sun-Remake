@@ -369,6 +369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3742de0bb7c33e74699178d91f88af89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fighterSlug: 
   fighterName: Green Mushroom
   turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
   baseMaxHp: 22
@@ -388,8 +389,8 @@ MonoBehaviour:
   xpReward: 50
   coinsReward: 20
   possibleDrops:
-  - itemSlug: Herb
-    dropChancePercentage: 5
+  - itemSlug: herb
+    dropChancePercentage: 0.1
 --- !u!114 &7902641766905574895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -567,6 +568,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 1
+  customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2

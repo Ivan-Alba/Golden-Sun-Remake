@@ -20,10 +20,16 @@ MonoBehaviour:
   element: 0
   isBattlePsynergy: 1
   targetType: 2
-  vfxPrefab: {fileID: 1535640691960112, guid: 96a8f73d24c38884bad7e4802680eaa7, type: 3}
-  soundEffect: {fileID: 0}
-  hitFXType: 0
-  customHitVFX: {fileID: 0}
+  battleFXConfig:
+    CasterAnimationTrigger: use_psynergy
+    CasterAuraVFX: {fileID: 0}
+    MainActionVFX: {fileID: 1535640691960112, guid: 96a8f73d24c38884bad7e4802680eaa7, type: 3}
+    TargetHitFXType: 0
+    CustomTargetHitVFX: {fileID: 0}
+    DirectAudioClip: {fileID: 0}
+    FallbackSFX: 0
+    FallbackCastDuration: 0
+    FallbackImpactDelay: 0
   areaRange: 2
   hasDiminishingSpread: 1
   worldData:

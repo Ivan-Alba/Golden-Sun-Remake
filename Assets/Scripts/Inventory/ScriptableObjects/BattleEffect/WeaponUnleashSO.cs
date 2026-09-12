@@ -38,19 +38,11 @@ public class WeaponUnleashSO : ScriptableObject
 
     #endregion
 
-    #region VFX & SFX Assets
+    #region Battle Presentation FX
 
-    [Header("VFX & SFX Assets")]
-    [Tooltip("Impact visual effect type applied on the victim.")]
-    [SerializeField] private HitFXType hitFXType = HitFXType.None;
-    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
-    [SerializeField] private GameObject customHitVFX = null;
-    [Tooltip("VFX instantiated around the caster when initiating the Unleash.")]
-    [SerializeField] private GameObject casterAuraVFX = null;
-    [Tooltip("Main attack sequence VFXPrefab executed over the target/area.")]
-    [SerializeField] private GameObject unleashMainVFX = null;
-    [Tooltip("Audio clip played when the Unleash is activated.")]
-    [SerializeField] private AudioClip soundEffect = null;
+    [Header("Battle Presentation FX")]
+    [Tooltip("Unified visual and audio FX configuration for combat execution.")]
+    [SerializeField] private BattleActionFXConfig battleFXConfig;
 
     #endregion
 
@@ -67,11 +59,7 @@ public class WeaponUnleashSO : ScriptableObject
 
     public IReadOnlyList<StatusEffectApplication> SecondaryEffects => secondaryEffects;
 
-    public HitFXType HitFXType => hitFXType;
-    public GameObject CustomHitVFX => customHitVFX;
-    public GameObject CasterAuraVFX => casterAuraVFX;
-    public GameObject UnleashMainVFX => unleashMainVFX;
-    public AudioClip SoundEffect => soundEffect;
+    public BattleActionFXConfig BattleFXConfig => battleFXConfig;
 
     #endregion
 

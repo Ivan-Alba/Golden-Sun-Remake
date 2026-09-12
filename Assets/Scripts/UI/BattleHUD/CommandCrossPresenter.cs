@@ -2,97 +2,134 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UI.BattleHUD.CommandCross
+/// <summary>
+/// Lightweight presenter for the battle command cross UI Toolkit overlay.
+/// Handles mouse interactions, smooth CSS transition toggles, disabled states,
+/// and reactive feedback badges.
+/// </summary>
+public class CommandCrossPresenter
 {
-    /// <summary>
-    /// Lightweight presenter for the battle command cross UI Toolkit overlay.
-    /// Handles mouse interactions, smooth CSS transition toggles, and reactive feedback badges.
-    /// </summary>
-    public class CommandCrossPresenter
+    public event Action<BattleCommandType> OnCommandConfirmed;
+
+    private readonly VisualElement _rootContainer;
+    private readonly VisualElement _slotAttack;
+    private readonly VisualElement _slotPsynergy;
+    private readonly VisualElement _slotItem;
+    private readonly VisualElement _slotDefend;
+    private readonly VisualElement _slotDjinn;
+    private readonly VisualElement _slotSummon;
+    private readonly Label _labelActiveCommand;
+
+    private const string HIDDEN_ROOT_CLASS = "command-cross-root--hidden";
+    private const string HIDDEN_BADGE_CLASS = "cmd-selected-badge--hidden";
+    private const string DISABLED_SLOT_CLASS = "cmd-slot--disabled";
+
+    public CommandCrossPresenter(VisualElement rootOverlayElement)
     {
-        public event Action<BattleCommandType> OnCommandConfirmed;
+        _rootContainer = rootOverlayElement ?? throw new ArgumentNullException(nameof(rootOverlayElement));
 
-        private readonly VisualElement _rootContainer;
-        private readonly VisualElement _slotDjinn;
-        private readonly VisualElement _slotSummon;
-        private readonly Label _labelActiveCommand;
+        _slotAttack = _rootContainer.Q<VisualElement>("slot_attack");
+        _slotPsynergy = _rootContainer.Q<VisualElement>("slot_psynergy");
+        _slotItem = _rootContainer.Q<VisualElement>("slot_item");
+        _slotDefend = _rootContainer.Q<VisualElement>("slot_defend");
+        _slotDjinn = _rootContainer.Q<VisualElement>("slot_djinn");
+        _slotSummon = _rootContainer.Q<VisualElement>("slot_summon");
+        _labelActiveCommand = _rootContainer.Q<Label>("label_active_command");
 
-        private const string HIDDEN_ROOT_CLASS = "command-cross-root--hidden";
-        private const string HIDDEN_BADGE_CLASS = "cmd-selected-badge--hidden";
+        RegisterSlotEvents(_slotAttack, BattleCommandType.Attack, "ATTACK");
+        RegisterSlotEvents(_slotPsynergy, BattleCommandType.Psynergy, "PSYNERGY");
+        RegisterSlotEvents(_slotItem, BattleCommandType.Item, "ITEM");
+        RegisterSlotEvents(_slotDefend, BattleCommandType.Defend, "DEFEND");
+        RegisterSlotEvents(_slotDjinn, BattleCommandType.Djinn, "DJINN");
+        RegisterSlotEvents(_slotSummon, BattleCommandType.Summon, "SUMMON");
+    }
 
-        public CommandCrossPresenter(VisualElement rootOverlayElement)
+    /// <summary>
+    /// Displays the command cross overlay with a smooth scale/fade-in CSS transition.
+    /// Configures special wings visibility (Djinn/Summon) and disabled state for slots (Psynergy/Item).
+    /// </summary>
+    public void Show(
+        bool hasPsynergyAvailable = true,
+        bool hasItemsAvailable = true,
+        bool hasDjinnsUnlocked = true,
+        bool hasSummonsUnlocked = true)
+    {
+        // Djinns and Summons: Completely hidden if not unlocked
+        if (_slotDjinn != null)
+            _slotDjinn.style.display = hasDjinnsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
+
+        if (_slotSummon != null)
+            _slotSummon.style.display = hasSummonsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
+
+        // Psynergy and Items: Visual disabled style if unavailable
+        SetSlotEnabledState(_slotPsynergy, hasPsynergyAvailable);
+        SetSlotEnabledState(_slotItem, hasItemsAvailable);
+
+        // Ensure container display is active before removing hidden transition class
+        _rootContainer.style.display = DisplayStyle.Flex;
+        _rootContainer.RemoveFromClassList(HIDDEN_ROOT_CLASS);
+
+        ClearCommandLabel();
+    }
+
+    /// <summary>
+    /// Hides the command cross overlay applying a smooth scale/fade-out transition.
+    /// </summary>
+    public void Hide()
+    {
+        _rootContainer.AddToClassList(HIDDEN_ROOT_CLASS);
+        ClearCommandLabel();
+    }
+
+    private void SetSlotEnabledState(VisualElement slot, bool isEnabled)
+    {
+        if (slot == null) return;
+
+        slot.SetEnabled(isEnabled);
+
+        if (isEnabled)
         {
-            _rootContainer = rootOverlayElement ?? throw new ArgumentNullException(nameof(rootOverlayElement));
-
-            _slotDjinn = _rootContainer.Q<VisualElement>("slot_djinn");
-            _slotSummon = _rootContainer.Q<VisualElement>("slot_summon");
-            _labelActiveCommand = _rootContainer.Q<Label>("label_active_command");
-
-            RegisterSlotEvents("slot_attack", BattleCommandType.Attack, "ATTACK");
-            RegisterSlotEvents("slot_psynergy", BattleCommandType.Psynergy, "PSYNERGY");
-            RegisterSlotEvents("slot_item", BattleCommandType.Item, "ITEM");
-            RegisterSlotEvents("slot_defend", BattleCommandType.Defend, "DEFEND");
-            RegisterSlotEvents("slot_djinn", BattleCommandType.Djinn, "DJINN");
-            RegisterSlotEvents("slot_summon", BattleCommandType.Summon, "SUMMON");
+            slot.RemoveFromClassList(DISABLED_SLOT_CLASS);
         }
-
-        /// <summary>
-        /// Displays the command cross overlay with a smooth scale/fade-in CSS transition
-        /// and configures special wing availability (Djinn/Summon).
-        /// </summary>
-        public void Show(bool hasDjinnsUnlocked = true, bool hasSummonsUnlocked = true)
+        else
         {
-            if (_slotDjinn != null)
-                _slotDjinn.style.display = hasDjinnsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
-
-            if (_slotSummon != null)
-                _slotSummon.style.display = hasSummonsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
-
-            // Ensure container display is active before removing hidden transition class
-            _rootContainer.style.display = DisplayStyle.Flex;
-            _rootContainer.RemoveFromClassList(HIDDEN_ROOT_CLASS);
-
-            ClearCommandLabel();
+            slot.AddToClassList(DISABLED_SLOT_CLASS);
         }
+    }
 
-        /// <summary>
-        /// Hides the command cross overlay applying a smooth scale/fade-out transition.
-        /// </summary>
-        public void Hide()
+    private void RegisterSlotEvents(VisualElement slot, BattleCommandType commandType, string labelText)
+    {
+        if (slot == null) return;
+
+        slot.RegisterCallback<MouseEnterEvent>(evt =>
         {
-            _rootContainer.AddToClassList(HIDDEN_ROOT_CLASS);
-            ClearCommandLabel();
-        }
+            if (slot.enabledSelf) SetCommandLabelText(labelText);
+        });
 
-        private void RegisterSlotEvents(string slotName, BattleCommandType commandType, string labelText)
+        slot.RegisterCallback<MouseLeaveEvent>(evt => ClearCommandLabel());
+
+        slot.RegisterCallback<ClickEvent>(evt =>
         {
-            VisualElement slot = _rootContainer.Q<VisualElement>(slotName);
-            if (slot == null) return;
+            if (!slot.enabledSelf) return;
 
-            slot.RegisterCallback<MouseEnterEvent>(evt => SetCommandLabelText(labelText));
-            slot.RegisterCallback<MouseLeaveEvent>(evt => ClearCommandLabel());
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
+            OnCommandConfirmed?.Invoke(commandType);
+        });
+    }
 
-            slot.RegisterCallback<ClickEvent>(evt =>
-            {
-                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
-                OnCommandConfirmed?.Invoke(commandType);
-            });
-        }
+    private void SetCommandLabelText(string text)
+    {
+        if (_labelActiveCommand == null) return;
 
-        private void SetCommandLabelText(string text)
-        {
-            if (_labelActiveCommand == null) return;
+        _labelActiveCommand.text = text;
+        _labelActiveCommand.RemoveFromClassList(HIDDEN_BADGE_CLASS);
+    }
 
-            _labelActiveCommand.text = text;
-            _labelActiveCommand.RemoveFromClassList(HIDDEN_BADGE_CLASS);
-        }
+    private void ClearCommandLabel()
+    {
+        if (_labelActiveCommand == null) return;
 
-        private void ClearCommandLabel()
-        {
-            if (_labelActiveCommand == null) return;
-
-            _labelActiveCommand.text = string.Empty;
-            _labelActiveCommand.AddToClassList(HIDDEN_BADGE_CLASS);
-        }
+        _labelActiveCommand.text = string.Empty;
+        _labelActiveCommand.AddToClassList(HIDDEN_BADGE_CLASS);
     }
 }

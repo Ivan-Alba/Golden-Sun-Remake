@@ -77,19 +77,11 @@ public class ItemBattleEffectSO : ScriptableObject
 
     #endregion
 
-    #region VFX & SFX Assets
+    #region Battle Presentation FX
 
-    [Header("VFX & SFX Assets")]
-    [Tooltip("Impact visual effect type applied on the victim.")]
-    [SerializeField] private HitFXType hitFXType = HitFXType.None;
-    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
-    [SerializeField] private GameObject customHitVFX = null;
-    [Tooltip("VFX instantiated around the caster when initiating the Item Effect.")]
-    [SerializeField] private GameObject casterAuraVFX = null;
-    [Tooltip("Main effect sequence VFXPrefab executed over the target/area.")]
-    [SerializeField] private GameObject effectMainVFX = null;
-    [Tooltip("Audio clip played when the Item Effect is activated.")]
-    [SerializeField] private AudioClip soundEffect = null;
+    [Header("Battle Presentation FX")]
+    [Tooltip("Unified visual and audio FX configuration for combat execution.")]
+    [SerializeField] private BattleActionFXConfig battleFXConfig;
 
     #endregion
 
@@ -115,11 +107,7 @@ public class ItemBattleEffectSO : ScriptableObject
     public bool CanBreakOnUse => canBreakOnUse;
     public float BreakChance => breakChance;
 
-    public HitFXType HitFXType => hitFXType;
-    public GameObject CustomHitVFX => customHitVFX;
-    public GameObject CasterAuraVFX => casterAuraVFX;
-    public GameObject EffectMainVFX => effectMainVFX;
-    public AudioClip SoundEffect => soundEffect;
+    public BattleActionFXConfig BattleFXConfig => battleFXConfig;
 
     #endregion
 

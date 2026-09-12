@@ -20,6 +20,14 @@ public class ConsumableSO : ItemSO
 
     #endregion
 
+    #region Battle Presentation FX
+
+    [Header("Battle Presentation FX")]
+    [Tooltip("Unified visual and audio FX configuration for combat execution.")]
+    [SerializeField] private BattleActionFXConfig battleFXConfig;
+
+    #endregion
+
     #region Health & Psynergy Restoration Settings
 
     [Header("Resource Restoration")]
@@ -94,10 +102,10 @@ public class ConsumableSO : ItemSO
 
     #endregion
 
-    #region Audio Settings
+    #region Audio Settings (Menu / Legacy Fallback)
 
-    [Header("Audio Settings")]
-    [Tooltip("Optional custom audio clip played upon successful usage. If unassigned, defaults to fallback SFX.")]
+    [Header("Menu Audio Settings")]
+    [Tooltip("Optional custom audio clip played upon successful usage out of combat. If unassigned, defaults to fallback SFX.")]
     [SerializeField] private AudioClip customUseSFX;
 
     [Tooltip("Fallback system SFX triggered if no custom AudioClip is provided.")]
@@ -109,6 +117,9 @@ public class ConsumableSO : ItemSO
 
     public bool UseInMenu => useInMenu;
     public bool UseInBattle => useInBattle;
+
+    // Battle FX Configuration
+    public BattleActionFXConfig BattleFXConfig => battleFXConfig;
 
     public bool RestoresHp => restoresHp;
     public int HpAmount => hpAmount;

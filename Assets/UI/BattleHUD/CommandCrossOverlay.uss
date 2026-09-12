@@ -76,7 +76,7 @@
     position: relative;
 
     /* Smooth transition for focus and scale */
-    transition-property: scale, border-color, background-color;
+    transition-property: scale, border-color, background-color, opacity;
     transition-duration: 0.15s;
     transition-timing-function: ease-out-back;
 }
@@ -92,19 +92,16 @@
 }
 
 /* Hover & Focus Interaction States */
-.wing-slot:hover, 
-.wing-slot--focused {
+.wing-slot:enabled:hover, .wing-slot:enabled.wing-slot--focused {
     scale: 1.12;
     background-color: rgba(28, 44, 68, 0.98);
 }
 
-.wing-slot--djinn:hover, 
-.wing-slot--djinn.wing-slot--focused {
+.wing-slot--djinn:enabled:hover, .wing-slot--djinn:enabled.wing-slot--focused {
     border-color: #7dd3fc;
 }
 
-.wing-slot--summon:hover, 
-.wing-slot--summon.wing-slot--focused {
+.wing-slot--summon:enabled:hover, .wing-slot--summon:enabled.wing-slot--focused {
     border-color: #fb7185;
 }
 
@@ -164,17 +161,50 @@
     justify-content: center;
 
     /* Elastic animation transition for in/out focus */
-    transition-property: scale, border-color, background-color;
+    transition-property: scale, border-color, background-color, opacity, filter;
     transition-duration: 0.15s;
     transition-timing-function: ease-out-back;
 }
 
 /* Selected / Focused State (Keyboard Hotkey, WASD, or Mouse Hover) */
-.dpad-slot:hover, 
-.dpad-slot--focused {
+.dpad-slot:enabled:hover, .dpad-slot:enabled.dpad-slot--focused {
     scale: 1.22;
     border-color: var(--color-gold-bright, #ffe680);
     background-color: rgba(38, 58, 88, 0.95);
+}
+
+/* --- DISABLED STATES FOR SLOTS & WINGS --- */
+.dpad-slot:disabled,
+.dpad-slot.cmd-slot--disabled,
+.wing-slot:disabled,
+.wing-slot.cmd-slot--disabled {
+    opacity: 0.45;
+    border-color: #4a5568;
+    background-color: rgba(15, 20, 28, 0.8);
+    scale: 1 1;
+    pointer-events: none;
+}
+
+.dpad-slot:disabled .cmd-icon,
+.dpad-slot.cmd-slot--disabled .cmd-icon,
+.wing-slot:disabled .wing-icon,
+.wing-slot.cmd-slot--disabled .wing-icon {
+    -unity-image-tint-color: #718096;
+}
+
+.dpad-slot:disabled .cmd-key-badge,
+.dpad-slot.cmd-slot--disabled .cmd-key-badge,
+.wing-slot:disabled .wing-key-badge,
+.wing-slot.cmd-slot--disabled .wing-key-badge {
+    border-color: #718096;
+    background-color: #1a202c;
+}
+
+.dpad-slot:disabled .label-cmd-key,
+.dpad-slot.cmd-slot--disabled .label-cmd-key,
+.wing-slot:disabled .wing-text-label,
+.wing-slot.cmd-slot--disabled .wing-text-label {
+    color: #a0aec0;
 }
 
 /* Cross Layout Offsets */

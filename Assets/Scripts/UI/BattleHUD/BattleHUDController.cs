@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UI.BattleHUD.CommandCross;
-using UI.BattleHUD.SubMenu;
 
 /// <summary>
 /// Controller for the Battle HUD overlay using UI Toolkit.
@@ -33,6 +31,9 @@ public class BattleHUDController : MonoBehaviour
     [SerializeField] private VisualTreeAsset psynergyCardTemplate;
     [SerializeField] private VisualTreeAsset itemCardTemplate;
     [SerializeField] private VisualTreeAsset djinnCardTemplate;
+
+    [Header("Sub-Presenters")]
+    [SerializeField] private DamageNumbersPresenter damageNumbersPresenter;
 
     [Header("3D Scene Setup")]
     [SerializeField] private Camera mainBattleCamera;
@@ -107,6 +108,11 @@ public class BattleHUDController : MonoBehaviour
         if (battleManager == null)
         {
             battleManager = GetComponent<BattleManager>() ?? GetComponentInParent<BattleManager>();
+        }
+
+        if (damageNumbersPresenter != null)
+        {
+            damageNumbersPresenter.Initialize(uiDocument, mainBattleCamera);
         }
 
         InitializeUIElements();
@@ -310,6 +316,14 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
         GameEvents.Battle.OnHideActionBanner += HandleHideActionBanner;
 
+        // Command Cross Keyboard Hotkeys
+        GameEvents.Input.OnBattleCommandUpPressed += HandleHotkeyAttack;
+        GameEvents.Input.OnBattleCommandLeftPressed += HandleHotkeyPsynergy;
+        GameEvents.Input.OnBattleCommandRightPressed += HandleHotkeyItem;
+        GameEvents.Input.OnBattleCommandDownPressed += HandleHotkeyDefend;
+        GameEvents.Input.OnBattleWingLeftPressed += HandleHotkeyDjinn;
+        GameEvents.Input.OnBattleWingRightPressed += HandleHotkeySummon;
+
         // --- LOCAL EVENTS WITH BATTLE MANAGER ---
         if (battleManager != null)
         {
@@ -344,6 +358,13 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Battle.OnTurnQueueUpdated -= HandleTurnQueueUpdated;
         GameEvents.Battle.OnRequestActionBanner -= HandleRequestActionBanner;
         GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
+
+        GameEvents.Input.OnBattleCommandUpPressed -= HandleHotkeyAttack;
+        GameEvents.Input.OnBattleCommandLeftPressed -= HandleHotkeyPsynergy;
+        GameEvents.Input.OnBattleCommandRightPressed -= HandleHotkeyItem;
+        GameEvents.Input.OnBattleCommandDownPressed -= HandleHotkeyDefend;
+        GameEvents.Input.OnBattleWingLeftPressed -= HandleHotkeyDjinn;
+        GameEvents.Input.OnBattleWingRightPressed -= HandleHotkeySummon;
 
         if (battleManager != null)
         {
@@ -397,7 +418,8 @@ public class BattleHUDController : MonoBehaviour
 
     private void HandleBattleStateChanged(BattleState newState)
     {
-        bool isHeroTurn = _currentActiveFighter != null && _currentActiveFighter.GetComponent<HeroStats>() != null;
+        HeroStats heroStats = _currentActiveFighter != null ? _currentActiveFighter.GetComponent<HeroStats>() : null;
+        bool isHeroTurn = heroStats != null;
 
         switch (newState)
         {
@@ -408,10 +430,18 @@ public class BattleHUDController : MonoBehaviour
 
                 if (isHeroTurn)
                 {
+                    // 1. Check Psynergy availability
+                    bool hasPsynergyAvailable = heroStats.Psynergies != null &&
+                                                 heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
+
+                    // 2. Check Item availability in HeroInventory slots
+                    bool hasItemsAvailable = heroStats.HeroInventory != null &&
+                                             heroStats.HeroInventory.HasUsableBattleItems();
+
                     bool hasDjinnsUnlocked = true;
                     bool hasSummonsUnlocked = true;
 
-                    _commandCrossPresenter?.Show(hasDjinnsUnlocked, hasSummonsUnlocked);
+                    _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, hasDjinnsUnlocked, hasSummonsUnlocked);
                     UpdateFloatingUIElementsPosition();
                 }
                 break;
@@ -505,6 +535,58 @@ public class BattleHUDController : MonoBehaviour
     private void HandleHideActionBanner()
     {
         SetActionBannerVisible(false);
+    }
+
+    #endregion
+
+    #region Command Cross Hotkey & Action Processing
+
+    private void HandleHotkeyAttack() => TryTriggerCommand(BattleCommandType.Attack);
+    private void HandleHotkeyPsynergy() => TryTriggerCommand(BattleCommandType.Psynergy);
+    private void HandleHotkeyItem() => TryTriggerCommand(BattleCommandType.Item);
+    private void HandleHotkeyDefend() => TryTriggerCommand(BattleCommandType.Defend);
+    private void HandleHotkeyDjinn() => TryTriggerCommand(BattleCommandType.Djinn);
+    private void HandleHotkeySummon() => TryTriggerCommand(BattleCommandType.Summon);
+
+    private void TryTriggerCommand(BattleCommandType commandType)
+    {
+        if (battleManager == null || battleManager.CurrentBattleState != BattleState.CommandSelection) return;
+
+        HeroStats heroStats = _currentActiveFighter != null ? _currentActiveFighter.GetComponent<HeroStats>() : null;
+        if (heroStats == null) return;
+
+        // Check availability before triggering action
+        if (commandType == BattleCommandType.Psynergy)
+        {
+            bool hasPsynergy = heroStats.Psynergies != null && heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
+            if (!hasPsynergy)
+            {
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
+                return;
+            }
+        }
+        else if (commandType == BattleCommandType.Item)
+        {
+            bool hasItems = heroStats.HeroInventory != null && heroStats.HeroInventory.HasUsableBattleItems();
+            if (!hasItems)
+            {
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
+                return;
+            }
+        }
+        else if (commandType == BattleCommandType.Djinn)
+        {
+            bool hasDjinnsUnlocked = true; // Hardcoded check until Djinn unlocking system is integrated
+            if (!hasDjinnsUnlocked) return; // Hidden wing: completely ignore input
+        }
+        else if (commandType == BattleCommandType.Summon)
+        {
+            bool hasSummonsUnlocked = true; // Hardcoded check until Summon unlocking system is integrated
+            if (!hasSummonsUnlocked) return; // Hidden wing: completely ignore input
+        }
+
+        _currentSelectedCommand = commandType;
+        battleManager.ExecuteCommandFromUI(commandType);
     }
 
     #endregion
@@ -812,7 +894,7 @@ public class BattleHUDController : MonoBehaviour
 
     private void OnCommandSelected(BattleCommandType commandType)
     {
-        _currentSelectedCommand = commandType;
+        TryTriggerCommand(commandType);
     }
 
     private void OnSubMenuActionSelected(BattleCommandType commandType, object selectedData)

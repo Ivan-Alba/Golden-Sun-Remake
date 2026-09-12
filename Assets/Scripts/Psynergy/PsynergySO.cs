@@ -113,17 +113,12 @@ public abstract class PsynergySO : ScriptableObject
     [SerializeField] private int ppCost;
     [SerializeField] private ElementalType element = ElementalType.None;
 
-    [Header("Battle Rules")]
+    [Header("Battle Rules & Presentation")]
     [SerializeField] private bool isBattlePsynergy = true;
     [SerializeField] private ActionTargetType targetType = ActionTargetType.SingleEnemy;
-    [SerializeField] private GameObject vfxPrefab;
-    [SerializeField] private AudioClip soundEffect;
 
-    [Header("Impact & Hit Visuals")]
-    [Tooltip("Type of impact visual effect spawned on each affected target.")]
-    [SerializeField] private HitFXType hitFXType = HitFXType.None;
-    [Tooltip("Optional custom hit VFX prefab instantiated if HitFXType is set to Custom.")]
-    [SerializeField] private GameObject customHitVFX = null;
+    [Tooltip("Unified visual and audio FX configuration for combat execution.")]
+    [SerializeField] private BattleActionFXConfig battleFXConfig;
 
     [Header("Area & Spread Rules")]
     [Tooltip("Number of additional targets affected around the primary target (e.g., 0 = single target, 1 = 3 targets total, 2 = 5 targets total).")]
@@ -151,12 +146,7 @@ public abstract class PsynergySO : ScriptableObject
     // Battle Properties
     public bool IsBattlePsynergy => isBattlePsynergy;
     public ActionTargetType TargetType => targetType;
-    public GameObject VfxPrefab => vfxPrefab;
-    public AudioClip SoundEffect => soundEffect;
-
-    // Hit Visual Properties
-    public HitFXType HitFXType => hitFXType;
-    public GameObject CustomHitVFX => customHitVFX;
+    public BattleActionFXConfig BattleFXConfig => battleFXConfig;
 
     public int AreaRange => areaRange;
     public bool HasDiminishingSpread => hasDiminishingSpread;

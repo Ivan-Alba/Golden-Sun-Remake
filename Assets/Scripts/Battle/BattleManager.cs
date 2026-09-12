@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using UI.BattleHUD.SubMenu;
 using Random = UnityEngine.Random;
 
 public enum BattleState
@@ -69,9 +68,6 @@ public class BattleManager : MonoBehaviour
 
     // LOCAL CONTROLLERS
     private TurnController turnController;
-
-    // Minimap
-    private GameObject playerCanvas;
 
     #region Local C# Events for Local HUD & Components
 
@@ -192,97 +188,52 @@ public class BattleManager : MonoBehaviour
         UnsubscribeFromInputEvents();
 
         GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
-        GameEvents.Input.OnBattleCancelPressed += HandleCancelPressed;
-
-        // Command Cross direct hotkey subscriptions
-        GameEvents.Input.OnBattleCommandUpPressed += ExecuteAttackCommand;
-        GameEvents.Input.OnBattleCommandLeftPressed += ExecutePsynergyCommand;
-        GameEvents.Input.OnBattleCommandRightPressed += ExecuteItemCommand;
-        GameEvents.Input.OnBattleCommandDownPressed += ExecuteDefendCommand;
-        GameEvents.Input.OnBattleWingLeftPressed += ExecuteDjinnCommand;
-        GameEvents.Input.OnBattleWingRightPressed += ExecuteSummonCommand;
     }
 
     private void UnsubscribeFromInputEvents()
     {
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
-        GameEvents.Input.OnBattleCancelPressed -= HandleCancelPressed;
-
-        GameEvents.Input.OnBattleCommandUpPressed -= ExecuteAttackCommand;
-        GameEvents.Input.OnBattleCommandLeftPressed -= ExecutePsynergyCommand;
-        GameEvents.Input.OnBattleCommandRightPressed -= ExecuteItemCommand;
-        GameEvents.Input.OnBattleCommandDownPressed -= ExecuteDefendCommand;
-        GameEvents.Input.OnBattleWingLeftPressed -= ExecuteDjinnCommand;
-        GameEvents.Input.OnBattleWingRightPressed -= ExecuteSummonCommand;
     }
 
     #endregion
 
-    #region Direct Command Cross Triggers
+    #region Direct Command Cross Triggers (Exposed to BattleHUDController)
 
-    private void ExecuteAttackCommand()
+    /// <summary>
+    /// Executes a command selection originated from UI/Controller hotkey inputs.
+    /// </summary>
+    public void ExecuteCommandFromUI(BattleCommandType commandType)
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
 
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Attack;
+        _selectedCommandType = commandType;
 
-        currentTargetType = ActionTargetType.SingleEnemy;
-        currentAreaRange = 0;
+        switch (commandType)
+        {
+            case BattleCommandType.Attack:
+                PlaySFX(SFXType.UI_Confirm);
+                currentTargetType = ActionTargetType.SingleEnemy;
+                currentAreaRange = 0;
+                targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
+                CurrentBattleState = BattleState.TargetSelection;
+                break;
 
-        targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
-        CurrentBattleState = BattleState.TargetSelection;
-    }
+            case BattleCommandType.Psynergy:
+            case BattleCommandType.Item:
+            case BattleCommandType.Djinn:
+            case BattleCommandType.Summon:
+                PlaySFX(SFXType.UI_Confirm);
+                OnCommandTypeSelected?.Invoke(commandType);
+                CurrentBattleState = BattleState.SubMenuSelection;
+                break;
 
-    private void ExecutePsynergyCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Psynergy;
-        OnCommandTypeSelected?.Invoke(BattleCommandType.Psynergy);
-        CurrentBattleState = BattleState.SubMenuSelection;
-    }
-
-    private void ExecuteItemCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Item;
-        OnCommandTypeSelected?.Invoke(BattleCommandType.Item);
-        CurrentBattleState = BattleState.SubMenuSelection;
-    }
-
-    private void ExecuteDjinnCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Djinn;
-        OnCommandTypeSelected?.Invoke(BattleCommandType.Djinn);
-        CurrentBattleState = BattleState.SubMenuSelection;
-    }
-
-    private void ExecuteDefendCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Defend;
-
-        turnController.HideTurnCamera();
-        CurrentBattleState = BattleState.WaitingTurnExecution;
-        StartCoroutine(PerformAction());
-    }
-
-    private void ExecuteSummonCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Summon;
-        CurrentBattleState = BattleState.SubMenuSelection;
+            case BattleCommandType.Defend:
+                PlaySFX(SFXType.UI_Confirm);
+                turnController.HideTurnCamera();
+                CurrentBattleState = BattleState.WaitingTurnExecution;
+                StartCoroutine(PerformAction());
+                break;
+        }
     }
 
     #endregion
@@ -430,11 +381,6 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void HandleCancelPressed(InputEventArgs args)
-    {
-        if (args.Handled || _cachedGameState != GameManager.GameState.InBattle) return;
-    }
-
     #endregion
 
     #region Battle Lifecycle & Setup
@@ -453,8 +399,6 @@ public class BattleManager : MonoBehaviour
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player");
 
-        if (playerCanvas == null)
-            playerCanvas = GameObject.Find("PlayerCanvas");
 
         enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
 
@@ -506,9 +450,6 @@ public class BattleManager : MonoBehaviour
 
         // DESTROY WORLD ENEMY
         if (firstEnemy != null) Destroy(firstEnemy);
-
-        // HidePlayerCanvas
-        if (playerCanvas != null) playerCanvas.SetActive(false);
 
         // --- DYNAMIC AUDIO LISTENER SETUP ---
         if (HybridAudioListener.Instance != null)
@@ -855,8 +796,6 @@ public class BattleManager : MonoBehaviour
             if (hero.GetComponent<FighterStats>().CurrHp > 0)
                 hero.GetComponentInChildren<Animator>().SetBool("victoryPose", false);
         }
-
-        if (playerCanvas != null) playerCanvas.SetActive(true);
 
         GameEvents.Hero.TriggerHeroStatusChanged();
 

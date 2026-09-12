@@ -324,24 +324,22 @@ public class HeroInventory : MonoBehaviour
         return -1;
     }
 
-    /// <summary>
-    /// Filters and returns all slots that can be used during combat (Consumables usable in battle).
-    /// </summary>
-    public List<InventorySlot> GetBattleUsableSlots()
+    public bool HasUsableBattleItems()
     {
-        List<InventorySlot> usableSlots = new List<InventorySlot>();
+        if (Slots == null) return false;
 
-        foreach (var slot in slots)
+        foreach (var slot in Slots)
         {
-            if (slot.IsEmpty) continue;
+            if (slot?.Item == null) continue;
 
-            if (slot.Item is ConsumableSO consumable && consumable.UseInBattle)
+            if ((slot.Item is ConsumableSO consumable && consumable.UseInBattle) ||
+                (slot.Item is EquipableSO equipable && equipable.UseInBattle))
             {
-                usableSlots.Add(slot);
+                return true;
             }
         }
 
-        return usableSlots;
+        return false;
     }
 
     private bool IsValidIndex(int index)

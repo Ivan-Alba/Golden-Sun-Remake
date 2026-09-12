@@ -31,6 +31,7 @@ public class HeroStats : FighterStats
     private int nextLevelXp;
     private HeroDjinnController djinnController;
     private HeroEquipment heroEquipment;
+    private HeroInventory heroInventory;
 
     // Cache Engine State
     private StatBlock cachedBlock;
@@ -51,7 +52,8 @@ public class HeroStats : FighterStats
     public int NextLevelXp { get => nextLevelXp; private set => nextLevelXp = value; }
     public HeroBaseProgressionSO BaseProgression => baseProgression;
     public IReadOnlyList<PsynergySO> UnlockedStoryPsynergies => unlockedStoryPsynergies;
-
+    public HeroEquipment HeroEquipment => heroEquipment;
+    public HeroInventory HeroInventory => heroInventory;
     public HeroDjinnController DjinnController => djinnController;
     public CharacterClassSO CurrentClass => djinnController?.CurrentClass;
 
@@ -129,6 +131,7 @@ public class HeroStats : FighterStats
         base.Awake();
         djinnController = GetComponent<HeroDjinnController>();
         heroEquipment = GetComponent<HeroEquipment>();
+        heroInventory = GetComponent<HeroInventory>();
 
         CalculateNextLevelXp();
 

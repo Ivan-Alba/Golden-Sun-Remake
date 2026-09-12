@@ -146,7 +146,7 @@ public class FighterController : MonoBehaviour
 
 
         // 2. Instantiate Impact VFX directly from PsynergySO property
-        GameObject impactVfxPrefab = psynergyToUse.VfxPrefab;
+        GameObject impactVfxPrefab = psynergyToUse.BattleFXConfig.MainActionVFX;
         GameObject impactVfxInstance = null;
         if (impactVfxPrefab != null && primaryTarget != null)
         {
@@ -216,10 +216,12 @@ public class FighterController : MonoBehaviour
         string textDisplay = isCritical ? $"CRITICAL!\n{damageAmount}" : damageAmount.ToString();
         Color textColour = isCritical ? Color.yellow : Color.white;
 
-        if (BattleFXManager.Instance != null)
+        /*if (BattleFXManager.Instance != null)
         {
             BattleFXManager.Instance.SpawnFloatingText(transform, textDisplay, textColour);
-        }
+        }*/
+
+        GameEvents.Battle.TriggerDamageNumber(gameObject, textDisplay, DamageNumbersPresenter.DamageTextType.NormalDamage);
 
         if (stats.CurrHp <= 0)
         {
@@ -241,10 +243,12 @@ public class FighterController : MonoBehaviour
 
                 int restoredHp = targetStats.CurrHp - beforeHp;
 
-                if (restoredHp > 0 && BattleFXManager.Instance != null)
+                /*if (restoredHp > 0 && BattleFXManager.Instance != null)
                 {
                     BattleFXManager.Instance.SpawnFloatingText(targetObj.transform, restoredHp.ToString(), Color.green);
-                }
+                }*/
+
+                GameEvents.Battle.TriggerDamageNumber(targetStats.gameObject, restoredHp.ToString(), DamageNumbersPresenter.DamageTextType.Healing);
             }
         }
 

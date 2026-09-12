@@ -706,6 +706,16 @@ public static class GameEvents
         public static void TriggerHideActionBanner()
             => OnHideActionBanner?.Invoke();
 
+        /// <summary>
+        /// Triggered whenever a combatant receives damage, healing, or status popups in 3D space.
+        /// </summary>
+        public static event Action<GameObject, string, DamageNumbersPresenter.DamageTextType> OnDamageNumberRequested;
+
+        public static void TriggerDamageNumber(GameObject target, string text, DamageNumbersPresenter.DamageTextType textType)
+        {
+            OnDamageNumberRequested?.Invoke(target, text, textType);
+        }
+
         #endregion
 
         #region Pending Refactor (Turn System)
