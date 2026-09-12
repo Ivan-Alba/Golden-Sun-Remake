@@ -14215,6 +14215,7 @@ GameObject:
   - component: {fileID: 5905702955299404698}
   - component: {fileID: 2136754005720336485}
   - component: {fileID: 159102338434093094}
+  - component: {fileID: 4365564539730548900}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -14261,6 +14262,7 @@ MonoBehaviour:
   targetSelectionController: {fileID: 4932946225680775267}
   fieldSpawner: {fileID: 2136754005720336485}
   actionExecutor: {fileID: 159102338434093094}
+  rewardTracker: {fileID: 4365564539730548900}
   battleField: {fileID: 6453155772116591549}
   maxEnemiesInBattle: 3
 --- !u!114 &6820372969129364925
@@ -14359,6 +14361,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleActionExecutor
   fxManager: {fileID: 0}
+--- !u!114 &4365564539730548900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8407271029041422075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 487c3e710fa33084a83df7e03de51510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattleRewardTracker
 --- !u!1 &8507636291612183915
 GameObject:
   m_ObjectHideFlags: 0

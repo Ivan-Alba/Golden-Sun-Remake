@@ -424,24 +424,23 @@ public class BattleHUDController : MonoBehaviour
         switch (newState)
         {
             case BattleState.CommandSelection:
+                SetHUDVisible(true);
                 SetHeroTurnUIElementsVisible(isHeroTurn);
                 SetSubMenuVisible(false);
                 SetActionBannerVisible(false);
 
                 if (isHeroTurn)
                 {
-                    // 1. Check Psynergy availability
                     bool hasPsynergyAvailable = heroStats.Psynergies != null &&
-                                                 heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
+                                                heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
 
-                    // 2. Check Item availability in HeroInventory slots
                     bool hasItemsAvailable = heroStats.HeroInventory != null &&
                                              heroStats.HeroInventory.HasUsableBattleItems();
 
                     bool hasDjinnsUnlocked = true;
                     bool hasSummonsUnlocked = true;
 
-                    _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, hasDjinnsUnlocked, hasSummonsUnlocked);
+                    _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, false, false);
                     UpdateFloatingUIElementsPosition();
                 }
                 break;
@@ -458,12 +457,22 @@ public class BattleHUDController : MonoBehaviour
 
             case BattleState.WaitingTurnExecution:
             case BattleState.IntroTransition:
-            case BattleState.ResultsScreen:
-            case BattleState.GameOverScreen:
                 _commandCrossPresenter?.Hide();
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
                 SetActionBannerVisible(false);
+                ClearTargetOverlays();
+                break;
+
+            case BattleState.ResultsScreen:
+            case BattleState.GameOverScreen:
+                // Hide all HUD overlays completely for Results/Defeat screens
+                _commandCrossPresenter?.Hide();
+                SetHeroTurnUIElementsVisible(false);
+                SetSubMenuVisible(false);
+                SetActionBannerVisible(false);
+                ClearTargetOverlays();
+                SetHUDVisible(false);
                 break;
         }
     }
@@ -576,12 +585,12 @@ public class BattleHUDController : MonoBehaviour
         }
         else if (commandType == BattleCommandType.Djinn)
         {
-            bool hasDjinnsUnlocked = true; // Hardcoded check until Djinn unlocking system is integrated
+            bool hasDjinnsUnlocked = false; // Hardcoded check until Djinn unlocking system is integrated
             if (!hasDjinnsUnlocked) return; // Hidden wing: completely ignore input
         }
         else if (commandType == BattleCommandType.Summon)
         {
-            bool hasSummonsUnlocked = true; // Hardcoded check until Summon unlocking system is integrated
+            bool hasSummonsUnlocked = false; // Hardcoded check until Summon unlocking system is integrated
             if (!hasSummonsUnlocked) return; // Hidden wing: completely ignore input
         }
 

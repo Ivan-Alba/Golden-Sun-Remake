@@ -26,6 +26,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private TargetSelectionController targetSelectionController;
     [SerializeField] private BattleFieldSpawner fieldSpawner;
     [SerializeField] private BattleActionExecutor actionExecutor;
+    [SerializeField] private BattleRewardTracker rewardTracker;
     [SerializeField] private GameObject battleField;
 
     private GameObject player; // player reference
@@ -53,10 +54,6 @@ public class BattleManager : MonoBehaviour
     private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated/empty
     private List<GameObject> heroList = new List<GameObject>();
     private List<GameObject> fighters = new List<GameObject>();
-
-    // RESULTS SCREEN
-    private int totalXpEarned, totalPhEarned, totalGoldEarned;
-    private Dictionary<ItemSO, int> totalItemsObtained = new Dictionary<ItemSO, int>();
 
     // BATTLE FIELD POSITIONS
     private GameObject[] enemyPositions;
@@ -128,6 +125,9 @@ public class BattleManager : MonoBehaviour
 
         if (actionExecutor == null)
             actionExecutor = GetComponent<BattleActionExecutor>() ?? GetComponentInChildren<BattleActionExecutor>();
+
+        if (rewardTracker == null)
+            rewardTracker = GetComponent<BattleRewardTracker>() ?? GetComponentInChildren<BattleRewardTracker>();
 
         // Ensure clean state on scene load
         ResetBattleVariables();
@@ -585,11 +585,11 @@ public class BattleManager : MonoBehaviour
             {
                 if (targetData.gameObject.TryGetComponent<EnemyStats>(out var enemyStats))
                 {
-                    totalXpEarned += enemyStats.XpReward;
-                    totalGoldEarned += enemyStats.CoinsReward;
-                    totalPhEarned += enemyStats.CoinsReward;
-
-                    GetItemLoot(enemyStats);
+                    // Track rewards and loot tables via BattleRewardTracker
+                    if (rewardTracker != null)
+                    {
+                        rewardTracker.TrackEnemyDefeated(enemyStats);
+                    }
 
                     fighters.Remove(targetData.gameObject);
 
@@ -630,31 +630,6 @@ public class BattleManager : MonoBehaviour
         else
         {
             TurnFinished(activeFighter, baseActionCost);
-        }
-    }
-
-    private void GetItemLoot(EnemyStats enemyStats)
-    {
-        if (enemyStats == null || enemyStats.PossibleDrops == null) return;
-
-        List<ItemDropRate> droppedItems = enemyStats.PossibleDrops;
-
-        foreach (ItemDropRate droppedItem in droppedItems)
-        {
-            if (string.IsNullOrEmpty(droppedItem.itemSlug)) continue;
-
-            ItemSO item = null;
-            GameEvents.Database.RequestItemBySlug(droppedItem.itemSlug, (foundItem) => item = foundItem);
-            if (item == null) continue;
-
-            if (totalItemsObtained.ContainsKey(item))
-            {
-                totalItemsObtained[item] += 1;
-            }
-            else
-            {
-                totalItemsObtained.Add(item, 1);
-            }
         }
     }
 
@@ -702,7 +677,23 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(3);
 
-        StartCoroutine(resultsController.ShowResults(heroList, totalXpEarned, totalPhEarned, totalGoldEarned, totalItemsObtained));
+        // Consume consolidated rewards from tracker
+        BattleRewardSummary rewardSummary = rewardTracker != null
+            ? rewardTracker.GetRewardSummary()
+            : default;
+
+        Dictionary<ItemSO, int> itemsObtained = rewardSummary.ItemsObtained != null
+            ? new Dictionary<ItemSO, int>(rewardSummary.ItemsObtained)
+            : new Dictionary<ItemSO, int>();
+
+        StartCoroutine(resultsController.ShowResults(
+            heroList,
+            rewardSummary.TotalXpEarned,
+            rewardSummary.TotalPhEarned,
+            rewardSummary.TotalGoldEarned,
+            itemsObtained
+        ));
+
         while (!resultsController.ResultsFinished)
         {
             yield return null;
@@ -821,14 +812,11 @@ public class BattleManager : MonoBehaviour
         targetList.Clear();
         if (turnsOrdered != null) turnsOrdered.Clear();
 
-        if (totalItemsObtained == null)
-            totalItemsObtained = new Dictionary<ItemSO, int>();
-        else
-            totalItemsObtained.Clear();
+        if (rewardTracker != null)
+        {
+            rewardTracker.ResetTracker();
+        }
 
-        totalXpEarned = 0;
-        totalGoldEarned = 0;
-        totalPhEarned = 0;
         enemiesDefeated = 0;
         enemiesOnBattle = 0;
         deadHeroes = 0;
