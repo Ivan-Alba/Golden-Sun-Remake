@@ -6,8 +6,7 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Controller for the Battle HUD overlay using UI Toolkit.
 /// Orchestrates viewport transitions, turn timeline updates, floating target overlays,
-/// action submenus, top action banners, and projects floating menus over active heroes in 3D world space.
-/// Communicates locally with the BattleManager component present on the same prefab.
+/// action submenus, top action banners, layer visibility, and projects floating menus over active heroes in 3D world space.
 /// </summary>
 public class BattleHUDController : MonoBehaviour
 {
@@ -15,6 +14,7 @@ public class BattleHUDController : MonoBehaviour
     private const string ACTIVE_HERO_CLASS = "active-hero";
     private const string TARGET_INDICATOR_HIDDEN_CLASS = "timeline-target-indicator--hidden";
     private const string PORTRAIT_HIDDEN_CLASS = "portrait-viewport-frame--hidden";
+    private const string LAYER_HIDDEN_CLASS = "hud-layer--hidden";
 
     #region Serialized Fields
 
@@ -68,9 +68,14 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region UI Elements References
+    #region UI Elements & Layer References
 
     private VisualElement _root;
+
+    // --- HUD LAYERS ---
+    private VisualElement _layerGameplay;
+    private VisualElement _layerResults;
+    private VisualElement _layerGameOver;
 
     // 1. Active Hero Close-up Viewport
     private VisualElement _portraitViewportFrame;
@@ -178,6 +183,11 @@ public class BattleHUDController : MonoBehaviour
             mainBattleCamera = Camera.main;
         }
 
+        // --- LAYER RESOLUTION ---
+        _layerGameplay = _root.Q<VisualElement>("layer_gameplay_hud");
+        _layerResults = _root.Q<VisualElement>("layer_results_hud");
+        _layerGameOver = _root.Q<VisualElement>("layer_gameover_hud");
+
         // Viewport Elements
         _portraitViewportFrame = _root.Q<VisualElement>("portrait_viewport_frame");
         _labelActiveHeroName = _root.Q<Label>("label_active_hero_name");
@@ -214,8 +224,11 @@ public class BattleHUDController : MonoBehaviour
         // Party Cards Container
         _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
 
-        // Initial Visibility Reset
+        // Initial Visibility Reset (Hide all layers initially)
         SetHUDVisible(false);
+        SetResultsLayerVisible(false);
+        SetGameOverLayerVisible(false);
+
         SetHeroTurnUIElementsVisible(false);
         SetSubMenuVisible(false);
         SetActionBannerVisible(false);
@@ -297,7 +310,6 @@ public class BattleHUDController : MonoBehaviour
 
     private void SubscribeEvents()
     {
-        // Static global events reserved for cross-system data updates
         GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
         GameEvents.Party.OnPartyChanged += HandlePartyChanged;
 
@@ -399,11 +411,15 @@ public class BattleHUDController : MonoBehaviour
         if (newState == GameManager.GameState.InBattle)
         {
             SetHUDVisible(true);
+            SetResultsLayerVisible(false);
+            SetGameOverLayerVisible(false);
             RebuildPartyCards();
         }
         else
         {
             SetHUDVisible(false);
+            SetResultsLayerVisible(false);
+            SetGameOverLayerVisible(false);
             SetHeroTurnUIElementsVisible(false);
             SetSubMenuVisible(false);
             SetActionBannerVisible(false);
@@ -424,7 +440,10 @@ public class BattleHUDController : MonoBehaviour
         switch (newState)
         {
             case BattleState.CommandSelection:
-                SetHUDVisible(true);
+                SetHUDVisible(true); // Ensures Gameplay layer is visible
+                SetResultsLayerVisible(false);
+                SetGameOverLayerVisible(false);
+
                 SetHeroTurnUIElementsVisible(isHeroTurn);
                 SetSubMenuVisible(false);
                 SetActionBannerVisible(false);
@@ -440,7 +459,7 @@ public class BattleHUDController : MonoBehaviour
                     bool hasDjinnsUnlocked = true;
                     bool hasSummonsUnlocked = true;
 
-                    _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, false, false);
+                    _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, hasDjinnsUnlocked, hasSummonsUnlocked);
                     UpdateFloatingUIElementsPosition();
                 }
                 break;
@@ -465,14 +484,24 @@ public class BattleHUDController : MonoBehaviour
                 break;
 
             case BattleState.ResultsScreen:
-            case BattleState.GameOverScreen:
-                // Hide all HUD overlays completely for Results/Defeat screens
-                _commandCrossPresenter?.Hide();
+                // Hide Gameplay layer and show Results layer
+                SetHUDVisible(false);
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
                 SetActionBannerVisible(false);
                 ClearTargetOverlays();
+                SetResultsLayerVisible(true);
+                break;
+
+            case BattleState.GameOverScreen:
+                // Hide Gameplay layer and show GameOver layer
                 SetHUDVisible(false);
+                SetHeroTurnUIElementsVisible(false);
+                SetSubMenuVisible(false);
+                SetActionBannerVisible(false);
+                ClearTargetOverlays();
+                SetResultsLayerVisible(false);
+                SetGameOverLayerVisible(true);
                 break;
         }
     }
@@ -564,7 +593,6 @@ public class BattleHUDController : MonoBehaviour
         HeroStats heroStats = _currentActiveFighter != null ? _currentActiveFighter.GetComponent<HeroStats>() : null;
         if (heroStats == null) return;
 
-        // Check availability before triggering action
         if (commandType == BattleCommandType.Psynergy)
         {
             bool hasPsynergy = heroStats.Psynergies != null && heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
@@ -585,13 +613,13 @@ public class BattleHUDController : MonoBehaviour
         }
         else if (commandType == BattleCommandType.Djinn)
         {
-            bool hasDjinnsUnlocked = false; // Hardcoded check until Djinn unlocking system is integrated
-            if (!hasDjinnsUnlocked) return; // Hidden wing: completely ignore input
+            bool hasDjinnsUnlocked = true;
+            if (!hasDjinnsUnlocked) return;
         }
         else if (commandType == BattleCommandType.Summon)
         {
-            bool hasSummonsUnlocked = false; // Hardcoded check until Summon unlocking system is integrated
-            if (!hasSummonsUnlocked) return; // Hidden wing: completely ignore input
+            bool hasSummonsUnlocked = true;
+            if (!hasSummonsUnlocked) return;
         }
 
         _currentSelectedCommand = commandType;
@@ -640,10 +668,6 @@ public class BattleHUDController : MonoBehaviour
 
     #region Universal Projection Helper (3D World -> 2D Panel)
 
-    /// <summary>
-    /// Centralized helper for projecting a 3D target position to 2D UI Toolkit panel coordinates.
-    /// Returns false if target is behind camera frustum.
-    /// </summary>
     public bool TryProjectWorldToPanel(Vector3 worldPosition, Vector3 worldOffset, out Vector2 panelPosition)
     {
         panelPosition = Vector2.zero;
@@ -654,16 +678,12 @@ public class BattleHUDController : MonoBehaviour
         Vector3 targetWorldPos = worldPosition + worldOffset;
         Vector3 screenPoint = mainBattleCamera.WorldToScreenPoint(targetWorldPos);
 
-        // Behind camera frustum check
         if (screenPoint.z < 0) return false;
 
         panelPosition = RuntimePanelUtils.CameraTransformWorldToPanel(_root.panel, targetWorldPos, mainBattleCamera);
         return true;
     }
 
-    /// <summary>
-    /// Updates positions for all hero-centered floating menus (CommandCross & SubMenu).
-    /// </summary>
     private void UpdateFloatingUIElementsPosition()
     {
         if (_currentActiveFighter == null) return;
@@ -675,7 +695,6 @@ public class BattleHUDController : MonoBehaviour
             return;
         }
 
-        // 1. Position Command Cross (Centered on Hero)
         if (_floatingCommandMenuContainer != null && _floatingCommandMenuContainer.style.display != DisplayStyle.None)
         {
             _floatingCommandMenuContainer.style.visibility = Visibility.Visible;
@@ -683,7 +702,6 @@ public class BattleHUDController : MonoBehaviour
             _floatingCommandMenuContainer.style.top = basePanelPos.y;
         }
 
-        // 2. Position Action SubMenu (Flown laterally next to Hero with Screen Clamping)
         if (_floatingSubMenuContainer != null && _floatingSubMenuContainer.style.display != DisplayStyle.None)
         {
             _floatingSubMenuContainer.style.visibility = Visibility.Visible;
@@ -691,7 +709,6 @@ public class BattleHUDController : MonoBehaviour
             float panelWidth = _root.panel.visualTree.layout.width;
             float offsetX = _subMenuScreenOffset.x;
 
-            // Clamping check: If hero is close to right edge, flip menu to left side
             if (basePanelPos.x + offsetX + 210f > panelWidth)
             {
                 offsetX = -offsetX;
@@ -899,7 +916,7 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Action Logic & Callbacks
+    #region Action Logic & Layer Visibility API
 
     private void OnCommandSelected(BattleCommandType commandType)
     {
@@ -922,15 +939,44 @@ public class BattleHUDController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Controls visibility of the main Gameplay HUD Layer (Turn timeline, Party cards, Viewport).
+    /// </summary>
     public void SetHUDVisible(bool visible)
     {
-        if (_root != null)
+        if (_layerGameplay != null)
         {
-            if (!visible)
+            if (!visible && _root != null)
             {
                 _root.focusController?.focusedElement?.Blur();
             }
-            _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (visible) _layerGameplay.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+            else _layerGameplay.AddToClassList(LAYER_HIDDEN_CLASS);
+        }
+    }
+
+    /// <summary>
+    /// Controls visibility of the Results Screen Layer.
+    /// </summary>
+    public void SetResultsLayerVisible(bool visible)
+    {
+        if (_layerResults != null)
+        {
+            if (visible) _layerResults.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+            else _layerResults.AddToClassList(LAYER_HIDDEN_CLASS);
+        }
+    }
+
+    /// <summary>
+    /// Controls visibility of the Game Over Screen Layer.
+    /// </summary>
+    public void SetGameOverLayerVisible(bool visible)
+    {
+        if (_layerGameOver != null)
+        {
+            if (visible) _layerGameOver.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+            else _layerGameOver.AddToClassList(LAYER_HIDDEN_CLASS);
         }
     }
 
@@ -958,7 +1004,7 @@ public class BattleHUDController : MonoBehaviour
 
         if (_floatingCommandMenuContainer != null)
         {
-            if (!visible)
+            if (!visible && _root != null)
             {
                 _floatingCommandMenuContainer.focusController?.focusedElement?.Blur();
             }

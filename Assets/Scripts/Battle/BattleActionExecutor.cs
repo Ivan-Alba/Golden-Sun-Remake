@@ -73,7 +73,7 @@ public class BattleActionExecutor : MonoBehaviour
             case BattleCommandType.Defend:
                 actionCost = 30;
                 caster.SetUpDefense();
-                yield return new WaitForSeconds(1.5f);
+                yield return new WaitForSeconds(0.5f);
                 break;
 
             case BattleCommandType.Item:
