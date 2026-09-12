@@ -25,6 +25,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private ResultsScreenController resultsController;
     [SerializeField] private TargetSelectionController targetSelectionController;
     [SerializeField] private BattleFieldSpawner fieldSpawner;
+    [SerializeField] private BattleActionExecutor actionExecutor;
     [SerializeField] private GameObject battleField;
 
     private GameObject player; // player reference
@@ -124,6 +125,9 @@ public class BattleManager : MonoBehaviour
 
         if (fieldSpawner == null)
             fieldSpawner = GetComponent<BattleFieldSpawner>() ?? GetComponentInChildren<BattleFieldSpawner>();
+
+        if (actionExecutor == null)
+            actionExecutor = GetComponent<BattleActionExecutor>() ?? GetComponentInChildren<BattleActionExecutor>();
 
         // Ensure clean state on scene load
         ResetBattleVariables();
@@ -503,94 +507,71 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator PerformAction()
     {
-        FighterStats targetStats = null;
-        GameObject activeFighter = turnController.CurrentFighter.gameObject;
+        if (turnController.CurrentFighter == null) yield break;
+
+        FighterController casterController = turnController.CurrentFighter;
+        GameObject activeFighterObj = casterController.gameObject;
 
         // FORCE COMMAND TYPE TO ATTACK FOR ENEMIES TO PREVENT PREVIOUS HERO COMMAND OVERRIDE
-        if (activeFighter.TryGetComponent<EnemyStats>(out _))
+        if (activeFighterObj.TryGetComponent<EnemyStats>(out _))
         {
             _selectedCommandType = BattleCommandType.Attack;
+            targetList.Clear();
+
+            // Resolve AI Target for Enemy
+            if (activeFighterObj.TryGetComponent<EnemyAIController>(out var ai))
+            {
+                GameObject chosenTarget = ai.SelectTarget(heroList);
+                if (chosenTarget != null) targetList.Add(chosenTarget);
+            }
+
+            if (targetList.Count == 0 && heroList != null && heroList.Count > 0)
+            {
+                targetList.Add(heroList[Random.Range(0, heroList.Count)]);
+            }
         }
 
-        int baseActionCost = 50; // Default action cost (Attack)
+        object actionPayload = GetCurrentActionPayload();
+        GameObject primaryTargetPos = (actualTarget >= 0 && actualTarget < enemyPositions.Length)
+            ? enemyPositions[actualTarget]
+            : null;
 
+        int executedActionCost = 50;
+
+        // DELEGATE ENTIRE COMBAT SEQUENCE TO BATTLE ACTION EXECUTOR
+        if (actionExecutor != null)
+        {
+            yield return actionExecutor.ExecuteActionSequence(
+                casterController,
+                _selectedCommandType,
+                actionPayload,
+                targetList,
+                primaryTargetPos,
+                (cost) => executedActionCost = cost
+            );
+        }
+        else
+        {
+            Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleActionExecutor component is missing!");
+        }
+
+        // Clean action payloads
+        nextPsynergy = null;
+        nextItem = null;
+        nextDjinn = null;
+
+        CheckDefeated(activeFighterObj, executedActionCost);
+    }
+
+    private object GetCurrentActionPayload()
+    {
         switch (_selectedCommandType)
         {
-            case BattleCommandType.Attack:
-                baseActionCost = 50;
-                if (activeFighter.TryGetComponent<EnemyStats>(out _))
-                {
-                    targetList.Clear();
-
-                    if (activeFighter.TryGetComponent<EnemyAIController>(out var ai))
-                    {
-                        GameObject chosenTarget = ai.SelectTarget(heroList);
-                        if (chosenTarget != null)
-                        {
-                            targetStats = chosenTarget.GetComponent<FighterStats>();
-                        }
-                    }
-
-                    if (targetStats == null && heroList != null && heroList.Count > 0)
-                    {
-                        targetStats = heroList[UnityEngine.Random.Range(0, heroList.Count)].GetComponent<FighterStats>();
-                    }
-
-                    if (targetStats != null)
-                    {
-                        targetList.Add(targetStats.gameObject);
-                    }
-                }
-                else
-                {
-                    if (actualTarget >= 0 && actualTarget < enemiesList.Count && enemiesList[actualTarget] != null)
-                    {
-                        targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
-                    }
-                }
-
-                if (targetStats != null)
-                {
-                    StartCoroutine(turnController.CurrentFighter.BasicAttack(targetStats.gameObject));
-
-                    while (!turnController.CurrentFighter.ActionFinished)
-                    {
-                        yield return null;
-                    }
-
-                    turnController.CurrentFighter.ActionFinished = false;
-                }
-                break;
-
-            case BattleCommandType.Psynergy:
-                baseActionCost = 60;
-
-                if (nextPsynergy != null && IsAllyTarget(nextPsynergy.TargetType))
-                {
-                    StartCoroutine(turnController.CurrentFighter.UsePsynergy(nextPsynergy, party[actualTarget], targetList));
-                }
-                else
-                {
-                    StartCoroutine(turnController.CurrentFighter.UsePsynergy(nextPsynergy, enemyPositions[actualTarget], targetList));
-                }
-
-                while (!turnController.CurrentFighter.ActionFinished)
-                {
-                    yield return null;
-                }
-
-                turnController.CurrentFighter.ActionFinished = false;
-                nextPsynergy = null;
-                break;
-
-            case BattleCommandType.Defend:
-                baseActionCost = 30;
-                turnController.CurrentFighter.SetUpDefense();
-                yield return new WaitForSeconds(1.5f);
-                break;
+            case BattleCommandType.Psynergy: return nextPsynergy;
+            case BattleCommandType.Item: return nextItem;
+            case BattleCommandType.Djinn: return nextDjinn;
+            default: return null;
         }
-
-        CheckDefeated(activeFighter, baseActionCost);
     }
 
     private void CheckDefeated(GameObject activeFighter, int baseActionCost)
