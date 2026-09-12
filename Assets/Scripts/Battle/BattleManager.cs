@@ -24,8 +24,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private BattleCameraController battleCameraController;
     [SerializeField] private ResultsScreenController resultsController;
     [SerializeField] private TargetSelectionController targetSelectionController;
+    [SerializeField] private BattleFieldSpawner fieldSpawner;
     [SerializeField] private GameObject battleField;
-    [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
     private GameObject player; // player reference
     private IReadOnlyList<GameObject> party;
@@ -47,9 +47,6 @@ public class BattleManager : MonoBehaviour
     private List<GameObject> targetList = new List<GameObject>();
     private ActionTargetType currentTargetType = ActionTargetType.SingleEnemy;
     private int currentAreaRange = 0;
-
-    // RESPAWN CONTROLLER
-    private EnemySpawnZone spawnController;
 
     // LISTS WITH FIGHTERS
     private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated/empty
@@ -124,6 +121,9 @@ public class BattleManager : MonoBehaviour
 
         if (targetSelectionController == null)
             targetSelectionController = GetComponent<TargetSelectionController>();
+
+        if (fieldSpawner == null)
+            fieldSpawner = GetComponent<BattleFieldSpawner>() ?? GetComponentInChildren<BattleFieldSpawner>();
 
         // Ensure clean state on scene load
         ResetBattleVariables();
@@ -385,7 +385,7 @@ public class BattleManager : MonoBehaviour
 
     #region Battle Lifecycle & Setup
 
-    public void InitializeCollisionBattle(GameObject enemyInitiator, GameObject spawnZone, EncounterType encounterType)
+    public void InitializeCollisionBattle(GameObject enemyInitiator, GameObject spawnZone, CollisionAdvantageType advantageType)
     {
         ResetBattleVariables();
 
@@ -399,20 +399,24 @@ public class BattleManager : MonoBehaviour
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player");
 
-
-        enemiesOnBattle = Random.Range(1, maxEnemiesInBattle + 1);
-
-        // RESPAWN OBJECTS
-        if (spawnZone != null)
-            spawnController = spawnZone.GetComponent<EnemySpawnZone>();
-
         if (player != null) player.GetComponent<Animator>().enabled = false;
 
+        EnemySpawnZone zoneController = spawnZone != null ? spawnZone.GetComponent<EnemySpawnZone>() : null;
+
+        BattleInitializationData initData = new BattleInitializationData
+        {
+            SourceType = BattleSourceType.OverworldCollision,
+            AdvantageType = advantageType,
+            SpawnZone = zoneController,
+            InitiatorWorldObject = enemyInitiator,
+            CustomBattleBGM = null
+        };
+
         // START BATTLE TRANSITION
-        StartCoroutine(StartBattle(enemyInitiator));
+        StartCoroutine(StartBattle(initData));
     }
 
-    private IEnumerator StartBattle(GameObject firstEnemy)
+    private IEnumerator StartBattle(BattleInitializationData initData)
     {
         CurrentBattleState = BattleState.IntroTransition;
 
@@ -424,32 +428,22 @@ public class BattleManager : MonoBehaviour
             yield return null;
         }
 
-        // SET HEROES
-        int i = 0;
-        if (party != null && party.Count <= 2) i = 1;
-
-        if (party != null)
+        // DELEGATE 3D ARENA SETUP & COMBATANT SPAWNING TO BATTLE FIELD SPAWNER
+        if (fieldSpawner != null)
         {
-            foreach (GameObject hero in party)
-            {
-                if (hero == null) continue;
+            BattleSpawnResult spawnResult = fieldSpawner.SpawnBattleField(initData, party);
 
-                // IF HERO IS ALIVE
-                if (hero.GetComponent<FighterStats>().CurrHp != 0)
-                {
-                    fighters.Add(hero);
-                    heroList.Add(hero);
-                }
-                // HERO POSITIONS
-                hero.transform.position = heroPositions[i++].transform.position;
-            }
+            heroList = spawnResult.HeroList;
+            enemiesList = spawnResult.EnemiesList;
+            enemyPositions = spawnResult.EnemyPositions;
+            fighters = spawnResult.AllActiveFighters;
+
+            enemiesOnBattle = enemiesList.Count(e => e != null);
         }
-
-        // SET ENEMIES
-        SetEnemiesOnBattle(firstEnemy);
-
-        // DESTROY WORLD ENEMY
-        if (firstEnemy != null) Destroy(firstEnemy);
+        else
+        {
+            Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleFieldSpawner component is missing!");
+        }
 
         // --- DYNAMIC AUDIO LISTENER SETUP ---
         if (HybridAudioListener.Instance != null)
@@ -481,56 +475,6 @@ public class BattleManager : MonoBehaviour
         InitializeBattleTurns();
 
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InBattle);
-    }
-
-    private void SetEnemiesOnBattle(GameObject firstEnemy)
-    {
-        enemyPositions = new GameObject[maxEnemiesInBattle];
-        enemiesList = new List<GameObject>(new GameObject[maxEnemiesInBattle]); // Initialize fixed-size list with nulls
-
-        int centerIndex = maxEnemiesInBattle / 2;
-
-        // Sequence of slots radiating outward from center: center, left, right, left-2, right-2...
-        List<int> spawnSlotsOrder = CalculateSpawnSlotsOrder(centerIndex, maxEnemiesInBattle);
-
-        Debug.Log($"Spawning {enemiesOnBattle} enemies across {maxEnemiesInBattle} total spatial slots. Center index: {centerIndex}");
-
-        for (int i = 0; i < enemiesOnBattle; i++)
-        {
-            int slotIndex = spawnSlotsOrder[i];
-            GameObject enemyPlace = battleField.transform.Find($"Enemy{slotIndex}").gameObject;
-
-            GameObject enemyPrefab = (i == 0)
-                ? spawnController.GetMatchingEnemyPrefab(firstEnemy)
-                : spawnController.GetRandomEnemyPrefab();
-
-            GameObject spawnedEnemy = Instantiate(enemyPrefab, enemyPlace.transform.position, Quaternion.identity);
-
-            enemyPositions[slotIndex] = enemyPlace;
-            enemiesList[slotIndex] = spawnedEnemy;
-            fighters.Add(spawnedEnemy);
-        }
-    }
-
-    /// <summary>
-    /// Calculates slot indices order starting from center and expanding outwards symmetrically.
-    /// Example for 3 slots: [1, 0, 2]
-    /// Example for 7 slots: [3, 2, 4, 1, 5, 0, 6]
-    /// </summary>
-    private List<int> CalculateSpawnSlotsOrder(int centerIndex, int maxSlots)
-    {
-        List<int> order = new List<int> { centerIndex };
-
-        for (int offset = 1; order.Count < maxSlots; offset++)
-        {
-            int left = centerIndex - offset;
-            int right = centerIndex + offset;
-
-            if (left >= 0) order.Add(left);
-            if (right < maxSlots) order.Add(right);
-        }
-
-        return order;
     }
 
     private void InitializeBattleTurns()

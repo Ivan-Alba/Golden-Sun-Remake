@@ -675,8 +675,8 @@ public static class GameEvents
         /// Request to initiate a battle from an overworld physical collision.
         /// Params: enemyObj, spawnZoneObj, encounterType
         /// </summary>
-        public static event Action<GameObject, GameObject, EncounterType> OnRequestCollisionBattle;
-        public static void RequestCollisionBattle(GameObject enemyObj, GameObject spawnZoneObj, EncounterType encounterType)
+        public static event Action<GameObject, GameObject, CollisionAdvantageType> OnRequestCollisionBattle;
+        public static void RequestCollisionBattle(GameObject enemyObj, GameObject spawnZoneObj, CollisionAdvantageType encounterType)
             => OnRequestCollisionBattle?.Invoke(enemyObj, spawnZoneObj, encounterType);
 
         /// <summary>

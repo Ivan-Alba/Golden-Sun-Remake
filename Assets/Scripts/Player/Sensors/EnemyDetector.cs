@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Defines the combat encounter conditions based on physical impact orientation in the overworld.
 /// </summary>
-public enum EncounterType
+public enum CollisionAdvantageType
 {
     Neutral,
     PlayerAdvantage,
@@ -124,7 +124,7 @@ public class EnemyDetector : MonoBehaviour
         GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.EnemyHitReaction);
 
         // 2. Determine encounter type based on impact angle
-        EncounterType encounterType = CalculateEncounterType(enemyCollider.transform);
+        CollisionAdvantageType encounterType = CalculateEncounterType(enemyCollider.transform);
 
         // 3. Play collision sound via Audio events
         if (audioCollision != null)
@@ -141,7 +141,7 @@ public class EnemyDetector : MonoBehaviour
             }
 
             // Only rotate to face enemy if the player was NOT ambushed from behind
-            if (encounterType != EncounterType.EnemyAmbush)
+            if (encounterType != CollisionAdvantageType.EnemyAmbush)
             {
                 Vector3 lookTarget = new Vector3(enemyCollider.transform.position.x, player.transform.position.y, enemyCollider.transform.position.z);
                 GameEvents.Player.RequestLookAt(lookTarget, 0.15f);
@@ -167,9 +167,9 @@ public class EnemyDetector : MonoBehaviour
     /// Calculates whether the impact was a Player Advantage, Enemy Ambush, or Neutral encounter.
     /// Uses backstabAngleThreshold from Inspector to calculate precise dot-product cones.
     /// </summary>
-    private EncounterType CalculateEncounterType(Transform enemyTransform)
+    private CollisionAdvantageType CalculateEncounterType(Transform enemyTransform)
     {
-        if (player == null || enemyTransform == null) return EncounterType.Neutral;
+        if (player == null || enemyTransform == null) return CollisionAdvantageType.Neutral;
 
         // Convert inspector angle (in degrees) to required dot product threshold (cosine)
         float minDotThreshold = Mathf.Cos(backstabAngleThreshold * Mathf.Deg2Rad);
@@ -189,7 +189,7 @@ public class EnemyDetector : MonoBehaviour
         // 1. PLAYER ADVANTAGE (Player faces enemy within cone AND enemy faces away)
         if (playerFacingEnemyDot > minDotThreshold && enemyFacingSameWayDot > minDotThreshold)
         {
-            return EncounterType.PlayerAdvantage;
+            return CollisionAdvantageType.PlayerAdvantage;
         }
 
         // 2. ENEMY AMBUSH (Enemy is within player's rear backstab cone AND enemy faces same way)
@@ -197,14 +197,14 @@ public class EnemyDetector : MonoBehaviour
 
         if (enemyInPlayerBackConeDot < -minDotThreshold && enemyFacingSameWayDot > minDotThreshold)
         {
-            return EncounterType.EnemyAmbush;
+            return CollisionAdvantageType.EnemyAmbush;
         }
 
         // 3. NEUTRAL ENCOUNTER (Side swipes, frontal collisions or ambiguous angles)
-        return EncounterType.Neutral;
+        return CollisionAdvantageType.Neutral;
     }
 
-    private IEnumerator Routine_StartBattle(EncounterType encounterType)
+    private IEnumerator Routine_StartBattle(CollisionAdvantageType encounterType)
     {
         yield return new WaitForSeconds(0.8f);
 
