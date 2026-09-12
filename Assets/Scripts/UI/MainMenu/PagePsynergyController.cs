@@ -1174,16 +1174,16 @@ public class PagePsynergyController : IMenuPageController
         }
     }
 
-    private string FormatTargetTypeSpanish(PsynergyTargetType targetType)
+    private string FormatTargetTypeSpanish(ActionTargetType targetType)
     {
         return targetType switch
         {
-            PsynergyTargetType.Self => "Mismo usuario",
-            PsynergyTargetType.SingleAlly => "1 Aliado",
-            PsynergyTargetType.MultiEnemyArea => "Varios enemigos",
-            PsynergyTargetType.AllAllies => "Todos los aliados",
-            PsynergyTargetType.SingleEnemy => "1 Enemigo",
-            PsynergyTargetType.AllEnemies => "Todos los enemigos",
+            ActionTargetType.Self => "Mismo usuario",
+            ActionTargetType.SingleAlly => "1 Aliado",
+            ActionTargetType.MultiEnemyArea => "Varios enemigos",
+            ActionTargetType.AllAllies => "Todos los aliados",
+            ActionTargetType.SingleEnemy => "1 Enemigo",
+            ActionTargetType.AllEnemies => "Todos los enemigos",
             _ => targetType.ToString()
         };
     }

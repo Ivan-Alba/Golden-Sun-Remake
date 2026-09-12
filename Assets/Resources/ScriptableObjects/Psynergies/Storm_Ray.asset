@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   psynergyName: Rayo Plasma
   slugName: storm_ray
-  description: 'Invoca esquirlas sobre los enemigos. '
+  description: Ataca con una tormenta de rayos.
   icon: {fileID: 21300000, guid: dda12a8210d10424598f3091fd9555ec, type: 3}
   ppCost: 10
   element: 2

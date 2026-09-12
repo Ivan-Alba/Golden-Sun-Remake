@@ -972,8 +972,8 @@ public class PageDjinnController : IMenuPageController
 
         boxUnleashStatusEffectInfo.Clear();
 
-        string targetText = GetTargetBadgeText(unleash.TargetsAlly, unleash.IsAreaOfEffect);
-        Sprite targetIcon = GetTargetIcon(unleash.TargetsAlly, unleash.IsAreaOfEffect);
+        string targetText = GetTargetBadgeText(unleash.TargetType);
+        Sprite targetIcon = GetTargetIcon(unleash.TargetType);
 
         VisualElement targetBadge = CreateBadgeContainer("badge-target", targetIcon, targetText);
         boxUnleashStatusEffectInfo.Add(targetBadge);
@@ -1056,21 +1056,27 @@ public class PageDjinnController : IMenuPageController
         return badgeContainer;
     }
 
-    private Sprite GetTargetIcon(bool targetsAlly, bool isAreaOfEffect)
+    private Sprite GetTargetIcon(ActionTargetType targetType)
     {
-        return isAreaOfEffect ? iconTargetGroup : iconTargetSingle;
+        return targetType switch
+        {
+            ActionTargetType.AllAllies or
+            ActionTargetType.AllEnemies or
+            ActionTargetType.MultiEnemyArea => iconTargetGroup,
+            _ => iconTargetSingle
+        };
     }
 
-    private string GetTargetBadgeText(bool targetsAlly, bool isAreaOfEffect)
+    private string GetTargetBadgeText(ActionTargetType targetType)
     {
-        if (targetsAlly)
+        return targetType switch
         {
-            return isAreaOfEffect ? "Todos los Aliados" : "1 Aliado";
-        }
-        else
-        {
-            return isAreaOfEffect ? "Todos los Enemigos" : "1 Enemigo";
-        }
+            ActionTargetType.SingleAlly or ActionTargetType.Self => "1 Aliado",
+            ActionTargetType.AllAllies => "Todos los Aliados",
+            ActionTargetType.SingleEnemy => "1 Enemigo",
+            ActionTargetType.MultiEnemyArea or ActionTargetType.AllEnemies => "Todos los Enemigos",
+            _ => "1 Enemigo"
+        };
     }
 
     private void UpdateSetBonusGrid(DjinnSO data)

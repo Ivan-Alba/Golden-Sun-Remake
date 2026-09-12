@@ -745,9 +745,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b511a30956404b848949678168f90f70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleHUDController
+  battleManager: {fileID: 2811154916721807697}
+  targetSelectionController: {fileID: 4932946225680775267}
   uiDocument: {fileID: 8342627967898070617}
   heroStatusCardTemplate: {fileID: 9197481963319205126, guid: 559dfa0c9a67e66478431b26f0540ca8, type: 3}
   targetInfoOverlayTemplate: {fileID: 9197481963319205126, guid: 5455775625d280e459469eeae19ab227, type: 3}
+  psynergyCardTemplate: {fileID: 9197481963319205126, guid: d0857cca93cf2e346a53b707de93fe8c, type: 3}
+  itemCardTemplate: {fileID: 9197481963319205126, guid: b8cca352af8adf046a531d8b6dad6584, type: 3}
+  djinnCardTemplate: {fileID: 9197481963319205126, guid: 5631cea438d859141878c0f7f09d26f9, type: 3}
   mainBattleCamera: {fileID: 7218996608274423122}
   heroPortraitRenderTexture: {fileID: 8400000, guid: c64c4e9738c2108419b54368805679f0, type: 2}
   heroPortraitMaterial: {fileID: 2100000, guid: 750bc6a72621f2140af96ef75bc1db9c, type: 2}
@@ -14193,6 +14198,7 @@ GameObject:
   - component: {fileID: 5905702955299404698}
   - component: {fileID: 6820372969129364925}
   - component: {fileID: 2811154916721807697}
+  - component: {fileID: 4932946225680775267}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -14285,12 +14291,25 @@ MonoBehaviour:
   audioCenter: {fileID: 2426736156265556455}
   battleCameraController: {fileID: 5408302400829323935}
   resultsController: {fileID: 7802389440709632538}
+  targetSelectionController: {fileID: 4932946225680775267}
   battleField: {fileID: 6453155772116591549}
   heroPositions:
   - {fileID: 3695189644783418154}
   - {fileID: 7636371869820271871}
   - {fileID: 8070344460240997699}
   - {fileID: 3868856728227933586}
+--- !u!114 &4932946225680775267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8407271029041422075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f0add93895ecf04b88b0b4e888808f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetSelectionController
 --- !u!1 &8507636291612183915
 GameObject:
   m_ObjectHideFlags: 0

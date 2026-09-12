@@ -7,7 +7,7 @@ using UnityEngine;
 /// <summary>
 /// Defines the targeting behavior for Psynergies in combat and menu.
 /// </summary>
-public enum PsynergyTargetType
+public enum ActionTargetType
 {
     Self,
     SingleEnemy,
@@ -115,7 +115,7 @@ public abstract class PsynergySO : ScriptableObject
 
     [Header("Battle Rules")]
     [SerializeField] private bool isBattlePsynergy = true;
-    [SerializeField] private PsynergyTargetType targetType = PsynergyTargetType.SingleEnemy;
+    [SerializeField] private ActionTargetType targetType = ActionTargetType.SingleEnemy;
     [SerializeField] private GameObject vfxPrefab;
     [SerializeField] private AudioClip soundEffect;
 
@@ -150,7 +150,7 @@ public abstract class PsynergySO : ScriptableObject
 
     // Battle Properties
     public bool IsBattlePsynergy => isBattlePsynergy;
-    public PsynergyTargetType TargetType => targetType;
+    public ActionTargetType TargetType => targetType;
     public GameObject VfxPrefab => vfxPrefab;
     public AudioClip SoundEffect => soundEffect;
 

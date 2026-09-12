@@ -1,0 +1,158 @@
+/* =========================================================================
+   BATTLE SUBMENU FLOATING CARD STYLES
+   ========================================================================= */
+.submenu-card-root {
+    width: 420px;
+    height: 300px;
+    background-color: var(--color-panel-bg, rgba(12, 18, 28, 0.94));
+    border-color: var(--color-panel-border, #d4af37);
+    border-width: 2px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    translate: -50% -50%;
+    
+    transition-property: opacity, scale;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.submenu-header {
+    border-bottom-width: 1.5px;
+    border-bottom-color: var(--color-gold-sun, #d4af37);
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.submenu-title-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--color-gold-bright, #ffe680);
+    letter-spacing: 1.5px;
+    margin: 0;
+    padding: 0;
+}
+
+/* =========================================================================
+   SCROLLVIEW & INNER CONTAINER STYLES
+   ========================================================================= */
+.submenu-scroll-view {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-bottom: 6px;
+    padding-right: 2px;
+}
+
+/* Viewport interno del ScrollView */
+.submenu-scroll-view .unity-scroll-view__content-viewport {
+    width: 100%;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+/* Contenedor interno de tarjetas */
+.submenu-scroll-view .unity-scroll-view__content-container {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 4px;
+}
+
+.scroll-inner-card {
+    background-color: var(--color-subbox-bg);
+    border-width: 1px;
+    border-color: var(--color-subbox-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-right: 4px;
+}
+
+/* =========================================================================
+   CARD FOCUS STYLES (UI Toolkit Native)
+   ========================================================================= */
+.submenu-card-root .psynergy-card.interactive:focus,
+.submenu-card-root .item-card.interactive:focus,
+.submenu-card-root .djinn-card.interactive:focus {
+    border-color: var(--color-gold-bright, #ffe680);
+    border-width: 2px;
+    background-color: rgba(255, 255, 255, 0.18);
+    scale: 1.02 1.02;
+
+    transition-property: scale, background-color, border-color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+/* =========================================================================
+   CUSTOM SCROLLER COMPONENT OVERRIDES
+   ========================================================================= */
+.submenu-scroll-view .unity-scroller--vertical,
+.submenu-scroll-view .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    min-width: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.submenu-scroll-view .unity-scroller__low-button,
+.submenu-scroll-view .unity-scroller__high-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.submenu-scroll-view .unity-base-slider__tracker {
+    width: 6px;
+    min-width: 6px;
+    background-color: rgba(10, 15, 24, 0.8);
+    border-width: 1px;
+    border-color: rgba(31, 45, 64, 0.6);
+    border-radius: 3px;
+    margin: 0;
+}
+
+.submenu-scroll-view .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    background-color: rgba(218, 165, 32, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.9);
+    border-radius: 3px;
+}
+
+.submenu-scroll-view .unity-base-slider__dragger:hover {
+    background-color: var(--color-gold-bright, #ffe680);
+}
+
+.submenu-scroll-view .unity-base-slider__dragger:active {
+    background-color: #FFA500;
+}
+
+/* =========================================================================
+   SUBMENU DESCRIPTION PANEL
+   ========================================================================= */
+.submenu-info-panel {
+    background-color: var(--color-subbox-bg, rgba(20, 30, 45, 0.85));
+    border-color: var(--color-subbox-border, rgba(255, 255, 255, 0.15));
+    border-width: 1px;
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-height: 38px;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.submenu-info-description {
+    font-size: 11px;
+    color: var(--color-text-white, #ffffff);
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}

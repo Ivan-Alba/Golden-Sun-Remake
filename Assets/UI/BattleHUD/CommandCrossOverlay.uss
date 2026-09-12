@@ -144,8 +144,8 @@
 
 /* --- MAIN COMMAND DPAD WHEEL (Expanded Radial Spacing & 64x64px Slots) --- */
 .dpad-cmd-wheel {
-    width: 320px;
-    height: 320px;
+    width: 380px;
+    height: 380px;
     position: relative;
     align-items: center;
     justify-content: center;

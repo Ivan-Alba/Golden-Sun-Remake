@@ -323,6 +323,10 @@
     overflow: hidden;
 }
 
+.psynergy-card.interactive:focus {
+    background-color: #25354E;
+}
+
 /* Optional Interactive Modifiers (Use for lists, selection menus or battle) */
 .psynergy-card.interactive:hover {
     background-color: #1A2538;
@@ -333,9 +337,6 @@
     background-color: #25354E;
 }
 
-.psynergy-card.interactive:focus {
-    background-color: #25354E;
-}
 
 /* Card Internal Layout Elements */
 .card-element-stripe {

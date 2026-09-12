@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using UnityEngine.UI;
-using TMPro;
+using UI.BattleHUD.SubMenu;
+using Random = UnityEngine.Random;
 
 public enum BattleState
 {
@@ -23,6 +24,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Transform audioCenter;
     [SerializeField] private BattleCameraController battleCameraController;
     [SerializeField] private ResultsScreenController resultsController;
+    [SerializeField] private TargetSelectionController targetSelectionController;
     [SerializeField] private GameObject battleField;
     [SerializeField] private GameObject[] heroPositions = new GameObject[4];
 
@@ -41,16 +43,17 @@ public class BattleManager : MonoBehaviour
     private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
     private PsynergySO nextPsynergy;
     private ItemSO nextItem;
+    private DjinnInstance nextDjinn;
 
     private List<GameObject> targetList = new List<GameObject>();
-    private PsynergyTargetType currentTargetType = PsynergyTargetType.SingleEnemy;
+    private ActionTargetType currentTargetType = ActionTargetType.SingleEnemy;
     private int currentAreaRange = 0;
 
     // RESPAWN CONTROLLER
     private EnemySpawnZone spawnController;
 
     // LISTS WITH FIGHTERS
-    private List<GameObject> enemiesList = new List<GameObject>();
+    private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated
     private List<GameObject> heroList = new List<GameObject>();
     private List<GameObject> fighters = new List<GameObject>();
 
@@ -64,11 +67,30 @@ public class BattleManager : MonoBehaviour
     // LIST WITH TURNS OF FIGHTERS
     private List<KeyValuePair<GameObject, int>> turnsOrdered;
 
-    // TURN CONTROLLER
+    // LOCAL CONTROLLERS
     private TurnController turnController;
 
     // Minimap
     private GameObject playerCanvas;
+
+    #region Local C# Events for Local HUD & Components
+
+    /// <summary>
+    /// Fired when the battle state changes.
+    /// </summary>
+    public event Action<BattleState> OnBattleStateChanged;
+
+    /// <summary>
+    /// Fired when a command type (Psynergy, Item, Djinn, etc.) is chosen from the Command Cross.
+    /// </summary>
+    public event Action<BattleCommandType> OnCommandTypeSelected;
+
+    /// <summary>
+    /// Fired when active target pointers change.
+    /// </summary>
+    public event Action<List<GameObject>, GameObject> OnTargetSelectionChanged;
+
+    #endregion
 
     // BATTLE STATE MACHINE (Encapsulated State Property)
     private BattleState _currentBattleState = BattleState.None;
@@ -80,7 +102,7 @@ public class BattleManager : MonoBehaviour
             if (_currentBattleState == value) return;
 
             _currentBattleState = value;
-            GameEvents.Battle.TriggerBattleStateChanged(_currentBattleState);
+            OnBattleStateChanged?.Invoke(_currentBattleState);
         }
     }
 
@@ -104,6 +126,9 @@ public class BattleManager : MonoBehaviour
         // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
 
+        if (targetSelectionController == null)
+            targetSelectionController = GetComponent<TargetSelectionController>();
+
         // Ensure clean state on scene load
         ResetBattleVariables();
     }
@@ -112,12 +137,24 @@ public class BattleManager : MonoBehaviour
     {
         SubscribeToInputEvents();
         SubscribeToGameEvents();
+
+        if (targetSelectionController != null)
+        {
+            targetSelectionController.OnTargetConfirmed += HandleTargetSelectionConfirmed;
+            targetSelectionController.OnTargetCancelled += HandleTargetSelectionCancelled;
+        }
     }
 
     private void OnDisable()
     {
         UnsubscribeFromInputEvents();
         UnsubscribeFromGameEvents();
+
+        if (targetSelectionController != null)
+        {
+            targetSelectionController.OnTargetConfirmed -= HandleTargetSelectionConfirmed;
+            targetSelectionController.OnTargetCancelled -= HandleTargetSelectionCancelled;
+        }
     }
 
     #region Event Subscriptions
@@ -156,10 +193,6 @@ public class BattleManager : MonoBehaviour
 
         GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
         GameEvents.Input.OnBattleCancelPressed += HandleCancelPressed;
-        GameEvents.Input.OnBattleUpPressed += HandleUpPressed;
-        GameEvents.Input.OnBattleDownPressed += HandleDownPressed;
-        GameEvents.Input.OnBattleLeftPressed += HandleLeftPressed;
-        GameEvents.Input.OnBattleRightPressed += HandleRightPressed;
 
         // Command Cross direct hotkey subscriptions
         GameEvents.Input.OnBattleCommandUpPressed += ExecuteAttackCommand;
@@ -174,10 +207,6 @@ public class BattleManager : MonoBehaviour
     {
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
         GameEvents.Input.OnBattleCancelPressed -= HandleCancelPressed;
-        GameEvents.Input.OnBattleUpPressed -= HandleUpPressed;
-        GameEvents.Input.OnBattleDownPressed -= HandleDownPressed;
-        GameEvents.Input.OnBattleLeftPressed -= HandleLeftPressed;
-        GameEvents.Input.OnBattleRightPressed -= HandleRightPressed;
 
         GameEvents.Input.OnBattleCommandUpPressed -= ExecuteAttackCommand;
         GameEvents.Input.OnBattleCommandLeftPressed -= ExecutePsynergyCommand;
@@ -198,9 +227,10 @@ public class BattleManager : MonoBehaviour
         PlaySFX(SFXType.UI_Confirm);
         _selectedCommandType = BattleCommandType.Attack;
 
-        currentTargetType = PsynergyTargetType.SingleEnemy;
+        currentTargetType = ActionTargetType.SingleEnemy;
         currentAreaRange = 0;
-        SelectDefaultTarget(currentTargetType, currentAreaRange);
+
+        targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
         CurrentBattleState = BattleState.TargetSelection;
     }
 
@@ -210,6 +240,7 @@ public class BattleManager : MonoBehaviour
 
         PlaySFX(SFXType.UI_Confirm);
         _selectedCommandType = BattleCommandType.Psynergy;
+        OnCommandTypeSelected?.Invoke(BattleCommandType.Psynergy);
         CurrentBattleState = BattleState.SubMenuSelection;
     }
 
@@ -219,6 +250,17 @@ public class BattleManager : MonoBehaviour
 
         PlaySFX(SFXType.UI_Confirm);
         _selectedCommandType = BattleCommandType.Item;
+        OnCommandTypeSelected?.Invoke(BattleCommandType.Item);
+        CurrentBattleState = BattleState.SubMenuSelection;
+    }
+
+    private void ExecuteDjinnCommand()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
+
+        PlaySFX(SFXType.UI_Confirm);
+        _selectedCommandType = BattleCommandType.Djinn;
+        OnCommandTypeSelected?.Invoke(BattleCommandType.Djinn);
         CurrentBattleState = BattleState.SubMenuSelection;
     }
 
@@ -234,15 +276,6 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(PerformAction());
     }
 
-    private void ExecuteDjinnCommand()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
-
-        PlaySFX(SFXType.UI_Confirm);
-        _selectedCommandType = BattleCommandType.Djinn;
-        CurrentBattleState = BattleState.SubMenuSelection;
-    }
-
     private void ExecuteSummonCommand()
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
@@ -254,49 +287,140 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region Input Handlers by Battle State
+    #region SubMenu Action Selection Handlers
 
-    private void HandleConfirmPressed()
+    /// <summary>
+    /// Invoked directly by BattleHUDController when an action card is picked in SubMenu.
+    /// </summary>
+    public void HandleSubMenuActionSelected(BattleCommandType commandType, object actionPayload)
     {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
+            return;
 
-        switch (CurrentBattleState)
+        _selectedCommandType = commandType;
+        nextPsynergy = null;
+        nextItem = null;
+        nextDjinn = null;
+
+        switch (commandType)
         {
-            case BattleState.SubMenuSelection:
-                string selectedContent = "cure"; // Fallback placeholder
-
-                nextPsynergy = null;
-                GameEvents.Database.RequestPsynergyBySlug(selectedContent, (psy) =>
+            case BattleCommandType.Psynergy:
+                if (actionPayload is PsynergySO psynergy)
                 {
-                    nextPsynergy = psy;
-                });
-
-                if (nextPsynergy != null)
-                {
-                    PlaySFX(SFXType.UI_Confirm);
-                    CurrentBattleState = BattleState.TargetSelection;
-
-                    currentTargetType = nextPsynergy.TargetType;
-                    currentAreaRange = nextPsynergy.AreaRange;
-
-                    SelectDefaultTarget(currentTargetType, currentAreaRange);
-                    Debug.Log($"Psynergy {nextPsynergy.PsynergySlug} target type: {nextPsynergy.TargetType}");
+                    nextPsynergy = psynergy;
+                    currentTargetType = psynergy.TargetType;
+                    currentAreaRange = psynergy.AreaRange;
                 }
                 break;
 
-            case BattleState.TargetSelection:
-                PlaySFX(SFXType.UI_Confirm);
-
-                turnController.HideTurnCamera();
-                HideAllPointers();
-
-                CurrentBattleState = BattleState.WaitingTurnExecution;
-                StartCoroutine(PerformAction());
+            case BattleCommandType.Item:
+                if (actionPayload is ItemSO item)
+                {
+                    nextItem = item;
+                    currentTargetType = ActionTargetType.SingleAlly;
+                    currentAreaRange = 0;
+                }
                 break;
 
+            case BattleCommandType.Djinn:
+                if (actionPayload is DjinnInstance djinn)
+                {
+                    nextDjinn = djinn;
+                    if (djinn.DjinnData != null && djinn.DjinnData.UnleashEffect != null)
+                    {
+                        currentTargetType = djinn.DjinnData.UnleashEffect.TargetType;
+                        currentAreaRange = djinn.DjinnData.UnleashEffect.AreaRange;
+                    }
+                    else
+                    {
+                        currentTargetType = ActionTargetType.SingleEnemy;
+                        currentAreaRange = 0;
+                    }
+                }
+                break;
+
+            case BattleCommandType.Summon:
+                // TODO: Adapt when SummonSO is fully defined
+                currentTargetType = ActionTargetType.AllEnemies;
+                currentAreaRange = 0;
+                break;
+        }
+
+        targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
+        CurrentBattleState = BattleState.TargetSelection;
+    }
+
+    /// <summary>
+    /// Invoked directly by BattleHUDController when SubMenu cancellation occurs.
+    /// </summary>
+    public void HandleSubMenuCancelled()
+    {
+        if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
+            return;
+
+        nextPsynergy = null;
+        nextItem = null;
+        nextDjinn = null;
+
+        CurrentBattleState = BattleState.CommandSelection;
+    }
+
+    #endregion
+
+    #region Target Selection Callbacks
+
+    private void HandleTargetSelectionConfirmed(int primaryIndex, List<GameObject> affectedTargets)
+    {
+        if (CurrentBattleState != BattleState.TargetSelection) return;
+
+        actualTarget = primaryIndex;
+        targetList = affectedTargets;
+
+        turnController.HideTurnCamera();
+        HideAllPointers();
+
+        CurrentBattleState = BattleState.WaitingTurnExecution;
+        StartCoroutine(PerformAction());
+    }
+
+    private void HandleTargetSelectionCancelled()
+    {
+        if (CurrentBattleState != BattleState.TargetSelection) return;
+
+        HideAllPointers();
+
+        switch (_selectedCommandType)
+        {
+            case BattleCommandType.Attack:
+                CurrentBattleState = BattleState.CommandSelection;
+                break;
+
+            case BattleCommandType.Psynergy:
+            case BattleCommandType.Item:
+            case BattleCommandType.Djinn:
+            case BattleCommandType.Summon:
+                CurrentBattleState = BattleState.SubMenuSelection;
+                nextPsynergy = null;
+                nextItem = null;
+                nextDjinn = null;
+                break;
+        }
+    }
+
+    #endregion
+
+    #region Input Handlers by Battle State
+
+    private void HandleConfirmPressed(InputEventArgs args)
+    {
+        if (args.Handled || _cachedGameState != GameManager.GameState.InBattle) return;
+
+        switch (CurrentBattleState)
+        {
             case BattleState.ResultsScreen:
                 if (resultsController != null)
                 {
+                    args.Use();
                     resultsController.HandleConfirmInput();
                 }
                 break;
@@ -306,79 +430,9 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void HandleCancelPressed()
+    private void HandleCancelPressed(InputEventArgs args)
     {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
-
-        switch (CurrentBattleState)
-        {
-            case BattleState.TargetSelection:
-                HideAllPointers();
-                PlaySFX(SFXType.UI_Cancel);
-
-                switch (_selectedCommandType)
-                {
-                    case BattleCommandType.Attack:
-                        CurrentBattleState = BattleState.CommandSelection;
-                        break;
-
-                    case BattleCommandType.Psynergy:
-                    case BattleCommandType.Item:
-                    case BattleCommandType.Djinn:
-                    case BattleCommandType.Summon:
-                        CurrentBattleState = BattleState.SubMenuSelection;
-                        nextPsynergy = null;
-                        break;
-                }
-                break;
-
-            case BattleState.SubMenuSelection:
-                PlaySFX(SFXType.UI_Cancel);
-                CurrentBattleState = BattleState.CommandSelection;
-                break;
-        }
-    }
-
-    private void HandleLeftPressed()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
-
-        if (CurrentBattleState == BattleState.TargetSelection)
-        {
-            SelectLeftTarget();
-            PlaySFX(SFXType.UI_Move);
-        }
-    }
-
-    private void HandleRightPressed()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
-
-        if (CurrentBattleState == BattleState.TargetSelection)
-        {
-            SelectRightTarget();
-            PlaySFX(SFXType.UI_Move);
-        }
-    }
-
-    private void HandleUpPressed()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
-
-        if (CurrentBattleState == BattleState.SubMenuSelection)
-        {
-            PlaySFX(SFXType.UI_Move);
-        }
-    }
-
-    private void HandleDownPressed()
-    {
-        if (_cachedGameState != GameManager.GameState.InBattle) return;
-
-        if (CurrentBattleState == BattleState.SubMenuSelection)
-        {
-            PlaySFX(SFXType.UI_Move);
-        }
+        if (args.Handled || _cachedGameState != GameManager.GameState.InBattle) return;
     }
 
     #endregion
@@ -571,7 +625,7 @@ public class BattleManager : MonoBehaviour
 
                     if (targetStats == null && heroList != null && heroList.Count > 0)
                     {
-                        targetStats = heroList[Random.Range(0, heroList.Count)].GetComponent<FighterStats>();
+                        targetStats = heroList[UnityEngine.Random.Range(0, heroList.Count)].GetComponent<FighterStats>();
                     }
 
                     if (targetStats != null)
@@ -581,7 +635,10 @@ public class BattleManager : MonoBehaviour
                 }
                 else
                 {
-                    targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
+                    if (actualTarget < enemiesList.Count && enemiesList[actualTarget] != null)
+                    {
+                        targetStats = enemiesList[actualTarget].GetComponent<FighterStats>();
+                    }
                 }
 
                 if (targetStats != null)
@@ -632,6 +689,8 @@ public class BattleManager : MonoBehaviour
     {
         foreach (GameObject target in targetList)
         {
+            if (target == null) continue;
+
             FighterStats targetData = target.GetComponent<FighterStats>();
             if (targetData != null && targetData.CurrHp <= 0)
             {
@@ -644,8 +703,15 @@ public class BattleManager : MonoBehaviour
                     GetItemLoot(enemyStats);
 
                     fighters.Remove(targetData.gameObject);
-                    Destroy(targetData.gameObject);
 
+                    // Preserve spatial slot indices by setting cell to null instead of removing from enemiesList
+                    int slotIndex = enemiesList.IndexOf(targetData.gameObject);
+                    if (slotIndex >= 0)
+                    {
+                        enemiesList[slotIndex] = null;
+                    }
+
+                    Destroy(targetData.gameObject);
                     enemiesDefeated++;
                 }
                 else
@@ -664,7 +730,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        if (enemiesDefeated == enemiesList.Count)
+        if (enemiesDefeated == enemiesOnBattle)
         {
             StartCoroutine(BattleWinned());
         }
@@ -819,11 +885,11 @@ public class BattleManager : MonoBehaviour
 
     #region State & Target Helpers
 
-    private bool IsAllyTarget(PsynergyTargetType targetType)
+    private bool IsAllyTarget(ActionTargetType targetType)
     {
-        return targetType == PsynergyTargetType.SingleAlly ||
-               targetType == PsynergyTargetType.AllAllies ||
-               targetType == PsynergyTargetType.Self;
+        return targetType == ActionTargetType.SingleAlly ||
+               targetType == ActionTargetType.AllAllies ||
+               targetType == ActionTargetType.Self;
     }
 
     private void PlaySFX(SFXType sfx)
@@ -857,7 +923,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
+        OnTargetSelectionChanged?.Invoke(null, null);
     }
 
     private void ResetBattleVariables()
@@ -884,207 +950,17 @@ public class BattleManager : MonoBehaviour
         _selectedCommandType = BattleCommandType.Attack;
         nextPsynergy = null;
         nextItem = null;
-        currentTargetType = PsynergyTargetType.SingleEnemy;
+        nextDjinn = null;
+        currentTargetType = ActionTargetType.SingleEnemy;
         currentAreaRange = 0;
         CurrentBattleState = BattleState.None;
 
-        GameEvents.Battle.TriggerTargetSelectionChanged(null, null);
+        OnTargetSelectionChanged?.Invoke(null, null);
     }
 
     public void ChangeBattleSpeed()
     {
         GameEvents.GameState.RequestToggleGameSpeed();
-    }
-
-    #endregion
-
-    #region Target Selection Logic
-
-    private void SelectDefaultTarget(PsynergyTargetType targetType, int areaRange = 0, int initialIndex = 0)
-    {
-        bool targetIsAlly = IsAllyTarget(targetType);
-        GameObject primaryTargetObj = null;
-
-        if (targetIsAlly)
-        {
-            targetList = new List<GameObject>();
-
-            if (party != null)
-            {
-                foreach (GameObject hero in party)
-                {
-                    if (hero != null)
-                    {
-                        hero.transform.Find("Pointer").gameObject.SetActive(false);
-                    }
-                }
-
-                switch (targetType)
-                {
-                    case PsynergyTargetType.SingleAlly:
-                    case PsynergyTargetType.Self:
-                        targetList.Add(party[initialIndex]);
-                        actualTarget = initialIndex;
-                        primaryTargetObj = party[initialIndex];
-                        break;
-
-                    case PsynergyTargetType.AllAllies:
-                        foreach (GameObject hero in party)
-                        {
-                            if (hero != null)
-                            {
-                                targetList.Add(hero);
-                            }
-                        }
-                        actualTarget = 0;
-                        primaryTargetObj = party.Count > 0 ? party[0] : null;
-                        break;
-                }
-            }
-        }
-        else
-        {
-            targetList = new List<GameObject>();
-
-            switch (targetType)
-            {
-                case PsynergyTargetType.SingleEnemy:
-                    while (enemiesList[initialIndex] == null)
-                    {
-                        initialIndex++;
-                    }
-
-                    targetList.Add(enemiesList[initialIndex]);
-                    actualTarget = initialIndex;
-                    primaryTargetObj = enemiesList[initialIndex];
-                    break;
-
-                case PsynergyTargetType.MultiEnemyArea:
-                    while (enemiesList[initialIndex] == null)
-                    {
-                        initialIndex++;
-                    }
-
-                    actualTarget = initialIndex;
-                    primaryTargetObj = enemiesList[initialIndex];
-
-                    targetList.Add(enemiesList[initialIndex]);
-
-                    if (areaRange >= 1)
-                    {
-                        for (int offset = 1; offset <= areaRange; offset++)
-                        {
-                            int rightIdx = initialIndex + offset;
-                            int leftIdx = initialIndex - offset;
-
-                            if (rightIdx < enemiesList.Count && enemiesList[rightIdx] != null)
-                            {
-                                targetList.Add(enemiesList[rightIdx]);
-                            }
-
-                            if (leftIdx >= 0 && enemiesList[leftIdx] != null)
-                            {
-                                targetList.Add(enemiesList[leftIdx]);
-                            }
-                        }
-                    }
-                    break;
-
-                case PsynergyTargetType.AllEnemies:
-                    for (int e = 0; e < enemiesList.Count; e++)
-                    {
-                        if (enemiesList[e] != null)
-                        {
-                            targetList.Add(enemiesList[e]);
-                        }
-                    }
-                    actualTarget = 0;
-                    primaryTargetObj = enemiesList.Count > 0 ? enemiesList[0] : null;
-                    break;
-            }
-        }
-
-        GameEvents.Battle.TriggerTargetSelectionChanged(targetList, primaryTargetObj);
-    }
-
-    private void SelectRightTarget()
-    {
-        int nextTarget = actualTarget;
-        bool targetIsAlly = IsAllyTarget(currentTargetType);
-
-        if (targetIsAlly)
-        {
-            if (party != null && party.Count > 1)
-            {
-                nextTarget = (actualTarget + 1) % party.Count;
-            }
-
-            if (actualTarget != nextTarget)
-            {
-                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
-            }
-        }
-        else
-        {
-            if (enemiesList.Count > 1)
-            {
-                int count = enemiesList.Count;
-                for (int i = 1; i <= count; i++)
-                {
-                    int candidate = (actualTarget + i) % count;
-                    if (enemiesList[candidate] != null)
-                    {
-                        nextTarget = candidate;
-                        break;
-                    }
-                }
-            }
-
-            if (actualTarget != nextTarget)
-            {
-                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
-            }
-        }
-    }
-
-    private void SelectLeftTarget()
-    {
-        int nextTarget = actualTarget;
-        bool targetIsAlly = IsAllyTarget(currentTargetType);
-
-        if (targetIsAlly)
-        {
-            if (party != null && party.Count > 1)
-            {
-                nextTarget = (actualTarget - 1 + party.Count) % party.Count;
-            }
-
-            if (actualTarget != nextTarget)
-            {
-                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
-            }
-        }
-        else
-        {
-            if (enemiesList.Count > 1)
-            {
-                int count = enemiesList.Count;
-                for (int i = 1; i <= count; i++)
-                {
-                    int candidate = (actualTarget - i + count) % count;
-                    if (enemiesList[candidate] != null)
-                    {
-                        nextTarget = candidate;
-                        break;
-                    }
-                }
-            }
-
-            if (actualTarget != nextTarget)
-            {
-                SelectDefaultTarget(currentTargetType, currentAreaRange, nextTarget);
-            }
-        }
     }
 
     #endregion

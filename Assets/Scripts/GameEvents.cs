@@ -90,16 +90,16 @@ public static class GameEvents
         /// <summary>
         /// Triggered when the confirm action button is pressed inside battle UI.
         /// </summary>
-        public static event Action OnBattleConfirmPressed;
+        public static event Action<InputEventArgs> OnBattleConfirmPressed;
         public static void TriggerBattleConfirmPressed()
-            => OnBattleConfirmPressed?.Invoke();
+            => OnBattleConfirmPressed?.Invoke(new InputEventArgs());
 
         /// <summary>
         /// Triggered when the cancel/back button is pressed inside battle UI.
         /// </summary>
-        public static event Action OnBattleCancelPressed;
+        public static event Action<InputEventArgs> OnBattleCancelPressed;
         public static void TriggerBattleCancelPressed()
-            => OnBattleCancelPressed?.Invoke();
+            => OnBattleCancelPressed?.Invoke(new InputEventArgs());
 
         /// <summary>
         /// Triggered when navigate up key is pressed inside battle UI.
@@ -667,11 +667,10 @@ public static class GameEvents
             => OnLoadCompleted?.Invoke(slotIndex, success);
     }
 
-    // ==========================================
-    // BATTLE EVENTS
-    // ==========================================
     public static class Battle
     {
+        #region Global Triggers (External Scene -> Battle System)
+
         /// <summary>
         /// Request to initiate a battle from an overworld physical collision.
         /// Params: enemyObj, spawnZoneObj, encounterType
@@ -688,15 +687,13 @@ public static class GameEvents
         public static void RequestEventBattle(List<GameObject> preSetEnemies, bool isBossBattle = false)
             => OnRequestEventBattle?.Invoke(preSetEnemies, isBossBattle);
 
-        /// <summary>
-        /// Notifies UI and battle systems when the overall battle state changes.
-        /// </summary>
-        public static event Action<BattleState> OnBattleStateChanged;
-        public static void TriggerBattleStateChanged(BattleState newState)
-            => OnBattleStateChanged?.Invoke(newState);
+        #endregion
+
+        #region Action Banner Requests (Animation Events / Action System -> UI)
 
         /// <summary>
         /// Requests displaying the top-center action banner overlay with title and optional target subtext.
+        /// Used by animations, Psynergy execution, items, or Djinn unleash steps.
         /// </summary>
         public static event Action<string, string> OnRequestActionBanner;
         public static void RequestActionBanner(string title, string subtext = "")
@@ -709,23 +706,21 @@ public static class GameEvents
         public static void TriggerHideActionBanner()
             => OnHideActionBanner?.Invoke();
 
+        #endregion
+
+        #region Pending Refactor (Turn System)
+
         /// <summary>
         /// Notifies the UI of the updated fighter turn timeline sequence.
         /// The first element in the list represents the currently active fighter.
         /// Params: turnQueue (ordered list of active fighters/stats)
+        /// NOTE: Preserved until TurnController refactoring.
         /// </summary>
         public static event Action<IReadOnlyList<GameObject>> OnTurnQueueUpdated;
         public static void TriggerTurnQueueUpdated(IReadOnlyList<GameObject> turnQueue)
             => OnTurnQueueUpdated?.Invoke(turnQueue);
 
-        /// <summary>
-        /// Notifies the UI of the target(s) currently highlighted for selection.
-        /// Params: targets (list of highlighted fighters), mainTarget (primary target for AoE spread scaling)
-        /// Send null or empty list to clear current target overlays.
-        /// </summary>
-        public static event Action<IReadOnlyList<GameObject>, GameObject> OnTargetSelectionChanged;
-        public static void TriggerTargetSelectionChanged(IReadOnlyList<GameObject> targets, GameObject mainTarget = null)
-            => OnTargetSelectionChanged?.Invoke(targets, mainTarget);
+        #endregion
     }
 
     // ==========================================

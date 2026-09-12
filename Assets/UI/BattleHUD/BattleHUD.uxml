@@ -3,6 +3,7 @@
     <Style src="project://database/Assets/UI/BattleHUD/BattleHUD.uss?fileID=7433441132597879392&amp;guid=98def250eaf4dfb4785e76e914f861cf&amp;type=3#BattleHUD"/>
     
     <ui:Template name="CommandCrossOverlay" src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uxml"/>
+    <ui:Template name="BattleSubMenu" src="project://database/Assets/UI/BattleHUD/BattleSubMenu.uxml"/>
 
     <ui:VisualElement name="battle_hud_root" class="battle-hud-root">
         
@@ -33,18 +34,13 @@
             <ui:Instance template="CommandCrossOverlay" name="command_cross_overlay"/>
         </ui:VisualElement>
 
+        <!-- Floating Action SubMenu Anchor (Psynergy, Items, Djinns) -->
+        <ui:VisualElement name="floating_submenu_container" class="floating-submenu-container" style="display: none;">
+            <ui:Instance template="BattleSubMenu" name="battle_submenu_instance"/>
+        </ui:VisualElement>
+
         <ui:VisualElement name="qte_overlay_container" class="qte-overlay-container"/>
         <ui:VisualElement name="bottom_left_party_container" class="party-cards-battle-container"/>
-
-        <!-- Action Details Panel -->
-        <ui:VisualElement name="action_details_panel" class="action-details-panel" style="display: none;">
-            <ui:Label name="label_details_title" text="PSYNERGY" class="details-title-label"/>
-            <ui:ScrollView name="details_list_scroll" class="details-list-scroll"/>
-            <ui:VisualElement name="action_description_box" class="action-description-box">
-                <ui:Label name="label_action_description" text="Deals fire damage to a single enemy target." class="action-description-text"/>
-                <ui:Label name="label_action_cost" text="PP: 6" class="action-cost-text"/>
-            </ui:VisualElement>
-        </ui:VisualElement>
 
     </ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,174 @@
+/* =========================================================================
+   ITEM CARD (BATTLE SUBMENU ITEM)
+   ========================================================================= */
+
+.item-card {
+    flex-direction: row;
+    align-items: center;
+    height: 54px;
+    margin-bottom: 6px;
+    padding-right: 12px;
+    background-color: rgba(15, 20, 28, 0.92);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    overflow: hidden;
+    transition-property: background-color, border-color, transform;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+/* =========================================================================
+   STRIPES DE CATEGORÍA / TIPO
+   ========================================================================= */
+
+.card-item-stripe {
+    width: 5px;
+    height: 100%;
+    margin-right: 8px;
+}
+
+/* Stripe para Consumibles (Verde Sanador / Alquimia) */
+.stripe-consumable {
+    background-color: #4cd964;
+}
+
+/* Stripe para Equipamiento Usable / Artefactos (Dorado / Místico GS) */
+.stripe-equipment {
+    background-color: #ffcc00;
+}
+
+/* =========================================================================
+   CONTENEDOR DEL SLOT (ICONO + CANTIDAD)
+   ========================================================================= */
+
+.card-slot-container {
+    width: 44px;
+    height: 44px;
+    margin-right: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ajustes de escala si la plantilla original de ItemSlot es más grande */
+.card-slot-container .slot-box {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+}
+
+/* =========================================================================
+   COLUMNA DE IDENTIFICACIÓN (NOMBRE + SUBTIPO)
+   ========================================================================= */
+
+.card-identity-column {
+    flex-direction: column;
+    justify-content: center;
+    min-width: 120px;
+    max-width: 160px;
+    margin-right: 8px;
+}
+
+.item-card-name {
+    color: #ffffff;
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin: 0;
+    padding: 0;
+    text-overflow: ellipsis;
+}
+
+.item-card-subtype {
+    color: #8e9bae;
+    font-size: 10px;
+    -unity-font-style: italic;
+    margin-top: 2px;
+    padding: 0;
+}
+
+/* =========================================================================
+   DIVIDER & COLUMNA DE EFECTO
+   ========================================================================= */
+
+.card-vertical-divider {
+    width: 1px;
+    height: 60%;
+    background-color: rgba(255, 255, 255, 0.15);
+    margin-right: 12px;
+}
+
+.card-effect-column {
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.item-card-effect {
+    color: #a4ceeb;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+}
+
+/* =========================================================================
+   ITEM SLOT
+   ========================================================================= */
+
+.slot-box {
+    width: 80px;
+    height: 80px;
+    margin: 3px;
+    background-color: rgba(20, 26, 38, 0.8);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    
+    /* Dynamic UI Interactive System */
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.slot-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: contain;
+    background-position: center;
+    opacity: 0.25;
+}
+
+.item-icon {
+    width: 90%;
+    height: 90%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.quantity-box {
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-width: 1px;
+    padding: 3px;
+}
+
+.slot-box .item-quantity-label {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: #000000;
+    -unity-text-align: middle-center;
+}

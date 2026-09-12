@@ -25,13 +25,13 @@
 
 /* --- Golden Sun Style Selection Pointer (Diamond) --- */
 .selection-diamond {
-    width: 20px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
     background-color: var(--color-jupiter); /* Purple/Jupiter color for selection */
     rotate: 45deg; /* Rotates a square to make a diamond */
     border-width: 1.5px;
     border-color: #000000;
-    margin-bottom: 8px; /* Space between diamond and nameplate */
+    margin-bottom: 15px; /* Space between diamond and nameplate */
     align-items: center;
     justify-content: center;
     
@@ -40,8 +40,8 @@
 
 /* Inner highlight for the diamond */
 .diamond-core {
-    width: 10px;
-    height: 10px;
+    width: 70%;
+    height: 70%;
     background-color: #FFFFFF;
     opacity: 0.6;
 }

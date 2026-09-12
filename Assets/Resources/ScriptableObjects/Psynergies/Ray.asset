@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   psynergyName: Rayo
   slugName: ray
-  description: 'Invoca esquirlas sobre los enemigos. '
+  description: 'Ataca con una tormenta de rayos. '
   icon: {fileID: 21300000, guid: 645d966e5591dc74486ae22ed7794b8a, type: 3}
   ppCost: 6
   element: 2

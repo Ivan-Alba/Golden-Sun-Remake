@@ -33,11 +33,14 @@ public class DjinnUnleashSO : ScriptableObject
     [Tooltip("Elemental power alignment of this unleash execution.")]
     [SerializeField] private ElementalType element = ElementalType.None;
 
-    [Tooltip("Does this unleash target allies (e.g. Shield/Heal) or enemies (Attack/Debuff)?")]
-    [SerializeField] private bool targetsAlly = false;
+    [Tooltip("Defines targeting behavior (SingleEnemy, MultiEnemyArea, AllEnemies, SingleAlly, AllAllies, Self).")]
+    [SerializeField] private ActionTargetType targetType = ActionTargetType.SingleEnemy;
 
-    [Tooltip("Does this unleash affect all combatants in the target group?")]
-    [SerializeField] private bool isAreaOfEffect = false;
+    [Tooltip("Number of additional targets affected around the primary target (e.g., 0 = single target, 1 = 3 targets, 2 = 5 targets).")]
+    [SerializeField] private int areaRange = 0;
+
+    [Tooltip("If true, damage or effect potency diminishes from the main target towards outer targets.")]
+    [SerializeField] private bool hasDiminishingSpread = false;
 
     [Tooltip("Base damage multiplier applied during the primary hit (e.g., 1.5 = +50% physical/elemental damage).")]
     [SerializeField] private float damageMultiplier = 1.0f;
@@ -57,7 +60,7 @@ public class DjinnUnleashSO : ScriptableObject
     [Tooltip("Normalized probability (0.0 to 1.0) of triggering the secondary follow-up hit (e.g., 0.5 = 50% chance like Gust Djinn).")]
     [SerializeField] private float secondaryHitChance = 0.5f;
 
-    [Tooltip("Damage multiplier applied exclusively to the secondary strike (can be lower, equal, or higher than primary multiplier).")]
+    [Tooltip("Damage multiplier applied exclusively to the secondary strike.")]
     [SerializeField] private float secondaryDamageMultiplier = 1.0f;
 
     [Tooltip("Flat bonus damage added exclusively to the secondary strike.")]
@@ -129,8 +132,9 @@ public class DjinnUnleashSO : ScriptableObject
 
     // Targeting & Primary Attack
     public ElementalType Element => element;
-    public bool TargetsAlly => targetsAlly;
-    public bool IsAreaOfEffect => isAreaOfEffect;
+    public ActionTargetType TargetType => targetType;
+    public int AreaRange => areaRange;
+    public bool HasDiminishingSpread => hasDiminishingSpread;
     public float DamageMultiplier => damageMultiplier;
     public int FlatBonusDamage => flatBonusDamage;
 

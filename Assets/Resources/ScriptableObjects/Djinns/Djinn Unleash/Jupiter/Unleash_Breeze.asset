@@ -33,8 +33,9 @@ MonoBehaviour:
     m_LocalVariables: []
   icon: {fileID: 0}
   element: 2
-  targetsAlly: 1
-  isAreaOfEffect: 1
+  targetType: 5
+  areaRange: 0
+  hasDiminishingSpread: 0
   damageMultiplier: 1
   flatBonusDamage: 0
   hasSecondaryHit: 0

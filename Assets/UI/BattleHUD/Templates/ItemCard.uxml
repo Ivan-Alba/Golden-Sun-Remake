@@ -1,0 +1,30 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
+    <Style src="project://database/Assets/UI/BattleHUD/Templates/ItemCard.uss" />
+
+    <ui:VisualElement name="item_card" class="item-card">
+        <!-- Stripe decorativo lateral según tipo (stripe-consumable / stripe-equipment) -->
+        <ui:VisualElement name="card_item_stripe" class="card-item-stripe stripe-consumable" />
+
+        <!-- Slot compacto con icono y badge de cantidad (anidado) -->
+        <ui:VisualElement name="card_slot_container" class="card-slot-container">
+            <ui:Template name="ItemSlot" src="project://database/Assets/UI/MainMenu/Pages/Items/Item_Slot.uxml" />
+            <ui:Instance template="ItemSlot" name="item_slot_instance" />
+        </ui:VisualElement>
+
+        <!-- Columna de Identificación (Nombre + Subtipo) -->
+        <ui:VisualElement name="card_identity_column" class="card-identity-column">
+            <ui:Label text="Hierba" name="label_item_name" class="item-card-name" />
+            <ui:Label text="Consumible" name="label_item_subtype" class="item-card-subtype" />
+        </ui:VisualElement>
+
+        <!-- Separador visual sutil -->
+        <ui:VisualElement class="card-vertical-divider" />
+
+        <!-- Columna de Efecto / Descripción del uso en batalla -->
+        <ui:VisualElement name="card_effect_column" class="card-effect-column">
+            <ui:Label text="Restaura 100 HP" name="label_item_effect" class="item-card-effect" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
