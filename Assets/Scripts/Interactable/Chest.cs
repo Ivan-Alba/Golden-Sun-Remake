@@ -145,7 +145,7 @@ public class Chest : Interactable
 
         // 2. Request item addition to inventory via decoupled event transaction
         int remaining = -1;
-        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result) =>
+        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result, recipientHeroName) =>
         {
             remaining = result;
         });

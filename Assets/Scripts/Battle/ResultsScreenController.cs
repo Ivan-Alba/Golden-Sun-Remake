@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if false
 public class ResultsScreenController : MonoBehaviour
 {
     [Header("UI References")]
@@ -284,3 +285,4 @@ public class ResultsScreenController : MonoBehaviour
         }
     }
 }
+#endif

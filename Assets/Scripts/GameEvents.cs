@@ -1020,10 +1020,10 @@ public static class GameEvents
     {
         /// <summary>
         /// Request to add an item to the inventory using its ScriptableObject reference. 
-        /// Sends ItemSO, quantity and a callback action returning the remaining items count (0 = success, >0 = overflow).
+        /// Sends ItemSO, quantity and a callback action returning remaining items count (0 = success) and recipient hero name.
         /// </summary>
-        public static event Action<ItemSO, int, Action<int>> OnRequestAddItem;
-        public static void RequestAddItem(ItemSO item, int quantity, Action<int> onResult)
+        public static event Action<ItemSO, int, Action<int, string>> OnRequestAddItem;
+        public static void RequestAddItem(ItemSO item, int quantity, Action<int, string> onResult)
             => OnRequestAddItem?.Invoke(item, quantity, onResult);
 
         /// <summary>

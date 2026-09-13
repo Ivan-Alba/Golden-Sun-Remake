@@ -13,7 +13,8 @@ public enum BattleState
     CommandSelection,     // Choosing Attack, Psynergy, Djinn, Defense, Item, Escape...
     SubMenuSelection,     // Navigating Psynergy list or Item list
     TargetSelection,      // Selecting target enemy or ally
-    ResultsScreen,        // EXP, Gold and Loot screen
+    VictoryFanfare,       // 3D camera fanfare, victory poses, and audio sequence
+    ResultsScreen,        // EXP, Gold and Loot screen UI presentation
     GameOverScreen        // Defeat screen
 }
 
@@ -22,7 +23,6 @@ public class BattleManager : MonoBehaviour
     [Header("Internal Prefab References")]
     [SerializeField] private Transform audioCenter;
     [SerializeField] private BattleCameraController battleCameraController;
-    [SerializeField] private BattleHUDController hudController;
     [SerializeField] private TargetSelectionController targetSelectionController;
     [SerializeField] private BattleFieldSpawner fieldSpawner;
     [SerializeField] private BattleActionExecutor actionExecutor;
@@ -81,6 +81,12 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public event Action<List<GameObject>, GameObject> OnTargetSelectionChanged;
 
+    /// <summary>
+    /// Fired when victory fanfare concludes and results UI should be displayed.
+    /// Passes active hero party, reward summary, and a completion callback to trigger battle teardown.
+    /// </summary>
+    public event Action<IReadOnlyList<GameObject>, BattleRewardSummary, Action> OnBattleResultsReady;
+
     #endregion
 
     // BATTLE STATE MACHINE (Encapsulated State Property)
@@ -116,9 +122,6 @@ public class BattleManager : MonoBehaviour
     {
         // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
-
-        if (hudController == null)
-            hudController = GetComponent<BattleHUDController>() ?? GetComponentInChildren<BattleHUDController>();
 
         if (targetSelectionController == null)
             targetSelectionController = GetComponent<TargetSelectionController>();
@@ -441,7 +444,7 @@ public class BattleManager : MonoBehaviour
 
         battleCameraController.SetInitialIdle();
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.6f);
 
         // Initializing Turn System and starting first turn
         InitializeBattleTurns();
@@ -626,7 +629,8 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator BattleWinned()
     {
-        CurrentBattleState = BattleState.ResultsScreen;
+        // 1. Enter VictoryFanfare state (Blocks UI inputs while 3D animations execute)
+        CurrentBattleState = BattleState.VictoryFanfare;
 
         GameEvents.Audio.RequestPlayVictoryBGM();
 
@@ -643,42 +647,33 @@ public class BattleManager : MonoBehaviour
             battleCameraController.Victory(turnsOrdered.ElementAt(0).Key);
         }
 
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(3.0f);
 
-        // Fetch reward summary from tracker
+        // 2. Apply non-XP rewards & fetch summary from tracker
         BattleRewardSummary rewardSummary = rewardTracker != null
-            ? rewardTracker.GetRewardSummary()
+            ? rewardTracker.ApplyAndGetRewardSummary()
             : default;
 
-        // Delegate entire sequential results UI presentation to ResultsScreenPresenter via BattleHUDController
-        ResultsScreenPresenter resultsPresenter = (hudController != null)
-            ? hudController.ResultsPresenter
-            : null;
+        // 3. Transition to ResultsScreen state to signal active results UI
+        CurrentBattleState = BattleState.ResultsScreen;
 
-        if (resultsPresenter != null)
+        // 4. Delegate UI flow via local event, passing completion callback to trigger battle teardown
+        if (OnBattleResultsReady != null)
         {
-            yield return resultsPresenter.PlayResultsSequence(heroList, rewardSummary, battleCameraController);
+            OnBattleResultsReady.Invoke(heroList, rewardSummary, () =>
+            {
+                GameEvents.Scene.RequestFullTransition(SetOffBattle);
+            });
         }
         else
         {
-            Debug.LogWarning($"[{nameof(BattleManager)}] ResultsScreenPresenter reference is missing on HUDController. Skipping sequence.");
+            // Fallback teardown if no HUD listener is attached
+            GameEvents.Scene.RequestFullTransition(SetOffBattle);
         }
-
-        GameEvents.Scene.RequestFullTransition(SetOffBattle);
-        yield return null;
     }
 
     private void SetOffBattle()
     {
-        if (hudController != null)
-        {
-            hudController.SetHUDVisible(false);
-            hudController.SetResultsLayerVisible(false);
-            hudController.SetGameOverLayerVisible(false);
-
-            hudController.SetSubMenuVisible(false);
-        }
-
         foreach (GameObject hero in heroList)
         {
             if (hero.GetComponent<FighterStats>().CurrHp > 0)

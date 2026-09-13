@@ -72,10 +72,10 @@ public class InventoryController : MonoBehaviour
         _currentActiveHero = newActiveHero;
     }
 
-    private void HandleRequestAddItem(ItemSO itemData, int quantity, Action<int> onResult)
+    private void HandleRequestAddItem(ItemSO itemData, int quantity, Action<int, string> onResult)
     {
-        int remaining = AddItem(itemData, quantity);
-        onResult?.Invoke(remaining);
+        var (remaining, recipientName) = AddItem(itemData, quantity);
+        onResult?.Invoke(remaining, recipientName);
     }
 
     private void HandleRequestRemoveItem(ItemSO itemData, int quantity, Action<bool> onResult)
@@ -216,7 +216,7 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Adds an item by slug via GameEvents.Database. Automatically targets active hero first (or specific targetHeroIndex if provided).
     /// </summary>
-    private int AddItem(string itemSlug, int quantity = 1, int targetHeroIndex = -1)
+    private (int remaining, string recipientName) AddItem(string itemSlug, int quantity = 1, int targetHeroIndex = -1)
     {
         ItemSO itemToAdd = null;
 
@@ -228,7 +228,7 @@ public class InventoryController : MonoBehaviour
         if (itemToAdd == null)
         {
             Debug.LogWarning($"[InventoryController] Cannot add item. Slug '{itemSlug}' not found.", this);
-            return quantity;
+            return (quantity, string.Empty);
         }
 
         return AddItem(itemToAdd, quantity, targetHeroIndex);
@@ -237,10 +237,11 @@ public class InventoryController : MonoBehaviour
     /// <summary>
     /// Adds an ItemSO instance. Routes KeyItems to GlobalBag via decoupled events, 
     /// or places standard items in the target hero's backpack (overflowing to party members).
+    /// Returns a tuple containing the un-added remaining quantity and the recipient hero's name.
     /// </summary>
-    private int AddItem(ItemSO item, int quantity = 1, int targetHeroIndex = -1)
+    private (int remaining, string recipientName) AddItem(ItemSO item, int quantity = 1, int targetHeroIndex = -1)
     {
-        if (item == null || quantity <= 0) return quantity;
+        if (item == null || quantity <= 0) return (quantity, string.Empty);
 
         // 1. Route KeyItems / QuestItems to GlobalBag via Decoupled Event Callback
         if (item is KeyItemSO keyItem)
@@ -260,14 +261,14 @@ public class InventoryController : MonoBehaviour
                 Debug.LogWarning($"[GlobalBag] Could not fully fit {remainingOverflow}x {keyItem.ItemName}.");
             }
 
-            return remainingOverflow;
+            return (remainingOverflow, "Bolsa");
         }
 
         // 2. Route standard items to Hero Backpacks
         if (partyInventories == null || partyInventories.Count == 0)
         {
             Debug.LogError("[InventoryController] No party inventories registered!", this);
-            return quantity;
+            return (quantity, string.Empty);
         }
 
         // Determine starting hero index (active hero by default if targetHeroIndex is -1)
@@ -278,10 +279,17 @@ public class InventoryController : MonoBehaviour
         }
 
         int remaining = quantity;
+        string recipientName = string.Empty;
 
         // Step 2a: Try putting in starting hero's inventory first
         HeroInventory primaryHero = partyInventories[startingIndex];
+        int initialRemaining = remaining;
         remaining = primaryHero.AddItem(item, remaining);
+
+        if (remaining < initialRemaining)
+        {
+            recipientName = primaryHero.gameObject.name;
+        }
 
         // Step 2b: If primary hero was full, attempt to route remaining quantity to other party members
         if (remaining > 0)
@@ -290,21 +298,28 @@ public class InventoryController : MonoBehaviour
             {
                 if (i == startingIndex) continue; // Skip primary, already processed
 
+                int beforeAdd = remaining;
                 remaining = partyInventories[i].AddItem(item, remaining);
+
+                if (remaining < beforeAdd && string.IsNullOrEmpty(recipientName))
+                {
+                    recipientName = partyInventories[i].gameObject.name;
+                }
+
                 if (remaining <= 0) break;
             }
         }
 
         if (remaining == 0)
         {
-            Debug.Log($"<color=green>[Inventory] Added {quantity}x {item.ItemName} (Started at {primaryHero.gameObject.name}).</color>");
+            Debug.Log($"<color=green>[Inventory] Added {quantity}x {item.ItemName} (Targeted {primaryHero.gameObject.name}, accepted by {recipientName}).</color>");
         }
         else
         {
             Debug.LogWarning($"[Inventory] Backpacks full! Could not fit {remaining}x {item.ItemName}.");
         }
 
-        return remaining;
+        return (remaining, recipientName);
     }
 
     /// <summary>

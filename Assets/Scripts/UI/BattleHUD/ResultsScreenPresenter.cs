@@ -167,15 +167,32 @@ public class ResultsScreenPresenter
         // 4. STEP 4: ITEM DROPS NOTIFICATIONS
         if (rewardSummary.ItemsObtained != null && rewardSummary.ItemsObtained.Count > 0)
         {
-            foreach (var itemPair in rewardSummary.ItemsObtained)
+            foreach (ObtainedItemEntry drop in rewardSummary.ItemsObtained)
             {
-                ItemSO item = itemPair.Key;
-                int count = itemPair.Value;
+                if (drop.Item == null) continue;
 
-                if (item == null) continue;
+                string itemName = !string.IsNullOrEmpty(drop.Item.ItemName) ? drop.Item.ItemName : drop.Item.name;
+                string enemyName = !string.IsNullOrEmpty(drop.DroppedByEnemyName) ? drop.DroppedByEnemyName.ToUpper() : "EL ENEMIGO";
+                string heroName = !string.IsNullOrEmpty(drop.RecipientHeroName) ? drop.RecipientHeroName.ToUpper() : "";
 
-                string countSuffix = count > 1 ? $" x{count}" : "";
-                yield return ShowDialogStep($"¡Has obtenido: {item.ItemName}{countSuffix}!");
+                if (drop.AddedFully)
+                {
+                    string heroText = !string.IsNullOrEmpty(heroName)
+                        ? $" ¡{heroName} lo guarda en su bolsa!"
+                        : "";
+
+                    yield return ShowDialogStep($"¡{enemyName} dejó caer {itemName.ToUpper()}!{heroText}");
+                }
+                else if (drop.AddedPartialOrFull)
+                {
+                    int storedAmount = drop.QuantityDropped - drop.QuantityOverflow;
+                    string heroText = !string.IsNullOrEmpty(heroName) ? $" ¡{heroName} guardó {storedAmount}" : $" Se guardaron {storedAmount}";
+                    yield return ShowDialogStep($"¡{enemyName} dejó caer {itemName.ToUpper()}!{heroText}, pero las mochilas se llenaron!");
+                }
+                else
+                {
+                    yield return ShowDialogStep($"¡{enemyName} dejó caer {itemName.ToUpper()}, pero las mochilas están llenas!");
+                }
             }
         }
 

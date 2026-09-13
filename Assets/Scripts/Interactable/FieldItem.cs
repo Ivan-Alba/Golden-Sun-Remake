@@ -113,7 +113,7 @@ public class FieldItem : Interactable
 
         // 3. Attempt to add item to Inventory via decoupled event transaction
         int remaining = -1;
-        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result) =>
+        GameEvents.Inventory.RequestAddItem(itemData, itemQuantity, (result, recipientHeroName) =>
         {
             remaining = result;
         });

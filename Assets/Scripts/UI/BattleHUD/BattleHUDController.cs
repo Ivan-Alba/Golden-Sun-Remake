@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -76,6 +77,8 @@ public class BattleHUDController : MonoBehaviour
     private IVisualElementScheduledItem _bannerAutoCloseSchedule;
     private IVisualElementScheduledItem _bannerHideTransitionSchedule;
     private IVisualElementScheduledItem _viewportShowSchedule;
+
+    private Coroutine _resultsSequenceCoroutine;
 
     #endregion
 
@@ -388,6 +391,9 @@ public class BattleHUDController : MonoBehaviour
             battleManager.OnBattleStateChanged -= HandleBattleStateChanged;
             battleManager.OnBattleStateChanged += HandleBattleStateChanged;
 
+            battleManager.OnBattleResultsReady -= HandleBattleResultsReady;
+            battleManager.OnBattleResultsReady += HandleBattleResultsReady;
+
             if (_subMenuPresenter != null)
             {
                 battleManager.OnBattleStateChanged -= _subMenuPresenter.HandleBattleStateChanged;
@@ -418,16 +424,17 @@ public class BattleHUDController : MonoBehaviour
 
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
 
-        GameEvents.Input.OnBattleCommandUpPressed += HandleHotkeyAttack;
-        GameEvents.Input.OnBattleCommandLeftPressed += HandleHotkeyPsynergy;
-        GameEvents.Input.OnBattleCommandRightPressed += HandleHotkeyItem;
-        GameEvents.Input.OnBattleCommandDownPressed += HandleHotkeyDefend;
-        GameEvents.Input.OnBattleWingLeftPressed += HandleHotkeyDjinn;
-        GameEvents.Input.OnBattleWingRightPressed += HandleHotkeySummon;
+        GameEvents.Input.OnBattleCommandUpPressed -= HandleHotkeyAttack;
+        GameEvents.Input.OnBattleCommandLeftPressed -= HandleHotkeyPsynergy;
+        GameEvents.Input.OnBattleCommandRightPressed -= HandleHotkeyItem;
+        GameEvents.Input.OnBattleCommandDownPressed -= HandleHotkeyDefend;
+        GameEvents.Input.OnBattleWingLeftPressed -= HandleHotkeyDjinn;
+        GameEvents.Input.OnBattleWingRightPressed -= HandleHotkeySummon;
 
         if (battleManager != null)
         {
             battleManager.OnBattleStateChanged -= HandleBattleStateChanged;
+            battleManager.OnBattleResultsReady -= HandleBattleResultsReady;
             battleManager.OnCommandTypeSelected -= HandleCommandTypeSelected;
             battleManager.OnTargetSelectionChanged -= HandleTargetSelectionChanged;
 
@@ -464,6 +471,12 @@ public class BattleHUDController : MonoBehaviour
         }
         else
         {
+            if (_resultsSequenceCoroutine != null)
+            {
+                StopCoroutine(_resultsSequenceCoroutine);
+                _resultsSequenceCoroutine = null;
+            }
+
             SetHUDVisible(false);
             SetResultsLayerVisible(false);
             SetGameOverLayerVisible(false);
@@ -493,6 +506,33 @@ public class BattleHUDController : MonoBehaviour
     private void HandleCommandTypeSelected(BattleCommandType commandType)
     {
         _currentSelectedCommand = commandType;
+    }
+
+    private void HandleBattleResultsReady(IReadOnlyList<GameObject> heroes, BattleRewardSummary rewards, Action onCompleted)
+    {
+        if (_resultsSequenceCoroutine != null)
+        {
+            StopCoroutine(_resultsSequenceCoroutine);
+        }
+
+        _resultsSequenceCoroutine = StartCoroutine(PlayResultsSequenceRoutine(heroes, rewards, onCompleted));
+    }
+
+    private IEnumerator PlayResultsSequenceRoutine(IReadOnlyList<GameObject> heroes, BattleRewardSummary rewards, Action onCompleted)
+    {
+        if (ResultsPresenter != null)
+        {
+            // TODO: Pass actual BattleCameraController reference once camera integration for level-up framing is implemented
+            BattleCameraController cameraController = null;
+            yield return ResultsPresenter.PlayResultsSequence(heroes, rewards, cameraController);
+        }
+        else
+        {
+            Debug.LogWarning($"[{nameof(BattleHUDController)}] ResultsPresenter is missing. Transitioning out immediately.");
+        }
+
+        _resultsSequenceCoroutine = null;
+        onCompleted?.Invoke();
     }
 
     private void HandleBattleStateChanged(BattleState newState)
@@ -548,10 +588,13 @@ public class BattleHUDController : MonoBehaviour
 
             case BattleState.WaitingTurnExecution:
             case BattleState.IntroTransition:
+            case BattleState.VictoryFanfare:
                 _commandCrossPresenter?.Hide();
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
+                HideActionBannerInternal(immediate: true);
                 ClearTargetOverlays();
+                SetResultsLayerVisible(false);
                 break;
 
             case BattleState.ResultsScreen:
