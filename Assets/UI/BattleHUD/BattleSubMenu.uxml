@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/BattleHUD/BattleSubMenu.uss?fileID=7433441132597879392&amp;guid=e7692e5e31545414c8f08d5af8994584&amp;type=3#BattleSubMenu"/>
     
-    <ui:VisualElement name="submenu_card_root" class="submenu-card-root" picking-mode="Ignore">
+    <ui:VisualElement name="submenu_card_root" class="submenu-card-root .submenu-card-root--hidden" picking-mode="Ignore">
         <ui:VisualElement name="submenu_header" class="submenu-header" picking-mode="Ignore">
             <ui:Label name="label_submenu_title" text="PSYNERGY" class="submenu-title-label" picking-mode="Ignore"/>
         </ui:VisualElement>

@@ -76,7 +76,6 @@ public class BattleHUDController : MonoBehaviour
     // Schedules for animations and auto-hide logic
     private IVisualElementScheduledItem _bannerAutoCloseSchedule;
     private IVisualElementScheduledItem _bannerHideTransitionSchedule;
-    private IVisualElementScheduledItem _viewportShowSchedule;
 
     private Coroutine _resultsSequenceCoroutine;
 
@@ -335,7 +334,8 @@ public class BattleHUDController : MonoBehaviour
 
     private void UpdatePortraitRenderTexture()
     {
-        if (_portraitViewportFrame == null || _portraitViewportFrame.style.display == DisplayStyle.None) return;
+        // Performance optimization: skip Blit if the frame is null or hidden via CSS class
+        if (_portraitViewportFrame == null || _portraitViewportFrame.ClassListContains(PORTRAIT_HIDDEN_CLASS)) return;
 
         if (heroPortraitRenderTexture != null && _maskedRenderTexture != null && heroPortraitMaterial != null)
         {
@@ -1162,27 +1162,13 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_portraitViewportFrame != null)
         {
-            _viewportShowSchedule?.Pause();
-
             if (visible)
             {
-                _viewportShowSchedule = _portraitViewportFrame.schedule.Execute(() =>
-                {
-                    _portraitViewportFrame.style.display = DisplayStyle.Flex;
-                    _portraitViewportFrame.RemoveFromClassList(PORTRAIT_HIDDEN_CLASS);
-                }).StartingIn(100);
+                _portraitViewportFrame.RemoveFromClassList(PORTRAIT_HIDDEN_CLASS);
             }
             else
             {
                 _portraitViewportFrame.AddToClassList(PORTRAIT_HIDDEN_CLASS);
-
-                _viewportShowSchedule = _portraitViewportFrame.schedule.Execute(() =>
-                {
-                    if (_portraitViewportFrame.ClassListContains(PORTRAIT_HIDDEN_CLASS))
-                    {
-                        _portraitViewportFrame.style.display = DisplayStyle.None;
-                    }
-                }).StartingIn(400);
             }
         }
 
@@ -1213,10 +1199,13 @@ public class BattleHUDController : MonoBehaviour
             if (visible)
             {
                 _floatingSubMenuContainer.schedule.Execute(UpdateFloatingUIElementsPosition);
+                _subMenuPresenter?.Show();
+            }
+            else
+            {
+                _subMenuPresenter?.Hide();
             }
         }
-
-        _subMenuPresenter?.SetVisible(visible);
     }
 
     public void SetViewportExpanded(bool expanded)

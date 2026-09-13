@@ -5,13 +5,15 @@ using UnityEngine.UIElements;
 
 /// <summary>
 /// Presenter responsible for populating and managing the floating Battle SubMenu
-/// (Psynergies, Items, Djinns, and Summons), including sound effects and local input navigation.
+/// (Psynergies, Items, Djinns, and Summons), including sound effects, pure CSS transitions,
+/// and local input navigation.
 /// </summary>
 public class BattleSubMenuPresenter
 {
     #region UI Elements References
 
     private readonly VisualElement _rootElement;
+    private readonly VisualElement _submenuCardRoot;
     private readonly Label _labelSubMenuTitle;
     private readonly ScrollView _scrollView;
     private readonly Label _labelInfoDescription;
@@ -29,6 +31,8 @@ public class BattleSubMenuPresenter
     // Track active Command and Battle State
     private BattleCommandType _currentCommandType = BattleCommandType.Psynergy;
     private BattleState _currentBattleState = BattleState.None;
+
+    private const string HIDDEN_CARD_CLASS = "submenu-card-root--hidden";
 
     #endregion
 
@@ -58,6 +62,9 @@ public class BattleSubMenuPresenter
         _itemCardAsset = itemCardAsset;
         _djinnCardAsset = djinnCardAsset;
 
+        // Query the inner card root element from the template instance inside the wrapper
+        _submenuCardRoot = _rootElement.Q<VisualElement>("submenu_card_root") ?? _rootElement;
+
         _labelSubMenuTitle = _rootElement.Q<Label>("label_submenu_title");
         _scrollView = _rootElement.Q<ScrollView>("submenu_scroll_view");
         _labelInfoDescription = _rootElement.Q<Label>("label_info_description");
@@ -77,6 +84,9 @@ public class BattleSubMenuPresenter
                 }
             }
         }
+
+        // Ensure the overlay starts in its hidden state immediately
+        HideImmediate();
 
         // Subscribe to global GameEvents
         SubscribeToEvents();
@@ -164,25 +174,59 @@ public class BattleSubMenuPresenter
             currentlyFocused.Blur();
         }
 
-        SetVisible(false);
+        Hide();
     }
 
-    public void SetVisible(bool visible)
+    /// <summary>
+    /// Displays the SubMenu overlay applying a smooth scale/fade-in CSS transition.
+    /// </summary>
+    public void Show()
     {
-        if (!visible && _rootElement != null)
-        {
-            VisualElement currentlyFocused = _rootElement.focusController?.focusedElement as VisualElement;
-            _lastFocusedCard = null;
-            _lastFocusedPayload = null;
-            _lastFocusedCanAfford = false;
+        if (_submenuCardRoot == null) return;
+        _submenuCardRoot.RemoveFromClassList(HIDDEN_CARD_CLASS);
+    }
 
-            if (currentlyFocused != null)
-            {
-                currentlyFocused.Blur();
-            }
+    /// <summary>
+    /// Hides the SubMenu overlay applying a smooth scale/fade-out CSS transition.
+    /// </summary>
+    public void Hide()
+    {
+        if (_submenuCardRoot == null) return;
+
+        VisualElement currentlyFocused = _rootElement.focusController?.focusedElement as VisualElement;
+        _lastFocusedCard = null;
+        _lastFocusedPayload = null;
+        _lastFocusedCanAfford = false;
+
+        if (currentlyFocused != null)
+        {
+            currentlyFocused.Blur();
         }
 
-        _rootElement.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        _submenuCardRoot.AddToClassList(HIDDEN_CARD_CLASS);
+    }
+
+    /// <summary>
+    /// Forces the overlay to be hidden instantly without waiting for transitions (used during initialization).
+    /// </summary>
+    public void HideImmediate()
+    {
+        if (_submenuCardRoot == null) return;
+
+        VisualElement currentlyFocused = _rootElement.focusController?.focusedElement as VisualElement;
+        _lastFocusedCard = null;
+        _lastFocusedPayload = null;
+        _lastFocusedCanAfford = false;
+
+        if (currentlyFocused != null)
+        {
+            currentlyFocused.Blur();
+        }
+
+        if (!_submenuCardRoot.ClassListContains(HIDDEN_CARD_CLASS))
+        {
+            _submenuCardRoot.AddToClassList(HIDDEN_CARD_CLASS);
+        }
     }
 
     #endregion
@@ -192,7 +236,7 @@ public class BattleSubMenuPresenter
     public void ShowPsynergies(IReadOnlyList<PsynergySO> psynergies, int currentPP)
     {
         _currentCommandType = BattleCommandType.Psynergy;
-        SetVisible(true);
+        Show();
         if (_labelSubMenuTitle != null) _labelSubMenuTitle.text = "PSYNERGY";
         _scrollView.Clear();
         _lastFocusedCard = null;
@@ -308,7 +352,7 @@ public class BattleSubMenuPresenter
     public void ShowItems(IReadOnlyList<InventorySlot> slots)
     {
         _currentCommandType = BattleCommandType.Item;
-        SetVisible(true);
+        Show();
         if (_labelSubMenuTitle != null) _labelSubMenuTitle.text = "ITEMS";
         _scrollView.Clear();
         _lastFocusedCard = null;
@@ -397,7 +441,7 @@ public class BattleSubMenuPresenter
     public void ShowDjinns(IReadOnlyList<DjinnInstance> djinns)
     {
         _currentCommandType = BattleCommandType.Djinn;
-        SetVisible(true);
+        Show();
         if (_labelSubMenuTitle != null) _labelSubMenuTitle.text = "DJINNS";
         _scrollView.Clear();
         _lastFocusedCard = null;
@@ -481,7 +525,7 @@ public class BattleSubMenuPresenter
         _rootElement.schedule.Execute(() =>
         {
             if (_currentBattleState == BattleState.SubMenuSelection &&
-                _rootElement.style.display == DisplayStyle.Flex &&
+                !_submenuCardRoot.ClassListContains(HIDDEN_CARD_CLASS) &&
                 _rootElement.focusController?.focusedElement == null &&
                 _lastFocusedCard != null)
             {

@@ -13,7 +13,7 @@
         <ui:VisualElement name="layer_gameplay_hud" class="hud-layer" picking-mode="Ignore">
             
             <!-- Active Hero Close-Up Viewport -->
-            <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame" picking-mode="Ignore">
+            <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame portrait-viewport-frame--hidden" picking-mode="Ignore">
                 <ui:VisualElement name="portrait_viewport_render" class="portrait-viewport-render" picking-mode="Ignore"/>
             </ui:VisualElement>
 

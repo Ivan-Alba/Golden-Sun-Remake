@@ -1,6 +1,7 @@
 /* =========================================================================
    BATTLE SUBMENU FLOATING CARD STYLES
    ========================================================================= */
+
 .submenu-card-root {
     width: 420px;
     height: 300px;
@@ -14,11 +15,22 @@
     flex-direction: column;
     overflow: hidden;
     
+    opacity: 1;
+    scale: 1 1;
     translate: -50% -50%;
     
-    transition-property: opacity, scale;
-    transition-duration: 0.2s;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.20s;
     transition-timing-function: ease-out;
+}
+
+.submenu-card-root--hidden {
+    opacity: 0;
+    scale: 0.80 0.80;
+    translate: -50% -42%;
+
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in;
 }
 
 .submenu-header {

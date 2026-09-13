@@ -50,7 +50,7 @@
 
     /* Transition for full screen corner exit/entrance */
     transition-property: scale, opacity, translate;
-    transition-duration: 0.7s;
+    transition-duration: 0.5s;
     transition-timing-function: ease;
     opacity: 1;
     scale: 1 1;
