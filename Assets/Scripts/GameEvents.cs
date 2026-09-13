@@ -692,19 +692,13 @@ public static class GameEvents
         #region Action Banner Requests (Animation Events / Action System -> UI)
 
         /// <summary>
-        /// Requests displaying the top-center action banner overlay with title and optional target subtext.
+        /// Requests displaying the top-center action banner overlay with title, optional target subtext, and optional custom display duration (ms).
         /// Used by animations, Psynergy execution, items, or Djinn unleash steps.
         /// </summary>
-        public static event Action<string, string> OnRequestActionBanner;
-        public static void RequestActionBanner(string title, string subtext = "")
-            => OnRequestActionBanner?.Invoke(title, subtext);
+        public static event Action<string, string, long?> OnRequestActionBanner;
 
-        /// <summary>
-        /// Requests hiding the top-center action banner overlay.
-        /// </summary>
-        public static event Action OnHideActionBanner;
-        public static void TriggerHideActionBanner()
-            => OnHideActionBanner?.Invoke();
+        public static void RequestActionBanner(string title, string subtext = "", long? customDurationMs = null)
+            => OnRequestActionBanner?.Invoke(title, subtext, customDurationMs);
 
         /// <summary>
         /// Triggered whenever a combatant receives damage, healing, or status popups in 3D space.

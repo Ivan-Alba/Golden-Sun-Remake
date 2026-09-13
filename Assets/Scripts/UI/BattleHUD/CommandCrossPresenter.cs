@@ -26,7 +26,11 @@ public class CommandCrossPresenter
 
     public CommandCrossPresenter(VisualElement rootOverlayElement)
     {
-        _rootContainer = rootOverlayElement ?? throw new ArgumentNullException(nameof(rootOverlayElement));
+        if (rootOverlayElement == null)
+            throw new ArgumentNullException(nameof(rootOverlayElement));
+
+        // Always resolve the actual visual element holding the USS class rules
+        _rootContainer = rootOverlayElement.Q<VisualElement>("command_cross_root") ?? rootOverlayElement;
 
         _slotAttack = _rootContainer.Q<VisualElement>("slot_attack");
         _slotPsynergy = _rootContainer.Q<VisualElement>("slot_psynergy");
@@ -42,6 +46,9 @@ public class CommandCrossPresenter
         RegisterSlotEvents(_slotDefend, BattleCommandType.Defend, "DEFEND");
         RegisterSlotEvents(_slotDjinn, BattleCommandType.Djinn, "DJINN");
         RegisterSlotEvents(_slotSummon, BattleCommandType.Summon, "SUMMON");
+
+        // Ensure the overlay starts in its hidden state
+        HideImmediate();
     }
 
     /// <summary>
@@ -54,22 +61,19 @@ public class CommandCrossPresenter
         bool hasDjinnsUnlocked = true,
         bool hasSummonsUnlocked = true)
     {
-        // Djinns and Summons: Completely hidden if not unlocked
         if (_slotDjinn != null)
             _slotDjinn.style.display = hasDjinnsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
 
         if (_slotSummon != null)
             _slotSummon.style.display = hasSummonsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
 
-        // Psynergy and Items: Visual disabled style if unavailable
         SetSlotEnabledState(_slotPsynergy, hasPsynergyAvailable);
         SetSlotEnabledState(_slotItem, hasItemsAvailable);
 
-        // Ensure container display is active before removing hidden transition class
-        _rootContainer.style.display = DisplayStyle.Flex;
-        _rootContainer.RemoveFromClassList(HIDDEN_ROOT_CLASS);
-
         ClearCommandLabel();
+
+        // Synchronous CSS class removal triggers entry animation directly
+        _rootContainer.RemoveFromClassList(HIDDEN_ROOT_CLASS);
     }
 
     /// <summary>
@@ -78,6 +82,18 @@ public class CommandCrossPresenter
     public void Hide()
     {
         _rootContainer.AddToClassList(HIDDEN_ROOT_CLASS);
+        ClearCommandLabel();
+    }
+
+    /// <summary>
+    /// Forces the overlay to be hidden instantly without waiting for transitions (used during initialization).
+    /// </summary>
+    public void HideImmediate()
+    {
+        if (!_rootContainer.ClassListContains(HIDDEN_ROOT_CLASS))
+        {
+            _rootContainer.AddToClassList(HIDDEN_ROOT_CLASS);
+        }
         ClearCommandLabel();
     }
 

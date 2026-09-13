@@ -26,16 +26,17 @@
     transition-property: opacity;
     transition-duration: 0.3s;
     transition-timing-function: ease-in-out;
+    opacity: 1;
 }
 
 .hud-layer--hidden {
     opacity: 0;
-    display: none;
 }
 
 /* =========================================================================
    1. TOP-LEFT: ACTIVE HERO CLOSE-UP VIEWPORT
    ========================================================================= */
+
 .portrait-viewport-frame {
     position: absolute;
     top: 0;
@@ -47,14 +48,24 @@
 
     transform-origin: top left;
 
-    transition-property: scale, opacity;
-    transition-duration: 0.35s;
-    transition-timing-function: ease-out-back;
+    /* Transition for full screen corner exit/entrance */
+    transition-property: scale, opacity, translate;
+    transition-duration: 0.7s;
+    transition-timing-function: ease;
+    opacity: 1;
+    scale: 1 1;
+    translate: 0 0;
 }
 
+/* Hidden state: Collapses to 0 scale and travels 100% out of bounds to the top-left corner */
 .portrait-viewport-frame--hidden {
     opacity: 0;
-    scale: 0.1 0.1;
+    scale: 0 0;
+    translate: -100% -100%;
+
+    /* Transición para SALIR: Desaparición suave y progresiva */
+    transition-duration: 0.4s;
+    transition-timing-function: linear;
 }
 
 .portrait-viewport-render {
@@ -90,9 +101,24 @@
     right: 32%;
     align-items: center;
 
-    transition-property: opacity, translate;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-out-back;
+    /* ENTRADA (SHOW): Despliegue suave con un ligero rebote elástico */
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.6s;
+    transition-timing-function: ease;
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+.action-banner-container--hidden {
+    /* SALIDA (HIDE): Sube 100% hacia arriba fuera de cuadro y se reduce */
+    opacity: 0;
+    translate: 0 -100%;
+    scale: 0.9 0.9;
+
+    /* Sobreescribimos la salida para que sea rápida y limpia */
+    transition-duration: 0.3s;
+    transition-timing-function: linear;
 }
 
 .action-banner-card {
@@ -150,6 +176,18 @@
     border-radius: 12px;
     padding: 10px 14px 18px 14px;
     align-items: flex-start;
+
+    /* Transition for full panel entrance */
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    opacity: 1;
+    translate: 0 0;
+}
+
+.turn-timeline-container--hidden {
+    opacity: 0;
+    translate: 30px 0;
 }
 
 .timeline-title-label {
@@ -215,7 +253,7 @@
     scale: 1 1;
     
     transition-property: scale, border-color;
-    transition-duration: 0.5s;
+    transition-duration: 0.4s;
     transition-timing-function: ease-in-out;
 }
 
@@ -281,6 +319,17 @@
     align-items: flex-start;
     scale: 0.85;
     transform-origin: bottom left;
+
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    opacity: 1;
+    translate: 0 0;
+}
+
+.party-cards-battle-container--hidden {
+    opacity: 0;
+    translate: -30px 0;
 }
 
 /* =========================================================================
@@ -361,6 +410,17 @@
     padding: 16px 24px;
     justify-content: center;
     align-items: flex-start;
+
+    transition-property: opacity, translate;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+    opacity: 1;
+    translate: 0 0;
+}
+
+.results-dialog-container--hidden {
+    opacity: 0;
+    translate: 0 20px;
 }
 
 .results-dialog-text {
@@ -388,6 +448,17 @@
     top: 20%;
     right: 10%;
     width: 320px;
+
+    transition-property: opacity, scale;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out-back;
+    opacity: 1;
+    scale: 1 1;
+}
+
+.level-up-overlay-container--hidden {
+    opacity: 0;
+    scale: 0.8 0.8;
 }
 
 .level-up-card {

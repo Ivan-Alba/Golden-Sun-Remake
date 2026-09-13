@@ -16,6 +16,7 @@ public class BattleHUDController : MonoBehaviour
     private const string TARGET_INDICATOR_HIDDEN_CLASS = "timeline-target-indicator--hidden";
     private const string PORTRAIT_HIDDEN_CLASS = "portrait-viewport-frame--hidden";
     private const string LAYER_HIDDEN_CLASS = "hud-layer--hidden";
+    private const string ACTION_BANNER_HIDDEN_CLASS = "action-banner-container--hidden";
 
     #region Serialized Fields
 
@@ -43,6 +44,10 @@ public class BattleHUDController : MonoBehaviour
     [SerializeField] private RenderTexture heroPortraitRenderTexture;
     [SerializeField] private Material heroPortraitMaterial;
 
+    [Header("Banner Timings")]
+    [Tooltip("Duration in milliseconds for the action banner to stay visible before auto-hiding.")]
+    [SerializeField] private long bannerDisplayDurationMs = 2500;
+
     #endregion
 
     #region Private Local Cache State
@@ -66,6 +71,11 @@ public class BattleHUDController : MonoBehaviour
     private readonly List<KeyValuePair<GameObject, VisualElement>> _timelineTargetIndicators = new List<KeyValuePair<GameObject, VisualElement>>();
 
     private BattleCommandType _currentSelectedCommand = BattleCommandType.Attack;
+
+    // Schedules for animations and auto-hide logic
+    private IVisualElementScheduledItem _bannerAutoCloseSchedule;
+    private IVisualElementScheduledItem _bannerHideTransitionSchedule;
+    private IVisualElementScheduledItem _viewportShowSchedule;
 
     #endregion
 
@@ -220,21 +230,39 @@ public class BattleHUDController : MonoBehaviour
         _labelActionBannerTitle = _root.Q<Label>("label_action_banner_title");
         _labelActionBannerSubtext = _root.Q<Label>("label_action_banner_subtext");
 
+        if (_actionBannerContainer != null)
+        {
+            _actionBannerContainer.AddToClassList(ACTION_BANNER_HIDDEN_CLASS);
+            _actionBannerContainer.style.display = DisplayStyle.None;
+        }
+
         SetupPortraitMaskedRenderTexture();
 
         // Turn Timeline
         _turnLeaderSlot = _root.Q<VisualElement>("turn_leader_slot");
         _turnQueueList = _root.Q<VisualElement>("turn_queue_list");
 
-        // Floating Command Cross
+        // Floating Command Cross Container Setup
         _floatingCommandMenuContainer = _root.Q<VisualElement>("floating_command_menu_container");
         _commandCrossOverlayInstance = _root.Q<VisualElement>("command_cross_overlay");
 
+        if (_floatingCommandMenuContainer != null)
+        {
+            _floatingCommandMenuContainer.style.display = DisplayStyle.Flex;
+            _floatingCommandMenuContainer.style.visibility = Visibility.Hidden;
+        }
+
         InitializeCommandCrossPresenter();
 
-        // Floating Action SubMenu
+        // Floating Action SubMenu Container Setup
         _floatingSubMenuContainer = _root.Q<VisualElement>("floating_submenu_container");
         _subMenuInstance = _root.Q<VisualElement>("battle_submenu_instance");
+
+        if (_floatingSubMenuContainer != null)
+        {
+            _floatingSubMenuContainer.style.display = DisplayStyle.Flex;
+            _floatingSubMenuContainer.style.visibility = Visibility.Hidden;
+        }
 
         InitializeSubMenuPresenter();
 
@@ -248,14 +276,15 @@ public class BattleHUDController : MonoBehaviour
 
         SetHeroTurnUIElementsVisible(false);
         SetSubMenuVisible(false);
-        SetActionBannerVisible(false);
+        HideActionBannerInternal(immediate: true);
     }
 
     private void InitializeCommandCrossPresenter()
     {
-        if (_commandCrossOverlayInstance != null)
+        VisualElement targetElement = _commandCrossOverlayInstance ?? _root.Q<VisualElement>("command_cross_root");
+        if (targetElement != null)
         {
-            _commandCrossPresenter = new CommandCrossPresenter(_commandCrossOverlayInstance);
+            _commandCrossPresenter = new CommandCrossPresenter(targetElement);
             _commandCrossPresenter.OnCommandConfirmed += OnCommandSelected;
         }
     }
@@ -342,9 +371,6 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Battle.OnRequestActionBanner -= HandleRequestActionBanner;
         GameEvents.Battle.OnRequestActionBanner += HandleRequestActionBanner;
 
-        GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
-        GameEvents.Battle.OnHideActionBanner += HandleHideActionBanner;
-
         // Command Cross & Results Input Handlers
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
         GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
@@ -389,16 +415,15 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.Battle.OnTurnQueueUpdated -= HandleTurnQueueUpdated;
         GameEvents.Battle.OnRequestActionBanner -= HandleRequestActionBanner;
-        GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
 
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
 
-        GameEvents.Input.OnBattleCommandUpPressed -= HandleHotkeyAttack;
-        GameEvents.Input.OnBattleCommandLeftPressed -= HandleHotkeyPsynergy;
-        GameEvents.Input.OnBattleCommandRightPressed -= HandleHotkeyItem;
-        GameEvents.Input.OnBattleCommandDownPressed -= HandleHotkeyDefend;
-        GameEvents.Input.OnBattleWingLeftPressed -= HandleHotkeyDjinn;
-        GameEvents.Input.OnBattleWingRightPressed -= HandleHotkeySummon;
+        GameEvents.Input.OnBattleCommandUpPressed += HandleHotkeyAttack;
+        GameEvents.Input.OnBattleCommandLeftPressed += HandleHotkeyPsynergy;
+        GameEvents.Input.OnBattleCommandRightPressed += HandleHotkeyItem;
+        GameEvents.Input.OnBattleCommandDownPressed += HandleHotkeyDefend;
+        GameEvents.Input.OnBattleWingLeftPressed += HandleHotkeyDjinn;
+        GameEvents.Input.OnBattleWingRightPressed += HandleHotkeySummon;
 
         if (battleManager != null)
         {
@@ -444,7 +469,7 @@ public class BattleHUDController : MonoBehaviour
             SetGameOverLayerVisible(false);
             SetHeroTurnUIElementsVisible(false);
             SetSubMenuVisible(false);
-            SetActionBannerVisible(false);
+            HideActionBannerInternal(immediate: true);
             ClearTargetOverlays();
 
             ResultsPresenter?.HideAll();
@@ -482,12 +507,17 @@ public class BattleHUDController : MonoBehaviour
                 SetResultsLayerVisible(false);
                 SetGameOverLayerVisible(false);
 
-                SetHeroTurnUIElementsVisible(isHeroTurn);
                 SetSubMenuVisible(false);
-                SetActionBannerVisible(false);
+                HideActionBannerInternal(immediate: true);
 
                 if (isHeroTurn)
                 {
+                    // 1. Calculate 3D position first
+                    UpdateFloatingUIElementsPosition();
+
+                    // 2. Make floating container visible
+                    SetHeroTurnUIElementsVisible(true);
+
                     bool hasPsynergyAvailable = heroStats.Psynergies != null &&
                                                 heroStats.Psynergies.Exists(p => p != null && p.IsBattlePsynergy);
 
@@ -497,8 +527,12 @@ public class BattleHUDController : MonoBehaviour
                     bool hasDjinnsUnlocked = false;
                     bool hasSummonsUnlocked = false;
 
+                    // 3. Trigger entry CSS animation
                     _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, hasDjinnsUnlocked, hasSummonsUnlocked);
-                    UpdateFloatingUIElementsPosition();
+                }
+                else
+                {
+                    SetHeroTurnUIElementsVisible(false);
                 }
                 break;
 
@@ -517,7 +551,6 @@ public class BattleHUDController : MonoBehaviour
                 _commandCrossPresenter?.Hide();
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
-                SetActionBannerVisible(false);
                 ClearTargetOverlays();
                 break;
 
@@ -525,7 +558,7 @@ public class BattleHUDController : MonoBehaviour
                 SetHUDVisible(false);
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
-                SetActionBannerVisible(false);
+                HideActionBannerInternal(immediate: true);
                 ClearTargetOverlays();
                 SetResultsLayerVisible(true);
                 break;
@@ -534,7 +567,7 @@ public class BattleHUDController : MonoBehaviour
                 SetHUDVisible(false);
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
-                SetActionBannerVisible(false);
+                HideActionBannerInternal(immediate: true);
                 ClearTargetOverlays();
                 SetResultsLayerVisible(false);
                 SetGameOverLayerVisible(true);
@@ -594,21 +627,66 @@ public class BattleHUDController : MonoBehaviour
         UpdateTargetOverlaysPosition();
     }
 
-    private void HandleRequestActionBanner(string title, string subtext)
+    /// <summary>
+    /// Autonomous Fire-and-Forget banner trigger. Displays text and auto-schedules hide sequence.
+    /// </summary>
+    private void HandleRequestActionBanner(string title, string subtext, long? customDurationMs)
     {
-        if (_labelActionBannerTitle != null) _labelActionBannerTitle.text = title.ToUpper();
+        if (_actionBannerContainer == null) return;
+
+        _bannerAutoCloseSchedule?.Pause();
+        _bannerHideTransitionSchedule?.Pause();
+
+        if (_labelActionBannerTitle != null)
+        {
+            _labelActionBannerTitle.text = title.ToUpper();
+        }
+
         if (_labelActionBannerSubtext != null)
         {
             _labelActionBannerSubtext.text = subtext;
-            _labelActionBannerSubtext.style.display = string.IsNullOrEmpty(subtext) ? DisplayStyle.None : DisplayStyle.Flex;
+            _labelActionBannerSubtext.style.display = string.IsNullOrEmpty(subtext)
+                ? DisplayStyle.None
+                : DisplayStyle.Flex;
         }
 
-        SetActionBannerVisible(true);
+        _actionBannerContainer.style.display = DisplayStyle.Flex;
+        _actionBannerContainer.RemoveFromClassList(ACTION_BANNER_HIDDEN_CLASS);
+
+        long effectiveDuration = (customDurationMs.HasValue && customDurationMs.Value > 0)
+            ? customDurationMs.Value
+            : bannerDisplayDurationMs;
+
+        _bannerAutoCloseSchedule = _actionBannerContainer.schedule.Execute(() =>
+        {
+            HideActionBannerInternal(immediate: false);
+        }).StartingIn(effectiveDuration);
     }
 
-    private void HandleHideActionBanner()
+    private void HideActionBannerInternal(bool immediate = false)
     {
-        SetActionBannerVisible(false);
+        if (_actionBannerContainer == null) return;
+
+        _bannerAutoCloseSchedule?.Pause();
+        _bannerHideTransitionSchedule?.Pause();
+
+        if (immediate)
+        {
+            _actionBannerContainer.AddToClassList(ACTION_BANNER_HIDDEN_CLASS);
+            _actionBannerContainer.style.display = DisplayStyle.None;
+        }
+        else
+        {
+            _actionBannerContainer.AddToClassList(ACTION_BANNER_HIDDEN_CLASS);
+
+            _bannerHideTransitionSchedule = _actionBannerContainer.schedule.Execute(() =>
+            {
+                if (_actionBannerContainer.ClassListContains(ACTION_BANNER_HIDDEN_CLASS))
+                {
+                    _actionBannerContainer.style.display = DisplayStyle.None;
+                }
+            }).StartingIn(300);
+        }
     }
 
     #endregion
@@ -731,17 +809,14 @@ public class BattleHUDController : MonoBehaviour
             return;
         }
 
-        if (_floatingCommandMenuContainer != null && _floatingCommandMenuContainer.style.display != DisplayStyle.None)
+        if (_floatingCommandMenuContainer != null && _floatingCommandMenuContainer.style.visibility == Visibility.Visible)
         {
-            _floatingCommandMenuContainer.style.visibility = Visibility.Visible;
             _floatingCommandMenuContainer.style.left = basePanelPos.x;
             _floatingCommandMenuContainer.style.top = basePanelPos.y;
         }
 
-        if (_floatingSubMenuContainer != null && _floatingSubMenuContainer.style.display != DisplayStyle.None)
+        if (_floatingSubMenuContainer != null && _floatingSubMenuContainer.style.visibility == Visibility.Visible)
         {
-            _floatingSubMenuContainer.style.visibility = Visibility.Visible;
-
             float panelWidth = _root.panel.visualTree.layout.width;
             float offsetX = _subMenuScreenOffset.x;
 
@@ -903,7 +978,7 @@ public class BattleHUDController : MonoBehaviour
 
             HeroStats stats = heroObj.GetComponent<HeroStats>();
             bool isActive = (heroObj == _currentActiveFighter);
-            presenter.UpdateData(stats, heroObj.name, keyNumber: i + 1, isActiveHero: isActive);
+            presenter.UpdateData(stats, heroObj.name, keyNumber: i + 1, isActiveHero: isActive, inBattle: true);
 
             _bottomLeftPartyContainer.Add(cardInstance);
         }
@@ -924,7 +999,7 @@ public class BattleHUDController : MonoBehaviour
             {
                 HeroStats stats = presenter.BoundHero.GetComponent<HeroStats>();
                 bool isActive = (presenter.BoundHero == _currentActiveFighter);
-                presenter.UpdateData(stats, presenter.BoundHero.name, keyNumber: i + 1, isActiveHero: isActive);
+                presenter.UpdateData(stats, presenter.BoundHero.name, keyNumber: i + 1, isActiveHero: isActive, inBattle: true);
             }
         }
     }
@@ -1044,21 +1119,27 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_portraitViewportFrame != null)
         {
+            _viewportShowSchedule?.Pause();
+
             if (visible)
             {
-                _portraitViewportFrame.style.display = DisplayStyle.Flex;
-                _portraitViewportFrame.RemoveFromClassList(PORTRAIT_HIDDEN_CLASS);
+                _viewportShowSchedule = _portraitViewportFrame.schedule.Execute(() =>
+                {
+                    _portraitViewportFrame.style.display = DisplayStyle.Flex;
+                    _portraitViewportFrame.RemoveFromClassList(PORTRAIT_HIDDEN_CLASS);
+                }).StartingIn(100);
             }
             else
             {
                 _portraitViewportFrame.AddToClassList(PORTRAIT_HIDDEN_CLASS);
-                _portraitViewportFrame.schedule.Execute(() =>
+
+                _viewportShowSchedule = _portraitViewportFrame.schedule.Execute(() =>
                 {
                     if (_portraitViewportFrame.ClassListContains(PORTRAIT_HIDDEN_CLASS))
                     {
                         _portraitViewportFrame.style.display = DisplayStyle.None;
                     }
-                }).StartingIn(350);
+                }).StartingIn(400);
             }
         }
 
@@ -1069,12 +1150,8 @@ public class BattleHUDController : MonoBehaviour
                 _floatingCommandMenuContainer.focusController?.focusedElement?.Blur();
             }
 
-            _floatingCommandMenuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-
-            if (visible)
-            {
-                _floatingCommandMenuContainer.schedule.Execute(UpdateFloatingUIElementsPosition);
-            }
+            _floatingCommandMenuContainer.style.display = DisplayStyle.Flex;
+            _floatingCommandMenuContainer.style.visibility = visible ? Visibility.Visible : Visibility.Hidden;
         }
     }
 
@@ -1087,7 +1164,8 @@ public class BattleHUDController : MonoBehaviour
 
         if (_floatingSubMenuContainer != null)
         {
-            _floatingSubMenuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            _floatingSubMenuContainer.style.display = DisplayStyle.Flex;
+            _floatingSubMenuContainer.style.visibility = visible ? Visibility.Visible : Visibility.Hidden;
 
             if (visible)
             {
@@ -1109,14 +1187,6 @@ public class BattleHUDController : MonoBehaviour
         else
         {
             _portraitViewportFrame.RemoveFromClassList(FULLSCREEN_EXPAND_CLASS);
-        }
-    }
-
-    public void SetActionBannerVisible(bool visible)
-    {
-        if (_actionBannerContainer != null)
-        {
-            _actionBannerContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 

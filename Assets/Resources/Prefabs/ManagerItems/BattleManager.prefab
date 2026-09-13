@@ -758,6 +758,7 @@ MonoBehaviour:
   mainBattleCamera: {fileID: 7218996608274423122}
   heroPortraitRenderTexture: {fileID: 8400000, guid: c64c4e9738c2108419b54368805679f0, type: 2}
   heroPortraitMaterial: {fileID: 2100000, guid: 750bc6a72621f2140af96ef75bc1db9c, type: 2}
+  bannerDisplayDurationMs: 2500
 --- !u!114 &8342627967898070617
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14258,7 +14259,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioCenter: {fileID: 2426736156265556455}
   battleCameraController: {fileID: 5408302400829323935}
-  resultsController: {fileID: 7802389440709632538}
+  hudController: {fileID: 4820138360631626026}
   targetSelectionController: {fileID: 4932946225680775267}
   fieldSpawner: {fileID: 2136754005720336485}
   actionExecutor: {fileID: 159102338434093094}

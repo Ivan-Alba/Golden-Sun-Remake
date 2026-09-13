@@ -35,12 +35,12 @@
             </ui:VisualElement>
 
             <!-- Floating Command Cross Anchor -->
-            <ui:VisualElement name="floating_command_menu_container" class="floating-command-menu-container" picking-mode="Ignore" style="display: none;">
+            <ui:VisualElement name="floating_command_menu_container" class="floating-command-menu-container" picking-mode="Ignore">
                 <ui:Instance template="CommandCrossOverlay" name="command_cross_overlay"/>
             </ui:VisualElement>
 
             <!-- Floating Action SubMenu Anchor (Psynergy, Items, Djinns) -->
-            <ui:VisualElement name="floating_submenu_container" class="floating-submenu-container" picking-mode="Ignore" style="display: none;">
+            <ui:VisualElement name="floating_submenu_container" class="floating-submenu-container" picking-mode="Ignore">
                 <ui:Instance template="BattleSubMenu" name="battle_submenu_instance"/>
             </ui:VisualElement>
 

@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/UI/Global_Theme.uss" />
     <Style src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uss" />
 
-    <ui:VisualElement name="command_cross_root" class="command-cross-root" picking-mode="Ignore">
+    <ui:VisualElement name="command_cross_root" class="command-cross-root command-cross-root--hidden" picking-mode="Ignore">
         
         <!-- Special Upper Wings Container (Horizontal Pill Badges for Djinn & Summon) -->
         <ui:VisualElement name="wings_container" class="wings-container" picking-mode="Ignore">

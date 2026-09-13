@@ -2,7 +2,6 @@
    CommandCrossOverlay.uss
    Styles for the Battle Floating Command Cross & Horizontal Pill Special Wings
    ========================================================================= */
-
 .command-cross-root {
     position: absolute;
     width: 380px;
@@ -11,18 +10,20 @@
     justify-content: center;
     translate: -50% -50%;
 
-    /* Smooth Fade & Elastic Scale Transition for Show/Hide */
-    transition-property: opacity, scale;
-    transition-duration: 0.2s;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.35s;
     transition-timing-function: ease-out-back;
     opacity: 1;
     scale: 1 1;
 }
 
-/* Hidden state for smooth Fade-Out & Scale-Down */
 .command-cross-root--hidden {
     opacity: 0;
-    scale: 0.7 0.7;
+    scale: 0.5 0.5;
+    translate: -50% -50%;
+
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in;
 }
 
 /* --- Unified Keycap Badges --- */

@@ -73,7 +73,7 @@ public class BattleActionExecutor : MonoBehaviour
             case BattleCommandType.Defend:
                 actionCost = 30;
                 caster.SetUpDefense();
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(1.2f);
                 break;
 
             case BattleCommandType.Item:
@@ -187,6 +187,8 @@ public class BattleActionExecutor : MonoBehaviour
 
         // 2. Play Cast Animation
         caster.PlayCastAnimation();
+
+        GameEvents.Battle.RequestActionBanner(psynergy.name, psynergy.Description);
 
         // 3. Instantiate Elemental Circle Cast VFX
         GameObject castVfxPrefab = null;

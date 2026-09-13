@@ -19,6 +19,7 @@ public class HeroStatusCardPresenter
     private readonly VisualElement _portraitImg;
     private readonly Label _nameLabel;
     private readonly Label _levelLabel;
+    private readonly VisualElement _heroKeyBadge;
     private readonly Label _keyNumberLabel;
 
     private readonly Label _hpValLabel;
@@ -36,7 +37,7 @@ public class HeroStatusCardPresenter
     public HeroStatusCardPresenter(VisualElement root, GameObject hero = null)
     {
         _rootElement = root;
-        BoundHero = hero; // ADDED: Guardamos la referencia al héroe asignado
+        BoundHero = hero;
 
         if (_rootElement == null)
         {
@@ -48,6 +49,7 @@ public class HeroStatusCardPresenter
         _portraitImg = _rootElement.Q<VisualElement>("hero_portrait_img");
         _nameLabel = _rootElement.Q<Label>("label_hero_name");
         _levelLabel = _rootElement.Q<Label>("label_hero_level");
+        _heroKeyBadge = _rootElement.Q<VisualElement>("hero_key_badge");
         _keyNumberLabel = _rootElement.Q<Label>("label_key_number");
 
         _hpValLabel = _rootElement.Q<Label>("label_hp_val");
@@ -61,7 +63,7 @@ public class HeroStatusCardPresenter
     /// <summary>
     /// Updates all stats, labels, bars, and artwork for this hero card.
     /// </summary>
-    public void UpdateData(HeroStats stats, string heroName, int keyNumber = 1, bool isActiveHero = false)
+    public void UpdateData(HeroStats stats, string heroName, int keyNumber = 1, bool isActiveHero = false, bool inBattle = false)
     {
         if (stats == null || _rootElement == null) return;
 
@@ -70,7 +72,14 @@ public class HeroStatusCardPresenter
         if (_levelLabel != null) _levelLabel.text = $"Nv. {stats.Level}";
 
         // 2. Update Key Badge Number
-        if (_keyNumberLabel != null) _keyNumberLabel.text = keyNumber.ToString();
+        if (inBattle) {
+            if (_heroKeyBadge != null) _heroKeyBadge.style.display = DisplayStyle.None;
+        }
+        else
+        {
+            if (_heroKeyBadge != null) _heroKeyBadge.style.display = DisplayStyle.Flex;
+            if (_keyNumberLabel != null) _keyNumberLabel.text = keyNumber.ToString();
+        }
 
         // 3. Update Numerical Values
         if (_hpValLabel != null) _hpValLabel.text = $"{stats.CurrHp}/{stats.MaxHp}";
