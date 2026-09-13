@@ -5,85 +5,85 @@
     <ui:Template name="CommandCrossOverlay" src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uxml"/>
     <ui:Template name="BattleSubMenu" src="project://database/Assets/UI/BattleHUD/BattleSubMenu.uxml"/>
 
-    <ui:VisualElement name="battle_hud_root" class="battle-hud-root">
+    <ui:VisualElement name="battle_hud_root" class="battle-hud-root" picking-mode="Ignore">
         
         <!-- =========================================================================
              CAPA 0: GAMEPLAY HUD (Gameplay de Batalla activo)
              ========================================================================= -->
-        <ui:VisualElement name="layer_gameplay_hud" class="hud-layer">
+        <ui:VisualElement name="layer_gameplay_hud" class="hud-layer" picking-mode="Ignore">
             
             <!-- Active Hero Close-Up Viewport -->
-            <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame">
-                <ui:VisualElement name="portrait_viewport_render" class="portrait-viewport-render"/>
+            <ui:VisualElement name="portrait_viewport_frame" class="portrait-viewport-frame" picking-mode="Ignore">
+                <ui:VisualElement name="portrait_viewport_render" class="portrait-viewport-render" picking-mode="Ignore"/>
             </ui:VisualElement>
 
             <!-- Turn Timeline Display -->
-            <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container">
-                <ui:Label text="TURNS" class="timeline-title-label"/>
-                <ui:VisualElement name="turn_timeline_row" class="turn-timeline-row">
-                    <ui:VisualElement name="turn_leader_slot" class="turn-leader-slot"/>
-                    <ui:VisualElement name="turn_queue_list" class="turn-queue-list"/>
+            <ui:VisualElement name="turn_timeline_container" class="turn-timeline-container" picking-mode="Ignore">
+                <ui:Label text="TURNS" class="timeline-title-label" picking-mode="Ignore"/>
+                <ui:VisualElement name="turn_timeline_row" class="turn-timeline-row" picking-mode="Ignore">
+                    <ui:VisualElement name="turn_leader_slot" class="turn-leader-slot" picking-mode="Ignore"/>
+                    <ui:VisualElement name="turn_queue_list" class="turn-queue-list" picking-mode="Ignore"/>
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <!-- Top-Center Active Action Banner Overlay (Hidden by default) -->
-            <ui:VisualElement name="action_banner_container" class="action-banner-container" style="display: none;">
-                <ui:VisualElement class="action-banner-card">
-                    <ui:Label name="label_action_banner_title" text="FIREBALL" class="action-banner-label"/>
-                    <ui:Label name="label_action_banner_subtext" text="Target: Mushroom Blue" class="action-banner-subtext"/>
+            <ui:VisualElement name="action_banner_container" class="action-banner-container" picking-mode="Ignore" style="display: none;">
+                <ui:VisualElement class="action-banner-card" picking-mode="Ignore">
+                    <ui:Label name="label_action_banner_title" text="FIREBALL" class="action-banner-label" picking-mode="Ignore"/>
+                    <ui:Label name="label_action_banner_subtext" text="Target: Mushroom Blue" class="action-banner-subtext" picking-mode="Ignore"/>
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <!-- Floating Command Cross Anchor -->
-            <ui:VisualElement name="floating_command_menu_container" class="floating-command-menu-container" style="display: none;">
+            <ui:VisualElement name="floating_command_menu_container" class="floating-command-menu-container" picking-mode="Ignore" style="display: none;">
                 <ui:Instance template="CommandCrossOverlay" name="command_cross_overlay"/>
             </ui:VisualElement>
 
             <!-- Floating Action SubMenu Anchor (Psynergy, Items, Djinns) -->
-            <ui:VisualElement name="floating_submenu_container" class="floating-submenu-container" style="display: none;">
+            <ui:VisualElement name="floating_submenu_container" class="floating-submenu-container" picking-mode="Ignore" style="display: none;">
                 <ui:Instance template="BattleSubMenu" name="battle_submenu_instance"/>
             </ui:VisualElement>
 
-            <ui:VisualElement name="qte_overlay_container" class="qte-overlay-container"/>
-            <ui:VisualElement name="bottom_left_party_container" class="party-cards-battle-container"/>
+            <ui:VisualElement name="qte_overlay_container" class="qte-overlay-container" picking-mode="Ignore"/>
+            <ui:VisualElement name="bottom_left_party_container" class="party-cards-battle-container" picking-mode="Ignore"/>
 
         </ui:VisualElement>
 
         <!-- =========================================================================
              CAPA 1: RESULTS HUD (Capa de Victoria / Dragon Quest Style Results)
              ========================================================================= -->
-        <ui:VisualElement name="layer_results_hud" class="hud-layer hud-layer--hidden">
+        <ui:VisualElement name="layer_results_hud" class="hud-layer hud-layer--hidden" picking-mode="Ignore">
             
             <!-- Cuadro de Diálogo/Notificación Inferior -->
-            <ui:VisualElement name="results_dialog_container" class="results-dialog-container">
-                <ui:Label name="label_results_dialog_text" text="¡El grupo obtiene 150 puntos de experiencia!" class="results-dialog-text"/>
-                <ui:VisualElement name="results_prompt_indicator" class="results-prompt-indicator"/>
+            <ui:VisualElement name="results_dialog_container" class="results-dialog-container" picking-mode="Ignore">
+                <ui:Label name="label_results_dialog_text" text="¡El grupo obtiene 150 puntos de experiencia!" class="results-dialog-text" picking-mode="Ignore"/>
+                <ui:VisualElement name="results_prompt_indicator" class="results-prompt-indicator" picking-mode="Ignore"/>
             </ui:VisualElement>
 
             <!-- Contenedor Flotante para Tarjeta/Panel de Subida de Nivel (Level Up) -->
-            <ui:VisualElement name="level_up_overlay_container" class="level-up-overlay-container" style="display: none;">
-                <ui:VisualElement class="level-up-card">
-                    <ui:Label name="label_levelup_title" text="¡HANS SUBE AL NIVEL 13!" class="levelup-title-label"/>
-                    <ui:VisualElement class="levelup-stats-grid">
-                        <ui:VisualElement class="levelup-stat-row">
-                            <ui:Label text="HP MAX" class="levelup-stat-name"/>
-                            <ui:Label name="label_stat_hp" text="+12" class="levelup-stat-value"/>
+            <ui:VisualElement name="level_up_overlay_container" class="level-up-overlay-container" picking-mode="Ignore" style="display: none;">
+                <ui:VisualElement class="level-up-card" picking-mode="Ignore">
+                    <ui:Label name="label_levelup_title" text="¡HANS SUBE AL NIVEL 13!" class="levelup-title-label" picking-mode="Ignore"/>
+                    <ui:VisualElement class="levelup-stats-grid" picking-mode="Ignore">
+                        <ui:VisualElement class="levelup-stat-row" picking-mode="Ignore">
+                            <ui:Label text="HP MAX" class="levelup-stat-name" picking-mode="Ignore"/>
+                            <ui:Label name="label_stat_hp" text="+12" class="levelup-stat-value" picking-mode="Ignore"/>
                         </ui:VisualElement>
-                        <ui:VisualElement class="levelup-stat-row">
-                            <ui:Label text="PP MAX" class="levelup-stat-name"/>
-                            <ui:Label name="label_stat_pp" text="+5" class="levelup-stat-value"/>
+                        <ui:VisualElement class="levelup-stat-row" picking-mode="Ignore">
+                            <ui:Label text="PP MAX" class="levelup-stat-name" picking-mode="Ignore"/>
+                            <ui:Label name="label_stat_pp" text="+5" class="levelup-stat-value" picking-mode="Ignore"/>
                         </ui:VisualElement>
-                        <ui:VisualElement class="levelup-stat-row">
-                            <ui:Label text="ATAQUE" class="levelup-stat-name"/>
-                            <ui:Label name="label_stat_atk" text="+4" class="levelup-stat-value"/>
+                        <ui:VisualElement class="levelup-stat-row" picking-mode="Ignore">
+                            <ui:Label text="ATAQUE" class="levelup-stat-name" picking-mode="Ignore"/>
+                            <ui:Label name="label_stat_atk" text="+4" class="levelup-stat-value" picking-mode="Ignore"/>
                         </ui:VisualElement>
-                        <ui:VisualElement class="levelup-stat-row">
-                            <ui:Label text="DEFENSA" class="levelup-stat-name"/>
-                            <ui:Label name="label_stat_def" text="+3" class="levelup-stat-value"/>
+                        <ui:VisualElement class="levelup-stat-row" picking-mode="Ignore">
+                            <ui:Label text="DEFENSA" class="levelup-stat-name" picking-mode="Ignore"/>
+                            <ui:Label name="label_stat_def" text="+3" class="levelup-stat-value" picking-mode="Ignore"/>
                         </ui:VisualElement>
-                        <ui:VisualElement class="levelup-stat-row">
-                            <ui:Label text="AGILIDAD" class="levelup-stat-name"/>
-                            <ui:Label name="label_stat_agi" text="+2" class="levelup-stat-value"/>
+                        <ui:VisualElement class="levelup-stat-row" picking-mode="Ignore">
+                            <ui:Label text="AGILIDAD" class="levelup-stat-name" picking-mode="Ignore"/>
+                            <ui:Label name="label_stat_agi" text="+2" class="levelup-stat-value" picking-mode="Ignore"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
@@ -94,7 +94,7 @@
         <!-- =========================================================================
              CAPA 2: GAME OVER HUD (Capa de Derrota)
              ========================================================================= -->
-        <ui:VisualElement name="layer_gameover_hud" class="hud-layer hud-layer--hidden">
+        <ui:VisualElement name="layer_gameover_hud" class="hud-layer hud-layer--hidden" picking-mode="Ignore">
             <!-- Reservado para la animación / pantalla de Game Over en UI Toolkit -->
         </ui:VisualElement>
 

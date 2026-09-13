@@ -73,7 +73,7 @@ MonoBehaviour:
   baseResistMars: 105
   baseResistJupiter: 100
   baseResistMercury: 100
-  xpReward: 50
+  xpReward: 500
   coinsReward: 20
   possibleDrops:
   - itemSlug: herb

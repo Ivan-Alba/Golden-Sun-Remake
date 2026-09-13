@@ -22,7 +22,7 @@ public class BattleManager : MonoBehaviour
     [Header("Internal Prefab References")]
     [SerializeField] private Transform audioCenter;
     [SerializeField] private BattleCameraController battleCameraController;
-    [SerializeField] private ResultsScreenController resultsController;
+    [SerializeField] private BattleHUDController hudController;
     [SerializeField] private TargetSelectionController targetSelectionController;
     [SerializeField] private BattleFieldSpawner fieldSpawner;
     [SerializeField] private BattleActionExecutor actionExecutor;
@@ -117,6 +117,9 @@ public class BattleManager : MonoBehaviour
         // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
 
+        if (hudController == null)
+            hudController = GetComponent<BattleHUDController>() ?? GetComponentInChildren<BattleHUDController>();
+
         if (targetSelectionController == null)
             targetSelectionController = GetComponent<TargetSelectionController>();
 
@@ -135,7 +138,6 @@ public class BattleManager : MonoBehaviour
 
     private void OnEnable()
     {
-        SubscribeToInputEvents();
         SubscribeToGameEvents();
 
         if (targetSelectionController != null)
@@ -147,7 +149,6 @@ public class BattleManager : MonoBehaviour
 
     private void OnDisable()
     {
-        UnsubscribeFromInputEvents();
         UnsubscribeFromGameEvents();
 
         if (targetSelectionController != null)
@@ -185,18 +186,6 @@ public class BattleManager : MonoBehaviour
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
         _cachedGameState = newState;
-    }
-
-    private void SubscribeToInputEvents()
-    {
-        UnsubscribeFromInputEvents();
-
-        GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
-    }
-
-    private void UnsubscribeFromInputEvents()
-    {
-        GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
     }
 
     #endregion
@@ -358,29 +347,6 @@ public class BattleManager : MonoBehaviour
                 nextPsynergy = null;
                 nextItem = null;
                 nextDjinn = null;
-                break;
-        }
-    }
-
-    #endregion
-
-    #region Input Handlers by Battle State
-
-    private void HandleConfirmPressed(InputEventArgs args)
-    {
-        if (args.Handled || _cachedGameState != GameManager.GameState.InBattle) return;
-
-        switch (CurrentBattleState)
-        {
-            case BattleState.ResultsScreen:
-                if (resultsController != null)
-                {
-                    args.Use();
-                    resultsController.HandleConfirmInput();
-                }
-                break;
-
-            case BattleState.GameOverScreen:
                 break;
         }
     }
@@ -677,26 +643,23 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(3);
 
-        // Consume consolidated rewards from tracker
+        // Fetch reward summary from tracker
         BattleRewardSummary rewardSummary = rewardTracker != null
             ? rewardTracker.GetRewardSummary()
             : default;
 
-        Dictionary<ItemSO, int> itemsObtained = rewardSummary.ItemsObtained != null
-            ? new Dictionary<ItemSO, int>(rewardSummary.ItemsObtained)
-            : new Dictionary<ItemSO, int>();
+        // Delegate entire sequential results UI presentation to ResultsScreenPresenter via BattleHUDController
+        ResultsScreenPresenter resultsPresenter = (hudController != null)
+            ? hudController.ResultsPresenter
+            : null;
 
-        StartCoroutine(resultsController.ShowResults(
-            heroList,
-            rewardSummary.TotalXpEarned,
-            rewardSummary.TotalPhEarned,
-            rewardSummary.TotalGoldEarned,
-            itemsObtained
-        ));
-
-        while (!resultsController.ResultsFinished)
+        if (resultsPresenter != null)
         {
-            yield return null;
+            yield return resultsPresenter.PlayResultsSequence(heroList, rewardSummary, battleCameraController);
+        }
+        else
+        {
+            Debug.LogWarning($"[{nameof(BattleManager)}] ResultsScreenPresenter reference is missing on HUDController. Skipping sequence.");
         }
 
         GameEvents.Scene.RequestFullTransition(SetOffBattle);
@@ -705,7 +668,14 @@ public class BattleManager : MonoBehaviour
 
     private void SetOffBattle()
     {
-        resultsController.Reset();
+        if (hudController != null)
+        {
+            hudController.SetHUDVisible(false);
+            hudController.SetResultsLayerVisible(false);
+            hudController.SetGameOverLayerVisible(false);
+
+            hudController.SetSubMenuVisible(false);
+        }
 
         foreach (GameObject hero in heroList)
         {

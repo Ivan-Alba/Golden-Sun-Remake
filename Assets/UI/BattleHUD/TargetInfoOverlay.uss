@@ -9,7 +9,6 @@
     align-items: center;
     justify-content: center;
     translate: -50% -100%;
-    picking-mode: ignore;
 }
 
 .target-overlay-root.hidden {
@@ -34,8 +33,6 @@
     margin-bottom: 15px; /* Space between diamond and nameplate */
     align-items: center;
     justify-content: center;
-    
-    /* Optional bobbing animation via CSS if supported, or via script */
 }
 
 /* Inner highlight for the diamond */

@@ -1,16 +1,17 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/BattleHUD/TargetInfoOverlay.uss?fileID=7433441132597879392&amp;guid=93b9a06a20dd6904e90ad2c6f31376a1&amp;type=3#TargetInfoOverlay"/>
-    <ui:VisualElement name="target_overlay_root" class="target-overlay-root">
-        <ui:VisualElement name="selection_pointer" class="selection-diamond">
-            <ui:VisualElement class="diamond-core"/>
+    
+    <ui:VisualElement name="target_overlay_root" class="target-overlay-root" picking-mode="Ignore">
+        <ui:VisualElement name="selection_pointer" class="selection-diamond" picking-mode="Ignore">
+            <ui:VisualElement class="diamond-core" picking-mode="Ignore"/>
         </ui:VisualElement>
-        <ui:VisualElement name="nameplate_frame" class="target-nameplate-frame">
-            <ui:VisualElement class="nameplate-header">
-                <ui:Label name="entity_name" text="Target Name" class="label-target-name"/>
-                <ui:Label name="entity_level" text="Lv. 1" class="label-target-level" style="display: none;"/>
+        <ui:VisualElement name="nameplate_frame" class="target-nameplate-frame" picking-mode="Ignore">
+            <ui:VisualElement class="nameplate-header" picking-mode="Ignore">
+                <ui:Label name="entity_name" text="Target Name" class="label-target-name" picking-mode="Ignore"/>
+                <ui:Label name="entity_level" text="Lv. 1" class="label-target-level" picking-mode="Ignore" style="display: none;"/>
             </ui:VisualElement>
-            <ui:ProgressBar name="hp_bar" value="100" high-value="100" class="target-hp-bar" style="display: none;"/>
+            <ui:ProgressBar name="hp_bar" value="100" high-value="100" class="target-hp-bar" picking-mode="Ignore" style="display: none;"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

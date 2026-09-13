@@ -62,21 +62,18 @@ public class BattleSubMenuPresenter
         _scrollView = _rootElement.Q<ScrollView>("submenu_scroll_view");
         _labelInfoDescription = _rootElement.Q<Label>("label_info_description");
 
-        // Disable Focus and Interaction on ScrollView and internal Scrollers
+        // Disable Focus on ScrollView and internal Scrollers for pure keyboard navigation
         if (_scrollView != null)
         {
             _scrollView.focusable = false;
-            _scrollView.pickingMode = PickingMode.Ignore;
 
             if (_scrollView.verticalScroller != null)
             {
                 _scrollView.verticalScroller.focusable = false;
-                _scrollView.verticalScroller.pickingMode = PickingMode.Ignore;
 
                 if (_scrollView.verticalScroller.slider != null)
                 {
                     _scrollView.verticalScroller.slider.focusable = false;
-                    _scrollView.verticalScroller.slider.pickingMode = PickingMode.Ignore;
                 }
             }
         }
@@ -157,10 +154,16 @@ public class BattleSubMenuPresenter
 
     public void ClearFocusAndHide()
     {
+        VisualElement currentlyFocused = _rootElement.focusController?.focusedElement as VisualElement;
         _lastFocusedCard = null;
         _lastFocusedPayload = null;
         _lastFocusedCanAfford = false;
-        _rootElement.focusController?.focusedElement?.Blur();
+
+        if (currentlyFocused != null)
+        {
+            currentlyFocused.Blur();
+        }
+
         SetVisible(false);
     }
 
@@ -168,10 +171,15 @@ public class BattleSubMenuPresenter
     {
         if (!visible && _rootElement != null)
         {
+            VisualElement currentlyFocused = _rootElement.focusController?.focusedElement as VisualElement;
             _lastFocusedCard = null;
             _lastFocusedPayload = null;
             _lastFocusedCanAfford = false;
-            _rootElement.focusController?.focusedElement?.Blur();
+
+            if (currentlyFocused != null)
+            {
+                currentlyFocused.Blur();
+            }
         }
 
         _rootElement.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
@@ -210,7 +218,6 @@ public class BattleSubMenuPresenter
             VisualElement cardRoot = instance.Q<VisualElement>("psynergy_card") ?? instance;
 
             cardRoot.focusable = true;
-            cardRoot.pickingMode = PickingMode.Ignore;
             cardRoot.AddToClassList("interactive");
 
             cardRoot.AddToClassList(GetElementCssClass(psy.Element));
@@ -331,7 +338,6 @@ public class BattleSubMenuPresenter
             VisualElement cardRoot = instance.Q<VisualElement>("item_card") ?? instance;
 
             cardRoot.focusable = true;
-            cardRoot.pickingMode = PickingMode.Ignore;
             cardRoot.AddToClassList("interactive");
 
             VisualElement stripe = cardRoot.Q<VisualElement>("card_item_stripe");
@@ -419,7 +425,6 @@ public class BattleSubMenuPresenter
             VisualElement cardRoot = instance.Q<VisualElement>("djinn_card") ?? instance;
 
             cardRoot.focusable = true;
-            cardRoot.pickingMode = PickingMode.Ignore;
             cardRoot.AddToClassList("interactive");
 
             Label labelName = cardRoot.Q<Label>("label_djinn_name");
@@ -475,7 +480,8 @@ public class BattleSubMenuPresenter
     {
         _rootElement.schedule.Execute(() =>
         {
-            if (_rootElement.style.display == DisplayStyle.Flex &&
+            if (_currentBattleState == BattleState.SubMenuSelection &&
+                _rootElement.style.display == DisplayStyle.Flex &&
                 _rootElement.focusController?.focusedElement == null &&
                 _lastFocusedCard != null)
             {

@@ -369,10 +369,10 @@ public class GameManager : MonoBehaviour
             {
                 activeParty.Add(availableHeroes[i]);
 
-                if (availableHeroes[i].TryGetComponent<HeroStats>(out var stats))
+                /*if (availableHeroes[i].TryGetComponent<HeroStats>(out var stats))
                 {
                     for (int l = 0; l < 11; l++) stats.LevelUp();
-                }
+                }*/
             }
         }
 

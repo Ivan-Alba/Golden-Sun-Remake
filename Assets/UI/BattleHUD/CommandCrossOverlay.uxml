@@ -2,73 +2,73 @@
     <Style src="project://database/Assets/UI/Global_Theme.uss" />
     <Style src="project://database/Assets/UI/BattleHUD/CommandCrossOverlay.uss" />
 
-    <ui:VisualElement name="command_cross_root" class="command-cross-root">
+    <ui:VisualElement name="command_cross_root" class="command-cross-root" picking-mode="Ignore">
         
         <!-- Special Upper Wings Container (Horizontal Pill Badges for Djinn & Summon) -->
-        <ui:VisualElement name="wings_container" class="wings-container">
+        <ui:VisualElement name="wings_container" class="wings-container" picking-mode="Ignore">
             <!-- Left Wing: Djinn (Key 1 / L1) -->
-            <ui:VisualElement name="slot_djinn" class="wing-slot wing-slot--djinn">
-                <ui:VisualElement class="cmd-key-badge wing-key-badge">
-                    <ui:Label text="1" class="label-cmd-key" />
+            <ui:VisualElement name="slot_djinn" class="wing-slot wing-slot--djinn" picking-mode="Ignore">
+                <ui:VisualElement class="cmd-key-badge wing-key-badge" picking-mode="Ignore">
+                    <ui:Label text="1" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:VisualElement class="wing-icon icon-djinn" />
-                <ui:Label text="DJINN" class="wing-text-label" />
+                <ui:VisualElement class="wing-icon icon-djinn" picking-mode="Ignore" />
+                <ui:Label text="DJINN" class="wing-text-label" picking-mode="Ignore" />
             </ui:VisualElement>
 
             <!-- Right Wing: Summon (Key 2 / R1) -->
-            <ui:VisualElement name="slot_summon" class="wing-slot wing-slot--summon">
-                <ui:Label text="SUMMON" class="wing-text-label" />
-                <ui:VisualElement class="wing-icon icon-summon" />
-                <ui:VisualElement class="cmd-key-badge wing-key-badge">
-                    <ui:Label text="2" class="label-cmd-key" />
+            <ui:VisualElement name="slot_summon" class="wing-slot wing-slot--summon" picking-mode="Ignore">
+                <ui:Label text="SUMMON" class="wing-text-label" picking-mode="Ignore" />
+                <ui:VisualElement class="wing-icon icon-summon" picking-mode="Ignore" />
+                <ui:VisualElement class="cmd-key-badge wing-key-badge" picking-mode="Ignore">
+                    <ui:Label text="2" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
         <!-- Main Command D-Pad Wheel (1-to-1 Hotkey Mapping: Q, E, R, F) -->
-        <ui:VisualElement name="dpad_wheel" class="dpad-cmd-wheel">
+        <ui:VisualElement name="dpad_wheel" class="dpad-cmd-wheel" picking-mode="Ignore">
             <!-- Top Command: Attack (Q) -->
-            <ui:VisualElement name="slot_attack" class="dpad-slot slot-up">
-                <ui:VisualElement class="cmd-icon icon-attack" />
-                <ui:VisualElement class="cmd-key-badge">
-                    <ui:Label text="Q" class="label-cmd-key" />
+            <ui:VisualElement name="slot_attack" class="dpad-slot slot-up" picking-mode="Ignore">
+                <ui:VisualElement class="cmd-icon icon-attack" picking-mode="Ignore" />
+                <ui:VisualElement class="cmd-key-badge" picking-mode="Ignore">
+                    <ui:Label text="Q" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:Label text="ATTACK" class="cmd-action-label" />
+                <ui:Label text="ATTACK" class="cmd-action-label" picking-mode="Ignore" />
             </ui:VisualElement>
 
             <!-- Left Command: Psynergy (E) -->
-            <ui:VisualElement name="slot_psynergy" class="dpad-slot slot-left">
-                <ui:VisualElement class="cmd-icon icon-psynergy" />
-                <ui:VisualElement class="cmd-key-badge">
-                    <ui:Label text="E" class="label-cmd-key" />
+            <ui:VisualElement name="slot_psynergy" class="dpad-slot slot-left" picking-mode="Ignore">
+                <ui:VisualElement class="cmd-icon icon-psynergy" picking-mode="Ignore" />
+                <ui:VisualElement class="cmd-key-badge" picking-mode="Ignore">
+                    <ui:Label text="E" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:Label text="PSYNERGY" class="cmd-action-label" />
+                <ui:Label text="PSYNERGY" class="cmd-action-label" picking-mode="Ignore" />
             </ui:VisualElement>
 
             <!-- Right Command: Item (R) -->
-            <ui:VisualElement name="slot_item" class="dpad-slot slot-right">
-                <ui:VisualElement class="cmd-icon icon-item" />
-                <ui:VisualElement class="cmd-key-badge">
-                    <ui:Label text="R" class="label-cmd-key" />
+            <ui:VisualElement name="slot_item" class="dpad-slot slot-right" picking-mode="Ignore">
+                <ui:VisualElement class="cmd-icon icon-item" picking-mode="Ignore" />
+                <ui:VisualElement class="cmd-key-badge" picking-mode="Ignore">
+                    <ui:Label text="R" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:Label text="ITEM" class="cmd-action-label" />
+                <ui:Label text="ITEM" class="cmd-action-label" picking-mode="Ignore" />
             </ui:VisualElement>
 
             <!-- Bottom Command: Defend (F) -->
-            <ui:VisualElement name="slot_defend" class="dpad-slot slot-down">
-                <ui:VisualElement class="cmd-icon icon-defend" />
-                <ui:VisualElement class="cmd-key-badge">
-                    <ui:Label text="F" class="label-cmd-key" />
+            <ui:VisualElement name="slot_defend" class="dpad-slot slot-down" picking-mode="Ignore">
+                <ui:VisualElement class="cmd-icon icon-defend" picking-mode="Ignore" />
+                <ui:VisualElement class="cmd-key-badge" picking-mode="Ignore">
+                    <ui:Label text="F" class="label-cmd-key" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:Label text="DEFEND" class="cmd-action-label" />
+                <ui:Label text="DEFEND" class="cmd-action-label" picking-mode="Ignore" />
             </ui:VisualElement>
 
             <!-- Central Aesthetic Core Gem -->
-            <ui:VisualElement class="dpad-center-gem" />
+            <ui:VisualElement class="dpad-center-gem" picking-mode="Ignore" />
         </ui:VisualElement>
 
         <!-- Bottom Feedback Badge (Toggled dynamically on hover/focus) -->
-        <ui:Label name="label_active_command" text="" class="cmd-selected-badge cmd-selected-badge--hidden" />
+        <ui:Label name="label_active_command" text="" class="cmd-selected-badge cmd-selected-badge--hidden" picking-mode="Ignore" />
 
     </ui:VisualElement>
 </ui:UXML>

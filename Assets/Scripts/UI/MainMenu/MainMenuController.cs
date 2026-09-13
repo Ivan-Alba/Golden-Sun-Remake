@@ -372,6 +372,7 @@ public class MainMenuController : MonoBehaviour
     {
         isMenuOpen = visible;
         rootElement.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        rootElement.pickingMode = visible ? PickingMode.Position : PickingMode.Ignore;
 
         GameEvents.GameState.RequestGameStateChange(visible ? GameManager.GameState.InMenu : GameManager.GameState.WorldExploration);
 

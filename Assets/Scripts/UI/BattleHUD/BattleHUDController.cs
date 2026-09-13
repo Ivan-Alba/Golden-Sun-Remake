@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Controller for the Battle HUD overlay using UI Toolkit.
 /// Orchestrates viewport transitions, turn timeline updates, floating target overlays,
-/// action submenus, top action banners, layer visibility, and projects floating menus over active heroes in 3D world space.
+/// action submenus, top action banners, layer visibility, results sequences, and projects floating menus over active heroes in 3D world space.
+/// Enforces complete pointer-transparency as all battle HUD elements ignore raycasts declaratively.
 /// </summary>
 public class BattleHUDController : MonoBehaviour
 {
@@ -65,6 +66,15 @@ public class BattleHUDController : MonoBehaviour
     private readonly List<KeyValuePair<GameObject, VisualElement>> _timelineTargetIndicators = new List<KeyValuePair<GameObject, VisualElement>>();
 
     private BattleCommandType _currentSelectedCommand = BattleCommandType.Attack;
+
+    #endregion
+
+    #region Properties & Presenters
+
+    /// <summary>
+    /// Presenter managing sequential Dragon Quest / Golden Sun victory results flow.
+    /// </summary>
+    public ResultsScreenPresenter ResultsPresenter { get; private set; }
 
     #endregion
 
@@ -176,6 +186,7 @@ public class BattleHUDController : MonoBehaviour
         _root = uiDocument.rootVisualElement;
         if (_root == null) return;
 
+        // Ensure Root Document ignores all direct clicks and lets them pass through
         _root.pickingMode = PickingMode.Ignore;
 
         if (mainBattleCamera == null)
@@ -187,6 +198,12 @@ public class BattleHUDController : MonoBehaviour
         _layerGameplay = _root.Q<VisualElement>("layer_gameplay_hud");
         _layerResults = _root.Q<VisualElement>("layer_results_hud");
         _layerGameOver = _root.Q<VisualElement>("layer_gameover_hud");
+
+        // Results Presenter Setup
+        if (_layerResults != null)
+        {
+            ResultsPresenter = new ResultsScreenPresenter(_layerResults);
+        }
 
         // Viewport Elements
         _portraitViewportFrame = _root.Q<VisualElement>("portrait_viewport_frame");
@@ -224,7 +241,7 @@ public class BattleHUDController : MonoBehaviour
         // Party Cards Container
         _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
 
-        // Initial Visibility Reset (Hide all layers initially)
+        // Initial Visibility Reset
         SetHUDVisible(false);
         SetResultsLayerVisible(false);
         SetGameOverLayerVisible(false);
@@ -328,7 +345,10 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
         GameEvents.Battle.OnHideActionBanner += HandleHideActionBanner;
 
-        // Command Cross Keyboard Hotkeys
+        // Command Cross & Results Input Handlers
+        GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
+        GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
+
         GameEvents.Input.OnBattleCommandUpPressed += HandleHotkeyAttack;
         GameEvents.Input.OnBattleCommandLeftPressed += HandleHotkeyPsynergy;
         GameEvents.Input.OnBattleCommandRightPressed += HandleHotkeyItem;
@@ -370,6 +390,8 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Battle.OnTurnQueueUpdated -= HandleTurnQueueUpdated;
         GameEvents.Battle.OnRequestActionBanner -= HandleRequestActionBanner;
         GameEvents.Battle.OnHideActionBanner -= HandleHideActionBanner;
+
+        GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
 
         GameEvents.Input.OnBattleCommandUpPressed -= HandleHotkeyAttack;
         GameEvents.Input.OnBattleCommandLeftPressed -= HandleHotkeyPsynergy;
@@ -424,6 +446,22 @@ public class BattleHUDController : MonoBehaviour
             SetSubMenuVisible(false);
             SetActionBannerVisible(false);
             ClearTargetOverlays();
+
+            ResultsPresenter?.HideAll();
+        }
+    }
+
+    private void HandleConfirmPressed(InputEventArgs args)
+    {
+        if (args.Handled) return;
+
+        if (battleManager != null && battleManager.CurrentBattleState == BattleState.ResultsScreen)
+        {
+            if (ResultsPresenter != null)
+            {
+                args.Use();
+                ResultsPresenter.HandleConfirmInput();
+            }
         }
     }
 
@@ -440,7 +478,7 @@ public class BattleHUDController : MonoBehaviour
         switch (newState)
         {
             case BattleState.CommandSelection:
-                SetHUDVisible(true); // Ensures Gameplay layer is visible
+                SetHUDVisible(true);
                 SetResultsLayerVisible(false);
                 SetGameOverLayerVisible(false);
 
@@ -456,8 +494,8 @@ public class BattleHUDController : MonoBehaviour
                     bool hasItemsAvailable = heroStats.HeroInventory != null &&
                                              heroStats.HeroInventory.HasUsableBattleItems();
 
-                    bool hasDjinnsUnlocked = true;
-                    bool hasSummonsUnlocked = true;
+                    bool hasDjinnsUnlocked = false;
+                    bool hasSummonsUnlocked = false;
 
                     _commandCrossPresenter?.Show(hasPsynergyAvailable, hasItemsAvailable, hasDjinnsUnlocked, hasSummonsUnlocked);
                     UpdateFloatingUIElementsPosition();
@@ -484,7 +522,6 @@ public class BattleHUDController : MonoBehaviour
                 break;
 
             case BattleState.ResultsScreen:
-                // Hide Gameplay layer and show Results layer
                 SetHUDVisible(false);
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
@@ -494,7 +531,6 @@ public class BattleHUDController : MonoBehaviour
                 break;
 
             case BattleState.GameOverScreen:
-                // Hide Gameplay layer and show GameOver layer
                 SetHUDVisible(false);
                 SetHeroTurnUIElementsVisible(false);
                 SetSubMenuVisible(false);
@@ -613,12 +649,12 @@ public class BattleHUDController : MonoBehaviour
         }
         else if (commandType == BattleCommandType.Djinn)
         {
-            bool hasDjinnsUnlocked = true;
+            bool hasDjinnsUnlocked = false;
             if (!hasDjinnsUnlocked) return;
         }
         else if (commandType == BattleCommandType.Summon)
         {
-            bool hasSummonsUnlocked = true;
+            bool hasSummonsUnlocked = false;
             if (!hasSummonsUnlocked) return;
         }
 
@@ -951,8 +987,16 @@ public class BattleHUDController : MonoBehaviour
                 _root.focusController?.focusedElement?.Blur();
             }
 
-            if (visible) _layerGameplay.RemoveFromClassList(LAYER_HIDDEN_CLASS);
-            else _layerGameplay.AddToClassList(LAYER_HIDDEN_CLASS);
+            if (visible)
+            {
+                _layerGameplay.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+                _layerGameplay.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _layerGameplay.AddToClassList(LAYER_HIDDEN_CLASS);
+                _layerGameplay.style.display = DisplayStyle.None;
+            }
         }
     }
 
@@ -963,8 +1007,16 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_layerResults != null)
         {
-            if (visible) _layerResults.RemoveFromClassList(LAYER_HIDDEN_CLASS);
-            else _layerResults.AddToClassList(LAYER_HIDDEN_CLASS);
+            if (visible)
+            {
+                _layerResults.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+                _layerResults.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _layerResults.AddToClassList(LAYER_HIDDEN_CLASS);
+                _layerResults.style.display = DisplayStyle.None;
+            }
         }
     }
 
@@ -975,8 +1027,16 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_layerGameOver != null)
         {
-            if (visible) _layerGameOver.RemoveFromClassList(LAYER_HIDDEN_CLASS);
-            else _layerGameOver.AddToClassList(LAYER_HIDDEN_CLASS);
+            if (visible)
+            {
+                _layerGameOver.RemoveFromClassList(LAYER_HIDDEN_CLASS);
+                _layerGameOver.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _layerGameOver.AddToClassList(LAYER_HIDDEN_CLASS);
+                _layerGameOver.style.display = DisplayStyle.None;
+            }
         }
     }
 
@@ -1008,7 +1068,9 @@ public class BattleHUDController : MonoBehaviour
             {
                 _floatingCommandMenuContainer.focusController?.focusedElement?.Blur();
             }
+
             _floatingCommandMenuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
             if (visible)
             {
                 _floatingCommandMenuContainer.schedule.Execute(UpdateFloatingUIElementsPosition);
@@ -1026,6 +1088,7 @@ public class BattleHUDController : MonoBehaviour
         if (_floatingSubMenuContainer != null)
         {
             _floatingSubMenuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
             if (visible)
             {
                 _floatingSubMenuContainer.schedule.Execute(UpdateFloatingUIElementsPosition);

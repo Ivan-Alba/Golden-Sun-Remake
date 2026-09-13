@@ -3,7 +3,7 @@
     <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
     <Style src="project://database/Assets/UI/BattleHUD/Templates/ItemCard.uss" />
 
-    <ui:VisualElement name="item_card" class="item-card">
+    <ui:VisualElement name="item_card" class="item-card" picking-mode="Ignore">
         <!-- Stripe decorativo lateral según tipo (stripe-consumable / stripe-equipment) -->
         <ui:VisualElement name="card_item_stripe" class="card-item-stripe stripe-consumable" />
 

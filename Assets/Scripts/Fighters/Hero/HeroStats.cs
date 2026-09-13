@@ -360,9 +360,20 @@ public class HeroStats : FighterStats
 
     #region Progression & Experience Logic
 
+    /// <summary>
+    /// Calculates the experience required to advance from the current level to the next.
+    /// Uses a moderate quadratic growth curve suitable for a classic Golden Sun feel.
+    /// </summary>
     private void CalculateNextLevelXp()
     {
-        nextLevelXp = level * 125 + (125 * level / 2);
+        if (level >= baseProgression.MaxLevel)
+        {
+            nextLevelXp = int.MaxValue;
+            return;
+        }
+
+        // Curva cuadrática moderada (15 * L^2 + 100 * L + 20)
+        nextLevelXp = (15 * level * level) + (100 * level) + 20;
     }
 
     public List<PsynergySO> AddExperience(int amount)
