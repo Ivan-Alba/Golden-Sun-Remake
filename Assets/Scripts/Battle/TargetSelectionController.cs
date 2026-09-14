@@ -23,6 +23,9 @@ public class TargetSelectionController : MonoBehaviour
     private int _currentAreaRange;
     private int _primaryTargetIndex;
 
+    private BattleCommandType _currentCommandType;
+    private object _currentActionPayload;
+
     private IReadOnlyList<GameObject> _heroList;
     private List<GameObject> _enemyList;
 
@@ -38,10 +41,10 @@ public class TargetSelectionController : MonoBehaviour
 
     /// <summary>
     /// Triggered when the user confirms target selection.
-    /// Passes the primary target GameObject (or null if global action) and the list of affected targets.
+    /// Passes the complete BattleActionRequest payload ready for execution.
     /// Notifies the Orchestrator (BattleManager).
     /// </summary>
-    public event Action<GameObject, List<GameObject>> OnTargetConfirmed;
+    public event Action<BattleActionRequest> OnTargetConfirmed;
 
     /// <summary>
     /// Triggered when the user cancels target selection.
@@ -113,6 +116,75 @@ public class TargetSelectionController : MonoBehaviour
     }
 
     /// <summary>
+    /// Registers/updates the active combatant lists. Call this at battle initialization or turn start.
+    /// </summary>
+    public void SetCombatants(IReadOnlyList<GameObject> heroList, List<GameObject> enemyList)
+    {
+        _heroList = heroList;
+        _enemyList = enemyList;
+    }
+
+    /// <summary>
+    /// Initiates targeting sequence directly from a command type and payload, resolving target rules automatically.
+    /// </summary>
+    public void StartTargetingForAction(BattleCommandType commandType, object actionPayload, int defaultIndex = -1)
+    {
+        _currentCommandType = commandType;
+        _currentActionPayload = actionPayload;
+
+        ActionTargetType targetType = ActionTargetType.SingleEnemy;
+        int areaRange = 0;
+
+        switch (commandType)
+        {
+            case BattleCommandType.Attack:
+                targetType = ActionTargetType.SingleEnemy;
+                areaRange = 0;
+                break;
+
+            case BattleCommandType.Psynergy:
+                if (actionPayload is PsynergySO psynergy)
+                {
+                    targetType = psynergy.TargetType;
+                    areaRange = psynergy.AreaRange;
+                }
+                break;
+
+            case BattleCommandType.Item:
+                if (actionPayload is ItemSO item)
+                {
+                    targetType = ActionTargetType.SingleAlly;
+                    areaRange = 0;
+                }
+                break;
+
+            case BattleCommandType.Djinn:
+                if (actionPayload is DjinnInstance djinn)
+                {
+                    if (djinn.DjinnData != null && djinn.DjinnData.UnleashEffect != null)
+                    {
+                        targetType = djinn.DjinnData.UnleashEffect.TargetType;
+                        areaRange = djinn.DjinnData.UnleashEffect.AreaRange;
+                    }
+                    else
+                    {
+                        targetType = ActionTargetType.SingleEnemy;
+                        areaRange = 0;
+                    }
+                }
+                break;
+
+            case BattleCommandType.Summon:
+                // TODO: Adapt when SummonSO is fully defined
+                targetType = ActionTargetType.AllEnemies;
+                areaRange = 0;
+                break;
+        }
+
+        InitializeTargeting(targetType, areaRange, _heroList, _enemyList, defaultIndex);
+    }
+
+    /// <summary>
     /// Initializes targeting state for a new selection sequence.
     /// Pass defaultIndex as -1 to force calculating the center alive enemy.
     /// </summary>
@@ -147,8 +219,24 @@ public class TargetSelectionController : MonoBehaviour
         // Turn off all 3D pointers upon confirmation
         ClearAllPointers();
 
-        // Notify Orchestrator with payload (Primary GameObject target and affected target list)
-        OnTargetConfirmed?.Invoke(_lastPrimaryTargetObject, new List<GameObject>(_lastAffectedTargets));
+        // Construct unified BattleActionRequest payload
+        FighterController caster = null;
+        if (_battleManager != null && _battleManager.GetComponent<TurnController>() != null)
+        {
+            caster = _battleManager.GetComponent<TurnController>().CurrentFighter;
+        }
+
+        BattleActionRequest actionRequest = new BattleActionRequest
+        {
+            Caster = caster,
+            CommandType = _currentCommandType,
+            ActionPayload = _currentActionPayload,
+            PrimaryTarget = _lastPrimaryTargetObject,
+            AffectedTargets = new List<GameObject>(_lastAffectedTargets)
+        };
+
+        // Notify Orchestrator
+        OnTargetConfirmed?.Invoke(actionRequest);
     }
 
     private void HandleCancelPressed(InputEventArgs args)

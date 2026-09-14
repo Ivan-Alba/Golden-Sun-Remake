@@ -24,9 +24,9 @@ MonoBehaviour:
     CasterAnimationTrigger: use_psynergy
     CasterAuraVFX: {fileID: 0}
     MainActionVFX: {fileID: 1535640691960112, guid: 96a8f73d24c38884bad7e4802680eaa7, type: 3}
-    TargetHitFXType: 0
+    TargetHitFXType: 4
     CustomTargetHitVFX: {fileID: 0}
-    DirectAudioClip: {fileID: 0}
+    DirectAudioClip: {fileID: 8300000, guid: 339d6920ba96a9e44912e66d36be4f4c, type: 3}
     FallbackSFX: 0
     FallbackCastDuration: 0
     FallbackImpactDelay: 0

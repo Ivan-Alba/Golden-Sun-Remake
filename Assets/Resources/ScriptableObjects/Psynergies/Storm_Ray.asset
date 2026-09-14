@@ -26,7 +26,7 @@ MonoBehaviour:
     MainActionVFX: {fileID: 1604970523841052, guid: db0fa11071fd8994dbf6de47f0dfcd75, type: 3}
     TargetHitFXType: 0
     CustomTargetHitVFX: {fileID: 0}
-    DirectAudioClip: {fileID: 0}
+    DirectAudioClip: {fileID: 8300000, guid: f2e58036cd78a674e994db153e191210, type: 3}
     FallbackSFX: 0
     FallbackCastDuration: 0
     FallbackImpactDelay: 0

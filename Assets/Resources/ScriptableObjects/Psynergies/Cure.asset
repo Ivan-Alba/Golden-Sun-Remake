@@ -23,10 +23,10 @@ MonoBehaviour:
   battleFXConfig:
     CasterAnimationTrigger: use_psynergy
     CasterAuraVFX: {fileID: 0}
-    MainActionVFX: {fileID: 1592372973558972, guid: 965ea0a00419b7f45a8b980324bc2eec, type: 3}
+    MainActionVFX: {fileID: 1492667978523942, guid: b7c2244e4118e4e4594d87d81a413efd, type: 3}
     TargetHitFXType: 0
     CustomTargetHitVFX: {fileID: 0}
-    DirectAudioClip: {fileID: 0}
+    DirectAudioClip: {fileID: 8300000, guid: d043519c03adf5b4bbba96049cd1de44, type: 3}
     FallbackSFX: 0
     FallbackCastDuration: 0
     FallbackImpactDelay: 0

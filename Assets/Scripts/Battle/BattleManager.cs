@@ -18,6 +18,15 @@ public enum BattleState
     GameOverScreen        // Defeat screen
 }
 
+public struct BattleActionRequest
+{
+    public FighterController Caster;          // Quién ejecuta la acción
+    public BattleCommandType CommandType;     // Attack, Psynergy, Item, Djinn, Defend, etc.
+    public object ActionPayload;              // PsynergySO, ItemSO, DjinnInstance, etc.
+    public GameObject PrimaryTarget;          // Objetivo principal (o null si es global/AOE masivo)
+    public List<GameObject> AffectedTargets;  // Lista completa de objetivos impactados
+}
+
 public class BattleManager : MonoBehaviour
 {
     [Header("Internal Prefab References")]
@@ -30,7 +39,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private GameObject battleField;
 
     private GameObject player; // player reference
-    private IReadOnlyList<GameObject> party;
+    private IReadOnlyList<GameObject> _cachedParty;
 
     // Local GameState Cache
     private GameManager.GameState _cachedGameState;
@@ -39,9 +48,7 @@ public class BattleManager : MonoBehaviour
 
     // NEXT ACTION & TARGETING
     private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
-    private PsynergySO nextPsynergy;
-    private ItemSO nextItem;
-    private DjinnInstance nextDjinn;
+
 
     private List<GameObject> targetList = new List<GameObject>();
     private ActionTargetType currentTargetType = ActionTargetType.SingleEnemy;
@@ -177,7 +184,7 @@ public class BattleManager : MonoBehaviour
 
     private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
     {
-        party = activeParty;
+        _cachedParty = activeParty;
     }
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
@@ -198,13 +205,15 @@ public class BattleManager : MonoBehaviour
 
         _selectedCommandType = commandType;
 
+        PlaySFX(SFXType.UI_Confirm);
+
         switch (commandType)
         {
             case BattleCommandType.Attack:
-                PlaySFX(SFXType.UI_Confirm);
-                currentTargetType = ActionTargetType.SingleEnemy;
-                currentAreaRange = 0;
-                targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
+                if (targetSelectionController != null)
+                {
+                    targetSelectionController.StartTargetingForAction(commandType, null);
+                }
                 CurrentBattleState = BattleState.TargetSelection;
                 break;
 
@@ -212,13 +221,11 @@ public class BattleManager : MonoBehaviour
             case BattleCommandType.Item:
             case BattleCommandType.Djinn:
             case BattleCommandType.Summon:
-                PlaySFX(SFXType.UI_Confirm);
                 OnCommandTypeSelected?.Invoke(commandType);
                 CurrentBattleState = BattleState.SubMenuSelection;
                 break;
 
             case BattleCommandType.Defend:
-                PlaySFX(SFXType.UI_Confirm);
                 turnController.HideTurnCamera();
                 CurrentBattleState = BattleState.WaitingTurnExecution;
                 StartCoroutine(PerformAction());
@@ -239,55 +246,12 @@ public class BattleManager : MonoBehaviour
             return;
 
         _selectedCommandType = commandType;
-        nextPsynergy = null;
-        nextItem = null;
-        nextDjinn = null;
 
-        switch (commandType)
+        if (targetSelectionController != null)
         {
-            case BattleCommandType.Psynergy:
-                if (actionPayload is PsynergySO psynergy)
-                {
-                    nextPsynergy = psynergy;
-                    currentTargetType = psynergy.TargetType;
-                    currentAreaRange = psynergy.AreaRange;
-                }
-                break;
-
-            case BattleCommandType.Item:
-                if (actionPayload is ItemSO item)
-                {
-                    nextItem = item;
-                    currentTargetType = ActionTargetType.SingleAlly;
-                    currentAreaRange = 0;
-                }
-                break;
-
-            case BattleCommandType.Djinn:
-                if (actionPayload is DjinnInstance djinn)
-                {
-                    nextDjinn = djinn;
-                    if (djinn.DjinnData != null && djinn.DjinnData.UnleashEffect != null)
-                    {
-                        currentTargetType = djinn.DjinnData.UnleashEffect.TargetType;
-                        currentAreaRange = djinn.DjinnData.UnleashEffect.AreaRange;
-                    }
-                    else
-                    {
-                        currentTargetType = ActionTargetType.SingleEnemy;
-                        currentAreaRange = 0;
-                    }
-                }
-                break;
-
-            case BattleCommandType.Summon:
-                // TODO: Adapt when SummonSO is fully defined
-                currentTargetType = ActionTargetType.AllEnemies;
-                currentAreaRange = 0;
-                break;
+            targetSelectionController.StartTargetingForAction(commandType, actionPayload);
         }
 
-        targetSelectionController.InitializeTargeting(currentTargetType, currentAreaRange, heroList, enemiesList);
         CurrentBattleState = BattleState.TargetSelection;
     }
 
@@ -299,10 +263,6 @@ public class BattleManager : MonoBehaviour
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
             return;
 
-        nextPsynergy = null;
-        nextItem = null;
-        nextDjinn = null;
-
         CurrentBattleState = BattleState.CommandSelection;
     }
 
@@ -310,17 +270,45 @@ public class BattleManager : MonoBehaviour
 
     #region Target Selection Callbacks
 
-    private void HandleTargetSelectionConfirmed(GameObject primaryTarget, List<GameObject> affectedTargets)
+    private void HandleTargetSelectionConfirmed(BattleActionRequest request)
     {
         if (CurrentBattleState != BattleState.TargetSelection) return;
 
-        actualTarget = primaryTarget;
-        targetList = affectedTargets;
-
         turnController.HideTurnCamera();
-
         CurrentBattleState = BattleState.WaitingTurnExecution;
-        StartCoroutine(PerformAction());
+
+        // Execute action sequence directly with the encapsulated request payload
+        StartCoroutine(ExecuteConfirmedActionSequence(request));
+    }
+
+    private IEnumerator ExecuteConfirmedActionSequence(BattleActionRequest request)
+    {
+        FighterController casterController = request.Caster ?? (turnController != null ? turnController.CurrentFighter : null);
+        GameObject activeFighterObj = casterController != null ? casterController.gameObject : null;
+
+        // Keep local references for CheckDefeated logic
+        targetList = request.AffectedTargets ?? new List<GameObject>();
+        actualTarget = request.PrimaryTarget;
+
+        int executedActionCost = 50;
+
+        if (actionExecutor != null && casterController != null)
+        {
+            yield return actionExecutor.ExecuteActionSequence(
+                casterController,
+                request.CommandType,
+                request.ActionPayload,
+                targetList,
+                request.PrimaryTarget,
+                (cost) => executedActionCost = cost
+            );
+        }
+        else
+        {
+            Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleActionExecutor or Caster is missing!");
+        }
+
+        CheckDefeated(activeFighterObj, executedActionCost);
     }
 
     private void HandleTargetSelectionCancelled()
@@ -338,9 +326,6 @@ public class BattleManager : MonoBehaviour
             case BattleCommandType.Djinn:
             case BattleCommandType.Summon:
                 CurrentBattleState = BattleState.SubMenuSelection;
-                nextPsynergy = null;
-                nextItem = null;
-                nextDjinn = null;
                 break;
         }
     }
@@ -395,13 +380,19 @@ public class BattleManager : MonoBehaviour
         // DELEGATE 3D ARENA SETUP & COMBATANT SPAWNING TO BATTLE FIELD SPAWNER
         if (fieldSpawner != null)
         {
-            BattleSpawnResult spawnResult = fieldSpawner.SpawnBattleField(initData, party);
+            BattleSpawnResult spawnResult = fieldSpawner.SpawnBattleField(initData, _cachedParty);
 
             heroList = spawnResult.HeroList;
             enemiesList = spawnResult.EnemiesList;
             fighters = spawnResult.AllActiveFighters;
 
             enemiesOnBattle = enemiesList.Count(e => e != null);
+
+            // Register combatants into TargetSelectionController
+            if (targetSelectionController != null)
+            {
+                targetSelectionController.SetCombatants(heroList, enemiesList);
+            }
         }
         else
         {
@@ -494,7 +485,7 @@ public class BattleManager : MonoBehaviour
             actualTarget = targetList.Count > 0 ? targetList[0] : null;
         }
 
-        object actionPayload = GetCurrentActionPayload();
+        object actionPayload = null;
         GameObject primaryTargetPos = actualTarget;
 
         int executedActionCost = 50;
@@ -516,23 +507,7 @@ public class BattleManager : MonoBehaviour
             Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleActionExecutor component is missing!");
         }
 
-        // Clean action payloads
-        nextPsynergy = null;
-        nextItem = null;
-        nextDjinn = null;
-
         CheckDefeated(activeFighterObj, executedActionCost);
-    }
-
-    private object GetCurrentActionPayload()
-    {
-        switch (_selectedCommandType)
-        {
-            case BattleCommandType.Psynergy: return nextPsynergy;
-            case BattleCommandType.Item: return nextItem;
-            case BattleCommandType.Djinn: return nextDjinn;
-            default: return null;
-        }
     }
 
     private void CheckDefeated(GameObject activeFighter, int baseActionCost)
@@ -687,9 +662,9 @@ public class BattleManager : MonoBehaviour
 
         GameEvents.Audio.RequestResumeBGM();
 
-        if (party != null)
+        if (_cachedParty != null)
         {
-            for (int i = 0; i < party.Count; i++)
+            for (int i = 0; i < _cachedParty.Count; i++)
             {
                 if (i < heroList.Count)
                 {
@@ -751,9 +726,6 @@ public class BattleManager : MonoBehaviour
         actualTarget = null;
 
         _selectedCommandType = BattleCommandType.Attack;
-        nextPsynergy = null;
-        nextItem = null;
-        nextDjinn = null;
         currentTargetType = ActionTargetType.SingleEnemy;
         currentAreaRange = 0;
         CurrentBattleState = BattleState.None;

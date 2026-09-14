@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 605ee74b50a21bd43a8054b9555a2c40, type: 3}
   m_Name: Wish
   m_EditorClassIdentifier: 
-  psynergyName: Cura
-  slugName: cure
-  description: Recupera 70 PV.
-  icon: {fileID: 21300000, guid: bff53b8335eed0043880dc6573373587, type: 3}
-  ppCost: 3
-  element: 0
+  psynergyName: Deseo
+  slugName: wish
+  description: Recupera 70 PV a cada miembro del grupo.
+  icon: {fileID: 21300000, guid: 137070bccdf72a94db11f2fcc4ebafee, type: 3}
+  ppCost: 10
+  element: 3
   isBattlePsynergy: 1
-  targetType: 4
+  targetType: 5
   battleFXConfig:
     CasterAnimationTrigger: use_psynergy
     CasterAuraVFX: {fileID: 0}
