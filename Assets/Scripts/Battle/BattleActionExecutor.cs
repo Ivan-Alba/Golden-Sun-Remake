@@ -200,9 +200,9 @@ public class BattleActionExecutor : MonoBehaviour
             castVfxInstance = Instantiate(castVfxPrefab, caster.transform);
         }
 
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.8f);
 
-        if (castVfxInstance != null) Destroy(castVfxInstance);
+        if (castVfxInstance != null) Destroy(castVfxInstance, 2.0f);
 
         // 4. Instantiate Main Impact VFX
         GameObject impactVfxPrefab = psynergy.BattleFXConfig.MainActionVFX;

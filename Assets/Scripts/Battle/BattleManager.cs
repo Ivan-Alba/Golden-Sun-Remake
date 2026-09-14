@@ -437,7 +437,7 @@ public class BattleManager : MonoBehaviour
 
         battleCameraController.SetInitialIdle();
 
-        yield return new WaitForSeconds(0.6f);
+        yield return new WaitForSeconds(1.0f);
 
         // Initializing Turn System and starting first turn
         InitializeBattleTurns();
