@@ -49,7 +49,6 @@ public class BattleManager : MonoBehaviour
     // NEXT ACTION & TARGETING
     private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
 
-
     private List<GameObject> targetList = new List<GameObject>();
     private ActionTargetType currentTargetType = ActionTargetType.SingleEnemy;
     private int currentAreaRange = 0;
@@ -228,7 +227,20 @@ public class BattleManager : MonoBehaviour
             case BattleCommandType.Defend:
                 turnController.HideTurnCamera();
                 CurrentBattleState = BattleState.WaitingTurnExecution;
-                StartCoroutine(PerformAction());
+
+                FighterController caster = turnController != null ? turnController.CurrentFighter : null;
+                GameObject casterObj = caster != null ? caster.gameObject : null;
+
+                BattleActionRequest defendRequest = new BattleActionRequest
+                {
+                    Caster = caster,
+                    CommandType = BattleCommandType.Defend,
+                    ActionPayload = null,
+                    PrimaryTarget = casterObj,
+                    AffectedTargets = casterObj != null ? new List<GameObject> { casterObj } : new List<GameObject>()
+                };
+
+                StartCoroutine(ExecuteConfirmedActionSequence(defendRequest));
                 break;
         }
     }
@@ -444,7 +456,12 @@ public class BattleManager : MonoBehaviour
             if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
                 CurrentBattleState = BattleState.WaitingTurnExecution;
-                StartCoroutine(PerformAction());
+
+                if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
+                {
+                    BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
+                    StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
+                }
             }
             else
             {
@@ -457,7 +474,7 @@ public class BattleManager : MonoBehaviour
 
     #region Action Execution & Turn Flow
 
-    private IEnumerator PerformAction()
+    /*private IEnumerator PerformAction()
     {
         if (turnController.CurrentFighter == null) yield break;
 
@@ -508,7 +525,7 @@ public class BattleManager : MonoBehaviour
         }
 
         CheckDefeated(activeFighterObj, executedActionCost);
-    }
+    }*/
 
     private void CheckDefeated(GameObject activeFighter, int baseActionCost)
     {
@@ -583,7 +600,12 @@ public class BattleManager : MonoBehaviour
             if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
             {
                 CurrentBattleState = BattleState.WaitingTurnExecution;
-                StartCoroutine(PerformAction());
+
+                if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
+                {
+                    BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
+                    StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
+                }
             }
             else
             {
@@ -596,6 +618,8 @@ public class BattleManager : MonoBehaviour
     {
         // 1. Enter VictoryFanfare state (Blocks UI inputs while 3D animations execute)
         CurrentBattleState = BattleState.VictoryFanfare;
+
+        yield return new WaitForSeconds(0.5f);
 
         GameEvents.Audio.RequestPlayVictoryBGM();
 

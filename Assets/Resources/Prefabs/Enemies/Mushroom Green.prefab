@@ -407,7 +407,7 @@ MonoBehaviour:
   fighterName: Green Mushroom
   turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
   baseMaxHp: 22
-  baseMaxPp: 0
+  baseMaxPp: 7
   baseAttack: 10
   baseDefense: 7
   baseAgility: 5
@@ -450,6 +450,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3ce7d1acedbdea498396185775289b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actionRules:
+  - CommandType: 0
+    Psynergy: {fileID: 0}
+    Item: {fileID: 0}
+    Condition: 0
+    HpThresholdPercent: 0
+    SelectionWeight: 60
+  - CommandType: 5
+    Psynergy: {fileID: 0}
+    Item: {fileID: 0}
+    Condition: 1
+    HpThresholdPercent: 40
+    SelectionWeight: 70
+  - CommandType: 1
+    Psynergy: {fileID: 11400000, guid: 7087ddf58ff771e42a94b62efd82e247, type: 2}
+    Item: {fileID: 0}
+    Condition: 0
+    HpThresholdPercent: 0
+    SelectionWeight: 40
+  itemStock: []
 --- !u!65 &7685236118008480394
 BoxCollider:
   m_ObjectHideFlags: 0
