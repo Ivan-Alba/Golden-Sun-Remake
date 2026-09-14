@@ -162,7 +162,7 @@ public class BattleActionExecutor : MonoBehaviour
         // 5. Play Hit SFX
         GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
 
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.7f);
 
         // 6. Return Caster to Start Position
         yield return caster.ReturnToOriginCoroutine();
@@ -206,17 +206,19 @@ public class BattleActionExecutor : MonoBehaviour
 
         // 4. Instantiate Main Impact VFX
         GameObject impactVfxPrefab = psynergy.BattleFXConfig.MainActionVFX;
-        GameObject impactVfxInstance = null;
+        GameObject[] impactVfxInstances = new GameObject[areaTargets.Count];
 
         if (primaryTargetPosition != null && impactVfxPrefab != null)
         {
-            impactVfxInstance = Instantiate(impactVfxPrefab, primaryTargetPosition.transform);
+            impactVfxInstances[0] = Instantiate(impactVfxPrefab, primaryTargetPosition.transform);
+            GameEvents.Audio.RequestPlaySFXClip(psynergy.BattleFXConfig.DirectAudioClip);
         }
         else if (impactVfxPrefab != null)
         {
             for (int i = 0; i < areaTargets.Count; i++)
             {
-                impactVfxInstance = Instantiate(impactVfxPrefab, areaTargets[i].transform);
+                impactVfxInstances[i] = Instantiate(impactVfxPrefab, areaTargets[i].transform);
+                GameEvents.Audio.RequestPlaySFXClip(psynergy.BattleFXConfig.DirectAudioClip);
                 yield return new WaitForSeconds(0.2f);
             }
         }
@@ -263,9 +265,15 @@ public class BattleActionExecutor : MonoBehaviour
             supportPsynergy.ExecuteBattleEffect(casterStats, targetStatsList);
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.8f);
 
-        if (impactVfxInstance != null) Destroy(impactVfxInstance);
+        if (impactVfxInstances != null)
+        {
+            foreach (GameObject vfx in impactVfxInstances)
+            {
+                if (vfx != null) Destroy(vfx, 3.0f);
+            }
+        }
     }
 
     /// <summary>
