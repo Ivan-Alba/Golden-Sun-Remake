@@ -35,9 +35,6 @@ public class BattleManager : MonoBehaviour
     // Local GameState Cache
     private GameManager.GameState _cachedGameState;
 
-    [Header("Enemies Configuration")]
-    [SerializeField] private int maxEnemiesInBattle = 3;
-
     private GameObject mainCamera;
 
     // NEXT ACTION & TARGETING
@@ -54,9 +51,6 @@ public class BattleManager : MonoBehaviour
     private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated/empty
     private List<GameObject> heroList = new List<GameObject>();
     private List<GameObject> fighters = new List<GameObject>();
-
-    // BATTLE FIELD POSITIONS
-    private GameObject[] enemyPositions;
 
     // LIST WITH TURNS OF FIGHTERS
     private List<KeyValuePair<GameObject, int>> turnsOrdered;
@@ -405,7 +399,6 @@ public class BattleManager : MonoBehaviour
 
             heroList = spawnResult.HeroList;
             enemiesList = spawnResult.EnemiesList;
-            enemyPositions = spawnResult.EnemyPositions;
             fighters = spawnResult.AllActiveFighters;
 
             enemiesOnBattle = enemiesList.Count(e => e != null);

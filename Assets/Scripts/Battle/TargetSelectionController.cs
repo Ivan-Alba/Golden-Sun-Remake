@@ -17,7 +17,7 @@ public class TargetSelectionController : MonoBehaviour
     [SerializeField] private float primaryPointerScale = 1.0f;
 
     [Tooltip("Scale multiplier for secondary area-affected fighters' 3D pointers.")]
-    [SerializeField] private float secondaryPointerScale = 0.7f;
+    [SerializeField] private float secondaryPointerScale = 0.6f;
 
     private ActionTargetType _currentTargetType;
     private int _currentAreaRange;

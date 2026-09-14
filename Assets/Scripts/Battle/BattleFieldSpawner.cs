@@ -32,8 +32,7 @@ public struct BattleInitializationData
 public struct BattleSpawnResult
 {
     public List<GameObject> HeroList;
-    public List<GameObject> EnemiesList;        // Fixed-size array/list matching slot indices (contains nulls for empty slots)
-    public GameObject[] EnemyPositions;         // Direct slot transforms used for target positioning
+    public List<GameObject> EnemiesList;        // Fixed-size list matching spatial slot indices (contains nulls for empty slots)
     public List<GameObject> AllActiveFighters;  // Combined list of living combatants
 }
 
@@ -41,30 +40,31 @@ public struct BattleSpawnResult
 
 /// <summary>
 /// Domain component responsible for managing the 3D battle arena, 
-/// calculating slot layouts, and spawning heroes and enemies into the scene.
+/// dynamically calculating slot spatial layouts, and spawning heroes and enemies into the scene.
 /// </summary>
 public class BattleFieldSpawner : MonoBehaviour
 {
-    [Header("Arena Spatial Slot Anchors")]
-    [Tooltip("Direct references to hero spawn slot transforms inside the arena prefab.")]
-    [SerializeField] private Transform[] heroSlots = new Transform[4];
-
-    [Tooltip("Direct references to enemy spawn slot transforms inside the arena prefab.")]
-    [SerializeField] private Transform[] enemySlots = new Transform[5];
-
-    [Header("Row Center Placeholders (Global Area VFX)")]
-    [Tooltip("Center placeholder anchor for the hero party row (used for global team buffs/heals VFX).")]
+    [Header("Row Center Placeholders (Dynamic Spawning & Global VFX)")]
+    [Tooltip("Center placeholder anchor for the hero party row.")]
     [SerializeField] private Transform heroCenterAnchor;
 
-    [Tooltip("Center placeholder anchor for the enemy row (used for global AOE attacks/summons VFX).")]
+    [Tooltip("Center placeholder anchor for the enemy row.")]
     [SerializeField] private Transform enemyCenterAnchor;
+
+    [Header("Dynamic Layout Settings")]
+    [Tooltip("Horizontal spacing between hero combatants in meters.")]
+    [SerializeField] private float heroSpacing = 2.0f;
+
+    [Tooltip("Horizontal spacing between enemy combatants in meters.")]
+    [SerializeField] private float enemySpacing = 2.5f;
+
+    [Tooltip("LayerMask used to snap spawned fighters precisely onto arena floor geometry.")]
+    [SerializeField] private LayerMask groundLayerMask = ~0;
 
     [Header("Configuration Constraints")]
     [SerializeField] private int maxEnemiesInBattle = 3;
 
     public int MaxEnemiesInBattle => maxEnemiesInBattle;
-    public Transform[] EnemySlots => enemySlots;
-    public Transform[] HeroSlots => heroSlots;
 
     #region Public Spatial Center Getters
 
@@ -89,30 +89,25 @@ public class BattleFieldSpawner : MonoBehaviour
         {
             HeroList = new List<GameObject>(),
             EnemiesList = new List<GameObject>(new GameObject[maxEnemiesInBattle]),
-            EnemyPositions = new GameObject[maxEnemiesInBattle],
             AllActiveFighters = new List<GameObject>()
         };
 
-        // 1. POSITION HEROES IN ARENA SLOTS
+        // 1. DYNAMICALLY POSITION HEROES IN ARENA (Left-to-Right order)
         if (activeParty != null && activeParty.Count > 0)
         {
-            int slotOffset = (activeParty.Count <= 2) ? 1 : 0;
+            List<Vector3> heroPositions = CalculateRowPositions(heroCenterAnchor, activeParty.Count, heroSpacing, invertHorizontal: false);
 
             for (int i = 0; i < activeParty.Count; i++)
             {
                 GameObject hero = activeParty[i];
                 if (hero == null) continue;
 
-                int targetSlotIndex = Mathf.Clamp(i + slotOffset, 0, heroSlots.Length - 1);
+                Vector3 targetWorldPos = SnapToGround(heroPositions[i]);
+                Quaternion targetRotation = ResolveFighterRotation(heroCenterAnchor, targetWorldPos, enemyCenterAnchor);
 
-                // Position hero at slot anchor
-                if (heroSlots[targetSlotIndex] != null)
-                {
-                    hero.transform.position = heroSlots[targetSlotIndex].position;
-                    hero.transform.rotation = heroSlots[targetSlotIndex].rotation;
-                }
+                hero.transform.position = targetWorldPos;
+                hero.transform.rotation = targetRotation;
 
-                // Add to alive combatants list
                 FighterStats stats = hero.GetComponent<FighterStats>();
                 if (stats != null && stats.CurrHp > 0)
                 {
@@ -122,12 +117,11 @@ public class BattleFieldSpawner : MonoBehaviour
             }
         }
 
-        // 2. RESOLVE & INSTANTIATE ENEMIES
+        // 2. RESOLVE ENEMY PREFABS TO INSTANTIATE
         List<GameObject> prefabsToInstantiate = new List<GameObject>();
 
         if (data.SourceType == BattleSourceType.ScriptedEvent)
         {
-            // Event / Boss Encounter: Use explicit prefabs provided in payload
             if (data.EnemyPrefabs != null && data.EnemyPrefabs.Count > 0)
             {
                 int limit = Mathf.Min(data.EnemyPrefabs.Count, maxEnemiesInBattle);
@@ -142,13 +136,13 @@ public class BattleFieldSpawner : MonoBehaviour
         }
         else // BattleSourceType.OverworldCollision
         {
-            // Exploration Collision Encounter: Resolve via SpawnZone
             if (data.SpawnZone != null)
             {
                 int countToSpawn = Random.Range(1, maxEnemiesInBattle + 1);
 
                 for (int i = 0; i < countToSpawn; i++)
                 {
+                    // Index 0 is the Overworld collision initiator
                     GameObject prefab = (i == 0 && data.InitiatorWorldObject != null)
                         ? data.SpawnZone.GetMatchingEnemyPrefab(data.InitiatorWorldObject)
                         : data.SpawnZone.GetRandomEnemyPrefab();
@@ -161,24 +155,33 @@ public class BattleFieldSpawner : MonoBehaviour
             }
         }
 
-        // 3. DISTRIBUTE ENEMIES SYMMETRICALLY FROM CENTER SLOT
-        int centerIndex = maxEnemiesInBattle / 2;
-        List<int> spawnOrder = CalculateSpawnSlotsOrder(centerIndex, maxEnemiesInBattle);
-
-        for (int i = 0; i < prefabsToInstantiate.Count; i++)
+        // 3. DISTRIBUTE ENEMIES SYMMETRICALLY & MAP TO ENEMIESLIST FROM LEFT TO RIGHT
+        if (prefabsToInstantiate.Count > 0)
         {
-            if (i >= spawnOrder.Count) break;
+            int totalEnemies = prefabsToInstantiate.Count;
 
-            int slotIndex = spawnOrder[i];
-            Transform slotTransform = enemySlots[slotIndex];
+            // Sort prefabs so the initiator is placed at the spatial center index of the group
+            List<GameObject> orderedPrefabs = OrderPrefabsSymmetrically(prefabsToInstantiate);
 
-            if (slotTransform == null) continue;
+            // Calculate world 3D positions strictly ordered Left-to-Right (inverting axis to align screen-space)
+            List<Vector3> enemyWorldPositions = CalculateRowPositions(enemyCenterAnchor, totalEnemies, enemySpacing, invertHorizontal: true);
 
-            GameObject spawnedEnemy = Instantiate(prefabsToInstantiate[i], slotTransform.position, slotTransform.rotation);
+            // Map the totalEnemies group to the central slots of maxEnemiesInBattle array
+            int startSlotIndex = (maxEnemiesInBattle - totalEnemies) / 2;
 
-            result.EnemyPositions[slotIndex] = slotTransform.gameObject;
-            result.EnemiesList[slotIndex] = spawnedEnemy;
-            result.AllActiveFighters.Add(spawnedEnemy);
+            for (int i = 0; i < totalEnemies; i++)
+            {
+                int targetSlotIndex = startSlotIndex + i;
+
+                Vector3 targetWorldPos = SnapToGround(enemyWorldPositions[i]);
+                Quaternion targetRotation = ResolveFighterRotation(enemyCenterAnchor, targetWorldPos, heroCenterAnchor);
+
+                GameObject spawnedEnemy = Instantiate(orderedPrefabs[i], targetWorldPos, targetRotation);
+
+                // Populate EnemiesList strictly aligned Left-to-Right
+                result.EnemiesList[targetSlotIndex] = spawnedEnemy;
+                result.AllActiveFighters.Add(spawnedEnemy);
+            }
         }
 
         // 4. CLEANUP OVERWORLD INITIATOR IF APPLICABLE
@@ -190,24 +193,113 @@ public class BattleFieldSpawner : MonoBehaviour
         return result;
     }
 
+    #region Spatial Layout & Order Helpers
+
     /// <summary>
-    /// Calculates slot indices order starting from center and expanding outwards symmetrically.
-    /// Example for 3 slots: [1, 0, 2]
-    /// Example for 7 slots: [3, 2, 4, 1, 5, 0, 6]
+    /// Resolves fighter orientation. Uses parallel anchor forward rotation for clean formation lines.
     /// </summary>
-    private List<int> CalculateSpawnSlotsOrder(int centerIndex, int maxSlots)
+    private Quaternion ResolveFighterRotation(Transform ownAnchor, Vector3 originPos, Transform targetAnchor)
     {
-        List<int> order = new List<int> { centerIndex };
-
-        for (int offset = 1; order.Count < maxSlots; offset++)
+        if (ownAnchor != null)
         {
-            int left = centerIndex - offset;
-            int right = centerIndex + offset;
-
-            if (left >= 0) order.Add(left);
-            if (right < maxSlots) order.Add(right);
+            // Pure parallel alignment with anchor orientation
+            return ownAnchor.rotation;
         }
 
-        return order;
+        if (targetAnchor != null)
+        {
+            Vector3 direction = (targetAnchor.position - originPos);
+            direction.y = 0;
+            if (direction != Vector3.zero) return Quaternion.LookRotation(direction, Vector3.up);
+        }
+
+        return Quaternion.identity;
     }
+
+    /// <summary>
+    /// Orders prefabs so index 0 (Initiator) ends up at the physical center position of the active group.
+    /// Input list: [Initiator, EnemyA, EnemyB] -> Ordered output: [EnemyA, Initiator, EnemyB] (Left to Right)
+    /// </summary>
+    private List<GameObject> OrderPrefabsSymmetrically(List<GameObject> inputPrefabs)
+    {
+        int count = inputPrefabs.Count;
+        GameObject[] ordered = new GameObject[count];
+
+        if (count == 1)
+        {
+            ordered[0] = inputPrefabs[0];
+            return new List<GameObject>(ordered);
+        }
+
+        int centerPosIndex = (count - 1) / 2;
+        ordered[centerPosIndex] = inputPrefabs[0]; // Initiator placed at center slot
+
+        int leftOffset = 1;
+        int rightOffset = 1;
+
+        for (int i = 1; i < count; i++)
+        {
+            if (i % 2 != 0)
+            {
+                // Place to the right of center
+                if (centerPosIndex + rightOffset < count)
+                {
+                    ordered[centerPosIndex + rightOffset] = inputPrefabs[i];
+                    rightOffset++;
+                }
+            }
+            else
+            {
+                // Place to the left of center
+                if (centerPosIndex - leftOffset >= 0)
+                {
+                    ordered[centerPosIndex - leftOffset] = inputPrefabs[i];
+                    leftOffset++;
+                }
+            }
+        }
+
+        return new List<GameObject>(ordered);
+    }
+
+    /// <summary>
+    /// Calculates world positions evenly spaced along the local X-axis (right vector) of the center anchor.
+    /// Arranges targets from left to right.
+    /// </summary>
+    private List<Vector3> CalculateRowPositions(Transform centerAnchor, int count, float spacing, bool invertHorizontal = false)
+    {
+        List<Vector3> positions = new List<Vector3>();
+        if (centerAnchor == null || count <= 0) return positions;
+
+        Vector3 anchorPos = centerAnchor.position;
+        Vector3 rightVector = invertHorizontal ? -centerAnchor.right : centerAnchor.right;
+
+        float startOffset = -((count - 1) * spacing) / 2.0f;
+
+        for (int i = 0; i < count; i++)
+        {
+            float currentOffset = startOffset + (i * spacing);
+            Vector3 calculatedPos = anchorPos + (rightVector * currentOffset);
+            positions.Add(calculatedPos);
+        }
+
+        return positions;
+    }
+
+    /// <summary>
+    /// Performs a downward Raycast from elevated position to snap spatial points onto arena ground geometry.
+    /// </summary>
+    private Vector3 SnapToGround(Vector3 originalPosition)
+    {
+        Vector3 rayStart = originalPosition + (Vector3.up * 5.0f);
+
+        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 15.0f, groundLayerMask))
+        {
+            return hit.point;
+        }
+
+        return originalPosition;
+    }
+
+    #endregion
 }
