@@ -208,10 +208,17 @@ public class BattleActionExecutor : MonoBehaviour
         GameObject impactVfxPrefab = psynergy.BattleFXConfig.MainActionVFX;
         GameObject impactVfxInstance = null;
 
-        Transform vfxAnchor = (primaryTargetPosition != null) ? primaryTargetPosition.transform : caster.transform;
-        if (impactVfxPrefab != null)
+        if (primaryTargetPosition != null && impactVfxPrefab != null)
         {
-            impactVfxInstance = Instantiate(impactVfxPrefab, vfxAnchor);
+            impactVfxInstance = Instantiate(impactVfxPrefab, primaryTargetPosition.transform);
+        }
+        else if (impactVfxPrefab != null)
+        {
+            for (int i = 0; i < areaTargets.Count; i++)
+            {
+                impactVfxInstance = Instantiate(impactVfxPrefab, areaTargets[i].transform);
+                yield return new WaitForSeconds(0.2f);
+            }
         }
 
         yield return new WaitForSeconds(1.5f);
@@ -272,15 +279,7 @@ public class BattleActionExecutor : MonoBehaviour
         {
             if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
             {
-                int beforeHp = targetStats.CurrHp;
                 targetStatsList.Add(targetStats);
-
-                int restoredHp = targetStats.CurrHp - beforeHp;
-                GameEvents.Battle.TriggerDamageNumber(
-                    targetStats.gameObject,
-                    restoredHp.ToString(),
-                    DamageNumbersPresenter.DamageTextType.Healing
-                );
             }
         }
 

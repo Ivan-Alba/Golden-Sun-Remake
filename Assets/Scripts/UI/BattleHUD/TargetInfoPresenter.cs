@@ -3,20 +3,17 @@ using UnityEngine.UIElements;
 
 /// <summary>
 /// Controls the UI data and states of a floating target indicator in Battle.
-/// Manages the nameplate text, selection visual state (primary/secondary), and 3D positioning.
+/// Manages the nameplate text and level display, and projects its 3D position onto the UI panel.
 /// </summary>
 public class TargetInfoPresenter
 {
     private const string HIDDEN_CLASS = "hidden";
-    private const string SECONDARY_TARGET_CLASS = "secondary-target";
 
     public VisualElement RootElement { get; private set; }
     public GameObject BoundFighter { get; private set; }
 
     private Label _labelName;
     private Label _labelLevel;
-    private ProgressBar _hpBar;
-    private VisualElement _selectionPointer;
 
     public TargetInfoPresenter(VisualElement root, GameObject fighter)
     {
@@ -29,13 +26,11 @@ public class TargetInfoPresenter
             return;
         }
 
-        // Query elements
+        // Query name and level labels
         _labelName = RootElement.Q<Label>("entity_name");
         _labelLevel = RootElement.Q<Label>("entity_level");
-        _hpBar = RootElement.Q<ProgressBar>("hp_bar");
-        _selectionPointer = RootElement.Q<VisualElement>("selection_pointer");
 
-        // Initialize state
+        // Initialize state as hidden
         SetVisible(false);
     }
 
@@ -64,32 +59,19 @@ public class TargetInfoPresenter
     }
 
     /// <summary>
-    /// Sets whether this target is the primary focus or a secondary target (in AoE spread).
-    /// </summary>
-    public void SetPrimaryTarget(bool isPrimary)
-    {
-        if (RootElement == null) return;
-
-        if (isPrimary)
-        {
-            RootElement.RemoveFromClassList(SECONDARY_TARGET_CLASS);
-        }
-        else
-        {
-            RootElement.AddToClassList(SECONDARY_TARGET_CLASS);
-        }
-    }
-
-    /// <summary>
     /// Projects the 3D position of the bound fighter onto UI Toolkit panel coordinates.
+    /// Uses FighterBattleAnchors if available on the bound fighter, falling back to verticalOffset.
     /// Centering is handled seamlessly via CSS translate(-50%, -100%).
     /// </summary>
-    public void UpdatePanelPosition(IPanel panel, Camera battleCamera, Vector3 verticalOffset)
+    public void UpdatePanelPosition(IPanel panel, Camera battleCamera, Vector3 fallbackVerticalOffset)
     {
         if (RootElement == null || BoundFighter == null || battleCamera == null || panel == null) return;
         if (RootElement.ClassListContains(HIDDEN_CLASS)) return;
 
-        Vector3 worldPos = BoundFighter.transform.position + verticalOffset;
+        // Determine 3D world position via FighterBattleAnchors or fallback offset
+        Vector3 worldPos = BoundFighter.TryGetComponent<FighterBattleAnchors>(out var anchors)
+            ? anchors.GetTargetInfoWorldPosition()
+            : BoundFighter.transform.position + fallbackVerticalOffset;
 
         // Hide if behind the camera clipping plane
         Vector3 screenPoint = battleCamera.WorldToScreenPoint(worldPos);

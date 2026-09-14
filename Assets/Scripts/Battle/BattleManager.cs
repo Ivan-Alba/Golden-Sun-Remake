@@ -77,7 +77,7 @@ public class BattleManager : MonoBehaviour
     public event Action<BattleCommandType> OnCommandTypeSelected;
 
     /// <summary>
-    /// Fired when active target pointers change.
+    /// Fired when active target selection changes.
     /// </summary>
     public event Action<List<GameObject>, GameObject> OnTargetSelectionChanged;
 
@@ -105,7 +105,7 @@ public class BattleManager : MonoBehaviour
 
     // AUXILIAR
     private int enemiesOnBattle, enemiesDefeated, deadHeroes;
-    private int actualTarget;
+    private GameObject actualTarget;
 
     // Backwards compatibility getter
     public bool WaitingAction
@@ -316,15 +316,14 @@ public class BattleManager : MonoBehaviour
 
     #region Target Selection Callbacks
 
-    private void HandleTargetSelectionConfirmed(int primaryIndex, List<GameObject> affectedTargets)
+    private void HandleTargetSelectionConfirmed(GameObject primaryTarget, List<GameObject> affectedTargets)
     {
         if (CurrentBattleState != BattleState.TargetSelection) return;
 
-        actualTarget = primaryIndex;
+        actualTarget = primaryTarget;
         targetList = affectedTargets;
 
         turnController.HideTurnCamera();
-        HideAllPointers();
 
         CurrentBattleState = BattleState.WaitingTurnExecution;
         StartCoroutine(PerformAction());
@@ -333,8 +332,6 @@ public class BattleManager : MonoBehaviour
     private void HandleTargetSelectionCancelled()
     {
         if (CurrentBattleState != BattleState.TargetSelection) return;
-
-        HideAllPointers();
 
         switch (_selectedCommandType)
         {
@@ -500,12 +497,12 @@ public class BattleManager : MonoBehaviour
             {
                 targetList.Add(heroList[Random.Range(0, heroList.Count)]);
             }
+
+            actualTarget = targetList.Count > 0 ? targetList[0] : null;
         }
 
         object actionPayload = GetCurrentActionPayload();
-        GameObject primaryTargetPos = (actualTarget >= 0 && actualTarget < enemyPositions.Length)
-            ? enemyPositions[actualTarget]
-            : null;
+        GameObject primaryTargetPos = actualTarget;
 
         int executedActionCost = 50;
 
@@ -742,35 +739,6 @@ public class BattleManager : MonoBehaviour
         GameEvents.Audio.RequestPlaySFX(sfx);
     }
 
-    private void HideAllPointers()
-    {
-        if (enemyPositions != null)
-        {
-            for (int i = 0; i < enemyPositions.Length; i++)
-            {
-                if (enemyPositions[i] != null)
-                {
-                    Transform pointer = enemyPositions[i].transform.Find("Pointer");
-                    if (pointer != null) pointer.gameObject.SetActive(false);
-                }
-            }
-        }
-
-        if (party != null)
-        {
-            foreach (GameObject hero in party)
-            {
-                if (hero != null)
-                {
-                    Transform pointer = hero.transform.Find("Pointer");
-                    if (pointer != null) pointer.gameObject.SetActive(false);
-                }
-            }
-        }
-
-        OnTargetSelectionChanged?.Invoke(null, null);
-    }
-
     private void ResetBattleVariables()
     {
         fighters.Clear();
@@ -787,7 +755,7 @@ public class BattleManager : MonoBehaviour
         enemiesDefeated = 0;
         enemiesOnBattle = 0;
         deadHeroes = 0;
-        actualTarget = 0;
+        actualTarget = null;
 
         _selectedCommandType = BattleCommandType.Attack;
         nextPsynergy = null;

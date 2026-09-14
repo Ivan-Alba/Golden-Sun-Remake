@@ -52,12 +52,33 @@ public class BattleFieldSpawner : MonoBehaviour
     [Tooltip("Direct references to enemy spawn slot transforms inside the arena prefab.")]
     [SerializeField] private Transform[] enemySlots = new Transform[5];
 
+    [Header("Row Center Placeholders (Global Area VFX)")]
+    [Tooltip("Center placeholder anchor for the hero party row (used for global team buffs/heals VFX).")]
+    [SerializeField] private Transform heroCenterAnchor;
+
+    [Tooltip("Center placeholder anchor for the enemy row (used for global AOE attacks/summons VFX).")]
+    [SerializeField] private Transform enemyCenterAnchor;
+
     [Header("Configuration Constraints")]
     [SerializeField] private int maxEnemiesInBattle = 3;
 
     public int MaxEnemiesInBattle => maxEnemiesInBattle;
     public Transform[] EnemySlots => enemySlots;
     public Transform[] HeroSlots => heroSlots;
+
+    #region Public Spatial Center Getters
+
+    /// <summary>
+    /// Returns the central GameObject anchor for the hero party row.
+    /// </summary>
+    public GameObject GetHeroCenterAnchor() => heroCenterAnchor != null ? heroCenterAnchor.gameObject : null;
+
+    /// <summary>
+    /// Returns the central GameObject anchor for the enemy row.
+    /// </summary>
+    public GameObject GetEnemyCenterAnchor() => enemyCenterAnchor != null ? enemyCenterAnchor.gameObject : null;
+
+    #endregion
 
     /// <summary>
     /// Spawns combatants and sets up the 3D arena based on the initialization payload and party data.

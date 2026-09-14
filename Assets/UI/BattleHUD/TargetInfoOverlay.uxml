@@ -3,9 +3,6 @@
     <Style src="project://database/Assets/UI/BattleHUD/TargetInfoOverlay.uss?fileID=7433441132597879392&amp;guid=93b9a06a20dd6904e90ad2c6f31376a1&amp;type=3#TargetInfoOverlay"/>
     
     <ui:VisualElement name="target_overlay_root" class="target-overlay-root" picking-mode="Ignore">
-        <ui:VisualElement name="selection_pointer" class="selection-diamond" picking-mode="Ignore">
-            <ui:VisualElement class="diamond-core" picking-mode="Ignore"/>
-        </ui:VisualElement>
         <ui:VisualElement name="nameplate_frame" class="target-nameplate-frame" picking-mode="Ignore">
             <ui:VisualElement class="nameplate-header" picking-mode="Ignore">
                 <ui:Label name="entity_name" text="Target Name" class="label-target-name" picking-mode="Ignore"/>

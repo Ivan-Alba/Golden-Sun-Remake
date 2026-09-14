@@ -16,43 +16,16 @@
     scale: 0.5 0.5;
 }
 
-/* Modifier class for area/spread damage targets (smaller UI) */
-.target-overlay-root.secondary-target {
-    scale: 0.7 0.7;
-    opacity: 0.8;
-}
-
-/* --- Golden Sun Style Selection Pointer (Diamond) --- */
-.selection-diamond {
-    width: 40px;
-    height: 40px;
-    background-color: var(--color-jupiter); /* Purple/Jupiter color for selection */
-    rotate: 45deg; /* Rotates a square to make a diamond */
-    border-width: 1.5px;
-    border-color: #000000;
-    margin-bottom: 15px; /* Space between diamond and nameplate */
-    align-items: center;
-    justify-content: center;
-}
-
-/* Inner highlight for the diamond */
-.diamond-core {
-    width: 70%;
-    height: 70%;
-    background-color: #FFFFFF;
-    opacity: 0.6;
-}
-
 /* --- Main Name Frame --- */
 .target-nameplate-frame {
     background-color: var(--color-panel-bg);
     border-color: var(--color-panel-border);
     border-width: 1.5px;
     border-radius: 6px;
-    padding: 3px 8px;
+    padding: 5px 12px;
     align-items: center;
     justify-content: center;
-    min-width: 60px;
+    min-width: 80px;
 }
 
 /* Header Row (Entity Name + Level) */
@@ -64,7 +37,7 @@
 }
 
 .label-target-name {
-    font-size: 13px;
+    font-size: 17px;
     -unity-font-style: bold;
     color: var(--color-text-white);
     letter-spacing: 0.5px;
@@ -74,7 +47,7 @@
 }
 
 .label-target-level {
-    font-size: 11px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: var(--color-gold-bright);
     margin-left: 6px;

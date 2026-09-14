@@ -9,6 +9,8 @@ public class FighterController : MonoBehaviour
 {
     #region Private Fields & References
 
+    [SerializeField] private BattleSelectionPointer selectionPointer;
+
     private Animator fighterAnim;
     private FighterStats stats;
 
@@ -168,4 +170,24 @@ public class FighterController : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// Controls 3D target selection pointer visibility, dynamic scale, and animation synchronization.
+    /// </summary>
+    public void SetSelectionPointerVisible(bool visible, bool isPrimary = false, float primaryScale = 1.0f, float secondaryScale = 0.7f)
+    {
+        if (selectionPointer == null) return;
+
+        if (visible)
+        {
+            float targetScale = isPrimary ? primaryScale : secondaryScale;
+            selectionPointer.transform.localScale = Vector3.one * targetScale;
+            selectionPointer.SetVisible(true);
+            selectionPointer.ResetAnimation();
+        }
+        else
+        {
+            selectionPointer.SetVisible(false);
+        }
+    }
 }

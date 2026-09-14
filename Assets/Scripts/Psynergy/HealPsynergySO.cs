@@ -5,6 +5,7 @@ using UnityEngine;
 /// ScriptableObject defining healing, restoration, revival, and cleansing Psynergies (e.g., Cure, Ply, Aura, Restore).
 /// Supports HP/PP restoration, revival, category-based status purges, specific status removals,
 /// and optional bonus status applications (shields/buffs) exclusively during battle.
+/// Triggers floating UI numbers directly via global Battle Event Bus.
 /// </summary>
 [CreateAssetMenu(fileName = "NewHealPsynergy", menuName = "Psynergy/Heal Psynergy")]
 public class HealPsynergySO : PsynergySO
@@ -71,6 +72,10 @@ public class HealPsynergySO : PsynergySO
 
     #region Execution Methods Override
 
+    /// <summary>
+    /// Executes healing, restoration, revival, and status cleansing logic in combat.
+    /// Emits UI floating numbers for restored HP, restored PP, or Miss directly via GameEvents.
+    /// </summary>
     public override bool ExecuteBattleEffect(FighterStats caster, IReadOnlyList<FighterStats> targets)
     {
         if (!IsBattlePsynergy)
@@ -79,7 +84,7 @@ public class HealPsynergySO : PsynergySO
             return false;
         }
 
-        if (targets == null || targets.Count == 0) return false;
+        if (targets == null || targets.Count == 0 || caster == null) return false;
 
         bool anyEffectApplied = false;
 
@@ -88,9 +93,48 @@ public class HealPsynergySO : PsynergySO
             FighterStats target = targets[i];
             if (target == null) continue;
 
-            if (ApplyHealEffectToTarget(caster, target, applyBuffs: true))
+            // 1. Snapshot target stats before applying effects
+            int hpBefore = target.CurrHp;
+            int ppBefore = target.CurrPp;
+
+            // 2. Execute restoration & cleansing logic
+            bool targetAffected = ApplyHealEffectToTarget(caster, target, applyBuffs: true);
+
+            int restoredHp = target.CurrHp - hpBefore;
+            int restoredPp = target.CurrPp - ppBefore;
+
+            if (targetAffected)
             {
                 anyEffectApplied = true;
+
+                // 3. Trigger HP restoration number (Handles Revival or Standard Healing)
+                if (restoredHp > 0)
+                {
+                    GameEvents.Battle.TriggerDamageNumber(
+                        target.gameObject,
+                        restoredHp.ToString(),
+                        DamageNumbersPresenter.DamageTextType.Healing
+                    );
+                }
+
+                // 4. Trigger PP restoration number (Blue text)
+                if (restoredPp > 0)
+                {
+                    GameEvents.Battle.TriggerDamageNumber(
+                        target.gameObject,
+                        restoredPp.ToString(),
+                        DamageNumbersPresenter.DamageTextType.PPRecovery
+                    );
+                }
+            }
+            else
+            {
+                // 5. Trigger Miss text if no effect succeeded (e.g. revive roll failed or target was already at max stats)
+                GameEvents.Battle.TriggerDamageNumber(
+                    target.gameObject,
+                    "0",
+                    DamageNumbersPresenter.DamageTextType.Miss
+                );
             }
         }
 

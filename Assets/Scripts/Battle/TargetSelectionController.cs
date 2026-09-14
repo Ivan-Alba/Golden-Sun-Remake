@@ -6,11 +6,19 @@ using static GameEvents;
 
 /// <summary>
 /// Component responsible for managing battle target selection logic, 
-/// spatial area calculations, cycling navigation, and target confirmation/cancellation.
+/// spatial area calculations, cycling navigation, target confirmation/cancellation,
+/// and driving 3D selection pointer visuals across active fighters.
 /// Preserves original Golden Sun grid spaces even if enemies are defeated.
 /// </summary>
 public class TargetSelectionController : MonoBehaviour
 {
+    [Header("3D Pointer Configuration")]
+    [Tooltip("Scale multiplier for the primary targeted fighter's 3D pointer.")]
+    [SerializeField] private float primaryPointerScale = 1.0f;
+
+    [Tooltip("Scale multiplier for secondary area-affected fighters' 3D pointers.")]
+    [SerializeField] private float secondaryPointerScale = 0.7f;
+
     private ActionTargetType _currentTargetType;
     private int _currentAreaRange;
     private int _primaryTargetIndex;
@@ -19,6 +27,7 @@ public class TargetSelectionController : MonoBehaviour
     private List<GameObject> _enemyList;
 
     private List<GameObject> _lastAffectedTargets = new List<GameObject>();
+    private GameObject _lastPrimaryTargetObject;
 
     private BattleState _currentBattleState = BattleState.None;
 
@@ -29,9 +38,10 @@ public class TargetSelectionController : MonoBehaviour
 
     /// <summary>
     /// Triggered when the user confirms target selection.
+    /// Passes the primary target GameObject (or null if global action) and the list of affected targets.
     /// Notifies the Orchestrator (BattleManager).
     /// </summary>
-    public event Action<int, List<GameObject>> OnTargetConfirmed;
+    public event Action<GameObject, List<GameObject>> OnTargetConfirmed;
 
     /// <summary>
     /// Triggered when the user cancels target selection.
@@ -41,7 +51,7 @@ public class TargetSelectionController : MonoBehaviour
 
     /// <summary>
     /// Triggered locally when the active targeted GameObjects or primary target change.
-    /// Listened to by local components like BattleHUDController to update pointers and overlays.
+    /// Listened to by local components like BattleHUDController to update overlays.
     /// </summary>
     public event Action<List<GameObject>, GameObject> OnTargetSelectionChanged;
 
@@ -94,6 +104,12 @@ public class TargetSelectionController : MonoBehaviour
     private void HandleBattleStateChanged(BattleState newState)
     {
         _currentBattleState = newState;
+
+        // Hide pointers automatically when leaving target selection state
+        if (_currentBattleState != BattleState.TargetSelection)
+        {
+            ClearAllPointers();
+        }
     }
 
     /// <summary>
@@ -128,8 +144,11 @@ public class TargetSelectionController : MonoBehaviour
         // Play feedback SFX via global Audio request
         GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
 
-        // Notify Orchestrator with payload
-        OnTargetConfirmed?.Invoke(_primaryTargetIndex, new List<GameObject>(_lastAffectedTargets));
+        // Turn off all 3D pointers upon confirmation
+        ClearAllPointers();
+
+        // Notify Orchestrator with payload (Primary GameObject target and affected target list)
+        OnTargetConfirmed?.Invoke(_lastPrimaryTargetObject, new List<GameObject>(_lastAffectedTargets));
     }
 
     private void HandleCancelPressed(InputEventArgs args)
@@ -142,7 +161,10 @@ public class TargetSelectionController : MonoBehaviour
         // Play feedback SFX via global Audio request
         GameEvents.Audio.RequestPlaySFX(SFXType.UI_Cancel);
 
-        // Clear UI overlays/pointers via local event
+        // Turn off all 3D pointers
+        ClearAllPointers();
+
+        // Clear UI overlays via local event
         OnTargetSelectionChanged?.Invoke(null, null);
 
         // Notify Orchestrator to revert state
@@ -156,7 +178,6 @@ public class TargetSelectionController : MonoBehaviour
         int previousIndex = _primaryTargetIndex;
         SelectPreviousTarget();
 
-        // Reproducir SFX si la diana realmente ha cambiado
         if (previousIndex != _primaryTargetIndex)
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
@@ -170,7 +191,6 @@ public class TargetSelectionController : MonoBehaviour
         int previousIndex = _primaryTargetIndex;
         SelectNextTarget();
 
-        // Reproducir SFX si la diana realmente ha cambiado
         if (previousIndex != _primaryTargetIndex)
         {
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Move);
@@ -235,10 +255,11 @@ public class TargetSelectionController : MonoBehaviour
 
     #endregion
 
-    #region Evaluation & Area Logic
+    #region Evaluation, Area Logic & 3D Pointer Presentation
 
     /// <summary>
-    /// Calculates active primary and secondary targets, taking dead slot spacing into account.
+    /// Calculates active primary and secondary targets, taking dead slot spacing into account,
+    /// and updates 3D selection pointers on active target FighterControllers.
     /// </summary>
     private void EvaluateAndDispatchTargets()
     {
@@ -262,7 +283,7 @@ public class TargetSelectionController : MonoBehaviour
                         break;
 
                     case ActionTargetType.AllAllies:
-                        primaryTargetObject = _heroList[0];
+                        primaryTargetObject = null; // Global action: no single primary focus
                         foreach (GameObject hero in _heroList)
                         {
                             if (hero != null) affectedTargets.Add(hero);
@@ -285,13 +306,11 @@ public class TargetSelectionController : MonoBehaviour
                         break;
 
                     case ActionTargetType.MultiEnemyArea:
-                        // Add primary target first (guaranteed center of area)
                         if (primaryTargetObject != null)
                         {
                             affectedTargets.Add(primaryTargetObject);
                         }
 
-                        // Calculate Golden Sun spatial area (offsets consume range even on empty/dead slots)
                         if (_currentAreaRange >= 1)
                         {
                             for (int offset = 1; offset <= _currentAreaRange; offset++)
@@ -299,25 +318,23 @@ public class TargetSelectionController : MonoBehaviour
                                 int rightIndex = _primaryTargetIndex + offset;
                                 int leftIndex = _primaryTargetIndex - offset;
 
-                                // Check right spatial slot
                                 if (rightIndex < _enemyList.Count)
                                 {
                                     GameObject rightTarget = _enemyList[rightIndex];
-                                    if (rightTarget != null) affectedTargets.Add(rightTarget); // Adds only if alive
+                                    if (rightTarget != null) affectedTargets.Add(rightTarget);
                                 }
 
-                                // Check left spatial slot
                                 if (leftIndex >= 0)
                                 {
                                     GameObject leftTarget = _enemyList[leftIndex];
-                                    if (leftTarget != null) affectedTargets.Add(leftTarget); // Adds only if alive
+                                    if (leftTarget != null) affectedTargets.Add(leftTarget);
                                 }
                             }
                         }
                         break;
 
                     case ActionTargetType.AllEnemies:
-                        primaryTargetObject = GetDefaultCenterEnemyObject();
+                        primaryTargetObject = null; // Global action: no single primary focus
                         foreach (GameObject enemy in _enemyList)
                         {
                             if (enemy != null) affectedTargets.Add(enemy);
@@ -327,9 +344,64 @@ public class TargetSelectionController : MonoBehaviour
             }
         }
 
-        // Dispatch local event for UI overlays and Pointers
         _lastAffectedTargets = affectedTargets;
+        _lastPrimaryTargetObject = primaryTargetObject;
+
+        // --- UPDATE 3D SELECTION POINTERS ---
+        Update3DPointers(affectedTargets, primaryTargetObject);
+
+        // Dispatch local event for UI overlays
         OnTargetSelectionChanged?.Invoke(affectedTargets, primaryTargetObject);
+    }
+
+    /// <summary>
+    /// Updates visibility and scaling for 3D selection pointers on all hero and enemy fighters,
+    /// ensuring all active pointers reset their animations in sync.
+    /// </summary>
+    private void Update3DPointers(List<GameObject> affectedTargets, GameObject primaryTarget)
+    {
+        // 1. First, disable pointers on all known units
+        ClearAllPointers();
+
+        // 2. Enable, scale, and reset pointers on active affected targets simultaneously
+        foreach (GameObject targetObj in affectedTargets)
+        {
+            if (targetObj == null) continue;
+
+            if (targetObj.TryGetComponent<FighterController>(out var controller))
+            {
+                bool isPrimary = (primaryTarget != null && targetObj == primaryTarget);
+                controller.SetSelectionPointerVisible(true, isPrimary, primaryPointerScale, secondaryPointerScale);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hides all 3D selection pointers across heroes and enemies.
+    /// </summary>
+    public void ClearAllPointers()
+    {
+        if (_heroList != null)
+        {
+            foreach (GameObject hero in _heroList)
+            {
+                if (hero != null && hero.TryGetComponent<FighterController>(out var controller))
+                {
+                    controller.SetSelectionPointerVisible(false);
+                }
+            }
+        }
+
+        if (_enemyList != null)
+        {
+            foreach (GameObject enemy in _enemyList)
+            {
+                if (enemy != null && enemy.TryGetComponent<FighterController>(out var controller))
+                {
+                    controller.SetSelectionPointerVisible(false);
+                }
+            }
+        }
     }
 
     #endregion
@@ -353,20 +425,14 @@ public class TargetSelectionController : MonoBehaviour
 
         if (_enemyList == null || _enemyList.Count == 0) return 0;
 
-        // If a valid index pointing to an alive enemy is provided, use it
         if (requestedIndex >= 0 && requestedIndex < _enemyList.Count && _enemyList[requestedIndex] != null)
         {
             return requestedIndex;
         }
 
-        // Otherwise, find the closest alive enemy starting from center radiating outward
         return GetDefaultCenterEnemyIndex();
     }
 
-    /// <summary>
-    /// Searches for the first alive enemy starting at the grid center and expanding outward:
-    /// Center -> Center+1 -> Center-1 -> Center+2 -> Center-2 ...
-    /// </summary>
     private int GetDefaultCenterEnemyIndex()
     {
         if (_enemyList == null || _enemyList.Count == 0) return 0;
