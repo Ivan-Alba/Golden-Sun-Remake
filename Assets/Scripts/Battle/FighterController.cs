@@ -23,6 +23,22 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
+    #region Animator Hashes (Performance Optimization)
+
+    private static readonly int HashUsePsynergy = Animator.StringToHash("usePsynergy");
+    private static readonly int HashUseItem = Animator.StringToHash("useItem");
+    private static readonly int HashUseDjinn = Animator.StringToHash("useDjinn");
+    private static readonly int HashUseSummon = Animator.StringToHash("useSummon");
+
+    private static readonly int HashAttack = Animator.StringToHash("attack");
+    private static readonly int HashReceiveHit = Animator.StringToHash("receiveHit");
+    private static readonly int HashDeath = Animator.StringToHash("death");
+    private static readonly int HashVictoryPose = Animator.StringToHash("victoryPose");
+    private static readonly int HashDefense = Animator.StringToHash("defense");
+    private static readonly int HashMove = Animator.StringToHash("Move");
+
+    #endregion
+
     #region Properties
 
     public bool ActionFinished { get => actionFinished; set => actionFinished = value; }
@@ -59,12 +75,6 @@ public class FighterController : MonoBehaviour
     #endregion
 
     #region Caster Animation API (FX Config Synchronization)
-
-    // Hashes precacheados para las animaciones de preparación del ejecutante (Caster)
-    private static readonly int HashUsePsynergy = Animator.StringToHash("usePsynergy");
-    private static readonly int HashUseItem = Animator.StringToHash("useItem");
-    private static readonly int HashUseDjinn = Animator.StringToHash("useDjinn");
-    private static readonly int HashUseSummon = Animator.StringToHash("useSummon");
 
     /// <summary>
     /// Executes the caster's preparation/cast animation based on the CasterAnimationType enum.
@@ -103,12 +113,12 @@ public class FighterController : MonoBehaviour
 
     public void PlayAttackAnimation()
     {
-        if (fighterAnim != null) fighterAnim.SetTrigger("attack");
+        if (fighterAnim != null) fighterAnim.SetTrigger(HashAttack);
     }
 
     public void PlayCastAnimation()
     {
-        if (fighterAnim != null) fighterAnim.SetTrigger("usePsynergy");
+        if (fighterAnim != null) fighterAnim.SetTrigger(HashUsePsynergy);
     }
 
     /// <summary>
@@ -117,7 +127,7 @@ public class FighterController : MonoBehaviour
     public void PlayVictoryPose()
     {
         if (stats != null && stats.CurrHp <= 0) return;
-        if (fighterAnim != null) fighterAnim.SetBool("victoryPose", true);
+        if (fighterAnim != null) fighterAnim.SetBool(HashVictoryPose, true);
     }
 
     /// <summary>
@@ -125,7 +135,7 @@ public class FighterController : MonoBehaviour
     /// </summary>
     public void StopVictoryPose()
     {
-        if (fighterAnim != null) fighterAnim.SetBool("victoryPose", false);
+        if (fighterAnim != null) fighterAnim.SetBool(HashVictoryPose, false);
     }
 
     #endregion
@@ -134,7 +144,7 @@ public class FighterController : MonoBehaviour
 
     public void ReceiveDamage(int damageAmount, bool isCritical = false)
     {
-        if (fighterAnim != null) fighterAnim.SetTrigger("receiveHit");
+        if (fighterAnim != null) fighterAnim.SetTrigger(HashReceiveHit);
 
         if (stats != null)
         {
@@ -151,20 +161,20 @@ public class FighterController : MonoBehaviour
 
         if (stats != null && stats.CurrHp <= 0)
         {
-            if (fighterAnim != null) fighterAnim.SetTrigger("death");
+            if (fighterAnim != null) fighterAnim.SetTrigger(HashDeath);
         }
     }
 
     public void SetUpDefense()
     {
-        if (fighterAnim != null) fighterAnim.SetBool("defense", true);
+        if (fighterAnim != null) fighterAnim.SetBool(HashDefense, true);
         isDefending = true;
     }
 
     public void SetOffDefense()
     {
         isDefending = false;
-        if (fighterAnim != null) fighterAnim.SetBool("defense", false);
+        if (fighterAnim != null) fighterAnim.SetBool(HashDefense, false);
     }
 
     #endregion
@@ -186,11 +196,11 @@ public class FighterController : MonoBehaviour
             transform.LookAt(targetPosHorizontal);
             transform.position = Vector3.MoveTowards(transform.position, targetPosHorizontal, 8f * Time.deltaTime);
 
-            if (fighterAnim != null) fighterAnim.SetFloat("Move", 6f);
+            if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 6f);
             yield return null;
         }
 
-        if (fighterAnim != null) fighterAnim.SetFloat("Move", 0f);
+        if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 0f);
     }
 
     /// <summary>
@@ -203,7 +213,7 @@ public class FighterController : MonoBehaviour
         while (Vector3.Distance(transform.position, startPosition) > 0.05f)
         {
             transform.position = Vector3.MoveTowards(transform.position, startPosition, 8.5f * Time.deltaTime);
-            if (fighterAnim != null) fighterAnim.SetFloat("Move", -8.5f);
+            if (fighterAnim != null) fighterAnim.SetFloat(HashMove, -8.5f);
             yield return null;
         }
 
@@ -217,7 +227,7 @@ public class FighterController : MonoBehaviour
         }
 
         transform.rotation = startRotation;
-        if (fighterAnim != null) fighterAnim.SetFloat("Move", 0f);
+        if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 0f);
 
         isReturning = false;
     }
@@ -250,7 +260,7 @@ public class FighterController : MonoBehaviour
     }
 
     /// <summary>
-    /// Resets fighter battle state (defense status, turn CDs, animators) when combat ends.
+    /// Resets fighter battle state (defense status, turn CDs, animators) when combat ends. Regions, etc.
     /// </summary>
     public void OnBattleEnded()
     {

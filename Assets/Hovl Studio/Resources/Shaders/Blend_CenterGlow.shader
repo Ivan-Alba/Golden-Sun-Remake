@@ -28,7 +28,7 @@ Shader "Hovl/Particles/Blend_CenterGlow"
             Cull[_CullMode]
             Lighting Off 
             ZWrite Off
-            ZTest Always // Modificado: Desactiva la prueba de profundidad para dibujar siempre encima
+            ZTest LEqual
             
             Pass {
                 CGPROGRAM

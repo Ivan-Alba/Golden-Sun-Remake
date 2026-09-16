@@ -367,9 +367,7 @@ public class BattleManager : MonoBehaviour
         if (battleCameraController != null)
         {
             battleCameraController.IntroBattle();
-            yield return new WaitForSeconds(2f);
-
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(3f);
 
             StartCoroutine(battleCameraController.StartTransition());
 
@@ -379,7 +377,7 @@ public class BattleManager : MonoBehaviour
             }
 
             battleCameraController.SetInitialIdle();
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.7f);
         }
 
         InitializeBattleTurns();
@@ -458,6 +456,7 @@ public class BattleManager : MonoBehaviour
         else
         {
             CurrentBattleState = BattleState.CommandSelection;
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
 
             if (battleCameraController != null)
             {
