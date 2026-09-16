@@ -21,15 +21,15 @@ MonoBehaviour:
   isBattlePsynergy: 1
   targetType: 5
   battleFXConfig:
-    CasterAnimationTrigger: use_psynergy
-    CasterAuraVFX: {fileID: 0}
+    CasterAnimation: 2
+    CasterAuraVFX: {fileID: 1658448689254514, guid: 446a067169795bd4096e331b679bec26, type: 3}
     MainActionVFX: {fileID: 1592372973558972, guid: 965ea0a00419b7f45a8b980324bc2eec, type: 3}
-    TargetHitFXType: 0
+    TargetHitFXType: 12
     CustomTargetHitVFX: {fileID: 0}
     DirectAudioClip: {fileID: 0}
     FallbackSFX: 0
-    FallbackCastDuration: 0
-    FallbackImpactDelay: 0
+    FallbackCastDuration: 2
+    FallbackImpactDelay: 1.5
   areaRange: 0
   hasDiminishingSpread: 0
   worldData:

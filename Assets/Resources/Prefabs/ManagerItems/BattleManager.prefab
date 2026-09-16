@@ -518,7 +518,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1223f024a85141b41bc65178429af9af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatingTextPrefab: {fileID: 7278599699524938792, guid: a18006cb772faab43835cde90571ba75, type: 3}
+  heroRowAnchor: {fileID: 7880655454145298984}
+  enemyRowAnchor: {fileID: 1270014391861149897}
+  screenCenterAnchor: {fileID: 0}
+  defaultSlashHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultBluntHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultPiercingHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultPhysicalVenusHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultPhysicalMarsHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultPhysicalJupiterHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultPhysicalMercuryHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
+  defaultMagicalVenusHitVFX: {fileID: 0}
+  defaultMagicalMarsHitVFX: {fileID: 0}
+  defaultMagicalJupiterHitVFX: {fileID: 0}
+  defaultMagicalMercuryHitVFX: {fileID: 0}
+  defaultHealingHitVFX: {fileID: 0}
+  fallbackHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
 --- !u!1 &5989234517974781229
 GameObject:
   m_ObjectHideFlags: 0
@@ -1092,10 +1107,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be5e2d1e4db7cb94a93692854ae60b53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  turnCameraPrefab: {fileID: 5384329672527861774, guid: 339cb15f7955e9b449e579aff2d8b524, type: 3}
-  battleCameraController: {fileID: 5408302400829323935}
   maxTurnBoxes: 8
   agilityScaleFactor: 100
+  baseAgilityBias: 50
 --- !u!114 &4932946225680775267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1175,7 +1189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d243d2620329e546bc6911efa26ba1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleActionExecutor
-  fxManager: {fileID: 0}
+  fxManager: {fileID: 8443524929590800531}
 --- !u!114 &4365564539730548900
 MonoBehaviour:
   m_ObjectHideFlags: 0

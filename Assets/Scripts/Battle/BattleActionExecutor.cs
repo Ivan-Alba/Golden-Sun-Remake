@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Domain executor component responsible for orchestrating the combat action sequence:
-/// movement/animation triggers, damage and healing calculations, status effects,
-/// VFX/SFX playback, and UI event notifications.
+/// Domain executor component responsible for orchestrating combat action sequences:
+/// physical movement, damage and healing calculations, status effects,
+/// and delegating visual and audio FX playback to BattleFXManager.
 /// </summary>
 public class BattleActionExecutor : MonoBehaviour
 {
@@ -121,6 +121,7 @@ public class BattleActionExecutor : MonoBehaviour
         // 2. Resolve Weapon Properties & Critical Hit Probability
         ElementalType weaponElement = ElementalType.None;
         int critRateBonus = 1;
+        HitFXType weaponHitFX = HitFXType.Blunt; // Fallback por defecto si no hay arma equipada (puños/ataque desarmado)
 
         if (caster.TryGetComponent<HeroEquipment>(out var heroEq))
         {
@@ -129,6 +130,7 @@ public class BattleActionExecutor : MonoBehaviour
             {
                 weaponElement = weapon.Element;
                 critRateBonus = weapon.CriticalRateBonus;
+                weaponHitFX = weapon.HitFXType; // Sobrescribe con el tipo específico del arma si existe
             }
         }
 
@@ -156,7 +158,13 @@ public class BattleActionExecutor : MonoBehaviour
             GameEvents.Battle.TriggerDamageNumber(target, textDisplay, textType);
         }
 
-        // 5. Play Hit SFX
+        // Trigger Visual Hit Effect via FXManager using the weapon's explicit HitFXType (or Blunt fallback)
+        if (fxManager != null)
+        {
+            fxManager.PlayBasicAttackHitFX(target, weaponHitFX);
+        }
+
+        // 5. Play Hit SFX via Event System
         GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
 
         yield return new WaitForSeconds(0.7f);
@@ -167,6 +175,7 @@ public class BattleActionExecutor : MonoBehaviour
 
     /// <summary>
     /// Executes a Psynergy action supporting Attack, Heal, and Support Psynergy subtypes.
+    /// Delegates visual sequences, VFX, and SFX to BattleFXManager using BattleActionFXConfig.
     /// </summary>
     private IEnumerator ExecutePsynergyAction(
         FighterController caster,
@@ -179,50 +188,44 @@ public class BattleActionExecutor : MonoBehaviour
         FighterStats casterStats = caster.GetComponent<FighterStats>();
         if (casterStats == null) yield break;
 
-        // 1. Consume PP
+        // 1. Consume PP & Show Action Banner
         casterStats.CurrPp = Mathf.Max(0, casterStats.CurrPp - psynergy.PpCost);
-
-        // 2. Play Cast Animation
-        caster.PlayCastAnimation();
-
         GameEvents.Battle.RequestActionBanner(psynergy.name, psynergy.Description);
 
-        // 3. Instantiate Elemental Circle Cast VFX
-        GameObject castVfxPrefab = null;
-        GameEvents.Database.RequestElementVFX(psynergy.Element, (vfx) => castVfxPrefab = vfx);
-
-        GameObject castVfxInstance = null;
-        if (castVfxPrefab != null)
+        // 2. Execute FX Sequence & Apply Domain Logic on Impact Frame Callback
+        if (fxManager != null)
         {
-            castVfxInstance = Instantiate(castVfxPrefab, caster.transform);
+            yield return fxManager.ExecuteFXConfigSequence(
+                psynergy.BattleFXConfig,
+                caster,
+                primaryTargetPosition,
+                areaTargets,
+                onImpactFrame: () =>
+                {
+                    ApplyPsynergyDomainEffects(casterStats, psynergy, primaryTargetPosition, areaTargets);
+                }
+            );
+        }
+        else
+        {
+            // Fallback timing if fxManager is missing in scene
+            caster.PlayCasterAnimation(CasterAnimationType.UsePsynergy);
+            yield return new WaitForSeconds(1.5f);
+            ApplyPsynergyDomainEffects(casterStats, psynergy, primaryTargetPosition, areaTargets);
         }
 
-        yield return new WaitForSeconds(1.8f);
+        yield return new WaitForSeconds(0.5f);
+    }
 
-        if (castVfxInstance != null) Destroy(castVfxInstance, 2.0f);
-
-        // 4. Instantiate Main Impact VFX
-        GameObject impactVfxPrefab = psynergy.BattleFXConfig.MainActionVFX;
-        GameObject[] impactVfxInstances = new GameObject[areaTargets.Count];
-
-        if (primaryTargetPosition != null && impactVfxPrefab != null)
-        {
-            impactVfxInstances[0] = Instantiate(impactVfxPrefab, primaryTargetPosition.transform);
-            GameEvents.Audio.RequestPlaySFXClip(psynergy.BattleFXConfig.DirectAudioClip);
-        }
-        else if (impactVfxPrefab != null)
-        {
-            for (int i = 0; i < areaTargets.Count; i++)
-            {
-                impactVfxInstances[i] = Instantiate(impactVfxPrefab, areaTargets[i].transform);
-                GameEvents.Audio.RequestPlaySFXClip(psynergy.BattleFXConfig.DirectAudioClip);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-
-        yield return new WaitForSeconds(1.5f);
-
-        // 5. Process Psynergy Subtype Execution
+    /// <summary>
+    /// Evaluates and applies the mathematical/domain impact of a Psynergy SO (Attack, Heal, Support).
+    /// </summary>
+    private void ApplyPsynergyDomainEffects(
+        FighterStats casterStats,
+        PsynergySO psynergy,
+        GameObject primaryTargetPosition,
+        List<GameObject> areaTargets)
+    {
         if (psynergy is AttackPsynergySO attackPsynergy)
         {
             GameObject centerTarget = primaryTargetPosition ?? (areaTargets != null && areaTargets.Count > 0 ? areaTargets[0] : null);
@@ -261,16 +264,6 @@ public class BattleActionExecutor : MonoBehaviour
             List<FighterStats> targetStatsList = ExtractFighterStatsList(areaTargets);
             supportPsynergy.ExecuteBattleEffect(casterStats, targetStatsList);
         }
-
-        yield return new WaitForSeconds(0.8f);
-
-        if (impactVfxInstances != null)
-        {
-            foreach (GameObject vfx in impactVfxInstances)
-            {
-                if (vfx != null) Destroy(vfx, 3.0f);
-            }
-        }
     }
 
     /// <summary>
@@ -278,35 +271,37 @@ public class BattleActionExecutor : MonoBehaviour
     /// </summary>
     private void ExecuteHealing(FighterStats casterStats, HealPsynergySO healPsynergy, List<GameObject> targets)
     {
-        List<FighterStats> targetStatsList = new List<FighterStats>();
-
-        foreach (GameObject targetObj in targets)
-        {
-            if (targetObj != null && targetObj.TryGetComponent<FighterStats>(out var targetStats))
-            {
-                targetStatsList.Add(targetStats);
-            }
-        }
-
-        // Execute SO healing, revive, and cleanse logic
+        List<FighterStats> targetStatsList = ExtractFighterStatsList(targets);
         healPsynergy.ExecuteBattleEffect(casterStats, targetStatsList);
     }
 
     private IEnumerator ExecuteItemAction(FighterController caster, ItemSO item, List<GameObject> targets)
     {
-        // Item execution sequence stub
+        // Safe stub: triggers item preparation animation and passes turn safely
+        if (caster != null)
+        {
+            caster.PlayCasterAnimation(CasterAnimationType.UseItem);
+        }
         yield return new WaitForSeconds(1.0f);
     }
 
     private IEnumerator ExecuteDjinnUnleashAction(FighterController caster, DjinnInstance djinn, List<GameObject> targets)
     {
-        // Djinn unleash execution sequence stub
+        // Safe stub: triggers Djinn unleash animation and passes turn safely
+        if (caster != null)
+        {
+            caster.PlayCasterAnimation(CasterAnimationType.UseDjinn);
+        }
         yield return new WaitForSeconds(1.0f);
     }
 
     private IEnumerator ExecuteSummonAction(FighterController caster, object summonData, List<GameObject> targets)
     {
-        // Summon execution sequence stub
+        // Safe stub: triggers Summon animation and passes turn safely
+        if (caster != null)
+        {
+            caster.PlayCasterAnimation(CasterAnimationType.UseSummon);
+        }
         yield return new WaitForSeconds(1.0f);
     }
 

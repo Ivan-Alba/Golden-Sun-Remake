@@ -19,6 +19,16 @@ public class BattleFXManager : MonoBehaviour
 {
     #region Serialized & Singleton Dependencies
 
+    [Header("Arena Area Anchors")]
+    [Tooltip("Transform anchor placed at the spatial center of the Hero party formation.")]
+    [SerializeField] private Transform heroRowAnchor;
+
+    [Tooltip("Transform anchor placed at the spatial center of the Enemy formation.")]
+    [SerializeField] private Transform enemyRowAnchor;
+
+    [Tooltip("Transform anchor placed at the absolute center of the Battle Arena.")]
+    [SerializeField] private Transform screenCenterAnchor;
+
     [Header("Default Hit FX Prefabs")]
     [SerializeField] private GameObject defaultSlashHitVFX;
     [SerializeField] private GameObject defaultBluntHitVFX;
@@ -34,39 +44,32 @@ public class BattleFXManager : MonoBehaviour
     [SerializeField] private GameObject defaultMagicalMercuryHitVFX;
 
     [SerializeField] private GameObject defaultHealingHitVFX;
-
+    [SerializeField] private GameObject fallbackHitVFX;
 
     #endregion
 
     #region Public Aura & Cast FX API
 
     /// <summary>
-    /// Spawns an aura VFX at the caster's feet and manages auto-destruction.
+    /// Triggers the appropriate physical hit FX for a basic attack using the weapon's configured HitFXType.
     /// </summary>
-    public GameObject PlayCasterAura(Transform casterTransform, GameObject auraPrefab, float autoDestroyDelay = 3.0f)
+    public void PlayBasicAttackHitFX(GameObject target, HitFXType hitFXType)
     {
-        if (casterTransform == null || auraPrefab == null) return null;
+        if (target == null) return;
 
-        GameObject auraInstance = Instantiate(auraPrefab, casterTransform.position, casterTransform.rotation, casterTransform);
-        Destroy(auraInstance, autoDestroyDelay);
-        return auraInstance;
+        PlayTargetImpactFX(hitFXType, null, new List<GameObject> { target });
     }
 
     /// <summary>
-    /// Requests the elemental circle VFX from Database and instantiates it at the caster's position.
+    /// Spawns an aura/circle VFX attached to the caster, preserving the prefab's local transform defaults.
     /// </summary>
-    public void PlayElementalCastCircle(Transform casterTransform, ElementalType element, float autoDestroyDelay = 2.5f)
+    public GameObject PlayCasterAura(Transform casterTransform, GameObject auraPrefab, float autoDestroyDelay = 2.5f)
     {
-        if (casterTransform == null) return;
+        if (casterTransform == null || auraPrefab == null) return null;
 
-        GameEvents.Database.RequestElementVFX(element, (vfxPrefab) =>
-        {
-            if (vfxPrefab != null)
-            {
-                GameObject instance = Instantiate(vfxPrefab, casterTransform.position, Quaternion.identity, casterTransform);
-                Destroy(instance, autoDestroyDelay);
-            }
-        });
+        GameObject instance = Instantiate(auraPrefab, casterTransform);
+        Destroy(instance, autoDestroyDelay);
+        return instance;
     }
 
     #endregion
@@ -74,7 +77,7 @@ public class BattleFXManager : MonoBehaviour
     #region Public Target Impact & Main VFX API
 
     /// <summary>
-    /// Spawns the main sequence VFX at the designated location (Feet, Center, Area, etc.).
+    /// Spawns the main sequence VFX attached to the calculated parent Transform anchor (Target, Row, or Screen).
     /// </summary>
     public GameObject PlayMainActionVFX(
         GameObject mainVfxPrefab,
@@ -85,10 +88,9 @@ public class BattleFXManager : MonoBehaviour
     {
         if (mainVfxPrefab == null) return null;
 
-        Vector3 spawnPosition = CalculateSpawnPosition(primaryTarget, areaTargets, spawnLocation);
-        Quaternion spawnRotation = Quaternion.identity;
+        Transform spawnTransform = CalculateSpawnPosition(primaryTarget, areaTargets, spawnLocation);
 
-        GameObject vfxInstance = Instantiate(mainVfxPrefab, spawnPosition, spawnRotation);
+        GameObject vfxInstance = Instantiate(mainVfxPrefab, spawnTransform);
 
         float destroyDelay = overrideDestroyDelay > 0f ? overrideDestroyDelay : GetVFXDuration(vfxInstance);
         Destroy(vfxInstance, destroyDelay);
@@ -97,7 +99,7 @@ public class BattleFXManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Spawns impact hit VFX (standardized HitFXType or Custom prefab) on all target transforms.
+    /// Spawns impact hit VFX (standardized HitFXType or Custom prefab) at the damage anchor position of each target.
     /// </summary>
     public List<GameObject> PlayTargetImpactFX(
         HitFXType hitFXType,
@@ -207,65 +209,72 @@ public class BattleFXManager : MonoBehaviour
             case HitFXType.MagicalMercury: return defaultMagicalMercuryHitVFX;
             case HitFXType.Healing: return defaultHealingHitVFX;
             case HitFXType.Custom: return customHitVFX;
-            default: return null;
+            default: return fallbackHitVFX;
         }
     }
 
-    private Vector3 CalculateSpawnPosition(GameObject primaryTarget, List<GameObject> areaTargets, VFXSpawnLocation spawnLocation)
+    /// <summary>
+    /// Resolves the parent Transform anchor for Main VFX instantiations based on spawnLocation semantics.
+    /// </summary>
+    private Transform CalculateSpawnPosition(GameObject primaryTarget, List<GameObject> areaTargets, VFXSpawnLocation spawnLocation)
     {
-        if (primaryTarget != null && (spawnLocation == VFXSpawnLocation.TargetCenter || spawnLocation == VFXSpawnLocation.TargetFeet))
+        switch (spawnLocation)
         {
-            Vector3 targetPos = primaryTarget.transform.position;
-            if (spawnLocation == VFXSpawnLocation.TargetCenter && primaryTarget.TryGetComponent<Collider>(out var col))
-            {
-                targetPos = col.bounds.center;
-            }
-            return targetPos;
-        }
+            case VFXSpawnLocation.TargetFeet:
+            case VFXSpawnLocation.TargetCenter:
+                return primaryTarget != null ? primaryTarget.transform : transform;
 
-        if (areaTargets != null && areaTargets.Count > 0 && spawnLocation == VFXSpawnLocation.AreaCenter)
-        {
-            Vector3 center = Vector3.zero;
-            int count = 0;
-            foreach (var target in areaTargets)
-            {
-                if (target != null)
+            case VFXSpawnLocation.AreaCenter:
+                GameObject referenceTarget = primaryTarget ?? (areaTargets != null && areaTargets.Count > 0 ? areaTargets[0] : null);
+                if (referenceTarget != null)
                 {
-                    center += target.transform.position;
-                    count++;
-                }
-            }
-            return count > 0 ? center / count : Vector3.zero;
-        }
+                    bool isHero = referenceTarget.CompareTag("Hero") || referenceTarget.GetComponent<HeroStats>() != null;
 
-        return primaryTarget != null ? primaryTarget.transform.position : Vector3.zero;
+                    if (isHero && heroRowAnchor != null)
+                        return heroRowAnchor;
+                    if (!isHero && enemyRowAnchor != null)
+                        return enemyRowAnchor;
+                }
+                return primaryTarget != null ? primaryTarget.transform : transform;
+
+            case VFXSpawnLocation.ScreenCenter:
+                return screenCenterAnchor != null ? screenCenterAnchor : transform;
+
+            case VFXSpawnLocation.CasterPosition:
+                return transform;
+
+            default:
+                return primaryTarget != null ? primaryTarget.transform : transform;
+        }
     }
 
+    /// <summary>
+    /// Spawns impact hit VFX at the explicit damage position defined in FighterBattleAnchors.
+    /// Render occlusion is natively bypassed by the shader's ZTest settings on the VFX prefab.
+    /// </summary>
     private IEnumerator ExecuteStaggeredHitFX(
         GameObject vfxPrefab,
-        List<GameObject> targets,
+        List<GameObject> targetObjects,
         float staggerDelay,
         float overrideDestroyDelay,
         List<GameObject> spawnedInstances)
     {
-        for (int i = 0; i < targets.Count; i++)
+        for (int i = 0; i < targetObjects.Count; i++)
         {
-            GameObject target = targets[i];
+            GameObject target = targetObjects[i];
             if (target == null) continue;
 
-            Vector3 spawnPos = target.transform.position;
-            if (target.TryGetComponent<Collider>(out var col))
-            {
-                spawnPos = col.bounds.center;
-            }
+            Vector3 spawnPos = target.TryGetComponent<FighterBattleAnchors>(out var anchors)
+                ? anchors.GetDamageWorldPosition()
+                : target.transform.position + Vector3.up * 1.5f;
 
-            GameObject instance = Instantiate(vfxPrefab, spawnPos, Quaternion.identity);
+            GameObject instance = Instantiate(vfxPrefab, spawnPos, vfxPrefab.transform.rotation);
             spawnedInstances.Add(instance);
 
             float destroyDelay = overrideDestroyDelay > 0f ? overrideDestroyDelay : GetVFXDuration(instance);
             Destroy(instance, destroyDelay);
 
-            if (staggerDelay > 0f && i < targets.Count - 1)
+            if (staggerDelay > 0f && i < targetObjects.Count - 1)
             {
                 yield return new WaitForSeconds(staggerDelay);
             }
