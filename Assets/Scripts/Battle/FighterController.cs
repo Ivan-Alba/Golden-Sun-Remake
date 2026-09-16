@@ -58,6 +58,47 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
+    #region Caster Animation API (FX Config Synchronization)
+
+    // Hashes precacheados para las animaciones de preparación del ejecutante (Caster)
+    private static readonly int HashUsePsynergy = Animator.StringToHash("usePsynergy");
+    private static readonly int HashUseItem = Animator.StringToHash("useItem");
+    private static readonly int HashUseDjinn = Animator.StringToHash("useDjinn");
+    private static readonly int HashUseSummon = Animator.StringToHash("useSummon");
+
+    /// <summary>
+    /// Executes the caster's preparation/cast animation based on the CasterAnimationType enum.
+    /// </summary>
+    public void PlayCasterAnimation(CasterAnimationType animType)
+    {
+        if (fighterAnim == null || animType == CasterAnimationType.None) return;
+
+        switch (animType)
+        {
+            case CasterAnimationType.UsePsynergy:
+                fighterAnim.SetTrigger(HashUsePsynergy);
+                break;
+
+            case CasterAnimationType.UseItem:
+                fighterAnim.SetTrigger(HashUseItem);
+                break;
+
+            case CasterAnimationType.UseDjinn:
+                fighterAnim.SetTrigger(HashUseDjinn);
+                break;
+
+            case CasterAnimationType.UseSummon:
+                fighterAnim.SetTrigger(HashUseSummon);
+                break;
+
+            case CasterAnimationType.AttackPreparation:
+                // Reservoir hook: Reserved for future pre-attack stance/dash animations.
+                break;
+        }
+    }
+
+    #endregion
+
     #region Animation Triggers API (Exposed to BattleActionExecutor & BattleManager)
 
     public void PlayAttackAnimation()

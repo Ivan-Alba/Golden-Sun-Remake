@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,77 +27,75 @@ public class BattleActionExecutor : MonoBehaviour
     #region Main Public Execution API
 
     /// <summary>
-    /// Executes a selected battle action sequence and returns the calculated turn action cost upon completion.
+    /// Calculates and returns the CTB turn delay cost for a given action request.
     /// </summary>
-    public IEnumerator ExecuteActionSequence(
-        FighterController caster,
-        BattleCommandType commandType,
-        object actionData,
-        List<GameObject> targetList,
-        GameObject primaryTargetPosition,
-        Action<int> onComplete)
+    public int GetActionCost(BattleActionRequest request)
     {
-        if (caster == null)
+        switch (request.CommandType)
         {
-            onComplete?.Invoke(50);
+            case BattleCommandType.Attack: return 50;
+            case BattleCommandType.Psynergy: return 60;
+            case BattleCommandType.Defend: return 30;
+            case BattleCommandType.Item: return 40;
+            case BattleCommandType.Djinn: return 50;
+            case BattleCommandType.Summon: return 60;
+            default: return 50;
+        }
+    }
+
+    /// <summary>
+    /// Executes a selected battle action sequence using the unified BattleActionRequest DTO.
+    /// </summary>
+    public IEnumerator ExecuteActionSequence(BattleActionRequest request)
+    {
+        if (request.Caster == null)
+        {
             yield break;
         }
 
-        int actionCost = 50; // Default attack cost
+        FighterController caster = request.Caster;
+        List<GameObject> targetList = request.AffectedTargets ?? new List<GameObject>();
+        GameObject primaryTarget = request.PrimaryTarget;
 
-        // Auto-resolve enemy basic attack if target list isn't provided directly
-        if (commandType == BattleCommandType.Attack && (targetList == null || targetList.Count == 0))
-        {
-            targetList = ResolveDefaultEnemyTarget(caster);
-        }
-
-        switch (commandType)
+        switch (request.CommandType)
         {
             case BattleCommandType.Attack:
-                actionCost = 50;
-                if (targetList != null && targetList.Count > 0 && targetList[0] != null)
+                if (targetList.Count > 0 && targetList[0] != null)
                 {
                     yield return ExecuteBasicAttack(caster, targetList[0]);
                 }
                 break;
 
             case BattleCommandType.Psynergy:
-                actionCost = 60;
-                if (actionData is PsynergySO psynergy)
+                if (request.ActionPayload is PsynergySO psynergy)
                 {
-                    yield return ExecutePsynergyAction(caster, psynergy, primaryTargetPosition, targetList);
+                    yield return ExecutePsynergyAction(caster, psynergy, primaryTarget, targetList);
                 }
                 break;
 
             case BattleCommandType.Defend:
-                actionCost = 30;
                 caster.SetUpDefense();
                 yield return new WaitForSeconds(1.2f);
                 break;
 
             case BattleCommandType.Item:
-                actionCost = 40;
-                if (actionData is ItemSO item)
+                if (request.ActionPayload is ItemSO item)
                 {
                     yield return ExecuteItemAction(caster, item, targetList);
                 }
                 break;
 
             case BattleCommandType.Djinn:
-                actionCost = 50;
-                if (actionData is DjinnInstance djinn)
+                if (request.ActionPayload is DjinnInstance djinn)
                 {
                     yield return ExecuteDjinnUnleashAction(caster, djinn, targetList);
                 }
                 break;
 
             case BattleCommandType.Summon:
-                actionCost = 70;
-                yield return ExecuteSummonAction(caster, actionData, targetList);
+                yield return ExecuteSummonAction(caster, request.ActionPayload, targetList);
                 break;
         }
-
-        onComplete?.Invoke(actionCost);
     }
 
     #endregion
@@ -316,20 +313,6 @@ public class BattleActionExecutor : MonoBehaviour
     #endregion
 
     #region Helper Utility Methods
-
-    private List<GameObject> ResolveDefaultEnemyTarget(FighterController caster)
-    {
-        List<GameObject> resolvedTargets = new List<GameObject>();
-
-        if (caster.TryGetComponent<EnemyAIController>(out var ai))
-        {
-            // Simple target resolution from active scene heroes
-            GameObject hero = GameObject.FindGameObjectWithTag("Player");
-            if (hero != null) resolvedTargets.Add(hero);
-        }
-
-        return resolvedTargets;
-    }
 
     private List<FighterStats> ExtractFighterStatsList(List<GameObject> gameObjects)
     {

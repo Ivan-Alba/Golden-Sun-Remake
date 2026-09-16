@@ -11,6 +11,8 @@ using UnityEngine;
 /// </summary>
 public class TurnController : MonoBehaviour
 {
+    private const int DEFAULT_ACTION_COST = 50;
+
     [Header("Turn Controller Settings")]
     [SerializeField] private int maxTurnBoxes = 6;
 
@@ -23,6 +25,9 @@ public class TurnController : MonoBehaviour
 
     private FighterController currentFighter;
     private List<GameObject> activeFighters = new List<GameObject>();
+
+    // Cached Action Cost for the active turn execution
+    private int _pendingActionCost = DEFAULT_ACTION_COST;
 
     #region Properties
 
@@ -41,6 +46,15 @@ public class TurnController : MonoBehaviour
     #region Public Turn API
 
     /// <summary>
+    /// Registers the action cost to be applied to the current active fighter upon turn completion.
+    /// </summary>
+    /// <param name="cost">Action delay cost resolved from BattleActionExecutor or ActionPayload.</param>
+    public void SetNextActionCost(int cost)
+    {
+        _pendingActionCost = Mathf.Max(1, cost);
+    }
+
+    /// <summary>
     /// Initializes initial turn delays based on combatant agility at battle start.
     /// </summary>
     /// <param name="fighters">List of active combatant GameObjects in battle.</param>
@@ -48,6 +62,7 @@ public class TurnController : MonoBehaviour
     public List<KeyValuePair<GameObject, int>> InitializeTurnSystem(List<GameObject> fighters)
     {
         activeFighters = new List<GameObject>(fighters ?? new List<GameObject>());
+        _pendingActionCost = DEFAULT_ACTION_COST;
 
         // Calculate initial turn delays for all fighters based on damped agility
         for (int i = 0; i < activeFighters.Count; i++)
@@ -65,6 +80,18 @@ public class TurnController : MonoBehaviour
         }
 
         return RefreshTurnState();
+    }
+
+    /// <summary>
+    /// Advances the CTB timeline using the pre-registered action cost (_pendingActionCost).
+    /// </summary>
+    /// <param name="executedFighter">The fighter GameObject that completed its action.</param>
+    /// <returns>Updated projected list of turn order KeyValuePairs.</returns>
+    public List<KeyValuePair<GameObject, int>> AdvanceTurn(GameObject executedFighter)
+    {
+        List<KeyValuePair<GameObject, int>> result = AdvanceTurn(executedFighter, _pendingActionCost);
+        _pendingActionCost = DEFAULT_ACTION_COST; // Reset to default after advancing
+        return result;
     }
 
     /// <summary>
@@ -139,14 +166,12 @@ public class TurnController : MonoBehaviour
             }
         }
 
-        int defaultCost = 50; // Standard baseline for projection calculation
-
         while (projection.Count < maxTurnBoxes && simulatedCDs.Count > 0)
         {
             KeyValuePair<GameObject, int> nextUnit = simulatedCDs.OrderBy(kvp => kvp.Value).First();
             projection.Add(new KeyValuePair<GameObject, int>(nextUnit.Key, nextUnit.Value));
 
-            int estimatedDelay = CalculateDelay(nextUnit.Key, defaultCost);
+            int estimatedDelay = CalculateDelay(nextUnit.Key, DEFAULT_ACTION_COST);
             simulatedCDs[nextUnit.Key] += estimatedDelay;
         }
 

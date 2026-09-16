@@ -1,6 +1,17 @@
 using System;
 using UnityEngine;
 
+
+public enum CasterAnimationType
+{
+    None,
+    AttackPreparation,
+    UsePsynergy,
+    UseItem,
+    UseDjinn,
+    UseSummon
+}
+
 /// <summary>
 /// Unified configuration container for all Battle Action Visuals & Audio FX.
 /// Shared across Psynergies, Djinn Unleashes, Consumables, Weapon Unleashes, and Item Battle Effects.
@@ -11,7 +22,7 @@ public struct BattleActionFXConfig
 {
     [Header("Caster Animations & Origin FX")]
     [Tooltip("Trigger name for the Caster Animator (e.g., 'attack', 'usePsynergy', 'useItem').")]
-    public string CasterAnimationTrigger;
+    public CasterAnimationType CasterAnimation;
 
     [Tooltip("Optional custom aura/circle VFX instantiated around the caster's feet upon initiating the action.")]
     public GameObject CasterAuraVFX;

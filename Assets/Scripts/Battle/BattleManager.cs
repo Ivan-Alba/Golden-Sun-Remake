@@ -261,25 +261,24 @@ public class BattleManager : MonoBehaviour
         GameObject activeFighterObj = casterController != null ? casterController.gameObject : null;
 
         targetList = request.AffectedTargets ?? new List<GameObject>();
-        int executedActionCost = 50;
+
+        // Register action CTB cost directly to TurnController prior to sequence execution
+        int cost = actionExecutor != null ? actionExecutor.GetActionCost(request) : 50;
+        if (turnController != null)
+        {
+            turnController.SetNextActionCost(cost);
+        }
 
         if (actionExecutor != null && casterController != null)
         {
-            yield return actionExecutor.ExecuteActionSequence(
-                casterController,
-                request.CommandType,
-                request.ActionPayload,
-                targetList,
-                request.PrimaryTarget,
-                (cost) => executedActionCost = cost
-            );
+            yield return actionExecutor.ExecuteActionSequence(request);
         }
         else
         {
             Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleActionExecutor or Caster is missing!");
         }
 
-        CheckDefeated(activeFighterObj, executedActionCost);
+        CheckDefeated(activeFighterObj);
     }
 
     private void HandleTargetSelectionCancelled()
@@ -329,11 +328,14 @@ public class BattleManager : MonoBehaviour
     {
         CurrentBattleState = BattleState.IntroTransition;
 
-        StartCoroutine(battleCameraController.StartTransition());
-
-        while (!battleCameraController.TransitionDone)
+        if (battleCameraController != null)
         {
-            yield return null;
+            StartCoroutine(battleCameraController.StartTransition());
+
+            while (!battleCameraController.TransitionDone)
+            {
+                yield return null;
+            }
         }
 
         if (fieldSpawner != null)
@@ -362,20 +364,23 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
         }
 
-        battleCameraController.IntroBattle();
-        yield return new WaitForSeconds(2f);
-
-        yield return new WaitForSeconds(1f);
-
-        StartCoroutine(battleCameraController.StartTransition());
-
-        while (!battleCameraController.TransitionDone)
+        if (battleCameraController != null)
         {
-            yield return null;
-        }
+            battleCameraController.IntroBattle();
+            yield return new WaitForSeconds(2f);
 
-        battleCameraController.SetInitialIdle();
-        yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(1f);
+
+            StartCoroutine(battleCameraController.StartTransition());
+
+            while (!battleCameraController.TransitionDone)
+            {
+                yield return null;
+            }
+
+            battleCameraController.SetInitialIdle();
+            yield return new WaitForSeconds(1.0f);
+        }
 
         InitializeBattleTurns();
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InBattle);
@@ -383,7 +388,10 @@ public class BattleManager : MonoBehaviour
 
     private void InitializeBattleTurns()
     {
-        turnController.InitializeTurnSystem(fighters);
+        if (turnController != null)
+        {
+            turnController.InitializeTurnSystem(fighters);
+        }
         EvaluateTurnStart();
     }
 
@@ -391,7 +399,7 @@ public class BattleManager : MonoBehaviour
 
     #region Action Execution & Turn Flow
 
-    private void CheckDefeated(GameObject activeFighter, int baseActionCost)
+    private void CheckDefeated(GameObject activeFighter)
     {
         for (int i = 0; i < targetList.Count; i++)
         {
@@ -400,7 +408,10 @@ public class BattleManager : MonoBehaviour
 
             if (target.TryGetComponent<FighterStats>(out var targetData) && targetData.CurrHp <= 0)
             {
-                fieldSpawner.ProcessCombatantDeath(target, rewardTracker);
+                if (fieldSpawner != null)
+                {
+                    fieldSpawner.ProcessCombatantDeath(target, rewardTracker);
+                }
             }
         }
 
@@ -414,20 +425,23 @@ public class BattleManager : MonoBehaviour
         }
         else
         {
-            TurnFinished(activeFighter, baseActionCost);
+            TurnFinished(activeFighter);
         }
     }
 
-    private void TurnFinished(GameObject executedFighter, int baseActionCost)
+    private void TurnFinished(GameObject executedFighter)
     {
         targetList.Clear();
-        turnController.AdvanceTurn(executedFighter, baseActionCost);
+        if (turnController != null)
+        {
+            turnController.AdvanceTurn(executedFighter);
+        }
         EvaluateTurnStart();
     }
 
     private void EvaluateTurnStart()
     {
-        if (turnController.CurrentFighter == null) return;
+        if (turnController == null || turnController.CurrentFighter == null) return;
 
         turnController.CurrentFighter.StartsTurn();
 
@@ -469,7 +483,7 @@ public class BattleManager : MonoBehaviour
         }
 
         FighterController victor = turnController != null ? turnController.CurrentFighter : null;
-        if (victor != null)
+        if (victor != null && battleCameraController != null)
         {
             battleCameraController.Victory(victor.gameObject);
         }
@@ -506,7 +520,11 @@ public class BattleManager : MonoBehaviour
         }
 
         GameEvents.Hero.TriggerHeroStatusChanged();
-        battleCameraController.SetOffBattleCamera();
+
+        if (battleCameraController != null)
+        {
+            battleCameraController.SetOffBattleCamera();
+        }
 
         if (HybridAudioListener.Instance != null)
         {
