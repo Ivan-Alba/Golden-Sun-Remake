@@ -40,7 +40,7 @@ public struct BattleSpawnResult
 
 /// <summary>
 /// Domain component responsible for managing the 3D battle arena, 
-/// dynamically calculating slot spatial layouts, and spawning heroes and enemies into the scene.
+/// dynamically calculating spatial layouts, spawning combatants, and tracking living status.
 /// </summary>
 public class BattleFieldSpawner : MonoBehaviour
 {
@@ -64,6 +64,11 @@ public class BattleFieldSpawner : MonoBehaviour
     [Header("Configuration Constraints")]
     [SerializeField] private int maxEnemiesInBattle = 3;
 
+    // Active Arena State Cache
+    private List<GameObject> activeHeroes = new List<GameObject>();
+    private List<GameObject> activeEnemiesSlots = new List<GameObject>();
+    private List<GameObject> activeFighters = new List<GameObject>();
+
     public int MaxEnemiesInBattle => maxEnemiesInBattle;
 
     #region Public Spatial Center Getters
@@ -80,16 +85,22 @@ public class BattleFieldSpawner : MonoBehaviour
 
     #endregion
 
+    #region Arena Spawning & Lifecycle API
+
     /// <summary>
     /// Spawns combatants and sets up the 3D arena based on the initialization payload and party data.
     /// </summary>
     public BattleSpawnResult SpawnBattleField(BattleInitializationData data, IReadOnlyList<GameObject> activeParty)
     {
+        activeHeroes.Clear();
+        activeEnemiesSlots = new List<GameObject>(new GameObject[maxEnemiesInBattle]);
+        activeFighters.Clear();
+
         BattleSpawnResult result = new BattleSpawnResult
         {
-            HeroList = new List<GameObject>(),
-            EnemiesList = new List<GameObject>(new GameObject[maxEnemiesInBattle]),
-            AllActiveFighters = new List<GameObject>()
+            HeroList = activeHeroes,
+            EnemiesList = activeEnemiesSlots,
+            AllActiveFighters = activeFighters
         };
 
         // 1. DYNAMICALLY POSITION HEROES IN ARENA (Left-to-Right order)
@@ -108,11 +119,10 @@ public class BattleFieldSpawner : MonoBehaviour
                 hero.transform.position = targetWorldPos;
                 hero.transform.rotation = targetRotation;
 
-                FighterStats stats = hero.GetComponent<FighterStats>();
-                if (stats != null && stats.CurrHp > 0)
+                if (hero.TryGetComponent<FighterStats>(out var stats) && stats.CurrHp > 0)
                 {
-                    result.HeroList.Add(hero);
-                    result.AllActiveFighters.Add(hero);
+                    activeHeroes.Add(hero);
+                    activeFighters.Add(hero);
                 }
             }
         }
@@ -142,7 +152,6 @@ public class BattleFieldSpawner : MonoBehaviour
 
                 for (int i = 0; i < countToSpawn; i++)
                 {
-                    // Index 0 is the Overworld collision initiator
                     GameObject prefab = (i == 0 && data.InitiatorWorldObject != null)
                         ? data.SpawnZone.GetMatchingEnemyPrefab(data.InitiatorWorldObject)
                         : data.SpawnZone.GetRandomEnemyPrefab();
@@ -159,14 +168,9 @@ public class BattleFieldSpawner : MonoBehaviour
         if (prefabsToInstantiate.Count > 0)
         {
             int totalEnemies = prefabsToInstantiate.Count;
-
-            // Sort prefabs so the initiator is placed at the spatial center index of the group
             List<GameObject> orderedPrefabs = OrderPrefabsSymmetrically(prefabsToInstantiate);
-
-            // Calculate world 3D positions strictly ordered Left-to-Right (inverting axis to align screen-space)
             List<Vector3> enemyWorldPositions = CalculateRowPositions(enemyCenterAnchor, totalEnemies, enemySpacing, invertHorizontal: true);
 
-            // Map the totalEnemies group to the central slots of maxEnemiesInBattle array
             int startSlotIndex = (maxEnemiesInBattle - totalEnemies) / 2;
 
             for (int i = 0; i < totalEnemies; i++)
@@ -178,9 +182,8 @@ public class BattleFieldSpawner : MonoBehaviour
 
                 GameObject spawnedEnemy = Instantiate(orderedPrefabs[i], targetWorldPos, targetRotation);
 
-                // Populate EnemiesList strictly aligned Left-to-Right
-                result.EnemiesList[targetSlotIndex] = spawnedEnemy;
-                result.AllActiveFighters.Add(spawnedEnemy);
+                activeEnemiesSlots[targetSlotIndex] = spawnedEnemy;
+                activeFighters.Add(spawnedEnemy);
             }
         }
 
@@ -193,16 +196,81 @@ public class BattleFieldSpawner : MonoBehaviour
         return result;
     }
 
-    #region Spatial Layout & Order Helpers
+    /// <summary>
+    /// Processes a defeated combatant by removing references, tracking enemy rewards, and destroying its GameObject.
+    /// </summary>
+    public void ProcessCombatantDeath(GameObject target, BattleRewardTracker rewardTracker)
+    {
+        if (target == null) return;
+
+        if (target.TryGetComponent<EnemyStats>(out var enemyStats))
+        {
+            if (rewardTracker != null)
+            {
+                rewardTracker.TrackEnemyDefeated(enemyStats);
+            }
+
+            activeFighters.Remove(target);
+
+            int slotIndex = activeEnemiesSlots.IndexOf(target);
+            if (slotIndex >= 0)
+            {
+                activeEnemiesSlots[slotIndex] = null;
+            }
+
+            Destroy(target);
+        }
+        else
+        {
+            activeFighters.Remove(target);
+        }
+    }
 
     /// <summary>
-    /// Resolves fighter orientation. Uses parallel anchor forward rotation for clean formation lines.
+    /// Evaluates if all active enemy slots are empty or defeated.
     /// </summary>
+    public bool AreAllEnemiesDefeated()
+    {
+        for (int i = 0; i < activeEnemiesSlots.Count; i++)
+        {
+            if (activeEnemiesSlots[i] != null) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Evaluates if all heroes in the arena are at zero HP.
+    /// </summary>
+    public bool AreAllHeroesDefeated()
+    {
+        for (int i = 0; i < activeHeroes.Count; i++)
+        {
+            if (activeHeroes[i] != null && activeHeroes[i].TryGetComponent<FighterStats>(out var stats))
+            {
+                if (stats.CurrHp > 0) return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Clears internal state references upon battle conclusion.
+    /// </summary>
+    public void ResetArenaState()
+    {
+        activeHeroes.Clear();
+        activeEnemiesSlots.Clear();
+        activeFighters.Clear();
+    }
+
+    #endregion
+
+    #region Spatial Layout & Order Helpers
+
     private Quaternion ResolveFighterRotation(Transform ownAnchor, Vector3 originPos, Transform targetAnchor)
     {
         if (ownAnchor != null)
         {
-            // Pure parallel alignment with anchor orientation
             return ownAnchor.rotation;
         }
 
@@ -216,10 +284,6 @@ public class BattleFieldSpawner : MonoBehaviour
         return Quaternion.identity;
     }
 
-    /// <summary>
-    /// Orders prefabs so index 0 (Initiator) ends up at the physical center position of the active group.
-    /// Input list: [Initiator, EnemyA, EnemyB] -> Ordered output: [EnemyA, Initiator, EnemyB] (Left to Right)
-    /// </summary>
     private List<GameObject> OrderPrefabsSymmetrically(List<GameObject> inputPrefabs)
     {
         int count = inputPrefabs.Count;
@@ -232,7 +296,7 @@ public class BattleFieldSpawner : MonoBehaviour
         }
 
         int centerPosIndex = (count - 1) / 2;
-        ordered[centerPosIndex] = inputPrefabs[0]; // Initiator placed at center slot
+        ordered[centerPosIndex] = inputPrefabs[0];
 
         int leftOffset = 1;
         int rightOffset = 1;
@@ -241,7 +305,6 @@ public class BattleFieldSpawner : MonoBehaviour
         {
             if (i % 2 != 0)
             {
-                // Place to the right of center
                 if (centerPosIndex + rightOffset < count)
                 {
                     ordered[centerPosIndex + rightOffset] = inputPrefabs[i];
@@ -250,7 +313,6 @@ public class BattleFieldSpawner : MonoBehaviour
             }
             else
             {
-                // Place to the left of center
                 if (centerPosIndex - leftOffset >= 0)
                 {
                     ordered[centerPosIndex - leftOffset] = inputPrefabs[i];
@@ -262,10 +324,6 @@ public class BattleFieldSpawner : MonoBehaviour
         return new List<GameObject>(ordered);
     }
 
-    /// <summary>
-    /// Calculates world positions evenly spaced along the local X-axis (right vector) of the center anchor.
-    /// Arranges targets from left to right.
-    /// </summary>
     private List<Vector3> CalculateRowPositions(Transform centerAnchor, int count, float spacing, bool invertHorizontal = false)
     {
         List<Vector3> positions = new List<Vector3>();
@@ -286,9 +344,6 @@ public class BattleFieldSpawner : MonoBehaviour
         return positions;
     }
 
-    /// <summary>
-    /// Performs a downward Raycast from elevated position to snap spatial points onto arena ground geometry.
-    /// </summary>
     private Vector3 SnapToGround(Vector3 originalPosition)
     {
         Vector3 rayStart = originalPosition + (Vector3.up * 5.0f);

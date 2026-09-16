@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static GameEvents;
 
 /// <summary>
 /// Component responsible for managing battle target selection logic, 

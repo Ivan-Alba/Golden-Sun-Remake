@@ -138,6 +138,7 @@ public class Chest : Interactable
         if (chestAnimator != null)
         {
             chestAnimator.SetTrigger(OpenChestHash);
+            PlayChestOpenSFX();
         }
 
         // Wait for chest opening animation to settle

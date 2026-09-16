@@ -58,7 +58,7 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
-    #region Animation Triggers API (Exposed to BattleActionExecutor)
+    #region Animation Triggers API (Exposed to BattleActionExecutor & BattleManager)
 
     public void PlayAttackAnimation()
     {
@@ -68,6 +68,23 @@ public class FighterController : MonoBehaviour
     public void PlayCastAnimation()
     {
         if (fighterAnim != null) fighterAnim.SetTrigger("usePsynergy");
+    }
+
+    /// <summary>
+    /// Triggers victory animation pose if the fighter is currently alive.
+    /// </summary>
+    public void PlayVictoryPose()
+    {
+        if (stats != null && stats.CurrHp <= 0) return;
+        if (fighterAnim != null) fighterAnim.SetBool("victoryPose", true);
+    }
+
+    /// <summary>
+    /// Stops the victory animation pose.
+    /// </summary>
+    public void StopVictoryPose()
+    {
+        if (fighterAnim != null) fighterAnim.SetBool("victoryPose", false);
     }
 
     #endregion
@@ -189,5 +206,15 @@ public class FighterController : MonoBehaviour
         {
             selectionPointer.SetVisible(false);
         }
+    }
+
+    /// <summary>
+    /// Resets fighter battle state (defense status, turn CDs, animators) when combat ends.
+    /// </summary>
+    public void OnBattleEnded()
+    {
+        NextTurnCD = 0;
+        SetOffDefense();
+        StopVictoryPose();
     }
 }

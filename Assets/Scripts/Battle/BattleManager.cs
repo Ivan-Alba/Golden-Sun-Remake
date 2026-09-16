@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using Random = UnityEngine.Random;
 
 public enum BattleState
 {
@@ -38,30 +36,21 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private BattleRewardTracker rewardTracker;
     [SerializeField] private GameObject battleField;
 
-    private GameObject player; // player reference
     private IReadOnlyList<GameObject> _cachedParty;
 
     // Local GameState Cache
     private GameManager.GameState _cachedGameState;
 
-    private GameObject mainCamera;
-
-    // NEXT ACTION & TARGETING
+    // Active Selection State
     private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
-
     private List<GameObject> targetList = new List<GameObject>();
-    private ActionTargetType currentTargetType = ActionTargetType.SingleEnemy;
-    private int currentAreaRange = 0;
 
-    // LISTS WITH FIGHTERS
-    private List<GameObject> enemiesList = new List<GameObject>(); // Fixed slots, can hold nulls for defeated/empty
+    // Combatant Lists
+    private List<GameObject> enemiesList = new List<GameObject>();
     private List<GameObject> heroList = new List<GameObject>();
     private List<GameObject> fighters = new List<GameObject>();
 
-    // LIST WITH TURNS OF FIGHTERS
-    private List<KeyValuePair<GameObject, int>> turnsOrdered;
-
-    // LOCAL CONTROLLERS
+    // Local Controllers
     private TurnController turnController;
 
     #region Local C# Events for Local HUD & Components
@@ -89,7 +78,7 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    // BATTLE STATE MACHINE (Encapsulated State Property)
+    // Encapsulated State Property
     private BattleState _currentBattleState = BattleState.None;
     public BattleState CurrentBattleState
     {
@@ -103,28 +92,12 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    // AUXILIAR
-    private int enemiesOnBattle, enemiesDefeated, deadHeroes;
-    private GameObject actualTarget;
-
-    // Backwards compatibility getter
-    public bool WaitingAction
-    {
-        get => CurrentBattleState == BattleState.CommandSelection;
-        set
-        {
-            if (!value && CurrentBattleState == BattleState.CommandSelection)
-                CurrentBattleState = BattleState.WaitingTurnExecution;
-        }
-    }
-
     private void Awake()
     {
-        // --- LOCAL COMPONENTS ON SAME GAMEOBJECT ---
         turnController = GetComponent<TurnController>();
 
         if (targetSelectionController == null)
-            targetSelectionController = GetComponent<TargetSelectionController>();
+            targetSelectionController = GetComponent<TargetSelectionController>() ?? GetComponentInChildren<TargetSelectionController>();
 
         if (fieldSpawner == null)
             fieldSpawner = GetComponent<BattleFieldSpawner>() ?? GetComponentInChildren<BattleFieldSpawner>();
@@ -135,7 +108,6 @@ public class BattleManager : MonoBehaviour
         if (rewardTracker == null)
             rewardTracker = GetComponent<BattleRewardTracker>() ?? GetComponentInChildren<BattleRewardTracker>();
 
-        // Ensure clean state on scene load
         ResetBattleVariables();
     }
 
@@ -195,16 +167,11 @@ public class BattleManager : MonoBehaviour
 
     #region Direct Command Cross Triggers (Exposed to BattleHUDController)
 
-    /// <summary>
-    /// Executes a command selection originated from UI/Controller hotkey inputs.
-    /// </summary>
     public void ExecuteCommandFromUI(BattleCommandType commandType)
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection) return;
 
         _selectedCommandType = commandType;
-
-        PlaySFX(SFXType.UI_Confirm);
 
         switch (commandType)
         {
@@ -225,7 +192,6 @@ public class BattleManager : MonoBehaviour
                 break;
 
             case BattleCommandType.Defend:
-                turnController.HideTurnCamera();
                 CurrentBattleState = BattleState.WaitingTurnExecution;
 
                 FighterController caster = turnController != null ? turnController.CurrentFighter : null;
@@ -249,9 +215,6 @@ public class BattleManager : MonoBehaviour
 
     #region SubMenu Action Selection Handlers
 
-    /// <summary>
-    /// Invoked directly by BattleHUDController when an action card is picked in SubMenu.
-    /// </summary>
     public void HandleSubMenuActionSelected(BattleCommandType commandType, object actionPayload)
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
@@ -267,9 +230,6 @@ public class BattleManager : MonoBehaviour
         CurrentBattleState = BattleState.TargetSelection;
     }
 
-    /// <summary>
-    /// Invoked directly by BattleHUDController when SubMenu cancellation occurs.
-    /// </summary>
     public void HandleSubMenuCancelled()
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
@@ -286,22 +246,21 @@ public class BattleManager : MonoBehaviour
     {
         if (CurrentBattleState != BattleState.TargetSelection) return;
 
-        turnController.HideTurnCamera();
         CurrentBattleState = BattleState.WaitingTurnExecution;
-
-        // Execute action sequence directly with the encapsulated request payload
         StartCoroutine(ExecuteConfirmedActionSequence(request));
     }
 
     private IEnumerator ExecuteConfirmedActionSequence(BattleActionRequest request)
     {
+        if (battleCameraController != null)
+        {
+            battleCameraController.HideTurnCamera();
+        }
+
         FighterController casterController = request.Caster ?? (turnController != null ? turnController.CurrentFighter : null);
         GameObject activeFighterObj = casterController != null ? casterController.gameObject : null;
 
-        // Keep local references for CheckDefeated logic
         targetList = request.AffectedTargets ?? new List<GameObject>();
-        actualTarget = request.PrimaryTarget;
-
         int executedActionCost = 50;
 
         if (actionExecutor != null && casterController != null)
@@ -350,17 +309,7 @@ public class BattleManager : MonoBehaviour
     {
         ResetBattleVariables();
 
-        // BATTLE MUSIC VIA AUDIO MANAGER
         GameEvents.Audio.RequestPlayBattleBGM();
-
-        // --- EXTERNAL SCENE / CORE REFERENCES ---
-        if (mainCamera == null)
-            mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-
-        if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player");
-
-        if (player != null) player.GetComponent<Animator>().enabled = false;
 
         EnemySpawnZone zoneController = spawnZone != null ? spawnZone.GetComponent<EnemySpawnZone>() : null;
 
@@ -373,7 +322,6 @@ public class BattleManager : MonoBehaviour
             CustomBattleBGM = null
         };
 
-        // START BATTLE TRANSITION
         StartCoroutine(StartBattle(initData));
     }
 
@@ -381,15 +329,13 @@ public class BattleManager : MonoBehaviour
     {
         CurrentBattleState = BattleState.IntroTransition;
 
-        // TRANSITION MAIN CAMERA TO BATTLE CAMERA
-        StartCoroutine(battleCameraController.StartTransition(mainCamera));
+        StartCoroutine(battleCameraController.StartTransition());
 
         while (!battleCameraController.TransitionDone)
         {
             yield return null;
         }
 
-        // DELEGATE 3D ARENA SETUP & COMBATANT SPAWNING TO BATTLE FIELD SPAWNER
         if (fieldSpawner != null)
         {
             BattleSpawnResult spawnResult = fieldSpawner.SpawnBattleField(initData, _cachedParty);
@@ -398,9 +344,6 @@ public class BattleManager : MonoBehaviour
             enemiesList = spawnResult.EnemiesList;
             fighters = spawnResult.AllActiveFighters;
 
-            enemiesOnBattle = enemiesList.Count(e => e != null);
-
-            // Register combatants into TargetSelectionController
             if (targetSelectionController != null)
             {
                 targetSelectionController.SetCombatants(heroList, enemiesList);
@@ -411,7 +354,6 @@ public class BattleManager : MonoBehaviour
             Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleFieldSpawner component is missing!");
         }
 
-        // --- DYNAMIC AUDIO LISTENER SETUP ---
         if (HybridAudioListener.Instance != null)
         {
             Transform battleCamTransform = battleCameraController != null ? battleCameraController.transform : null;
@@ -420,14 +362,11 @@ public class BattleManager : MonoBehaviour
             HybridAudioListener.Instance.SetBattleReferences(battleCamTransform, centerTarget);
         }
 
-        // BATTLE CAMERA INTRO ANIMATION
         battleCameraController.IntroBattle();
         yield return new WaitForSeconds(2f);
 
-        // ENEMY ANIMATION INTRO
         yield return new WaitForSeconds(1f);
 
-        // TODO BATTLE CAMERA FADE
         StartCoroutine(battleCameraController.StartTransition());
 
         while (!battleCameraController.TransitionDone)
@@ -436,147 +375,40 @@ public class BattleManager : MonoBehaviour
         }
 
         battleCameraController.SetInitialIdle();
-
         yield return new WaitForSeconds(1.0f);
 
-        // Initializing Turn System and starting first turn
         InitializeBattleTurns();
-
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.InBattle);
     }
 
     private void InitializeBattleTurns()
     {
-        turnsOrdered = turnController.InitializeTurnSystem(fighters);
-
-        if (turnController.CurrentFighter != null)
-        {
-            turnController.CurrentFighter.StartsTurn();
-
-            if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
-            {
-                CurrentBattleState = BattleState.WaitingTurnExecution;
-
-                if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
-                {
-                    BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
-                    StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
-                }
-            }
-            else
-            {
-                CurrentBattleState = BattleState.CommandSelection;
-            }
-        }
+        turnController.InitializeTurnSystem(fighters);
+        EvaluateTurnStart();
     }
 
     #endregion
 
     #region Action Execution & Turn Flow
 
-    /*private IEnumerator PerformAction()
-    {
-        if (turnController.CurrentFighter == null) yield break;
-
-        FighterController casterController = turnController.CurrentFighter;
-        GameObject activeFighterObj = casterController.gameObject;
-
-        // FORCE COMMAND TYPE TO ATTACK FOR ENEMIES TO PREVENT PREVIOUS HERO COMMAND OVERRIDE
-        if (activeFighterObj.TryGetComponent<EnemyStats>(out _))
-        {
-            _selectedCommandType = BattleCommandType.Attack;
-            targetList.Clear();
-
-            // Resolve AI Target for Enemy
-            if (activeFighterObj.TryGetComponent<EnemyAIController>(out var ai))
-            {
-                GameObject chosenTarget = ai.SelectTarget(heroList);
-                if (chosenTarget != null) targetList.Add(chosenTarget);
-            }
-
-            if (targetList.Count == 0 && heroList != null && heroList.Count > 0)
-            {
-                targetList.Add(heroList[Random.Range(0, heroList.Count)]);
-            }
-
-            actualTarget = targetList.Count > 0 ? targetList[0] : null;
-        }
-
-        object actionPayload = null;
-        GameObject primaryTargetPos = actualTarget;
-
-        int executedActionCost = 50;
-
-        // DELEGATE ENTIRE COMBAT SEQUENCE TO BATTLE ACTION EXECUTOR
-        if (actionExecutor != null)
-        {
-            yield return actionExecutor.ExecuteActionSequence(
-                casterController,
-                _selectedCommandType,
-                actionPayload,
-                targetList,
-                primaryTargetPos,
-                (cost) => executedActionCost = cost
-            );
-        }
-        else
-        {
-            Debug.LogError($"[{nameof(BattleManager)}] CRITICAL: BattleActionExecutor component is missing!");
-        }
-
-        CheckDefeated(activeFighterObj, executedActionCost);
-    }*/
-
     private void CheckDefeated(GameObject activeFighter, int baseActionCost)
     {
-        foreach (GameObject target in targetList)
+        for (int i = 0; i < targetList.Count; i++)
         {
+            GameObject target = targetList[i];
             if (target == null) continue;
 
-            FighterStats targetData = target.GetComponent<FighterStats>();
-            if (targetData != null && targetData.CurrHp <= 0)
+            if (target.TryGetComponent<FighterStats>(out var targetData) && targetData.CurrHp <= 0)
             {
-                if (targetData.gameObject.TryGetComponent<EnemyStats>(out var enemyStats))
-                {
-                    // Track rewards and loot tables via BattleRewardTracker
-                    if (rewardTracker != null)
-                    {
-                        rewardTracker.TrackEnemyDefeated(enemyStats);
-                    }
-
-                    fighters.Remove(targetData.gameObject);
-
-                    // Preserve spatial slot indices by setting cell to null instead of removing from enemiesList
-                    int slotIndex = enemiesList.IndexOf(targetData.gameObject);
-                    if (slotIndex >= 0)
-                    {
-                        enemiesList[slotIndex] = null;
-                    }
-
-                    Destroy(targetData.gameObject);
-                    enemiesDefeated++;
-                }
-                else
-                {
-                    fighters.Remove(targetData.gameObject);
-                }
+                fieldSpawner.ProcessCombatantDeath(target, rewardTracker);
             }
         }
 
-        deadHeroes = 0;
-        foreach (GameObject hero in heroList)
-        {
-            if (hero.GetComponent<FighterStats>().CurrHp <= 0)
-            {
-                deadHeroes++;
-            }
-        }
-
-        if (enemiesDefeated == enemiesOnBattle)
+        if (fieldSpawner != null && fieldSpawner.AreAllEnemiesDefeated())
         {
             StartCoroutine(BattleWinned());
         }
-        else if (deadHeroes == heroList.Count)
+        else if (fieldSpawner != null && fieldSpawner.AreAllHeroesDefeated())
         {
             GameOver();
         }
@@ -588,65 +420,68 @@ public class BattleManager : MonoBehaviour
 
     private void TurnFinished(GameObject executedFighter, int baseActionCost)
     {
-        targetList = new List<GameObject>();
-
+        targetList.Clear();
         turnController.AdvanceTurn(executedFighter, baseActionCost);
-        turnsOrdered = turnController.BuildTurnProjection();
+        EvaluateTurnStart();
+    }
 
-        if (turnController.CurrentFighter != null)
+    private void EvaluateTurnStart()
+    {
+        if (turnController.CurrentFighter == null) return;
+
+        turnController.CurrentFighter.StartsTurn();
+
+        if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
         {
-            turnController.CurrentFighter.StartsTurn();
+            CurrentBattleState = BattleState.WaitingTurnExecution;
 
-            if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
+            if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
             {
-                CurrentBattleState = BattleState.WaitingTurnExecution;
-
-                if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
-                {
-                    BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
-                    StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
-                }
+                BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
+                StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
             }
-            else
+        }
+        else
+        {
+            CurrentBattleState = BattleState.CommandSelection;
+
+            if (battleCameraController != null)
             {
-                CurrentBattleState = BattleState.CommandSelection;
+                battleCameraController.SetTurnCameraOnHero(turnController.CurrentFighter.gameObject);
             }
         }
     }
 
     private IEnumerator BattleWinned()
     {
-        // 1. Enter VictoryFanfare state (Blocks UI inputs while 3D animations execute)
         CurrentBattleState = BattleState.VictoryFanfare;
 
         yield return new WaitForSeconds(0.5f);
-
         GameEvents.Audio.RequestPlayVictoryBGM();
-
         yield return new WaitForSeconds(0.5f);
 
-        foreach (GameObject hero in heroList)
+        for (int i = 0; i < heroList.Count; i++)
         {
-            if (hero.GetComponent<FighterStats>().CurrHp > 0)
-                hero.GetComponentInChildren<Animator>().SetBool("victoryPose", true);
+            if (heroList[i] != null && heroList[i].TryGetComponent<FighterController>(out var controller))
+            {
+                controller.PlayVictoryPose();
+            }
         }
 
-        if (turnsOrdered != null && turnsOrdered.Count > 0 && turnsOrdered.ElementAt(0).Key != null)
+        FighterController victor = turnController != null ? turnController.CurrentFighter : null;
+        if (victor != null)
         {
-            battleCameraController.Victory(turnsOrdered.ElementAt(0).Key);
+            battleCameraController.Victory(victor.gameObject);
         }
 
         yield return new WaitForSeconds(3.0f);
 
-        // 2. Apply non-XP rewards & fetch summary from tracker
         BattleRewardSummary rewardSummary = rewardTracker != null
             ? rewardTracker.ApplyAndGetRewardSummary()
             : default;
 
-        // 3. Transition to ResultsScreen state to signal active results UI
         CurrentBattleState = BattleState.ResultsScreen;
 
-        // 4. Delegate UI flow via local event, passing completion callback to trigger battle teardown
         if (OnBattleResultsReady != null)
         {
             OnBattleResultsReady.Invoke(heroList, rewardSummary, () =>
@@ -656,24 +491,22 @@ public class BattleManager : MonoBehaviour
         }
         else
         {
-            // Fallback teardown if no HUD listener is attached
             GameEvents.Scene.RequestFullTransition(SetOffBattle);
         }
     }
 
     private void SetOffBattle()
     {
-        foreach (GameObject hero in heroList)
+        for (int i = 0; i < heroList.Count; i++)
         {
-            if (hero.GetComponent<FighterStats>().CurrHp > 0)
-                hero.GetComponentInChildren<Animator>().SetBool("victoryPose", false);
+            if (heroList[i] != null && heroList[i].TryGetComponent<FighterController>(out var controller))
+            {
+                controller.OnBattleEnded();
+            }
         }
 
         GameEvents.Hero.TriggerHeroStatusChanged();
-
         battleCameraController.SetOffBattleCamera();
-
-        mainCamera.GetComponent<Camera>().enabled = true;
 
         if (HybridAudioListener.Instance != null)
         {
@@ -682,53 +515,14 @@ public class BattleManager : MonoBehaviour
 
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
 
-        if (player != null) player.GetComponent<Animator>().enabled = true;
-
         GameEvents.Audio.RequestResumeBGM();
-
-        if (_cachedParty != null)
-        {
-            for (int i = 0; i < _cachedParty.Count; i++)
-            {
-                if (i < heroList.Count)
-                {
-                    heroList[i].GetComponent<FighterController>().NextTurnCD = 0;
-                    heroList[i].GetComponent<FighterController>().SetOffDefense();
-                }
-            }
-        }
-
         ResetBattleVariables();
     }
 
     private void GameOver()
     {
         CurrentBattleState = BattleState.GameOverScreen;
-
-        GameObject crossfade = transform.Find("Crossfade").gameObject;
-        crossfade.SetActive(true);
-        crossfade.transform.Find("GameOver").gameObject.SetActive(true);
-        crossfade.GetComponent<Animator>().SetTrigger("start");
-
         GameEvents.Audio.RequestPlayGameOverBGM();
-
-        Debug.Log("GAMEOVER");
-    }
-
-    #endregion
-
-    #region State & Target Helpers
-
-    private bool IsAllyTarget(ActionTargetType targetType)
-    {
-        return targetType == ActionTargetType.SingleAlly ||
-               targetType == ActionTargetType.AllAllies ||
-               targetType == ActionTargetType.Self;
-    }
-
-    private void PlaySFX(SFXType sfx)
-    {
-        GameEvents.Audio.RequestPlaySFX(sfx);
     }
 
     private void ResetBattleVariables()
@@ -737,29 +531,21 @@ public class BattleManager : MonoBehaviour
         heroList.Clear();
         enemiesList.Clear();
         targetList.Clear();
-        if (turnsOrdered != null) turnsOrdered.Clear();
+
+        if (fieldSpawner != null)
+        {
+            fieldSpawner.ResetArenaState();
+        }
 
         if (rewardTracker != null)
         {
             rewardTracker.ResetTracker();
         }
 
-        enemiesDefeated = 0;
-        enemiesOnBattle = 0;
-        deadHeroes = 0;
-        actualTarget = null;
-
         _selectedCommandType = BattleCommandType.Attack;
-        currentTargetType = ActionTargetType.SingleEnemy;
-        currentAreaRange = 0;
         CurrentBattleState = BattleState.None;
 
         OnTargetSelectionChanged?.Invoke(null, null);
-    }
-
-    public void ChangeBattleSpeed()
-    {
-        GameEvents.GameState.RequestToggleGameSpeed();
     }
 
     #endregion

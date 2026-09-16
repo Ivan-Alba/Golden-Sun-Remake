@@ -770,6 +770,7 @@ public class BattleHUDController : MonoBehaviour
         }
 
         _currentSelectedCommand = commandType;
+        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
         battleManager.ExecuteCommandFromUI(commandType);
     }
 

@@ -3,247 +3,149 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Domain controller responsible for Conditional Turn-Based (CTB) queue resolution,
+/// agility-damped action delay calculations, and turn timeline projection.
+/// Pure logic component with zero camera or visual dependencies.
+/// </summary>
 public class TurnController : MonoBehaviour
 {
-    [Header("Turn Controller Settings & Prefabs")]
-    [SerializeField] private GameObject turnCameraPrefab;
-    [SerializeField] private BattleCameraController battleCameraController;
+    [Header("Turn Controller Settings")]
     [SerializeField] private int maxTurnBoxes = 6;
-    [SerializeField] private float agilityScaleFactor = 100f; // Scale constant K for CTB formula
 
-    // Variable with the gameObject of current fighter
+    [Header("CTB Delay Tuning")]
+    [Tooltip("Scale factor multiplier K used in CTB delay calculation.")]
+    [SerializeField] private float agilityScaleFactor = 100f;
+
+    [Tooltip("Base offset added to Agility denominator to dampen turn frequency gaps between fast and slow fighters.")]
+    [SerializeField] private float baseAgilityBias = 50f;
+
     private FighterController currentFighter;
-
-    // Active fighters participating in battle
     private List<GameObject> activeFighters = new List<GameObject>();
-
-    // CAMERA HERO
-    private Camera turnCamera;
-    private GameObject turnCameraMask;
-
-    // Legacy Canvas UI Controller (Kept commented for reference)
-    // private BattleUIController battleUIController;
 
     #region Properties
 
+    /// <summary>
+    /// Gets or sets the maximum number of projected turns rendered in the UI timeline.
+    /// </summary>
     public int MaxTurnBoxes { get => maxTurnBoxes; set => maxTurnBoxes = value; }
-    public FighterController CurrentFighter { get => currentFighter; set => currentFighter = value; }
-
-    #endregion
-
-    #region Unity Lifecycle
-
-    private void Awake()
-    {
-        // battleUIController = GetComponent<BattleUIController>();
-    }
-
-    #endregion
-
-    #region Initialization & Turn Management
 
     /// <summary>
-    /// Initializes the turn system at the start of a battle.
-    /// Sets initial cooldowns based on agility for all fighters.
+    /// Gets the FighterController currently active for this turn.
     /// </summary>
+    public FighterController CurrentFighter { get => currentFighter; private set => currentFighter = value; }
+
+    #endregion
+
+    #region Public Turn API
+
+    /// <summary>
+    /// Initializes initial turn delays based on combatant agility at battle start.
+    /// </summary>
+    /// <param name="fighters">List of active combatant GameObjects in battle.</param>
+    /// <returns>A projected list of turn order KeyValuePairs for UI binding.</returns>
     public List<KeyValuePair<GameObject, int>> InitializeTurnSystem(List<GameObject> fighters)
     {
-        activeFighters = new List<GameObject>(fighters);
+        activeFighters = new List<GameObject>(fighters ?? new List<GameObject>());
 
-        // 1. Calculate initial turn CDs for all fighters based on their agility
-        foreach (GameObject fighterObj in activeFighters)
+        // Calculate initial turn delays for all fighters based on damped agility
+        for (int i = 0; i < activeFighters.Count; i++)
         {
+            GameObject fighterObj = activeFighters[i];
             if (fighterObj == null) continue;
 
-            FighterController controller = fighterObj.GetComponent<FighterController>();
-            FighterStats stats = fighterObj.GetComponent<FighterStats>();
-
-            if (controller != null && stats != null)
+            if (fighterObj.TryGetComponent<FighterController>(out var controller) &&
+                fighterObj.TryGetComponent<FighterStats>(out var stats))
             {
-                // Initial delay inverse to agility (faster fighters get lower initial CD)
                 int agility = Mathf.Max(1, stats.Agility);
-                controller.NextTurnCD = Mathf.Max(1, Mathf.RoundToInt(agilityScaleFactor / agility));
+                float dampedAgility = agility + baseAgilityBias;
+                controller.NextTurnCD = Mathf.Max(1, Mathf.RoundToInt(agilityScaleFactor / dampedAgility * 10f));
             }
         }
 
-        // 2. Normalize CDs so the fastest fighter starts at 0
-        NormalizeCooldowns();
-
-        // 3. Set current active fighter
-        UpdateCurrentFighter();
-
-        // 4. Generate UI turn projection and update UI panel
-        List<KeyValuePair<GameObject, int>> turnProjection = BuildTurnProjection();
-
-        // --- Event-Driven Turn Queue Notification (UI Toolkit / Network Ready) ---
-        NotifyTurnQueueUpdated(turnProjection);
-
-        /* Legacy Canvas Setup
-        if (battleUIController != null)
-        {
-            battleUIController.SetTurnsPanel(turnProjection);
-        }
-        */
-
-        // 5. Trigger Hero Turn UI/Camera if a Hero acts first
-        if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
-        {
-            SetHeroTurn();
-        }
-
-        return turnProjection;
+        return RefreshTurnState();
     }
 
     /// <summary>
-    /// Advances the battle turn by applying action delay to the current fighter,
-    /// normalizing cooldowns, and updating the UI projection.
+    /// Advances the CTB timeline by applying calculated action delay to the active fighter.
     /// </summary>
-    /// <param name="fighterObj">The fighter that just performed an action.</param>
-    /// <param name="baseActionCost">Base delay cost of the performed action (e.g., 50 for Basic Attack, 30 for Guard).</param>
-    public void AdvanceTurn(GameObject fighterObj, int baseActionCost)
+    /// <param name="executedFighter">The fighter GameObject that completed its action.</param>
+    /// <param name="baseActionCost">Base delay cost of the performed action.</param>
+    /// <returns>Updated projected list of turn order KeyValuePairs.</returns>
+    public List<KeyValuePair<GameObject, int>> AdvanceTurn(GameObject executedFighter, int baseActionCost)
     {
-        if (fighterObj == null) return;
-
-        FighterController controller = fighterObj.GetComponent<FighterController>();
-        if (controller != null)
+        if (executedFighter != null)
         {
-            // 1. Calculate CTB action delay using inverse agility formula
-            int delay = CalculateDelay(fighterObj, baseActionCost);
-            controller.NextTurnCD += delay;
+            if (executedFighter.TryGetComponent<FighterController>(out var controller))
+            {
+                int delay = CalculateDelay(executedFighter, baseActionCost);
+                controller.NextTurnCD += delay;
+            }
         }
 
-        // 2. Remove dead fighters from active list
-        activeFighters.RemoveAll(f => f == null || f.GetComponent<FighterStats>().CurrHp <= 0);
-
-        if (activeFighters.Count == 0) return;
-
-        // 3. Normalize cooldowns (subtract minimum CD from everyone)
-        NormalizeCooldowns();
-
-        // 4. Update current active fighter
-        UpdateCurrentFighter();
-
-        // 5. Rebuild UI projection list and refresh UI
-        List<KeyValuePair<GameObject, int>> turnProjection = BuildTurnProjection();
-
-        // --- Event-Driven Turn Queue Notification ---
-        NotifyTurnQueueUpdated(turnProjection);
-
-        /* Legacy Canvas Setup
-        if (battleUIController != null)
+        // Remove defeated or destroyed combatants efficiently
+        for (int i = activeFighters.Count - 1; i >= 0; i--)
         {
-            battleUIController.SetTurnsPanel(turnProjection);
+            GameObject f = activeFighters[i];
+            if (f == null || (f.TryGetComponent<FighterStats>(out var s) && s.CurrHp <= 0))
+            {
+                activeFighters.RemoveAt(i);
+            }
         }
-        */
 
-        // 6. Handle camera and UI if the new current fighter is a hero
-        if (currentFighter != null && currentFighter.TryGetComponent<HeroStats>(out _))
-        {
-            SetHeroTurn();
-        }
-    }
-
-    #endregion
-
-    #region Formula & Helper Methods
-
-    /// <summary>
-    /// Converts projection KeyValuePairs into a pure list of GameObjects and triggers GameEvents.
-    /// </summary>
-    private void NotifyTurnQueueUpdated(List<KeyValuePair<GameObject, int>> projection)
-    {
-        List<GameObject> turnQueue = projection.Select(kvp => kvp.Key).ToList();
-        GameEvents.Battle.TriggerTurnQueueUpdated(turnQueue);
+        return RefreshTurnState();
     }
 
     /// <summary>
-    /// Calculates action delay using Inverse Proportional CTB Formula (Option A).
-    /// Delay = Max(1, Round((BaseCost * K) / Agility))
+    /// Calculates action delay using Damped CTB Formula:
+    /// Delay = Max(1, Round((BaseCost * K) / (Agility + BaseAgilityBias)))
     /// </summary>
+    /// <param name="fighterObj">Target fighter GameObject.</param>
+    /// <param name="baseActionCost">Base action delay cost (e.g. 50 for Attack, 30 for Defend).</param>
+    /// <returns>Final calculated delay integer value.</returns>
     public int CalculateDelay(GameObject fighterObj, int baseActionCost)
     {
         if (fighterObj == null) return baseActionCost;
 
-        FighterStats stats = fighterObj.GetComponent<FighterStats>();
-        int agility = (stats != null) ? Mathf.Max(1, stats.Agility) : 1;
+        int agility = 1;
+        if (fighterObj.TryGetComponent<FighterStats>(out var stats))
+        {
+            agility = Mathf.Max(1, stats.Agility);
+        }
 
-        int finalDelay = Mathf.RoundToInt((baseActionCost * agilityScaleFactor) / agility);
+        float dampedAgility = agility + baseAgilityBias;
+        int finalDelay = Mathf.RoundToInt((baseActionCost * agilityScaleFactor) / dampedAgility);
+
         return Mathf.Max(1, finalDelay);
     }
 
     /// <summary>
-    /// Subtracts the minimum CD among active fighters from everyone.
-    /// Keeps turn values small and normalized near zero.
+    /// Simulates future turn order up to maxTurnBoxes for timeline UI presentation without modifying real combatant state.
     /// </summary>
-    private void NormalizeCooldowns()
-    {
-        if (activeFighters.Count == 0) return;
-
-        int minCD = activeFighters
-            .Select(f => f.GetComponent<FighterController>().NextTurnCD)
-            .Min();
-
-        foreach (GameObject fighterObj in activeFighters)
-        {
-            if (fighterObj != null)
-            {
-                fighterObj.GetComponent<FighterController>().NextTurnCD -= minCD;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Sets CurrentFighter to the active fighter with the lowest NextTurnCD.
-    /// </summary>
-    private void UpdateCurrentFighter()
-    {
-        if (activeFighters.Count == 0)
-        {
-            currentFighter = null;
-            return;
-        }
-
-        GameObject leadFighter = activeFighters
-            .OrderBy(f => f.GetComponent<FighterController>().NextTurnCD)
-            .FirstOrDefault();
-
-        if (leadFighter != null)
-        {
-            currentFighter = leadFighter.GetComponent<FighterController>();
-        }
-    }
-
-    /// <summary>
-    /// Simulates future turns up to maxTurnBoxes without altering real fighter state.
-    /// Used for drawing the UI Timeline.
-    /// </summary>
+    /// <returns>List of projected combatant KeyValuePairs containing virtual delays.</returns>
     public List<KeyValuePair<GameObject, int>> BuildTurnProjection()
     {
         List<KeyValuePair<GameObject, int>> projection = new List<KeyValuePair<GameObject, int>>();
         if (activeFighters.Count == 0) return projection;
 
-        // Create temporary virtual CD state for simulation
         Dictionary<GameObject, int> simulatedCDs = new Dictionary<GameObject, int>();
-        foreach (GameObject f in activeFighters)
+        for (int i = 0; i < activeFighters.Count; i++)
         {
-            if (f != null)
+            GameObject f = activeFighters[i];
+            if (f != null && f.TryGetComponent<FighterController>(out var controller))
             {
-                simulatedCDs[f] = f.GetComponent<FighterController>().NextTurnCD;
+                simulatedCDs[f] = controller.NextTurnCD;
             }
         }
 
-        // Standard default action cost assumed for timeline preview (e.g., 50)
-        int defaultCost = 50;
+        int defaultCost = 50; // Standard baseline for projection calculation
 
         while (projection.Count < maxTurnBoxes && simulatedCDs.Count > 0)
         {
-            // Find fighter with minimum simulated CD
             KeyValuePair<GameObject, int> nextUnit = simulatedCDs.OrderBy(kvp => kvp.Value).First();
             projection.Add(new KeyValuePair<GameObject, int>(nextUnit.Key, nextUnit.Value));
 
-            // Simulate next turn delay for this unit
             int estimatedDelay = CalculateDelay(nextUnit.Key, defaultCost);
             simulatedCDs[nextUnit.Key] += estimatedDelay;
         }
@@ -253,53 +155,99 @@ public class TurnController : MonoBehaviour
 
     #endregion
 
-    #region Hero Turn UI & Camera Handling
+    #region Internal State Refresh Pipeline
 
-    private void SetHeroTurn()
+    /// <summary>
+    /// Executes normalization, current fighter recalculation, and broadcasts turn queue events.
+    /// </summary>
+    private List<KeyValuePair<GameObject, int>> RefreshTurnState()
     {
-        if (currentFighter == null) return;
+        NormalizeCooldowns();
+        UpdateCurrentFighter();
 
-        Transform cameraContainer = currentFighter.transform.Find("ContainerTurnCamera");
-        if (cameraContainer != null && turnCameraPrefab != null)
+        List<KeyValuePair<GameObject, int>> turnProjection = BuildTurnProjection();
+        NotifyTurnQueueUpdated(turnProjection);
+
+        return turnProjection;
+    }
+
+    /// <summary>
+    /// Subtracts the lowest NextTurnCD from all active fighters to keep turn values normalized near zero.
+    /// </summary>
+    private void NormalizeCooldowns()
+    {
+        if (activeFighters.Count == 0) return;
+
+        int minCD = int.MaxValue;
+
+        // Efficient loop without LINQ allocation
+        for (int i = 0; i < activeFighters.Count; i++)
         {
-            GameObject camInst = Instantiate(turnCameraPrefab, cameraContainer);
-            turnCamera = camInst.GetComponent<Camera>();
-            turnCamera.gameObject.SetActive(true);
-
-            turnCameraMask = turnCamera.transform.GetComponentInChildren<Image>()?.gameObject;
-            if (turnCameraMask != null)
+            GameObject f = activeFighters[i];
+            if (f != null && f.TryGetComponent<FighterController>(out var controller))
             {
-                Animator maskAnim = turnCameraMask.GetComponent<Animator>();
-                maskAnim?.SetTrigger("enter");
-
-                Transform turnImg = turnCameraMask.transform.Find("TurnImage");
-                turnImg?.GetComponent<Animator>()?.SetTrigger("enter");
+                if (controller.NextTurnCD < minCD)
+                {
+                    minCD = controller.NextTurnCD;
+                }
             }
         }
 
-        /* Legacy Canvas Setup
-        if (battleUIController != null)
-        {
-            battleUIController.ShowOrdersPanel(true);
-            battleUIController.ShowTurnsPanel(true);
-        }
-        */
+        if (minCD == int.MaxValue || minCD <= 0) return;
 
-        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Confirm);
+        for (int i = 0; i < activeFighters.Count; i++)
+        {
+            GameObject f = activeFighters[i];
+            if (f != null && f.TryGetComponent<FighterController>(out var controller))
+            {
+                controller.NextTurnCD -= minCD;
+            }
+        }
     }
 
-    public void HideTurnCamera()
+    /// <summary>
+    /// Determines and assigns the active fighter with the lowest NextTurnCD.
+    /// </summary>
+    private void UpdateCurrentFighter()
     {
-        if (turnCameraMask != null)
+        if (activeFighters.Count == 0)
         {
-            turnCameraMask.GetComponent<Animator>()?.SetTrigger("exit");
-            turnCameraMask.transform.Find("TurnImage")?.GetComponent<Animator>()?.SetTrigger("exit");
+            CurrentFighter = null;
+            return;
         }
 
-        if (turnCamera != null)
+        GameObject leadFighter = null;
+        int lowestCD = int.MaxValue;
+
+        // Direct allocation-free iteration
+        for (int i = 0; i < activeFighters.Count; i++)
         {
-            Destroy(turnCamera.gameObject, 1f);
+            GameObject f = activeFighters[i];
+            if (f != null && f.TryGetComponent<FighterController>(out var controller))
+            {
+                if (controller.NextTurnCD < lowestCD)
+                {
+                    lowestCD = controller.NextTurnCD;
+                    leadFighter = f;
+                }
+            }
         }
+
+        CurrentFighter = leadFighter != null ? leadFighter.GetComponent<FighterController>() : null;
+    }
+
+    /// <summary>
+    /// Extracts game objects from projection list and dispatches global turn queue updated event.
+    /// </summary>
+    private void NotifyTurnQueueUpdated(List<KeyValuePair<GameObject, int>> projection)
+    {
+        List<GameObject> turnQueue = new List<GameObject>(projection.Count);
+        for (int i = 0; i < projection.Count; i++)
+        {
+            turnQueue.Add(projection[i].Key);
+        }
+
+        GameEvents.Battle.TriggerTurnQueueUpdated(turnQueue);
     }
 
     #endregion
