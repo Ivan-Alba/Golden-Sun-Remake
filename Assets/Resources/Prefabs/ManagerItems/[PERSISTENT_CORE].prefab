@@ -3979,7 +3979,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fffccc681a7ab94ebdc61444d6e52ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleSelectionPointer
-  rotationSpeed: 120
+  rotationSpeed: 90
   bobbingFrequency: 5
   bobbingAmplitude: 0.05
 --- !u!1 &1625658896843798618
@@ -4381,7 +4381,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8559676359529384640
 Transform:
   m_ObjectHideFlags: 0
@@ -7478,6 +7478,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleVisualModel: {fileID: 1913076131331807055}
   selectionPointer: {fileID: 5528233085222803862}
 --- !u!114 &8836137271981385045
 MonoBehaviour:
@@ -8293,7 +8294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fffccc681a7ab94ebdc61444d6e52ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleSelectionPointer
-  rotationSpeed: 120
+  rotationSpeed: 90
   bobbingFrequency: 5
   bobbingAmplitude: 0.05
 --- !u!1 &5010786999660158683
@@ -8626,7 +8627,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &143260270045931078
 Transform:
   m_ObjectHideFlags: 0
@@ -9227,7 +9228,7 @@ Transform:
   m_GameObject: {fileID: 5662081019207698099}
   serializedVersion: 2
   m_LocalRotation: {x: 0.0011179324, y: 0.9945907, z: 0.010762892, w: -0.10330729}
-  m_LocalPosition: {x: 0, y: -0.18, z: 0.8}
+  m_LocalPosition: {x: 0, y: 2, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12200,7 +12201,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fffccc681a7ab94ebdc61444d6e52ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleSelectionPointer
-  rotationSpeed: 120
+  rotationSpeed: 90
   bobbingFrequency: 5
   bobbingAmplitude: 0.05
 --- !u!1 &7484326558819694264
@@ -16090,7 +16091,7 @@ Transform:
   m_GameObject: {fileID: 8459378965877604487}
   serializedVersion: 2
   m_LocalRotation: {x: 0.009841207, y: 0.96552664, z: -0.026399788, w: -0.258775}
-  m_LocalPosition: {x: 0.2, y: 0.15, z: 0.8}
+  m_LocalPosition: {x: 0.3, y: 2.4, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18526,6 +18527,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleVisualModel: {fileID: 5373402526644560907}
   selectionPointer: {fileID: 4304179943009508077}
 --- !u!114 &6213989037483019924
 MonoBehaviour:
@@ -24452,7 +24454,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8459378966379325034
 Transform:
   m_ObjectHideFlags: 0
@@ -35448,6 +35450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleVisualModel: {fileID: 0}
   selectionPointer: {fileID: 0}
 --- !u!1 &8459378966957924482
 GameObject:
@@ -36406,6 +36409,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleVisualModel: {fileID: 8459378966379325035}
   selectionPointer: {fileID: 1427644389206793484}
 --- !u!114 &3764784848968749994
 MonoBehaviour:
@@ -38533,7 +38537,7 @@ Transform:
   m_GameObject: {fileID: 8459378967177385898}
   serializedVersion: 2
   m_LocalRotation: {x: 0.01402936, y: 0.99486035, z: -0.02443308, w: -0.09725748}
-  m_LocalPosition: {x: -0.05, y: 0.15, z: 0.8}
+  m_LocalPosition: {x: 0, y: 2.5, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42021,7 +42025,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 536
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 4487c1cbbd1e9534ca8e75bf178762e0, type: 2}
   m_TargetDisplay: 0

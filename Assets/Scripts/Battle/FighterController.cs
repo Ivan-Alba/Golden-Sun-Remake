@@ -83,7 +83,6 @@ public class FighterController : MonoBehaviour
     /// </summary>
     public void SetBattleVisualsActive(bool active)
     {
-        Debug.LogWarning("FighterController.SetBattleVisualsActive() called. This method is intended for toggling the 3D model visibility in Overworld vs Battle.");
         if (battleVisualModel != null)
         {
             battleVisualModel.SetActive(active);

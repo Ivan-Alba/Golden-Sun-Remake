@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 96343895f9ce25d4abda10331aadaf23, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 1b53f79213d59fe409aa8e95904d26a7, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -1774,7 +1774,7 @@ Terrain:
   m_TreeBillboardDistance: 1000
   m_TreeCrossFadeLength: 100
   m_TreeMaximumFullLODCount: 15
-  m_DetailObjectDistance: 200
+  m_DetailObjectDistance: 250
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 10
   m_SplatMapDistance: 2000
@@ -3663,8 +3663,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Color: {r: 0.8930817, g: 0.82006246, b: 0.6375143, a: 1}
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -3726,13 +3726,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2003931975}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07844697, y: 0.8275453, z: -0.11958224, w: 0.54287666}
+  m_LocalRotation: {x: 0.17040977, y: 0.7947667, z: -0.25976974, w: 0.52136946}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1174709690}
-  m_LocalEulerAnglesHint: {x: 16.445, y: 113.47, z: 0}
+  m_LocalEulerAnglesHint: {x: 36.2, y: 113.47, z: 0}
 --- !u!114 &2003931978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3750,7 +3750,7 @@ MonoBehaviour:
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 1
+  m_SoftShadowQuality: 3
   m_RenderingLayersMask:
     serializedVersion: 0
     m_Bits: 1
@@ -3918,6 +3918,10 @@ PrefabInstance:
     - target: {fileID: 5311346302820490413, guid: 686c2af670a311d4fb7a40f1d69c4f64, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5743313918985141011, guid: 686c2af670a311d4fb7a40f1d69c4f64, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5864347915958252530, guid: 686c2af670a311d4fb7a40f1d69c4f64, type: 3}
       propertyPath: m_LocalPosition.x

@@ -36,3 +36,9 @@ sysinfo.txt
 
 # Asset store packages cache
 *.unitypackage
+
+# Unity Generated Baked Lighting Data Assets and Meta
+*.lightingdata.asset
+*.lightingdata.asset.meta
+LightingData.asset
+LightingData.asset.meta
