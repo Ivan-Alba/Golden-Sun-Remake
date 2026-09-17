@@ -9,7 +9,7 @@ using UnityEngine;
 public enum BattleSourceType
 {
     OverworldCollision, // Collision with an overworld enemy or random encounter zone
-    ScriptedEvent       // Triggered by story events, dialogues, or fixed bosses with explicit prefabs
+    ScriptedEvent        // Triggered by story events, dialogues, or fixed bosses with explicit prefabs
 }
 
 /// <summary>
@@ -18,12 +18,12 @@ public enum BattleSourceType
 /// </summary>
 public struct BattleInitializationData
 {
-    public BattleSourceType SourceType;                 // Origin: OverworldCollision vs. ScriptedEvent
+    public BattleSourceType SourceType;                    // Origin: OverworldCollision vs. ScriptedEvent
     public CollisionAdvantageType AdvantageType;        // Tactical state: Neutral, PlayerAdvantage, EnemyAmbush
-    public List<GameObject> EnemyPrefabs;               // Explicit prefabs list (used for Event/Boss battles)
-    public EnemySpawnZone SpawnZone;                    // Spawn zone source for random exploration encounters
+    public List<GameObject> EnemyPrefabs;                // Explicit prefabs list (used for Event/Boss battles)
+    public EnemySpawnZone SpawnZone;                     // Spawn zone source for random exploration encounters
     public GameObject InitiatorWorldObject;             // 3D Overworld enemy object to freeze or destroy
-    public AudioClip CustomBattleBGM;                   // Optional override BGM (e.g. Boss theme)
+    public AudioClip CustomBattleBGM;                    // Optional override BGM (e.g. Boss theme)
 }
 
 /// <summary>
@@ -112,6 +112,16 @@ public class BattleFieldSpawner : MonoBehaviour
             {
                 GameObject hero = activeParty[i];
                 if (hero == null) continue;
+
+                // Activar el modelo visual de batalla al aparecer en el campo
+                if (hero.TryGetComponent<FighterController>(out var fighterCtrl))
+                {
+                    fighterCtrl.SetBattleVisualsActive(true);
+                }
+                else
+                {
+                    hero.SetActive(true);
+                }
 
                 Vector3 targetWorldPos = SnapToGround(heroPositions[i]);
                 Quaternion targetRotation = ResolveFighterRotation(heroCenterAnchor, targetWorldPos, enemyCenterAnchor);

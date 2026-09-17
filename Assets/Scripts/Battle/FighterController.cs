@@ -9,6 +9,10 @@ public class FighterController : MonoBehaviour
 {
     #region Private Fields & References
 
+    [Header("Visual Representation")]
+    [Tooltip("Reference to the 3D model GameObject (with Animator/Renderers) to toggle visibility in Overworld vs Battle.")]
+    [SerializeField] private GameObject battleVisualModel;
+
     [SerializeField] private BattleSelectionPointer selectionPointer;
 
     private Animator fighterAnim;
@@ -73,6 +77,23 @@ public class FighterController : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// Shows or hides the fighter's 3D visual model (used for heroes transitioning between Overworld and Battle).
+    /// </summary>
+    public void SetBattleVisualsActive(bool active)
+    {
+        Debug.LogWarning("FighterController.SetBattleVisualsActive() called. This method is intended for toggling the 3D model visibility in Overworld vs Battle.");
+        if (battleVisualModel != null)
+        {
+            battleVisualModel.SetActive(active);
+        }
+        else
+        {
+            // Fallback por si acaso es un enemigo o un prefab simple sin modelo hijo asignado
+            gameObject.SetActive(active);
+        }
+    }
 
     #region Caster Animation API (FX Config Synchronization)
 
@@ -260,12 +281,15 @@ public class FighterController : MonoBehaviour
     }
 
     /// <summary>
-    /// Resets fighter battle state (defense status, turn CDs, animators) when combat ends. Regions, etc.
+    /// Resets fighter battle state (defense status, turn CDs, animators) and hides its battle visual model when combat ends.
     /// </summary>
     public void OnBattleEnded()
     {
         NextTurnCD = 0;
         SetOffDefense();
         StopVictoryPose();
+
+        // Ocultar el modelo de batalla al terminar el combate
+        SetBattleVisualsActive(false);
     }
 }
