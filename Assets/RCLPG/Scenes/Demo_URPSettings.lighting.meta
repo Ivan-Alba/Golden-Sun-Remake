@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f1ba4fa08cdc08d4c85158e63e58d3a9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 72726
+  packageName: RCLPG - Ray Cast Light Probe Generator
+  packageVersion: 2.0
+  assetPath: Assets/RCLPG/Scenes/Demo_URPSettings.lighting
+  uploadId: 897580

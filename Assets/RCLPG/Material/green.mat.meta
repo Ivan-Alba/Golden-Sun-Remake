@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 157eaa640880352448a6779eba81c27e
+timeCreated: 1475274309
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 72726
+  packageName: RCLPG - Ray Cast Light Probe Generator
+  packageVersion: 2.0
+  assetPath: Assets/RCLPG/Material/green.mat
+  uploadId: 897580

@@ -284,6 +284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e31ba8feba2284a8a0f3dbbdec9e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleVisualModel: {fileID: 0}
   selectionPointer: {fileID: 8500765345654389310}
 --- !u!114 &4231493290008493818
 MonoBehaviour:
@@ -357,8 +358,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.553772, y: 1.6751857, z: 1.617218}
-  m_Center: {x: -0.005706191, y: 0.81769204, z: -0.0059479475}
+  m_Size: {x: 1.553772, y: 1.6614091, z: 1.617218}
+  m_Center: {x: -0.005706191, y: 0.8245803, z: -0.0059479475}
 --- !u!95 &2027831609712803571
 Animator:
   serializedVersion: 7

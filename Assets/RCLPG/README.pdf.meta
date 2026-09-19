@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c034bc514180354479e0459d0a605cce
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 72726
+  packageName: RCLPG - Ray Cast Light Probe Generator
+  packageVersion: 2.0
+  assetPath: Assets/RCLPG/README.pdf
+  uploadId: 897580
