@@ -28,7 +28,7 @@ MonoBehaviour:
     CustomTargetHitVFX: {fileID: 0}
     DirectAudioClip: {fileID: 8300000, guid: 15519c007e7ba5241802ac3ac4c4c53b, type: 3}
     FallbackSFX: 0
-    FallbackCastDuration: 2
+    FallbackCastDuration: 1.7
     FallbackImpactDelay: 1.5
   areaRange: 0
   hasDiminishingSpread: 0

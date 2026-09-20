@@ -210,7 +210,7 @@ public class BattleActionExecutor : MonoBehaviour
         {
             // Fallback timing if fxManager is missing in scene
             caster.PlayCasterAnimation(CasterAnimationType.UsePsynergy);
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1.0f);
             ApplyPsynergyDomainEffects(casterStats, psynergy, primaryTargetPosition, areaTargets);
         }
 

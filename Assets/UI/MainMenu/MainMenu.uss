@@ -56,10 +56,8 @@
 }
 
 .icon-chapter {
-    background-color: rgba(255, 215, 0, 0.15);
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 215, 0, 0.4);
+    background-image: url("project://database/Assets/Resources/Images/MainMenu/book.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-quest {
@@ -70,24 +68,18 @@
 }
 
 .icon-location {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.2);
+    background-image: url("project://database/Assets/Resources/Images/MainMenu/compass.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-gold {
-    background-color: rgba(255, 215, 0, 0.15);
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 215, 0, 0.4);
+    background-image: url("project://database/Assets/Resources/Images/MainMenu/gold.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .icon-time {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.2);
+    background-image: url("project://database/Assets/Resources/Images/MainMenu/hourglass.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 /* ------------------------------------------
@@ -219,6 +211,8 @@
 
 .label-time-text {
     font-size: 13px;
+    width: 60px;
+    -unity-text-align: middle-center;
     -unity-font-style: normal;
     color: #FFFFFF;
 }
@@ -452,7 +446,7 @@
     font-size: 13px;
     -unity-font-style: bold;
     color: #DDDDDD;
-    text-align: center;
+    -unity-text-align: middle-center;
     padding: 0;
     margin: 0;
 }
