@@ -1171,8 +1171,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BattleFieldSpawner
   heroCenterAnchor: {fileID: 7880655454145298984}
   enemyCenterAnchor: {fileID: 1270014391861149897}
-  heroSpacing: 4
-  enemySpacing: 4
+  heroSpacing: 2.5
+  enemySpacing: 2.5
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 8

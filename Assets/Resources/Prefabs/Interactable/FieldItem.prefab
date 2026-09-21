@@ -4993,7 +4993,7 @@ Transform:
   m_GameObject: {fileID: 1572714192713929019}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.269104, y: -1.066, z: 11.619999}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5012,7 +5012,7 @@ Halo:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
-  m_Size: 0.25
+  m_Size: 0.15
 --- !u!111 &1572714192713929016
 Animation:
   m_ObjectHideFlags: 0
@@ -5049,8 +5049,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.763855
-  m_Center: {x: -0.02520752, y: 0, z: 0}
+  m_Radius: 0.3
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1572714192713929012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5065,6 +5065,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionText: Recoger
   keyPrompt: SPC
+  directionType: 0
   itemData: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
   itemQuantity: 1
   playerPickDuration: 2.2
@@ -5095,6 +5096,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldSpaceUIProvider
   uiType: 0
+  customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 0.8
+  defaultHeightOffset: 0.4

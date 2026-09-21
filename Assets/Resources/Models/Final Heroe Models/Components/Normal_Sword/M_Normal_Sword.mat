@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2205834610711102702
+--- !u!114 &-1770607121400355544
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Isaac_SwordCase
+  m_Name: M_Normal_Sword
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -41,11 +41,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 8ab1758b436d97e46b1c9464d351b29f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8dced226ac7b73e4f9d2d0d8b0cb7efc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 442ad0b29fb7adc4895afe3663b32de2, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7080f6612581ea34297c90d9a77bc391, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -65,11 +65,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 8ab1758b436d97e46b1c9464d351b29f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8dced226ac7b73e4f9d2d0d8b0cb7efc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: 2800000, guid: 850d090675992644785754f457e78fa9, type: 3}
+        m_Texture: {fileID: 2800000, guid: 11c5c77b04a33e8408f1293e38ad2325, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:

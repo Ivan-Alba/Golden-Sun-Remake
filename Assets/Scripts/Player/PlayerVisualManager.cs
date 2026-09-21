@@ -66,6 +66,7 @@ public class PlayerVisualManager : MonoBehaviour
     [Header("Model Container & Components")]
     [SerializeField] private GameObject modelContainer;
     [SerializeField] private Animator playerAnimator;
+    [SerializeField] private GameObject EyePoint;
     [SerializeField] private FootstepAudioEmitter footstepEmitter;
     [SerializeField] private DialogueFocusProvider focusProvider;
 
@@ -190,6 +191,11 @@ public class PlayerVisualManager : MonoBehaviour
         if (focusProvider != null)
         {
             focusProvider.UpdateProfile(visualData.eyeHeightOffset, visualData.framingCenterOffset, visualData.targetRadius);
+        }
+
+        if (EyePoint != null)
+        {
+            EyePoint.transform.localPosition = new Vector3(0f, visualData.eyeHeightOffset, EyePoint.transform.localPosition.z);
         }
     }
 
