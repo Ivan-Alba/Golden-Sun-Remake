@@ -192,8 +192,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.04327, y: 4.907095, z: 1.2158281}
-  m_Center: {x: -0.011930466, y: 2.406911, z: 0.10791391}
+  m_Size: {x: 1.6677246, y: 2.7544506, z: 1.0408783}
+  m_Center: {x: 0.017181396, y: 1.3629671, z: 0.09296417}
 --- !u!114 &-8679251788529552080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
   customEntityName: Estatua de guardado
   entitySubTitle: "Punto de reaparici\xF3n"
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 2
+  defaultHeightOffset: 1.3
 --- !u!114 &-7521523704773720585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,9 +223,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 268779038287d654581a470f3d7451fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueFocusTarget
-  eyeHeightOffset: 4
-  framingCenterOffset: 2
-  targetRadius: 2.2
+  eyeHeightOffset: 2.5
+  framingCenterOffset: 1.3
+  targetRadius: 1.5
   customDialogueCamera: {fileID: 0}
 --- !u!1 &4410553026394762564
 GameObject:
