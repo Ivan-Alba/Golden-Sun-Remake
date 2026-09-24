@@ -228,7 +228,7 @@ public class BattleFieldSpawner : MonoBehaviour
                 activeEnemiesSlots[slotIndex] = null;
             }
 
-            Destroy(target);
+            Destroy(target, 1.5f);
         }
         else
         {

@@ -42,3 +42,7 @@ sysinfo.txt
 *.lightingdata.asset.meta
 LightingData.asset
 LightingData.asset.meta
+
+# Ignores demos and heavy textures from Toon Fantasy Nature
+Assets/Toon Fantasy Nature/Scenes/
+Assets/Toon Fantasy Nature/Terrain/*.tif

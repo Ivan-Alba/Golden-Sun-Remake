@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
-/// Central database repository for all FlagSO assets loaded from Resources.
+/// Central database repository for all FlagSO assets in the project.
 /// Resolves slug-to-object lookup for Save System and provides zero-alloc queries.
 /// Fully decoupled via GameEvents.Database.
 /// </summary>
@@ -11,9 +15,9 @@ public class FlagDatabase : MonoBehaviour
 {
     #region Serialized Fields
 
-    [Header("Resource Path Settings")]
-    [Tooltip("Folder path inside Resources where FlagSO assets are stored.")]
-    [SerializeField] private string flagsResourcePath = "ScriptableObjects/Flags";
+    [Header("Data References")]
+    [Tooltip("List of all FlagSO assets automatically populated by Editor script or manually assigned.")]
+    [SerializeField] private List<FlagSO> flags = new List<FlagSO>();
 
     #endregion
 
@@ -49,6 +53,13 @@ public class FlagDatabase : MonoBehaviour
         GameEvents.Database.OnRequestAllFlags -= HandleRequestAllFlags;
     }
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        FindAllFlags();
+    }
+#endif
+
     #endregion
 
     #region Initialization Logic
@@ -58,17 +69,15 @@ public class FlagDatabase : MonoBehaviour
         flagList.Clear();
         flagDictionary.Clear();
 
-        FlagSO[] loadedFlags = Resources.LoadAll<FlagSO>(flagsResourcePath);
-
-        if (loadedFlags == null || loadedFlags.Length == 0)
+        if (flags == null || flags.Count == 0)
         {
-            Debug.LogWarning($"[FlagDatabase] No flags found at path Resources/{flagsResourcePath}.", this);
+            Debug.LogWarning("[FlagDatabase] No flags assigned in the database serialized list.", this);
             return;
         }
 
-        for (int i = 0; i < loadedFlags.Length; i++)
+        for (int i = 0; i < flags.Count; i++)
         {
-            FlagSO flag = loadedFlags[i];
+            FlagSO flag = flags[i];
             if (flag == null) continue;
 
             if (string.IsNullOrWhiteSpace(flag.FlagSlug))
@@ -87,8 +96,35 @@ public class FlagDatabase : MonoBehaviour
             flagDictionary.Add(flag.FlagSlug, flag);
         }
 
-        Debug.Log($"[FlagDatabase] Successfully loaded {flagList.Count} flags from Resources/{flagsResourcePath}.");
+        Debug.Log($"[FlagDatabase] Successfully built database with {flagList.Count} flags.");
     }
+
+    #endregion
+
+    #region Editor Auto-Population
+
+#if UNITY_EDITOR
+    [ContextMenu("Find All Flags In Project")]
+    public void FindAllFlags()
+    {
+        flags.Clear();
+
+        string[] guids = AssetDatabase.FindAssets("t:FlagSO");
+
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            FlagSO flag = AssetDatabase.LoadAssetAtPath<FlagSO>(path);
+
+            if (flag != null)
+            {
+                flags.Add(flag);
+            }
+        }
+
+        EditorUtility.SetDirty(this);
+    }
+#endif
 
     #endregion
 

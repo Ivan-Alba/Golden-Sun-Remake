@@ -12,11 +12,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _EMISSION
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
-  - ETC1_EXTERNAL_ALPHA
-  - _ALPHABLEND_ON
   - _FLIPBOOKBLENDING_OFF
   m_LightmapFlags: 6
   m_EnableInstancingVariants: 0
@@ -25,9 +22,9 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
-  - GRABPASS
-  - DepthOnly
+  - ALWAYS
   - SHADOWCASTER
+  - DepthOnly
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -147,7 +144,7 @@ Material:
     - _wind_dir: {r: 0.5, g: 0.05, b: 0.5, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &8277624103358982894
+--- !u!114 &8501439980737576187
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

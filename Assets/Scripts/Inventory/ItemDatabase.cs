@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
-/// Central database repository for all ItemSO assets loaded from Resources.
+/// Central database repository for all ItemSO assets in the project.
 /// Resolves slug-to-object deserialization for Save Systems and provides zero-alloc database queries.
 /// Fully decoupled via GameEvents.Database and GameEvents.Inventory.
 /// </summary>
@@ -11,9 +15,9 @@ public class ItemDatabase : MonoBehaviour
 {
     #region Serialized Fields
 
-    [Header("Resource Path Settings")]
-    [Tooltip("Folder path inside Resources where ItemSO assets are stored.")]
-    [SerializeField] private string itemsResourcePath = "ScriptableObjects/Items";
+    [Header("Data References")]
+    [Tooltip("List of all ItemSO assets automatically populated by Editor script or manually assigned.")]
+    [SerializeField] private List<ItemSO> items = new List<ItemSO>();
 
     #endregion
 
@@ -53,30 +57,34 @@ public class ItemDatabase : MonoBehaviour
         GameEvents.Database.OnRequestItemsByType -= HandleRequestItemsByType;
     }
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        FindAllItems();
+    }
+#endif
+
     #endregion
 
     #region Initialization Logic
 
     /// <summary>
-    /// Clears existing caches and populates the database from Resources using non-alloc loops.
+    /// Clears existing caches and populates the database using non-alloc loops.
     /// </summary>
     public void BuildDatabase()
     {
         itemList.Clear();
         itemDictionary.Clear();
 
-        // Load all ItemSO assets (including derived ScriptableObjects) from Resources
-        ItemSO[] loadedItems = Resources.LoadAll<ItemSO>(itemsResourcePath);
-
-        if (loadedItems == null || loadedItems.Length == 0)
+        if (items == null || items.Count == 0)
         {
-            Debug.LogWarning($"[ItemDatabase] No items found at path Resources/{itemsResourcePath}.", this);
+            Debug.LogWarning("[ItemDatabase] No items assigned in the database serialized list.", this);
             return;
         }
 
-        for (int i = 0; i < loadedItems.Length; i++)
+        for (int i = 0; i < items.Count; i++)
         {
-            ItemSO item = loadedItems[i];
+            ItemSO item = items[i];
             if (item == null) continue;
 
             if (string.IsNullOrWhiteSpace(item.ItemSlug))
@@ -95,8 +103,36 @@ public class ItemDatabase : MonoBehaviour
             itemDictionary.Add(item.ItemSlug, item);
         }
 
-        Debug.Log($"[ItemDatabase] Successfully loaded {itemList.Count} items from Resources/{itemsResourcePath}.");
+        Debug.Log($"[ItemDatabase] Successfully built database with {itemList.Count} items.");
     }
+
+    #endregion
+
+    #region Editor Auto-Population
+
+#if UNITY_EDITOR
+    [ContextMenu("Find All Items In Project")]
+    public void FindAllItems()
+    {
+        items.Clear();
+
+        // AssetDatabase.FindAssets("t:ItemSO") also retrieves derived ScriptableObjects (ConsumableSO, EquipableSO, etc.)
+        string[] guids = AssetDatabase.FindAssets("t:ItemSO");
+
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ItemSO item = AssetDatabase.LoadAssetAtPath<ItemSO>(path);
+
+            if (item != null)
+            {
+                items.Add(item);
+            }
+        }
+
+        EditorUtility.SetDirty(this);
+    }
+#endif
 
     #endregion
 

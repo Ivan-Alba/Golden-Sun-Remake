@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
-/// Central database repository for all DjinnSO assets loaded from Resources.
+/// Central database repository for all DjinnSO assets in the project.
 /// Resolves slug-to-object deserialization for Save Systems and provides zero-alloc database queries.
 /// Fully decoupled via GameEvents.Database.
 /// </summary>
@@ -11,9 +15,9 @@ public class DjinnDatabase : MonoBehaviour
 {
     #region Serialized Fields
 
-    [Header("Resource Path Settings")]
-    [Tooltip("Folder path inside Resources where DjinnSO assets are stored.")]
-    [SerializeField] private string djinnsResourcePath = "ScriptableObjects/Djinns";
+    [Header("Data References")]
+    [Tooltip("List of all DjinnSO assets automatically populated by Editor script or manually assigned.")]
+    [SerializeField] private List<DjinnSO> djinns = new List<DjinnSO>();
 
     #endregion
 
@@ -53,30 +57,34 @@ public class DjinnDatabase : MonoBehaviour
         GameEvents.Database.OnRequestDjinnsByElement -= HandleRequestDjinnsByElement;
     }
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        FindAllDjinns();
+    }
+#endif
+
     #endregion
 
     #region Initialization Logic
 
     /// <summary>
-    /// Clears existing caches and populates the database from Resources using non-alloc loops.
+    /// Clears existing caches and populates the database using non-alloc loops.
     /// </summary>
     public void BuildDatabase()
     {
         djinnList.Clear();
         djinnDictionary.Clear();
 
-        // Load all DjinnSO assets from Resources
-        DjinnSO[] loadedDjinns = Resources.LoadAll<DjinnSO>(djinnsResourcePath);
-
-        if (loadedDjinns == null || loadedDjinns.Length == 0)
+        if (djinns == null || djinns.Count == 0)
         {
-            Debug.LogWarning($"[DjinnDatabase] No Djinns found at path Resources/{djinnsResourcePath}.", this);
+            Debug.LogWarning("[DjinnDatabase] No Djinns assigned in the database serialized list.", this);
             return;
         }
 
-        for (int i = 0; i < loadedDjinns.Length; i++)
+        for (int i = 0; i < djinns.Count; i++)
         {
-            DjinnSO djinn = loadedDjinns[i];
+            DjinnSO djinn = djinns[i];
             if (djinn == null) continue;
 
             if (string.IsNullOrWhiteSpace(djinn.DjinnSlug))
@@ -95,8 +103,35 @@ public class DjinnDatabase : MonoBehaviour
             djinnDictionary.Add(djinn.DjinnSlug, djinn);
         }
 
-        Debug.Log($"[DjinnDatabase] Successfully loaded {djinnList.Count} Djinns from Resources/{djinnsResourcePath}.");
+        Debug.Log($"[DjinnDatabase] Successfully built database with {djinnList.Count} Djinns.");
     }
+
+    #endregion
+
+    #region Editor Auto-Population
+
+#if UNITY_EDITOR
+    [ContextMenu("Find All Djinns In Project")]
+    public void FindAllDjinns()
+    {
+        djinns.Clear();
+
+        string[] guids = AssetDatabase.FindAssets("t:DjinnSO");
+
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            DjinnSO djinn = AssetDatabase.LoadAssetAtPath<DjinnSO>(path);
+
+            if (djinn != null)
+            {
+                djinns.Add(djinn);
+            }
+        }
+
+        EditorUtility.SetDirty(this);
+    }
+#endif
 
     #endregion
 

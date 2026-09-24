@@ -2,8 +2,6 @@ Thank you for purchasing Toon Fantasy Nature!
 Very glad to have you as a customer :)
 
 
-Version 1.0
-
 	In the promotional materials, the pack uses post processing profiles and you will need to import the post processing stack via the
 package manager and apply the profiles. (if you're using URP, the post processing stack is installed by default)
 
@@ -55,11 +53,9 @@ flower textures in the "Textures" folder.
 	
 		Shaders:
 
-	The assets use custom shaders for the most part, but the overall look of the package doesn't change drastically if the shaders are replaced by default
-Unity shaders (performance is also similar).
+	The assets use custom shaders for the most part, but the overall look of the package doesn't change drastically if the shaders are replaced by default Unity shaders (performance is also similar).
 
-	The water shader has a couple of nice features, such as shallow and deep colors, opacity, foam and reflections. There is also the option of activating
-the waves function, which add a nice height displacement effect on the water surface.
+	The water shader has a couple of nice features, such as shallow and deep colors, opacity, foam and reflections. There is also the option of activating the waves function, which add a nice height displacement effect on the water surface.
 
 	The grass shader interpolates two colors based on height and it has the option of adding a third color as a highlight where the wind distiortion is 
 most visible.

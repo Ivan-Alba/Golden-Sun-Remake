@@ -2,17 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
-/// Central database repository for all PsynergySO assets loaded from Resources and elemental UI/VFX assets.
+/// Central database repository for all PsynergySO assets in the project and elemental UI/VFX assets.
 /// Fully decoupled via GameEvents.Database, zero-alloc loop iterations, and Save System ready.
 /// </summary>
 public class PsynergyDatabase : MonoBehaviour
 {
     #region Serialized Fields
 
-    [Header("Resources Settings")]
-    [Tooltip("Path inside Resources folder where PsynergySO assets are located.")]
-    [SerializeField] private string psynergiesResourcePath = "Psynergies";
+    [Header("Data References")]
+    [Tooltip("List of all PsynergySO assets automatically populated by Editor script or manually assigned.")]
+    [SerializeField] private List<PsynergySO> psynergies = new List<PsynergySO>();
 
     [Header("Elemental Icon Sprites")]
     [SerializeField] private Sprite venusIcon;
@@ -66,31 +70,35 @@ public class PsynergyDatabase : MonoBehaviour
         GameEvents.Database.OnRequestElementVFX -= HandleRequestElementVFX;
     }
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        FindAllPsynergies();
+    }
+#endif
+
     #endregion
 
     #region Initialization Logic
 
     /// <summary>
-    /// Clears existing caches and populates the database from Resources using non-alloc loops.
+    /// Clears existing caches and populates the database using non-alloc loops.
     /// </summary>
     public void InitializeDatabase()
     {
         psynergyDictionary.Clear();
         allPsynergies.Clear();
 
-        // Load all PsynergySO assets from Resources
-        PsynergySO[] loadedPsynergies = Resources.LoadAll<PsynergySO>(psynergiesResourcePath);
-
-        if (loadedPsynergies == null || loadedPsynergies.Length == 0)
+        if (psynergies == null || psynergies.Count == 0)
         {
-            Debug.LogWarning($"[PsynergyDatabase] No PsynergySO assets found at Resources/{psynergiesResourcePath}.", this);
+            Debug.LogWarning("[PsynergyDatabase] No psynergies assigned in the database serialized list.", this);
             return;
         }
 
         // Non-alloc index loop iteration for cache building
-        for (int i = 0; i < loadedPsynergies.Length; i++)
+        for (int i = 0; i < psynergies.Count; i++)
         {
-            PsynergySO psynergy = loadedPsynergies[i];
+            PsynergySO psynergy = psynergies[i];
             if (psynergy == null) continue;
 
             if (string.IsNullOrWhiteSpace(psynergy.PsynergySlug))
@@ -110,8 +118,35 @@ public class PsynergyDatabase : MonoBehaviour
             }
         }
 
-        Debug.Log($"[PsynergyDatabase] Successfully loaded and registered {psynergyDictionary.Count} Psynergies from 'Resources/{psynergiesResourcePath}'.");
+        Debug.Log($"[PsynergyDatabase] Successfully loaded and registered {psynergyDictionary.Count} Psynergies.");
     }
+
+    #endregion
+
+    #region Editor Auto-Population
+
+#if UNITY_EDITOR
+    [ContextMenu("Find All Psynergies In Project")]
+    public void FindAllPsynergies()
+    {
+        psynergies.Clear();
+
+        string[] guids = AssetDatabase.FindAssets("t:PsynergySO");
+
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            PsynergySO psynergy = AssetDatabase.LoadAssetAtPath<PsynergySO>(path);
+
+            if (psynergy != null)
+            {
+                psynergies.Add(psynergy);
+            }
+        }
+
+        EditorUtility.SetDirty(this);
+    }
+#endif
 
     #endregion
 

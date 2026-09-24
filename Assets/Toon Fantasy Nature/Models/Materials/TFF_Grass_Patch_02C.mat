@@ -8,26 +8,22 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TFF_Grass_Patch_02C
-  m_Shader: {fileID: -6465566751694194690, guid: e8aca289524c962479a4f231dd28dcf6, type: 3}
+  m_Shader: {fileID: 4800000, guid: 2fcab0b6e64ffa64da84ab855bac8735, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _HIGHLIGHTS_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses:
-  - MOTIONVECTORS
+  disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Base_Map:
-        m_Texture: {fileID: 2800000, guid: 43bc73bb2a15a8547b52bdcbb9cb6922, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -68,6 +64,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 43bc73bb2a15a8547b52bdcbb9cb6922, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TextureSample1:
+        m_Texture: {fileID: 2800000, guid: 43bc73bb2a15a8547b52bdcbb9cb6922, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _WindNoiseTexture:
         m_Texture: {fileID: 2800000, guid: 41d01fe6e8db970449385e7f43d4aa06, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -95,51 +95,41 @@ Material:
     m_Ints: []
     m_Floats:
     - _Accents: 1
+    - _AlphaCutoff: 0.5
     - _BumpScale: 1
-    - _Color1Level: 0.398
+    - _Color1Level: 0.74
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _Emission_Color_Force: 0.4
     - _GlossMapScale: 1
     - _Glossiness: 0
     - _GlossyReflections: 1
     - _Highlights: 1
+    - _MaskClipValue: 0.5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _ReceiveShadows: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _WindJitter: 0.2
+    - _WindNoiseSize: 0.05
     - _WindScroll: 0.2
-    - _Wind_Intensity: 0.05
+    - _WindSpeed: 1
     - _ZWrite: 1
     - __dirty: 0
     m_Colors:
     - _AccentColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color1: {r: 0.7176471, g: 0.50980395, b: 0.4509804, a: 1}
-    - _Color2: {r: 0.67058825, g: 0.48235294, b: 0.40784314, a: 1}
+    - _Color1: {r: 0.7169812, g: 0.5094651, b: 0.44980422, a: 1}
+    - _Color2: {r: 0.6698113, g: 0.48112828, b: 0.40757385, a: 1}
     - _Color3: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
     - _HighlightColor: {r: 0.5660378, g: 0, b: 0.4663306, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &6336995873337321668
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
