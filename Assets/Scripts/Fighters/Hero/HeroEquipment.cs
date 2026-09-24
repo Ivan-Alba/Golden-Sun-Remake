@@ -5,6 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Manages standard equipment slots and dedicated Psynergy Relic slots for a hero.
 /// Applies stat modifiers to FighterStats, notifies system events upon equipment changes,
+/// spawns 3D weapon models in hand sockets, toggles sheath visibility based on weapon subtype,
 /// and handles self-contained save data serialization via GameEvents.SaveLoad.
 /// </summary>
 public class HeroEquipment : MonoBehaviour
@@ -13,6 +14,20 @@ public class HeroEquipment : MonoBehaviour
 
     [Header("Relic Slot Configuration")]
     [SerializeField] private int maxRelicSlots = 4;
+
+    [Header("Starting Equipment Config")]
+    [Tooltip("List of default equipment assigned on a new game (Weapons, Armors, Helmets...). Slot type is auto-detected from each EquipableSO.")]
+    [SerializeField] private List<EquipableSO> startingEquipment = new List<EquipableSO>();
+
+    [Tooltip("List of default Psynergy Relics assigned on a new game (up to MaxRelicSlots).")]
+    [SerializeField] private List<PsynergyRelicSO> startingRelics = new List<PsynergyRelicSO>();
+
+    [Header("3D Model Sockets (Combat)")]
+    [Tooltip("Transform socket in the hero's hand bone where the weapon prefab will be instantiated.")]
+    [SerializeField] private Transform weaponHandSocket = null;
+
+    [Tooltip("Optional Transform or Mesh GameObject representing the sword sheath/scabbard (e.g., Isaac/Garet).")]
+    [SerializeField] private GameObject sheathSocket = null;
 
     [Header("Component References")]
     [SerializeField] private FighterStats fighterStats;
@@ -27,6 +42,9 @@ public class HeroEquipment : MonoBehaviour
 
     // Dedicated Psynergy Relic Slots Array
     private PsynergyRelicSO[] equippedRelics;
+
+    // Runtime reference to the currently instantiated 3D weapon model
+    private GameObject currentWeaponInstance = null;
 
     #endregion
 
@@ -178,7 +196,10 @@ public class HeroEquipment : MonoBehaviour
             }
         }
 
-        // 4. Notify all system listeners that this hero's equipment has finished restoring
+        // 4. Update 3D visual mesh models after restoration
+        UpdateWeaponVisuals();
+
+        // 5. Notify all system listeners that this hero's equipment has finished restoring
         GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=cyan>[HeroEquipment] Equipment successfully restored from save data for hero '{gameObject.name}'.</color>");
     }
@@ -209,19 +230,15 @@ public class HeroEquipment : MonoBehaviour
                 }
             }
         }
+
+        // Clear 3D model instance
+        ClearWeaponVisuals();
     }
 
     #endregion
 
     #region Equip Operations
 
-    /// <summary>
-    /// Attempts to equip an item directly from a HeroInventory backpack slot.
-    /// Handles unequipping and swapping if the target slot is currently occupied.
-    /// </summary>
-    /// <param name="backpackSlotIndex">Target backpack slot index.</param>
-    /// <param name="targetRelicIndex">Target relic array index if equipping a Psynergy Relic.</param>
-    /// <returns>True if successfully equipped; false otherwise.</returns>
     public bool EquipFromBackpack(int backpackSlotIndex, int targetRelicIndex = 0)
     {
         if (heroInventory == null) return false;
@@ -265,7 +282,10 @@ public class HeroEquipment : MonoBehaviour
         }
 
         // 2. Apply stat bonuses of the new item
-        ApplyItemModifiers(newEquipable);
+        if (fighterStats != null)
+        {
+            ApplyItemModifiers(newEquipable);
+        }
 
         // 3. Update equipped slot map
         equippedItems[slotType] = newEquipable;
@@ -278,6 +298,12 @@ public class HeroEquipment : MonoBehaviour
         else
         {
             heroInventory.RemoveFromSlot(backpackSlotIndex, 1);
+        }
+
+        // 5. Update 3D Visual Mesh Model if equipping a weapon
+        if (slotType == EquipmentSlot.Weapon)
+        {
+            UpdateWeaponVisuals();
         }
 
         GameEvents.Hero.TriggerEquipmentChanged(gameObject);
@@ -325,9 +351,6 @@ public class HeroEquipment : MonoBehaviour
 
     #region Unequip Operations
 
-    /// <summary>
-    /// Unequips a standard equipment slot and returns the item to the backpack.
-    /// </summary>
     public bool UnequipStandardSlot(EquipmentSlot slotType)
     {
         if (!equippedItems.ContainsKey(slotType) || equippedItems[slotType] == null) return false;
@@ -344,14 +367,17 @@ public class HeroEquipment : MonoBehaviour
         equippedItems[slotType] = null;
         heroInventory.AddItem(itemToUnequip, 1);
 
+        // Update 3D Visual Mesh Model if unequipping weapon
+        if (slotType == EquipmentSlot.Weapon)
+        {
+            UpdateWeaponVisuals();
+        }
+
         GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=yellow>[Equipment] Unequipped {itemToUnequip.ItemName} from {gameObject.name}</color>");
         return true;
     }
 
-    /// <summary>
-    /// Unequips a dedicated Psynergy Relic slot by index and returns it to the backpack.
-    /// </summary>
     public bool UnequipRelicSlot(int relicSlotIndex)
     {
         if (relicSlotIndex < 0 || relicSlotIndex >= maxRelicSlots) return false;
@@ -372,6 +398,62 @@ public class HeroEquipment : MonoBehaviour
         GameEvents.Hero.TriggerEquipmentChanged(gameObject);
         Debug.Log($"<color=yellow>[Equipment] Unequipped Relic {relicToUnequip.ItemName} from {gameObject.name}</color>");
         return true;
+    }
+
+    #endregion
+
+    #region 3D Model Spawning & Visual Logic
+
+    /// <summary>
+    /// Destroys the current weapon mesh instance and spawns the newly equipped weapon prefab.
+    /// Manages sheath socket visibility depending on weapon subtype (e.g., Swords vs Axes/Staffs).
+    /// </summary>
+    private void UpdateWeaponVisuals()
+    {
+        ClearWeaponVisuals();
+
+        WeaponSO equippedWeapon = GetEquippedWeapon();
+
+        if (equippedWeapon == null || equippedWeapon.WeaponModelPrefab == null)
+        {
+            // If no weapon or model assigned, hide sheath
+            if (sheathSocket != null) sheathSocket.SetActive(false);
+            return;
+        }
+
+        // 1. Instantiate new 3D model under hand socket
+        if (weaponHandSocket != null)
+        {
+            currentWeaponInstance = Instantiate(equippedWeapon.WeaponModelPrefab, weaponHandSocket);
+            currentWeaponInstance.transform.localPosition = Vector3.zero;
+            currentWeaponInstance.transform.localRotation = Quaternion.identity;
+            currentWeaponInstance.transform.localScale = Vector3.one;
+        }
+        else
+        {
+            Debug.LogWarning($"[HeroEquipment] WeaponHandSocket is not assigned on '{gameObject.name}'. Cannot spawn weapon mesh.");
+        }
+
+        // 2. Toggle sheath visibility based on weapon subtype
+        if (sheathSocket != null)
+        {
+            bool isSword = equippedWeapon.EquipmentSubtype == EquipmentSubtype.Longsword ||
+                           equippedWeapon.EquipmentSubtype == EquipmentSubtype.LightBlade;
+
+            sheathSocket.SetActive(isSword);
+        }
+    }
+
+    /// <summary>
+    /// Safely destroys the instantiated 3D weapon model gameobject.
+    /// </summary>
+    private void ClearWeaponVisuals()
+    {
+        if (currentWeaponInstance != null)
+        {
+            Destroy(currentWeaponInstance);
+            currentWeaponInstance = null;
+        }
     }
 
     #endregion
@@ -405,8 +487,37 @@ public class HeroEquipment : MonoBehaviour
     #region Public Queries & Load Helpers
 
     /// <summary>
-    /// Gets the item currently equipped in a standard equipment slot.
+    /// Equips default starting items defined in the Inspector.
+    /// Used when starting a new game or recruiting a new party member.
     /// </summary>
+    public void InitializeStartingEquipment()
+    {
+        // 1. Clear current slots to avoid residual items
+        ClearAllEquipmentSilently();
+
+        // 2. Equip standard equipment (Slot auto-detected via EquipableSO.EquipmentSlot)
+        for (int i = 0; i < startingEquipment.Count; i++)
+        {
+            if (startingEquipment[i] != null)
+            {
+                LoadEquippedItem(startingEquipment[i], notifyEvent: false);
+            }
+        }
+
+        // 3. Equip starting relics in sequence (up to maxRelicSlots)
+        for (int i = 0; i < startingRelics.Count; i++)
+        {
+            if (startingRelics[i] != null && i < maxRelicSlots)
+            {
+                LoadEquippedRelic(startingRelics[i], i, notifyEvent: false);
+            }
+        }
+
+        // 4. Update 3D visual mesh and trigger event once
+        UpdateWeaponVisuals();
+        GameEvents.Hero.TriggerEquipmentChanged(gameObject);
+    }
+
     public EquipableSO GetEquippedItem(EquipmentSlot slotType)
     {
         if (equippedItems.TryGetValue(slotType, out var item))
@@ -416,9 +527,6 @@ public class HeroEquipment : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Gets the item currently equipped in a weapon slot safely.
-    /// </summary>
     public WeaponSO GetEquippedWeapon()
     {
         if (equippedItems.TryGetValue(EquipmentSlot.Weapon, out var item))
@@ -428,9 +536,6 @@ public class HeroEquipment : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Gets the relic currently equipped in a specific relic slot index.
-    /// </summary>
     public PsynergyRelicSO GetEquippedRelic(int relicSlotIndex)
     {
         if (relicSlotIndex >= 0 && relicSlotIndex < maxRelicSlots)
@@ -440,9 +545,6 @@ public class HeroEquipment : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Returns a list of all psynergies currently granted by equipped relics.
-    /// </summary>
     public List<PsynergySO> GetEquippedRelicPsynergies()
     {
         List<PsynergySO> relicPsynergies = new List<PsynergySO>();
@@ -458,10 +560,6 @@ public class HeroEquipment : MonoBehaviour
         return relicPsynergies;
     }
 
-    /// <summary>
-    /// Directly assigns an equipable item during save data loading, applying its modifiers.
-    /// Allows silent assignment to avoid multiple event triggers during loading sequences.
-    /// </summary>
     public void LoadEquippedItem(EquipableSO item, bool notifyEvent = false)
     {
         if (item == null) return;
@@ -477,6 +575,11 @@ public class HeroEquipment : MonoBehaviour
             equippedItems[slotType] = item;
             ApplyItemModifiers(item);
 
+            if (slotType == EquipmentSlot.Weapon)
+            {
+                UpdateWeaponVisuals();
+            }
+
             if (notifyEvent)
             {
                 GameEvents.Hero.TriggerEquipmentChanged(gameObject);
@@ -484,10 +587,6 @@ public class HeroEquipment : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Directly assigns a relic item during save data loading, applying its modifiers.
-    /// Allows silent assignment to avoid multiple event triggers during loading sequences.
-    /// </summary>
     public void LoadEquippedRelic(PsynergyRelicSO relic, int slotIndex, bool notifyEvent = false)
     {
         if (relic == null || slotIndex < 0 || slotIndex >= maxRelicSlots) return;

@@ -181,6 +181,51 @@ MonoBehaviour:
       prized by weavers.
     m_Metadata:
       m_Items: []
+  - m_Id: 7459144720584704
+    m_Localized: Blessed Ankh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459155416059904
+    m_Localized: A ceremonial staff guarded by the healers of Imil since time immemorial.
+      Its shape evokes the ancient symbol of eternal life, a reminder of the sacred
+      duty Mia pledged to protect the people of the north and safeguard Mercury Lighthouse.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459147690151936
+    m_Localized: A sacred staff topped with a metallic ankh that focuses Water Psynergy,
+      allowing the user to channel healing energy and inflict steady elemental damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473625118937088
+    m_Localized: A lightweight wooden staff topped with a tuning fork designed to
+      resonate with air currents, aiding in the channel of Wind Psynergy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473623843868672
+    m_Localized: Seer's Staff
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473627446775808
+    m_Localized: Bestowed upon Ivan by Lord Hammet before departing from Bilibin.
+      Its ceremonial bands and bifurcated tip allow the wielder to sense air pressure
+      shifts and channel Jupiter's power.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475586685865984
+    m_Localized: Long Sword
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475591702253568
+    m_Localized: A well-balanced metallic blade with extended reach. Offers a perfect
+      balance between power and ease of use for seasoned fighters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475592323010560
+    m_Localized: A common sidearm among Vale's guards and wayfarers across the Angara
+      continent. Its tempered steel provides the reach needed to ward off wild beasts
+      that swarmed the lands after Mount Aleph's eruption.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -365,6 +365,12 @@ public class GameManager : MonoBehaviour
             if (availableHeroes[i] == null) continue;
 
             activeParty.Add(availableHeroes[i]);
+
+            HeroEquipment equipment = availableHeroes[i].GetComponent<HeroEquipment>();
+            if (equipment != null)
+            {
+                equipment.InitializeStartingEquipment();
+            }
         }
 
         if (activeParty.Count > 0)

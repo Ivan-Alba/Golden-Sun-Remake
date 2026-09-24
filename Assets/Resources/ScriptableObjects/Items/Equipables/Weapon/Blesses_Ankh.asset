@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 253b9b422704b5b41beca4e3e59c2289, type: 3}
+  m_Name: Blesses_Ankh
+  m_EditorClassIdentifier: 
+  itemSlug: ankh
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 7459144720584704
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 7459147690151936
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 7459155416059904
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  icon: {fileID: 21300000, guid: 3e75929a1eb6db4499160935f463c04b, type: 3}
+  itemType: 1
+  isQuestDeliverable: 0
+  buyPrice: 1500
+  sellPrice: 750
+  canSell: 1
+  maxStack: 1
+  equipmentSlot: 1
+  equipmentSubtype: 17
+  statModifiers:
+  - statType: 2
+    modifierType: 0
+    value: 15
+  - statType: 1
+    modifierType: 0
+    value: 10
+  element: 3
+  elementalPowerBonus: 20
+  isCursed: 0
+  useInBattle: 0
+  battleUseEffect: {fileID: 0}
+  equipSFX: {fileID: 0}
+  fallbackEquipSFX: 7
+  weaponModelPrefab: {fileID: 919132149155446097, guid: 8bebbff1e4fa67f4cb1a0991f1b1b029, type: 3}
+  hitFXType: 3
+  customHitVFX: {fileID: 0}
+  swingSoundEffect: {fileID: 8300000, guid: 3f8cc91c3e3f6c74385762d9de65d5cc, type: 3}
+  fallbackSwingSFX: 14
+  hasUnleash: 0
+  unleashProcRate: 0.2
+  unleashEffect: {fileID: 11400000, guid: 7788fd845d44cc142b7eda6a979792af, type: 2}
+  criticalRateBonus: 4
+  references:
+    version: 2
+    RefIds: []

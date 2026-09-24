@@ -183,6 +183,55 @@ MonoBehaviour:
       por los tejedores."
     m_Metadata:
       m_Items: []
+  - m_Id: 7459144720584704
+    m_Localized: Ankh Bendito
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459155416059904
+    m_Localized: "Un bast\xF3n ceremonial custodiado por los sanadores de Imil desde
+      tiempos inmemoriales. Su forma evoca el s\xEDmbolo antiguo de la vida eterna,
+      un recordatorio del sagrado deber que Mia asumi\xF3 para proteger a los habitantes
+      del norte y custodiar el Faro de Mercury."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459147690151936
+    m_Localized: "Una vara sagrada rematada con un ankh met\xE1lico que encausa la
+      Psinerg\xEDa de Agua, permitiendo canalizar energ\xEDa curativa e infligir
+      un da\xF1o elemental constante."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473625118937088
+    m_Localized: "Una liviana vara de madera rematada con un diapas\xF3n dise\xF1ado
+      para resonar con las corrientes de aire, facilitando la canalizaci\xF3n de
+      la Psinerg\xEDa de Viento."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473623843868672
+    m_Localized: Vara del Vidente
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473627446775808
+    m_Localized: "Entregado a Ivan por Lord Hammet antes de partir de Bilibin. Sus
+      franjas ceremoniales y su forma biselada permiten al portador sentir los cambios
+      en la presi\xF3n del aire y encauzar el poder de Jupiter."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475586685865984
+    m_Localized: Espada Larga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475591702253568
+    m_Localized: "Una hoja met\xE1lica bien equilibrada y de mayor alcance. Ofrece
+      un equilibrio perfecto entre fuerza y manejabilidad para combatientes experimentados."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475592323010560
+    m_Localized: "Un arma com\xFAn entre los guardias de Tale y los viajeros del
+      continente de Angara. Su acero templado proporciona el alcance necesario para
+      repeler a las bestias salvajes que comenzaron a infestarlo todo tras la erupci\xF3n
+      del Monte Aleph."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

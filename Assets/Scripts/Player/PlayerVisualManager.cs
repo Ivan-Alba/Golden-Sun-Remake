@@ -15,7 +15,8 @@ public enum PlayerInteractionAnimType
 }
 
 /// <summary>
-/// Container for inspector-assigned visual, audio, and dialogue framing references of a playable hero in the world map.
+/// Container for inspector-assigned visual, audio, dialogue framing, and 3D weapon sockets 
+/// references of a playable hero in the world map.
 /// </summary>
 [Serializable]
 public class HeroVisualData
@@ -35,6 +36,16 @@ public class HeroVisualData
     [Tooltip("Footstep audio profile assigned to this specific hero.")]
     public HeroFootstepProfileSO footstepProfile;
 
+    [Header("3D Exploration Weapon Sockets")]
+    [Tooltip("Transform socket located on the hero's back for Holstered weapons (Axes, Maces, Staffs, or sheathless swords).")]
+    public Transform weaponBackSocket;
+
+    [Tooltip("Optional Transform socket located at the hip for sword sheaths/scabbards.")]
+    public Transform weaponSheathSocket;
+
+    [Tooltip("Optional Sheath/Scabbard mesh GameObject that can be toggled on/off (e.g., Isaac/Garet).")]
+    public GameObject sheathMeshObject;
+
     [Header("Dialogue Framing Configuration")]
     [Tooltip("Eye height offset specific to this hero's anatomy for camera focus.")]
     public float eyeHeightOffset = 1.4f;
@@ -45,9 +56,11 @@ public class HeroVisualData
     [Tooltip("Framing radius specific to this hero for Cinemachine target group scaling.")]
     public float targetRadius = 0.8f;
 }
+
 /// <summary>
 /// Manages player model swapping, mesh visibility, animator controller assignments,
-/// interaction animations, active footstep audio profile synchronization, and dialogue focus provider updates.
+/// interaction animations, active footstep audio profile synchronization, 3D exploration weapon visuals,
+/// and dialogue focus provider updates.
 /// </summary>
 public class PlayerVisualManager : MonoBehaviour
 {
@@ -78,7 +91,12 @@ public class PlayerVisualManager : MonoBehaviour
     #region Private Fields
 
     private readonly Dictionary<string, HeroVisualData> visualLookup = new Dictionary<string, HeroVisualData>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, GameObject> activeHeroGameObjects = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
+
     private string currentActiveHeroId;
+
+    // Runtime reference to the currently instantiated weapon mesh in exploration
+    private GameObject currentExplorationWeaponInstance = null;
 
     #endregion
 
@@ -94,6 +112,9 @@ public class PlayerVisualManager : MonoBehaviour
         GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested += SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
+
+        // Listen to equipment changes to refresh 3D weapon models in real-time
+        GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
     }
 
     private void OnDisable()
@@ -101,6 +122,8 @@ public class PlayerVisualManager : MonoBehaviour
         GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested -= SetModelVisibility;
         GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
+
+        GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
     }
 
     #endregion
@@ -136,10 +159,32 @@ public class PlayerVisualManager : MonoBehaviour
     #region Visual & Audio Swap Logic
 
     /// <summary>
-    /// Swaps active model mesh, updates AnimatorController + Avatar, synchronizes footstep audio profile, 
-    /// and updates the DialogueFocusProvider offsets for the target hero.
+    /// Overload that receives the Hero GameObject directly containing the HeroEquipment component.
     /// </summary>
-    public void SwapToHero(string heroId)
+    public void SwapToHero(GameObject heroObject)
+    {
+        if (heroObject == null) return;
+
+        string heroId = heroObject.name;
+
+        // Cache or update the reference to the Hero GameObject for future equipment events
+        if (!activeHeroGameObjects.ContainsKey(heroId))
+        {
+            activeHeroGameObjects.Add(heroId, heroObject);
+        }
+        else
+        {
+            activeHeroGameObjects[heroId] = heroObject;
+        }
+
+        SwapToHero(heroId, heroObject);
+    }
+
+    /// <summary>
+    /// Swaps active model mesh, updates AnimatorController + Avatar, synchronizes footstep audio profile, 
+    /// attaches the active weapon to the correct socket using the provided heroObject, and updates DialogueFocusProvider offsets.
+    /// </summary>
+    public void SwapToHero(string heroId, GameObject heroObject = null)
     {
         if (string.IsNullOrEmpty(heroId)) return;
 
@@ -150,6 +195,12 @@ public class PlayerVisualManager : MonoBehaviour
         }
 
         currentActiveHeroId = heroId;
+
+        // If heroObject wasn't passed directly, attempt to fetch it from cached dictionary
+        if (heroObject == null)
+        {
+            activeHeroGameObjects.TryGetValue(heroId, out heroObject);
+        }
 
         // 1. Ensure Model container is active
         if (modelContainer != null && !modelContainer.activeSelf)
@@ -197,12 +248,29 @@ public class PlayerVisualManager : MonoBehaviour
         {
             EyePoint.transform.localPosition = new Vector3(0f, visualData.eyeHeightOffset, EyePoint.transform.localPosition.z);
         }
+
+        // 6. Update 3D Weapon Model for exploration passing the heroObject with HeroEquipment
+        UpdateExplorationWeaponVisuals(visualData, heroObject);
     }
 
     private void HandleActiveHeroChanged(GameObject activeHero)
     {
         if (activeHero == null) return;
-        SwapToHero(activeHero.name);
+        SwapToHero(activeHero);
+    }
+
+    private void HandleHeroEquipmentChanged(GameObject heroObject)
+    {
+        if (heroObject == null || string.IsNullOrEmpty(currentActiveHeroId)) return;
+
+        // Only refresh visuals if the equipment event belongs to the currently active hero
+        if (heroObject.name.Equals(currentActiveHeroId, StringComparison.OrdinalIgnoreCase))
+        {
+            if (visualLookup.TryGetValue(currentActiveHeroId, out HeroVisualData visualData))
+            {
+                UpdateExplorationWeaponVisuals(visualData, heroObject);
+            }
+        }
     }
 
     /// <summary>
@@ -245,6 +313,81 @@ public class PlayerVisualManager : MonoBehaviour
             case PlayerInteractionAnimType.EnemyHitReaction:
                 playerAnimator.SetTrigger(EnemyHitReactionHash);
                 break;
+        }
+    }
+
+    #endregion
+
+    #region Exploration Weapon Spawning & Attachment Logic
+
+    /// <summary>
+    /// Fetches the equipped weapon from the provided hero's HeroEquipment component, 
+    /// determines target socket (Back or Sheath), and instantiates the 3D model.
+    /// </summary>
+    private void UpdateExplorationWeaponVisuals(HeroVisualData visualData, GameObject heroObject)
+    {
+        ClearExplorationWeaponVisuals();
+
+        if (visualData == null || heroObject == null) return;
+
+        // Fetch HeroEquipment component directly from the passed Hero GameObject
+        HeroEquipment heroEquipment = heroObject.GetComponent<HeroEquipment>();
+        if (heroEquipment == null) return;
+
+        WeaponSO equippedWeapon = heroEquipment.GetEquippedWeapon();
+
+        if (equippedWeapon == null || equippedWeapon.WeaponModelPrefab == null)
+        {
+            // If no weapon equipped, disable sheath mesh if present
+            if (visualData.sheathMeshObject != null)
+            {
+                visualData.sheathMeshObject.SetActive(false);
+            }
+            return;
+        }
+
+        // Check if weapon subtype is a sword (Longsword or LightBlade)
+        bool isSwordSubtype = equippedWeapon.EquipmentSubtype == EquipmentSubtype.Longsword ||
+                             equippedWeapon.EquipmentSubtype == EquipmentSubtype.LightBlade;
+
+        Transform targetSocket = null;
+
+        // Case A: Sword equipped AND hero has an assigned sheath mesh
+        if (isSwordSubtype && visualData.sheathMeshObject != null)
+        {
+            visualData.sheathMeshObject.SetActive(true);
+            targetSocket = visualData.weaponSheathSocket;
+        }
+        // Case B: Axes, Maces, Staffs, OR swords on heroes without sheath reference
+        else
+        {
+            if (visualData.sheathMeshObject != null)
+            {
+                visualData.sheathMeshObject.SetActive(false);
+            }
+
+            targetSocket = visualData.weaponBackSocket;
+        }
+
+        // Instantiate model under target socket if valid
+        if (targetSocket != null)
+        {
+            currentExplorationWeaponInstance = Instantiate(equippedWeapon.WeaponModelPrefab, targetSocket);
+            currentExplorationWeaponInstance.transform.localPosition = Vector3.zero;
+            currentExplorationWeaponInstance.transform.localRotation = Quaternion.identity;
+            currentExplorationWeaponInstance.transform.localScale = Vector3.one;
+        }
+    }
+
+    /// <summary>
+    /// Safely destroys the active 3D weapon model instance in exploration.
+    /// </summary>
+    private void ClearExplorationWeaponVisuals()
+    {
+        if (currentExplorationWeaponInstance != null)
+        {
+            Destroy(currentExplorationWeaponInstance);
+            currentExplorationWeaponInstance = null;
         }
     }
 

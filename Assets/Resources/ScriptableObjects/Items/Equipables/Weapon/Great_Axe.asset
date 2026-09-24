@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 253b9b422704b5b41beca4e3e59c2289, type: 3}
+  m_Name: Great_Axe
+  m_EditorClassIdentifier: 
+  itemSlug: great_axe
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660243
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660244
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660245
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  icon: {fileID: 21300000, guid: a288cce675d105b439fa248f3aa94127, type: 3}
+  itemType: 1
+  isQuestDeliverable: 0
+  buyPrice: 560
+  sellPrice: 280
+  canSell: 1
+  maxStack: 1
+  equipmentSlot: 1
+  equipmentSubtype: 15
+  statModifiers:
+  - statType: 0
+    modifierType: 0
+    value: 20
+  - statType: 2
+    modifierType: 0
+    value: 15
+  - statType: 3
+    modifierType: 0
+    value: 2
+  element: 4
+  elementalPowerBonus: 0
+  isCursed: 0
+  useInBattle: 0
+  battleUseEffect: {fileID: 0}
+  equipSFX: {fileID: 0}
+  fallbackEquipSFX: 7
+  weaponModelPrefab: {fileID: 919132149155446097, guid: a26d95a9c89155a4388ae7bede909164, type: 3}
+  hitFXType: 1
+  customHitVFX: {fileID: 0}
+  swingSoundEffect: {fileID: 8300000, guid: cb4ec17c0adde3542aafeaaeddef189b, type: 3}
+  fallbackSwingSFX: 14
+  hasUnleash: 0
+  unleashProcRate: 0.35
+  unleashEffect: {fileID: 0}
+  criticalRateBonus: 0
+  references:
+    version: 2
+    RefIds: []

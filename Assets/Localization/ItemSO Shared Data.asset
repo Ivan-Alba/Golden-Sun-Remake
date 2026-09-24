@@ -159,6 +159,48 @@ MonoBehaviour:
     m_Key: spiderweb_lore
     m_Metadata:
       m_Items: []
+  - m_Id: 7459144720584704
+    m_Key: ankh_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459147690151936
+    m_Key: ankh_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7459155416059904
+    m_Key: ankh_lore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473623843868672
+    m_Key: seers_staff_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473625118937088
+    m_Key: 'seers_staff_description
+
+'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7473627446775808
+    m_Key: 'seers_staff_lore
+
+'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475586685865984
+    m_Key: long_sword_name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475591702253568
+    m_Key: long_sword_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7475592323010560
+    m_Key: 'long_sword_lore
+
+'
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
