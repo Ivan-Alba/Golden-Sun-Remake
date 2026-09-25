@@ -5,6 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Utility helper for capturing clean, UI-free in-game screenshots 
 /// and converting them to Base64 strings for save slot cards.
+/// Supports temporary viewpoint overrides via Transform.
 /// </summary>
 public static class SaveScreenCapture
 {
@@ -23,20 +24,23 @@ public static class SaveScreenCapture
     /// Finds or creates a temporary runner to execute the capture coroutine.
     /// </summary>
     /// <param name="onCaptured">Callback providing the resulting Base64 JPG string.</param>
+    /// <param name="customViewpoint">Optional custom viewpoint Transform (e.g. from a SavePoint Cinemachine camera). Uses Camera.main default pose if null.</param>
     /// <param name="targetCamera">Optional specific camera reference. Defaults to Camera.main if null.</param>
-    public static void CaptureScreenshotBase64(Action<string> onCaptured, Camera targetCamera = null)
+    public static void CaptureScreenshotBase64(Action<string> onCaptured, Transform customViewpoint = null, Camera targetCamera = null)
     {
         // 1. Ensure we have an active runner MonoBehaviour to execute the coroutine
-        CoroutineRunner.Run(Routine_CaptureSaveThumbnail(targetCamera, onCaptured));
+        CoroutineRunner.Run(Routine_CaptureSaveThumbnail(customViewpoint, onCaptured, targetCamera));
     }
 
     /// <summary>
     /// Captures a frame directly from the target main camera (ignoring UI canvases)
     /// and delivers a lightweight Base64-encoded JPG string via callback.
     /// </summary>
-    /// <param name="targetCamera">The main world camera to render from (e.g. Camera.main).</param>
+
+    /// <param name="customViewpoint">Optional custom position/rotation Transform override for the capture.</param>
     /// <param name="onCaptured">Callback providing the Base64 image string.</param>
-    public static IEnumerator Routine_CaptureSaveThumbnail(Camera targetCamera, Action<string> onCaptured)
+    /// <param name="targetCamera">The main world camera to render from (e.g. Camera.main).</param>
+    public static IEnumerator Routine_CaptureSaveThumbnail(Transform customViewpoint, Action<string> onCaptured, Camera targetCamera = null)
     {
         // Wait until the end of the current frame so physics and positioning are completely settled
         yield return new WaitForEndOfFrame();
@@ -55,8 +59,19 @@ public static class SaveScreenCapture
             yield break;
         }
 
+        // Cache original main camera pose
+        Vector3 originalPosition = targetCamera.transform.position;
+        Quaternion originalRotation = targetCamera.transform.rotation;
+
         try
         {
+            // If a custom viewpoint Transform was provided, temporarily match its pose
+            if (customViewpoint != null)
+            {
+                targetCamera.transform.position = customViewpoint.position;
+                targetCamera.transform.rotation = customViewpoint.rotation;
+            }
+
             // 1. Create temporary RenderTexture at thumbnail target resolution
             RenderTexture renderTexture = RenderTexture.GetTemporary(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, 24);
             RenderTexture previousTarget = targetCamera.targetTexture;
@@ -86,6 +101,15 @@ public static class SaveScreenCapture
         catch (Exception ex)
         {
             Debug.LogError($"[SaveScreenCapture] Failed to capture save thumbnail: {ex.Message}");
+        }
+        finally
+        {
+            // Always restore main camera's original pose if it was temporarily shifted
+            if (customViewpoint != null && targetCamera != null)
+            {
+                targetCamera.transform.position = originalPosition;
+                targetCamera.transform.rotation = originalRotation;
+            }
         }
 
         onCaptured?.Invoke(base64Image);

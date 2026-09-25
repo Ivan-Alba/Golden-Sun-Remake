@@ -614,6 +614,14 @@ public static class GameEvents
     public static class SaveLoad
     {
         /// <summary>
+        /// Request to set or override the target point of view (Transform) used for generating the save slot thumbnail.
+        /// Params: customSavePoint
+        /// </summary>
+        public static event Action<Transform> OnSetSaveCamera;
+        public static void SetSaveCamera(Transform customSavePoint = null)
+            => OnSetSaveCamera?.Invoke(customSavePoint);
+
+        /// <summary>
         /// Request to save the game to a specified save slot index.
         /// </summary>
         public static event Action<int> OnRequestSaveGame;

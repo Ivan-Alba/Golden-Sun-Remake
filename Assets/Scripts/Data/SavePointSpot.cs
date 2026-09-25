@@ -26,6 +26,9 @@ public class SavePointSpot : Interactable
     [Header("Audio & FX")]
     [SerializeField] private SFXType interactionSFX = SFXType.UI_Confirm;
 
+    [Header("ThumbnailCamera")]
+    [SerializeField] private Transform thumbnailCamera;
+
     #endregion
 
     #region Unity Lifecycle
@@ -64,6 +67,9 @@ public class SavePointSpot : Interactable
 
         // 4. Optional interaction SFX
         GameEvents.Audio.RequestPlaySFX(interactionSFX);
+
+        // 5. Set SavePoint camera for thumbnail generation
+        GameEvents.SaveLoad.SetSaveCamera(thumbnailCamera);
 
         // 5. Check if we have an interactive dialogue choice set up
         if (savePointDialogue != null)

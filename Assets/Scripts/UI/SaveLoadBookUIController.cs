@@ -90,6 +90,9 @@ public class SaveLoadBookUIController : MonoBehaviour
     private float cachedLivePlayTime = 0f;
     private int lastDisplayedSecond = -1;
 
+    // Cached viewpoint transform provided by interactable save spots (e.g. SavePointSpot)
+    private Transform cachedSaveCameraTransform = null;
+
     /// <summary>
     /// Event triggered when the Save/Load book is closed.
     /// </summary>
@@ -128,6 +131,7 @@ public class SaveLoadBookUIController : MonoBehaviour
 
         GameEvents.SaveLoad.OnSaveCompleted += HandleSaveCompleted;
         GameEvents.SaveLoad.OnLoadCompleted += HandleLoadCompleted;
+        GameEvents.SaveLoad.OnSetSaveCamera += HandleSetSaveCamera;
 
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
@@ -139,6 +143,7 @@ public class SaveLoadBookUIController : MonoBehaviour
 
         GameEvents.SaveLoad.OnSaveCompleted -= HandleSaveCompleted;
         GameEvents.SaveLoad.OnLoadCompleted -= HandleLoadCompleted;
+        GameEvents.SaveLoad.OnSetSaveCamera -= HandleSetSaveCamera;
 
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
     }
@@ -194,6 +199,11 @@ public class SaveLoadBookUIController : MonoBehaviour
     #endregion
 
     #region Event Handlers & Open/Close Flow
+
+    private void HandleSetSaveCamera(Transform customSavePoint)
+    {
+        cachedSaveCameraTransform = customSavePoint;
+    }
 
     private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
     {
@@ -266,6 +276,9 @@ public class SaveLoadBookUIController : MonoBehaviour
             bookRootContainer.style.display = DisplayStyle.None;
         }
 
+        // Reset camera transform cache when closing book
+        cachedSaveCameraTransform = null;
+
         // Return to the exact game state cached before opening the book
         GameEvents.GameState.RequestGameStateChange(_cachedPreviousGameState);
 
@@ -275,6 +288,7 @@ public class SaveLoadBookUIController : MonoBehaviour
     private void HideBookImmediately()
     {
         isOpen = false;
+        cachedSaveCameraTransform = null;
 
         if (bookRootContainer != null)
         {
@@ -687,7 +701,10 @@ public class SaveLoadBookUIController : MonoBehaviour
                 GameEvents.SaveLoad.OnCollectSaveData += injectThumbnailHandler;
 
                 GameEvents.SaveLoad.RequestSaveGame(slotIndex);
-            });
+
+                // Clear cached camera transform after screenshot capture completes
+                cachedSaveCameraTransform = null;
+            }, cachedSaveCameraTransform);
         }
         else if (currentMode == GameEvents.UI.SaveBookMode.Load)
         {

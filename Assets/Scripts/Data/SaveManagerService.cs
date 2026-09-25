@@ -82,19 +82,12 @@ public class SaveManagerService : MonoBehaviour
 
         // 2. Capture clean, UI-free thumbnail from Main Camera
         string thumbnailBase64 = string.Empty;
-        Camera mainCam = Camera.main;
 
-        if (mainCam != null)
+        // Llamamos a la rutina pasando null como customViewpoint y el callback de captura
+        yield return SaveScreenCapture.Routine_CaptureSaveThumbnail(null, capturedBase64 =>
         {
-            yield return SaveScreenCapture.Routine_CaptureSaveThumbnail(mainCam, capturedBase64 =>
-            {
-                thumbnailBase64 = capturedBase64;
-            });
-        }
-        else
-        {
-            Debug.LogWarning("[SaveManagerService] Camera.main is null during auto-save capture. Proceeding without thumbnail.");
-        }
+            thumbnailBase64 = capturedBase64;
+        });
 
         // 3. Transient handler to inject thumbnail and auto-save flag during collection
         Action<GameData> autoSaveCollectHandler = null;
