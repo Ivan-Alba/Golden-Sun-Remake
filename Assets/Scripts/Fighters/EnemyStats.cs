@@ -30,6 +30,7 @@ public class EnemyStats : FighterStats
 
     #region Properties
 
+    public override bool IsHero => false;
     public int XpReward => xpReward;
     public int CoinsReward => coinsReward;
     public List<ItemDropRate> PossibleDrops => possibleDrops;

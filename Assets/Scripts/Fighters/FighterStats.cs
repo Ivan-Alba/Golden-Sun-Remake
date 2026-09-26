@@ -59,6 +59,16 @@ public class FighterStats : MonoBehaviour
 
     #endregion
 
+    #region Identity Properties
+
+    /// <summary>
+    /// Indicates whether this entity represents a playable party member (Hero).
+    /// Overridden by HeroStats and EnemyStats.
+    /// </summary>
+    public virtual bool IsHero => false;
+
+    #endregion
+
     #region Centralized Resource Event Dispatchers
 
     /// <summary>

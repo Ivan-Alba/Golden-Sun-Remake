@@ -178,5 +178,3 @@ MonoBehaviour:
   learnablePsynergies:
   - levelRequirement: 1
     psynergy: {fileID: 11400000, guid: 63af0a72b64be2746977f2afcb1c870f, type: 2}
-  - levelRequirement: 1
-    psynergy: {fileID: 11400000, guid: f37898a7203a41b418cc0bb2887ac4b4, type: 2}

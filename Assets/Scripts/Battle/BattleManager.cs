@@ -441,13 +441,15 @@ public class BattleManager : MonoBehaviour
     {
         if (turnController == null || turnController.CurrentFighter == null) return;
 
-        turnController.CurrentFighter.StartsTurn();
+        FighterController currentFighter = turnController.CurrentFighter;
+        currentFighter.StartsTurn();
 
-        if (turnController.CurrentFighter.TryGetComponent<EnemyStats>(out _))
+        // Check if the current combatant is an enemy using polymorphic IsHero flag
+        if (currentFighter.TryGetComponent<FighterStats>(out var stats) && !stats.IsHero)
         {
             CurrentBattleState = BattleState.WaitingTurnExecution;
 
-            if (turnController.CurrentFighter.TryGetComponent<EnemyAIController>(out var ai))
+            if (currentFighter.TryGetComponent<EnemyAIController>(out var ai))
             {
                 BattleActionRequest enemyRequest = ai.BuildEnemyActionRequest(heroList, enemiesList);
                 StartCoroutine(ExecuteConfirmedActionSequence(enemyRequest));
@@ -460,7 +462,7 @@ public class BattleManager : MonoBehaviour
 
             if (battleCameraController != null)
             {
-                battleCameraController.SetTurnCameraOnHero(turnController.CurrentFighter.gameObject);
+                battleCameraController.SetTurnCameraOnHero(currentFighter.gameObject);
             }
         }
     }

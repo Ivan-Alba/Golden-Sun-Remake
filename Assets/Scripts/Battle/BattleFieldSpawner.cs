@@ -207,13 +207,15 @@ public class BattleFieldSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Processes a defeated combatant by removing references, tracking enemy rewards, and destroying its GameObject.
+    /// Processes a defeated combatant by removing references, tracking enemy rewards, and managing slot cleanup.
+    /// Uses polymorphic IsHero check from FighterStats to identify non-hero targets.
     /// </summary>
     public void ProcessCombatantDeath(GameObject target, BattleRewardTracker rewardTracker)
     {
         if (target == null) return;
 
-        if (target.TryGetComponent<EnemyStats>(out var enemyStats))
+        // Clean pattern matching: casts to EnemyStats directly if it's a non-hero target
+        if (target.TryGetComponent<FighterStats>(out var stats) && !stats.IsHero && stats is EnemyStats enemyStats)
         {
             if (rewardTracker != null)
             {
@@ -227,8 +229,6 @@ public class BattleFieldSpawner : MonoBehaviour
             {
                 activeEnemiesSlots[slotIndex] = null;
             }
-
-            Destroy(target, 1.5f);
         }
         else
         {

@@ -100,11 +100,12 @@ public class EnemyDetector : MonoBehaviour
         if (battleLaunched) return;
         if (_cachedGameState != GameManager.GameState.WorldExploration) return;
 
-        // 1. Filter strictly by LayerMask first (High performance & architectural consistency)
         if (((1 << other.gameObject.layer) & enemyLayerMask) == 0) return;
 
-        // 2. Component validation
-        if (!other.TryGetComponent<OverworldEnemyAI>(out _) && !other.TryGetComponent<EnemyStats>(out _))
+        bool hasEnemyAI = other.TryGetComponent<OverworldEnemyAI>(out _);
+        bool hasEnemyStats = other.TryGetComponent<EnemyStats>(out _);
+
+        if (!hasEnemyAI && !hasEnemyStats)
             return;
 
         ExecuteEncounterTrigger(other);

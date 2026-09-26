@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -56,6 +57,9 @@ public class FlagDatabase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        // Guard clause: Prevent AssetDatabase access while the editor is compiling, updating, or building
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         FindAllFlags();
     }
 #endif
@@ -107,6 +111,8 @@ public class FlagDatabase : MonoBehaviour
     [ContextMenu("Find All Flags In Project")]
     public void FindAllFlags()
     {
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         flags.Clear();
 
         string[] guids = AssetDatabase.FindAssets("t:FlagSO");

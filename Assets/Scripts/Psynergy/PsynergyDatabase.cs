@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -73,6 +74,9 @@ public class PsynergyDatabase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        // Guard clause: Prevent AssetDatabase access while the editor is compiling, updating, or building
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         FindAllPsynergies();
     }
 #endif
@@ -129,6 +133,8 @@ public class PsynergyDatabase : MonoBehaviour
     [ContextMenu("Find All Psynergies In Project")]
     public void FindAllPsynergies()
     {
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         psynergies.Clear();
 
         string[] guids = AssetDatabase.FindAssets("t:PsynergySO");

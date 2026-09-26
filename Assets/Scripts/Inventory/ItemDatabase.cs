@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -60,6 +61,9 @@ public class ItemDatabase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        // Guard clause: Prevent AssetDatabase access while the editor is compiling, updating, or building
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         FindAllItems();
     }
 #endif
@@ -114,6 +118,8 @@ public class ItemDatabase : MonoBehaviour
     [ContextMenu("Find All Items In Project")]
     public void FindAllItems()
     {
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
         items.Clear();
 
         // AssetDatabase.FindAssets("t:ItemSO") also retrieves derived ScriptableObjects (ConsumableSO, EquipableSO, etc.)

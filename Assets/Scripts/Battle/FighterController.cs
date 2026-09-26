@@ -259,6 +259,155 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
+    #region Animation Event Hooks & Death Dissolve Logic
+
+    /// <summary>
+    /// Animation Event Hook: Triggered at the final frame of the enemy's death animation.
+    /// Initiates a two-phase defeat effect (Red Tint Flash + Fade) and cleans up non-hero entities.
+    /// </summary>
+    public void OnDeathAnimationFinished()
+    {
+        // Only enemies should dissolve and destroy their GameObjects upon death.
+        // Heroes remain down on the battle grid to allow revive items/Psynergy.
+        if (stats != null && !stats.IsHero)
+        {
+            StartCoroutine(FFVIIDeathEffectCoroutine(1.2f));
+        }
+    }
+
+    /// <summary>
+    /// Replicates the classic FFVII/Golden Sun enemy defeat effect:
+    /// Phase 1: Sudden red/emissive flash on the mesh.
+    /// Phase 2: Switches URP material surface to Transparent and performs smooth alpha fadeout.
+    /// </summary>
+    private IEnumerator FFVIIDeathEffectCoroutine(float duration)
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0)
+        {
+            Destroy(gameObject);
+            yield break;
+        }
+
+        // Cache material instances to avoid modifying project source assets
+        Material[] materials = new Material[renderers.Length];
+        Color[] originalColors = new Color[renderers.Length];
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            materials[i] = renderers[i].material;
+
+            if (materials[i].HasProperty("_BaseColor"))
+            {
+                originalColors[i] = materials[i].GetColor("_BaseColor");
+            }
+            else if (materials[i].HasProperty("_Color"))
+            {
+                originalColors[i] = materials[i].GetColor("_Color");
+            }
+            else
+            {
+                originalColors[i] = Color.white;
+            }
+        }
+
+        float elapsedTime = 0f;
+        float flashDuration = duration * 0.3f; // First 30% of time: Red Tint
+        float fadeDuration = duration * 0.7f;  // Remaining 70%: Fade out
+
+        // PHASE 1: Red Tint Flash (FFVII Style)
+        while (elapsedTime < flashDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / flashDuration;
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                if (materials[i] == null) continue;
+
+                // Interpolate from original color to intense Red
+                Color targetRed = Color.Lerp(originalColors[i], new Color(1f, 0.1f, 0.1f, originalColors[i].a), t);
+                SetMaterialColor(materials[i], targetRed);
+            }
+
+            yield return null;
+        }
+
+        // TRANSITION: Force URP materials to Transparent surface type
+        for (int i = 0; i < materials.Length; i++)
+        {
+            if (materials[i] == null) continue;
+            EnableURPTransparency(materials[i]);
+        }
+
+        // PHASE 2: Fade Out to Transparent
+        elapsedTime = 0f;
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / fadeDuration);
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                if (materials[i] == null) continue;
+
+                Color currentColor = new Color(1f, 0.1f, 0.1f, alpha);
+                SetMaterialColor(materials[i], currentColor);
+            }
+
+            yield return null;
+        }
+
+        // Clean up entity
+        gameObject.SetActive(false);
+        Destroy(gameObject, 0.2f);
+    }
+
+    /// <summary>
+    /// Configures URP Lit/Unlit materials at runtime to render as Transparent with Alpha Blending.
+    /// </summary>
+    private void EnableURPTransparency(Material mat)
+    {
+        if (mat == null) return;
+
+        // URP Surface Type property (0 = Opaque, 1 = Transparent)
+        if (mat.HasProperty("_Surface"))
+        {
+            mat.SetFloat("_Surface", 1f);
+        }
+
+        // Enable Alpha Blending modes on URP Pipeline
+        mat.SetFloat("_Blend", 0f); // 0 = Alpha, 1 = Premultiply, 2 = Additive, 3 = Multiply
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_ZWrite", 0); // Disable Depth Write for transparent sorting
+
+        // Enable Shader Keywords
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.EnableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+
+        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+    }
+
+    /// <summary>
+    /// Helper method to safely assign colors across URP and Legacy Shader properties.
+    /// </summary>
+    private void SetMaterialColor(Material mat, Color color)
+    {
+        if (mat.HasProperty("_BaseColor"))
+        {
+            mat.SetColor("_BaseColor", color);
+        }
+        else if (mat.HasProperty("_Color"))
+        {
+            mat.SetColor("_Color", color);
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// Controls 3D target selection pointer visibility, dynamic scale, and animation synchronization.
     /// </summary>

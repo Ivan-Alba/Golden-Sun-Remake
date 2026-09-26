@@ -56,6 +56,7 @@ public class HeroStats : FighterStats
     public HeroInventory HeroInventory => heroInventory;
     public HeroDjinnController DjinnController => djinnController;
     public CharacterClassSO CurrentClass => djinnController?.CurrentClass;
+    public override bool IsHero => true;
 
     #endregion
 
