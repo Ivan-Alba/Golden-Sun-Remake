@@ -439,8 +439,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Routine_HandlePostLoadSequence()
     {
-        // 1. Reveal Player Mesh and trigger Hero Swap while screen is still black
-        GameEvents.Player.RequestSetPlayerVisibility(true);
+        // 1. Trigger Hero Swap while screen is still black
         if (activeLeaderHero != null)
         {
             GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);

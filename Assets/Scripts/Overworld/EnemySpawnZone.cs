@@ -4,7 +4,7 @@ using UnityEngine.AI;
 
 /// <summary>
 /// Handles localized enemy spawning, cooldown timers, distance-based player validation,
-/// and NavMesh random point generation for world exploration roaming. Instrumentalized with diagnostic logs.
+/// distance-based enemy active culling, and NavMesh random point generation for world exploration roaming.
 /// </summary>
 public class EnemySpawnZone : MonoBehaviour
 {
@@ -18,7 +18,14 @@ public class EnemySpawnZone : MonoBehaviour
     [SerializeField] private float respawnCooldown = 120f;
 
     [Tooltip("Minimum distance required between the player and this spawner to allow respawning.")]
-    [SerializeField] private float respawnDistance = 50f;
+    [SerializeField] private float respawnDistance = 120f;
+
+    [Header("Culling & Optimization Settings")]
+    [Tooltip("Maximum distance from the player at which the spawned enemy remains active in the hierarchy.")]
+    [SerializeField] private float cullingDistance = 140f;
+
+    [Tooltip("Time interval in seconds between distance checks to minimize CPU overhead.")]
+    [SerializeField] private float cullingCheckInterval = 0.5f;
 
     [Header("Patrol & NavMesh Settings")]
     [Tooltip("Maximum radius around this spawner for generating random patrol waypoints.")]
@@ -34,6 +41,7 @@ public class EnemySpawnZone : MonoBehaviour
     private GameObject activeEnemy;
     private Transform playerTransform;
     private float cooldownTimer;
+    private float cullingTimer;
 
     // Local GameState cache
     private GameManager.GameState _cachedGameState;
@@ -72,6 +80,7 @@ public class EnemySpawnZone : MonoBehaviour
     {
         if (!IsWorldExplorationActive()) return;
 
+        // 1. Handle Respawn Cooldown Logic
         if (activeEnemy == null)
         {
             cooldownTimer += Time.deltaTime;
@@ -83,6 +92,16 @@ public class EnemySpawnZone : MonoBehaviour
                     SpawnEnemy();
                     cooldownTimer = 0f;
                 }
+            }
+        }
+        else
+        {
+            // 2. Handle Enemy Distance Culling (Executed on interval to save CPU)
+            cullingTimer += Time.deltaTime;
+            if (cullingTimer >= cullingCheckInterval)
+            {
+                cullingTimer = 0f;
+                EvaluateEnemyCulling();
             }
         }
     }
@@ -131,6 +150,9 @@ public class EnemySpawnZone : MonoBehaviour
             enemyAI.enabled = true;
             enemyAI.InitializeSpawnZone(this);
         }
+
+        // Initial culling check right after spawning
+        EvaluateEnemyCulling();
     }
 
     public GameObject GetRandomEnemyPrefab()
@@ -153,6 +175,29 @@ public class EnemySpawnZone : MonoBehaviour
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Evaluates distance to the player and toggles the active enemy GameObject state.
+    /// </summary>
+    private void EvaluateEnemyCulling()
+    {
+        if (activeEnemy == null) return;
+
+        if (playerTransform == null)
+        {
+            CachePlayerTransform();
+            if (playerTransform == null) return;
+        }
+
+        // Use sqrMagnitude to avoid square root calculation overhead
+        float sqrDistance = (playerTransform.position - transform.position).sqrMagnitude;
+        bool shouldBeActive = sqrDistance <= (cullingDistance * cullingDistance);
+
+        if (activeEnemy.activeSelf != shouldBeActive)
+        {
+            activeEnemy.SetActive(shouldBeActive);
+        }
     }
 
     #endregion
@@ -224,6 +269,9 @@ public class EnemySpawnZone : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, respawnDistance);
+
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, cullingDistance);
     }
 #endif
 

@@ -297,8 +297,6 @@ public class PlayerController : MonoBehaviour
 
         if (controller != null) controller.enabled = !isTitleScreen;
 
-        GameEvents.Player.RequestSetPlayerVisibility(!isTitleScreen);
-
         if (isGameplayActive)
         {
             StopAutoWalk();

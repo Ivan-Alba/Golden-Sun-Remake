@@ -15,15 +15,15 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.5921569, g: 0.7607844, b: 0.8235295, a: 1}
-  m_FogMode: 1
-  m_FogDensity: 0.01
+  m_FogColor: {r: 0.48627454, g: 0.72156864, b: 0.77647066, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.007
   m_LinearFogStart: 20
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.7389706, g: 0.7495436, b: 0.75, a: 1}
   m_AmbientEquatorColor: {r: 0.60294116, g: 0.60294116, b: 0.60294116, a: 1}
   m_AmbientGroundColor: {r: 0.24264705, g: 0.24264705, b: 0.24264705, a: 1}
-  m_AmbientIntensity: 1.4
+  m_AmbientIntensity: 1.2
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 9873fbde6fe03504a9da2612241c5d71, type: 2}
@@ -275,6 +275,14 @@ PrefabInstance:
     - target: {fileID: 4860265840082594384, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594389, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_Name
@@ -1370,6 +1378,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: enemyPrefabs.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -1563,6 +1579,14 @@ PrefabInstance:
     - target: {fileID: 4860265840082594384, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594389, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_Name
@@ -1812,13 +1836,13 @@ Terrain:
   serializedVersion: 6
   m_TerrainData: {fileID: 15600000, guid: 8ee04e1f17f7f5549acabd4c8d8a68c4, type: 2}
   m_TreeDistance: 1000
-  m_TreeBillboardDistance: 500
+  m_TreeBillboardDistance: 600
   m_TreeCrossFadeLength: 100
-  m_TreeMaximumFullLODCount: 1000
-  m_DetailObjectDistance: 300
+  m_TreeMaximumFullLODCount: 4000
+  m_DetailObjectDistance: 500
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 2
-  m_SplatMapDistance: 1250
+  m_SplatMapDistance: 1500
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
   m_ShadowCastingMode: 1
@@ -1838,7 +1862,7 @@ Terrain:
   m_GroupingID: 0
   m_RenderingLayerMask: 1
   m_AllowAutoConnect: 0
-  m_EnableHeightmapRayTracing: 1
+  m_EnableHeightmapRayTracing: 0
   m_EnableTreesAndDetailsRayTracing: 0
   m_TreeMotionVectorModeOverride: 3
 --- !u!4 &970556041
@@ -2211,6 +2235,14 @@ PrefabInstance:
     - target: {fileID: 4860265840082594384, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594389, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_Name
@@ -4798,6 +4830,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
+      objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594389, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_Name
       value: EnemySpawnZone (2)
@@ -5182,6 +5222,14 @@ PrefabInstance:
       value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: enemyPrefabs.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -5534,6 +5582,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: enemyPrefabs.Array.size
       value: 5
       objectReference: {fileID: 0}
@@ -5862,6 +5918,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: enemyPrefabs.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -6037,6 +6101,14 @@ PrefabInstance:
     - target: {fileID: 4860265840082594384, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: cullingDistance
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
+      propertyPath: respawnDistance
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 4860265840082594386, guid: 9fb65d6e19793bb4fae56aa1b7777aa5, type: 3}
       propertyPath: enemyPrefabs.Array.size

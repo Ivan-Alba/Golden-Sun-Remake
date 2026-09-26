@@ -115,6 +115,7 @@ public class PlayerVisualManager : MonoBehaviour
 
         // Listen to equipment changes to refresh 3D weapon models in real-time
         GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
+        GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
     }
 
     private void OnDisable()
@@ -124,6 +125,28 @@ public class PlayerVisualManager : MonoBehaviour
         GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
 
         GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
+        GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+    }
+
+    #endregion
+
+    #region GameState Handling
+
+    private void HandleGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
+    {
+        switch (newState)
+        {
+            case GameManager.GameState.TitleScreen:
+            case GameManager.GameState.InBattle:
+            case GameManager.GameState.Loading:
+                SetModelVisibility(false);
+                break;
+
+            case GameManager.GameState.WorldExploration:
+            case GameManager.GameState.Cutscene:
+                SetModelVisibility(true);
+                break;
+        }
     }
 
     #endregion
