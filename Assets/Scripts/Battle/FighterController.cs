@@ -13,9 +13,11 @@ public class FighterController : MonoBehaviour
     [Tooltip("Reference to the 3D model GameObject (with Animator/Renderers) to toggle visibility in Overworld vs Battle.")]
     [SerializeField] private GameObject battleVisualModel;
 
+    [Tooltip("Direct reference to the fighter's Animator component (works even if the visual model starts inactive).")]
+    [SerializeField] private Animator fighterAnim;
+
     [SerializeField] private BattleSelectionPointer selectionPointer;
 
-    private Animator fighterAnim;
     private FighterStats stats;
 
     private Vector3 startPosition;
@@ -57,7 +59,11 @@ public class FighterController : MonoBehaviour
 
     private void Awake()
     {
-        fighterAnim = GetComponentInChildren<Animator>();
+        if (fighterAnim == null)
+        {
+            fighterAnim = GetComponentInChildren<Animator>(true);
+        }
+
         stats = GetComponent<FighterStats>();
     }
 
