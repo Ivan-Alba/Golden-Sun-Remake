@@ -1416,6 +1416,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378967306837168, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Radius
+      value: 0.30105686
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378967306837168, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Center.z
+      value: -0.000002861023
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
