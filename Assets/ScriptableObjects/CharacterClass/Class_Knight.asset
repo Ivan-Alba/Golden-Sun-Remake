@@ -25,7 +25,7 @@ MonoBehaviour:
   - psynergy: {fileID: 11400000, guid: 813359bf48c6c24418fde9875ba7b437, type: 2}
     requiredLevel: 1
   - psynergy: {fileID: 11400000, guid: 7087ddf58ff771e42a94b62efd82e247, type: 2}
-    requiredLevel: 2
+    requiredLevel: 1
   - psynergy: {fileID: 11400000, guid: 073c48e43964fd14ea74668973020ed5, type: 2}
     requiredLevel: 4
   - psynergy: {fileID: 11400000, guid: b7f3b974930a0264689727e45e6076a3, type: 2}

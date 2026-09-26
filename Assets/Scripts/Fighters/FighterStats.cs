@@ -254,6 +254,22 @@ public class FighterStats : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Restores HP and PP to maximum capacity and clears all active status effects.
+    /// Essential for Inns, Save Points, and Event-triggered full recoveries.
+    /// </summary>
+    public virtual void FullRecover()
+    {
+        // 1. Clear all active status effects (Poison, Stun, etc.)
+        ClearAllStatusEffects();
+
+        // 2. Maximize vital resources (Triggering events and UI updates)
+        CurrHp = MaxHp;
+        CurrPp = MaxPp;
+
+        Debug.Log($"[FighterStats] {fighterName} received a Full Recovery (Max HP/PP & Statuses Cleared).");
+    }
+
     public void ConsumePP(int amount)
     {
         if (IsDead || amount <= 0) return;

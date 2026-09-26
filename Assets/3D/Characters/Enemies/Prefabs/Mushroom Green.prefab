@@ -406,12 +406,12 @@ MonoBehaviour:
   fighterSlug: 
   fighterName: Green Mushroom
   turnBarImage: {fileID: 21300000, guid: afa0bf05750b4494d826e3441c0ac1f0, type: 3}
-  baseMaxHp: 22
-  baseMaxPp: 7
-  baseAttack: 10
-  baseDefense: 7
+  baseMaxHp: 28
+  baseMaxPp: 12
+  baseAttack: 16
+  baseDefense: 9
   baseAgility: 5
-  baseLuck: 2
+  baseLuck: 4
   basePowerVenus: 100
   basePowerMars: 100
   basePowerJupiter: 105
@@ -552,16 +552,16 @@ MonoBehaviour:
   minWaitTime: 3
   maxWaitTime: 8
   maxPatrolTimeOut: 10
-  perceptionRadius: 12
+  perceptionRadius: 15
   visionRadius: 8
   visionAngle: 55
   stealthApproachMultiplier: 0.35
   baseThreatBuildRate: 0.5
-  threatDecayRate: 0.4
+  threatDecayRate: 0.3
   suspiciousThreshold: 0.5
   followSpeed: 8
-  maxFollowDistance: 30
-  trackingRotationSpeed: 5
+  maxFollowDistance: 20
+  trackingRotationSpeed: 4
 --- !u!54 &1376690333971318641
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -627,7 +627,7 @@ MonoBehaviour:
   customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 2
+  defaultHeightOffset: 1.5
 --- !u!114 &6643145482727204671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -642,9 +642,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
   pointerAnchor: {fileID: 0}
   damageNumberOffset: {x: 0, y: 0.5, z: 0}
-  targetInfoOffset: {x: 0, y: 0, z: 0}
-  commandCrossOffset: {x: 0, y: 1.2, z: 0}
-  subMenuOffset: {x: 0, y: 1.5, z: 0}
+  targetInfoOffset: {x: 0, y: 1.2, z: 0}
+  commandCrossOffset: {x: 0, y: 0, z: 0}
+  subMenuOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &8761242364485165199
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -675,11 +675,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalPosition.y

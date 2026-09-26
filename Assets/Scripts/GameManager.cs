@@ -23,7 +23,8 @@ public class GameManager : MonoBehaviour
         InDialogue,
         Interacting,
         Cutscene,
-        Loading
+        Loading,
+        GameOver
     }
 
     #endregion
@@ -103,6 +104,7 @@ public class GameManager : MonoBehaviour
         GameEvents.Party.OnModifyGoldRequested += HandleModifyGoldRequest;
         GameEvents.Party.OnRequestGold += HandleRequestGold;
         GameEvents.Party.OnRequestDjinnCounts += HandleRequestDjinnCounts;
+        GameEvents.Fighter.OnFighterDied += HandleFighterDied;
         GameEvents.Party.OnActiveHeroIndexChangeRequested += HandleActiveHeroIndexChangeRequest;
         GameEvents.Party.OnActiveHeroChangeRequested += HandleActiveHeroChangeRequest;
 
@@ -135,6 +137,7 @@ public class GameManager : MonoBehaviour
         GameEvents.Party.OnModifyGoldRequested -= HandleModifyGoldRequest;
         GameEvents.Party.OnRequestGold -= HandleRequestGold;
         GameEvents.Party.OnRequestDjinnCounts -= HandleRequestDjinnCounts;
+        GameEvents.Fighter.OnFighterDied -= HandleFighterDied;
         GameEvents.Party.OnActiveHeroIndexChangeRequested -= HandleActiveHeroIndexChangeRequest;
         GameEvents.Party.OnActiveHeroChangeRequested -= HandleActiveHeroChangeRequest;
 
@@ -283,17 +286,34 @@ public class GameManager : MonoBehaviour
         callback.Invoke(totalDjinnCounts);
     }
 
+    private void HandleFighterDied(GameObject deadFighter)
+    {
+        if (deadFighter == activeLeaderHero)
+        {
+            EnsureLivingLeader();
+        }
+    }
+
     private void HandleActiveHeroIndexChangeRequest(int index)
     {
-        if (activeParty != null && index >= 0 && index < activeParty.Count)
-        {
-            if (activeLeaderHero != activeParty[index])
-            {
-                activeLeaderHero = activeParty[index];
+        if (activeParty == null || index < 0 || index >= activeParty.Count) return;
 
-                GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
-                GameEvents.Hero.TriggerHeroStatusChanged();
-            }
+        GameObject candidateHero = activeParty[index];
+
+        if (candidateHero == null) return;
+
+        if (candidateHero.TryGetComponent<HeroStats>(out var heroStats) && heroStats.IsDead)
+        {
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+            return;
+        }
+
+        if (activeLeaderHero != candidateHero)
+        {
+            activeLeaderHero = candidateHero;
+
+            GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+            GameEvents.Hero.TriggerHeroStatusChanged();
         }
     }
 
@@ -370,6 +390,12 @@ public class GameManager : MonoBehaviour
             if (equipment != null)
             {
                 equipment.InitializeStartingEquipment();
+            }
+
+            HeroStats stats = availableHeroes[i].GetComponent<HeroStats>();
+            if (stats != null)
+            {
+                stats.FullRecover();
             }
         }
 
@@ -461,6 +487,61 @@ public class GameManager : MonoBehaviour
         // 6. Activate target game state (WorldExploration)
         SetGameState(pendingTargetState);
         loadingData = false;
+    }
+
+    #endregion
+
+    #region Leader Management API
+
+    /// <summary>
+    /// Evaluates active party members and reassigns the leader to the first living hero found.
+    /// If all heroes are dead, triggers GameOver.
+    /// </summary>
+    public void EnsureLivingLeader()
+    {
+        if (activeParty == null || activeParty.Count == 0) return;
+
+        if (activeLeaderHero != null &&
+            activeLeaderHero.TryGetComponent<HeroStats>(out var currentLeaderStats) &&
+            !currentLeaderStats.IsDead)
+        {
+            return;
+        }
+
+        GameObject newLeader = FindFirstLivingHero();
+
+        if (newLeader != null)
+        {
+            activeLeaderHero = newLeader;
+
+            GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+            GameEvents.Hero.TriggerHeroStatusChanged();
+        }
+        else
+        {
+            Debug.LogWarning("[PartyManager] All heroes in party are dead! Requesting Game Over.");
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.GameOver);
+        }
+    }
+
+    /// <summary>
+    /// Helper algorithm to find the first non-dead Hero GameObject in activeParty.
+    /// </summary>
+    private GameObject FindFirstLivingHero()
+    {
+        for (int i = 0; i < activeParty.Count; i++)
+        {
+            GameObject heroObj = activeParty[i];
+            if (heroObj != null && heroObj.TryGetComponent<HeroStats>(out var stats))
+            {
+                if (!stats.IsDead)
+                {
+                    return heroObj;
+                }
+            }
+        }
+
+        return null;
     }
 
     #endregion

@@ -1911,10 +1911,10 @@ MonoBehaviour:
   fighterName: Crab Monster
   turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
   baseMaxHp: 60
-  baseMaxPp: 0
-  baseAttack: 25
-  baseDefense: 16
-  baseAgility: 6
+  baseMaxPp: 15
+  baseAttack: 29
+  baseDefense: 17
+  baseAgility: 7
   baseLuck: 5
   basePowerVenus: 100
   basePowerMars: 100
@@ -2062,16 +2062,16 @@ MonoBehaviour:
   minWaitTime: 3
   maxWaitTime: 8
   maxPatrolTimeOut: 10
-  perceptionRadius: 12
+  perceptionRadius: 15
   visionRadius: 8
   visionAngle: 55
   stealthApproachMultiplier: 0.35
   baseThreatBuildRate: 0.5
-  threatDecayRate: 0.4
+  threatDecayRate: 0.3
   suspiciousThreshold: 0.5
-  followSpeed: 6
-  maxFollowDistance: 30
-  trackingRotationSpeed: 5
+  followSpeed: 7
+  maxFollowDistance: 20
+  trackingRotationSpeed: 4
 --- !u!65 &8113470619396800847
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5029,11 +5029,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalPosition.y

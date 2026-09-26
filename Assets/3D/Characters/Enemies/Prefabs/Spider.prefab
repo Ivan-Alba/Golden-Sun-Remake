@@ -2436,6 +2436,7 @@ GameObject:
   - component: {fileID: 1376690333971318641}
   - component: {fileID: -308459226668599625}
   - component: {fileID: -8791449935576081130}
+  - component: {fileID: -587749026876092104}
   m_Layer: 12
   m_Name: Spider
   m_TagString: Untagged
@@ -2487,8 +2488,8 @@ MonoBehaviour:
   turnBarImage: {fileID: 21300000, guid: 2f899d516ecc9cf4fb338a3bfdb9b8b2, type: 3}
   baseMaxHp: 45
   baseMaxPp: 5
-  baseAttack: 20
-  baseDefense: 13
+  baseAttack: 26
+  baseDefense: 15
   baseAgility: 10
   baseLuck: 5
   basePowerVenus: 105
@@ -2625,16 +2626,16 @@ MonoBehaviour:
   minWaitTime: 3
   maxWaitTime: 8
   maxPatrolTimeOut: 10
-  perceptionRadius: 12
+  perceptionRadius: 15
   visionRadius: 8
   visionAngle: 55
   stealthApproachMultiplier: 0.35
   baseThreatBuildRate: 0.5
-  threatDecayRate: 0.4
+  threatDecayRate: 0.3
   suspiciousThreshold: 0.5
-  followSpeed: 6
-  maxFollowDistance: 30
-  trackingRotationSpeed: 5
+  followSpeed: 9
+  maxFollowDistance: 20
+  trackingRotationSpeed: 4
 --- !u!54 &1376690333971318641
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2700,7 +2701,24 @@ MonoBehaviour:
   customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 2
+  defaultHeightOffset: 1
+--- !u!114 &-587749026876092104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ff4869265619f74b869bc2ce0ced9c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
+  pointerAnchor: {fileID: 0}
+  damageNumberOffset: {x: 0, y: 0.3, z: 0}
+  targetInfoOffset: {x: 0, y: 1, z: 0}
+  commandCrossOffset: {x: 0, y: 0, z: 0}
+  subMenuOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &6457902438153903016
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2731,11 +2749,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalPosition.y

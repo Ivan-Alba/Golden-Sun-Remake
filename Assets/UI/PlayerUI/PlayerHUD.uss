@@ -458,8 +458,10 @@
     align-items: flex-start;
 }
 
-/* --- Fantasy Hero Status Card --- */
-.hero-status-card {
+/* =========================================================================
+   Hero Status Card)
+   ========================================================================= */
+   .hero-status-card {
     flex-direction: row;
     align-items: center;
     background-color: var(--color-panel-bg);
@@ -476,7 +478,7 @@
     overflow: visible; /* Guarantees keycap badge does not get clipped */
     scale: 0.85;
     transform-origin: left bottom;
-    transition-property: scale, border-color, background-color;
+    transition-property: scale, border-color, background-color, opacity;
     transition-duration: 0.2s;
 }
 
@@ -484,6 +486,22 @@
     border-color: var(--color-gold-bright);
     background-color: var(--color-hover-subtle-bg);
     scale: 0.9;
+}
+
+/* Dead Hero Visual Override State */
+.hero-status-card.hero-dead {
+    opacity: 0.65;
+    border-color: #555555;
+    background-color: rgba(20, 20, 20, 0.85);
+}
+
+.hero-status-card.hero-dead .hero-portrait-frame {
+    border-color: #777777;
+    background-color: #1a1a1a;
+}
+
+.hero-status-card.hero-dead .hero-portrait-img {
+    -unity-background-image-tint-color: #666666; /* Desaturates / Grayscales the portrait in UI Toolkit */
 }
 
 /* Rhombus/Beveled Portrait Frame */
@@ -577,7 +595,18 @@
 .hud-bar-hp-fill {
     width: 100%;
     height: 100%;
-    background-color: #2ECC71;
+    background-color: #2ECC71; /* Green Default */
+    transition-property: background-color;
+    transition-duration: 0.2s;
+}
+
+/* Dynamic State Colors for HP Bar & Text */
+.hud-bar-hp-fill.bar-warning {
+    background-color: #F1C40F; /* Yellow < 30% HP */
+}
+
+.hud-bar-hp-fill.bar-danger {
+    background-color: #E74C3C; /* Red = 0 HP */
 }
 
 .hud-bar-pp-fill {
@@ -590,7 +619,7 @@
     font-size: 14px;
     -unity-font-style: bold;
     color: var(--color-text-white);
-    width: 56px; /* Fixed width for right-aligned numerical values */
+    width: 60px; /* Extended width to ensure rich text styling fits */
     -unity-text-align: middle-right;
     padding: 0;
 }
@@ -606,7 +635,12 @@
     background-size: cover;
 }
 
-/* --- Bottom-Right: D-Pad Shortcuts (Wheel) --- */
+
+
+/* =========================================================================
+   BOTTOM-RIGHT: D-PAD PSYNERGY SHORTCUTS
+   ========================================================================= */
+   
 .bottom-right-shortcuts-container {
     position: absolute;
     right: 44px;

@@ -6,7 +6,6 @@ public class HeroStatusCardPresenter
 {
     #region Public Properties
 
-    // ADDED: Permiten al HUDController identificar la tarjeta y consultar su estado
     public VisualElement RootElement => _rootElement;
     public GameObject BoundHero { get; private set; }
 
@@ -67,12 +66,15 @@ public class HeroStatusCardPresenter
     {
         if (stats == null || _rootElement == null) return;
 
+        bool isDead = stats.IsDead || stats.CurrHp <= 0;
+
         // 1. Update Name & Level
         if (_nameLabel != null) _nameLabel.text = stats.Name;
         if (_levelLabel != null) _levelLabel.text = $"Nv. {stats.Level}";
 
         // 2. Update Key Badge Number
-        if (inBattle) {
+        if (inBattle)
+        {
             if (_heroKeyBadge != null) _heroKeyBadge.style.display = DisplayStyle.None;
         }
         else
@@ -81,30 +83,63 @@ public class HeroStatusCardPresenter
             if (_keyNumberLabel != null) _keyNumberLabel.text = keyNumber.ToString();
         }
 
-        // 3. Update Numerical Values
-        if (_hpValLabel != null) _hpValLabel.text = $"{stats.CurrHp}/{stats.MaxHp}";
-        if (_ppValLabel != null) _ppValLabel.text = $"{stats.CurrPp}/{stats.MaxPp}";
+        // 3. Update Fill Bars & Colors
+        float hpRatio = stats.MaxHp > 0 ? Mathf.Clamp01((float)stats.CurrHp / stats.MaxHp) : 0f;
+        float ppRatio = stats.MaxPp > 0 ? Mathf.Clamp01((float)stats.CurrPp / stats.MaxPp) : 0f;
 
-        // 4. Update Fill Bars (Width percentage calculation)
         if (_hpFillBar != null)
         {
-            float hpPercent = stats.MaxHp > 0 ? Mathf.Clamp01((float)stats.CurrHp / stats.MaxHp) * 100f : 0f;
-            _hpFillBar.style.width = Length.Percent(hpPercent);
+            _hpFillBar.style.width = Length.Percent(hpRatio * 100f);
+
+            // Clean previous state classes
+            _hpFillBar.RemoveFromClassList("bar-warning");
+            _hpFillBar.RemoveFromClassList("bar-danger");
+
+            if (isDead)
+            {
+                _hpFillBar.AddToClassList("bar-danger");
+            }
+            else if (hpRatio < 0.3f)
+            {
+                _hpFillBar.AddToClassList("bar-warning");
+            }
         }
 
         if (_ppFillBar != null)
         {
-            float ppPercent = stats.MaxPp > 0 ? Mathf.Clamp01((float)stats.CurrPp / stats.MaxPp) * 100f : 0f;
-            _ppFillBar.style.width = Length.Percent(ppPercent);
+            _ppFillBar.style.width = Length.Percent(ppRatio * 100f);
+        }
+
+        // 4. Update Formatted Numerical Values with Rich Text formatting
+        if (_hpValLabel != null)
+        {
+            string currentHpColor;
+            if (stats.CurrHp == 0)
+            {
+                currentHpColor = "#E74C3C"; // Red
+            }
+            else if (hpRatio < 0.3f)
+            {
+                currentHpColor = "#F1C40F"; // Yellow
+            }
+            else
+            {
+                currentHpColor = "#FFFFFF"; // White
+            }
+
+            _hpValLabel.text = $"<color={currentHpColor}>{stats.CurrHp}</color>/{stats.MaxHp}";
+        }
+
+        if (_ppValLabel != null)
+        {
+            string currentPpColor = (stats.CurrPp == 0) ? "#E74C3C" : "#FFFFFF";
+            _ppValLabel.text = $"<color={currentPpColor}>{stats.CurrPp}</color>/{stats.MaxPp}";
         }
 
         // 5. Update Avatar Texture from Resources
-        if (_portraitImg != null)
+        if (_portraitImg != null && stats.TurnBarImage != null)
         {
-            if (stats.TurnBarImage != null)
-            {
-                _portraitImg.style.backgroundImage = Background.FromSprite(stats.TurnBarImage);
-            }
+            _portraitImg.style.backgroundImage = Background.FromSprite(stats.TurnBarImage);
         }
 
         if (_elementGem != null)
@@ -115,11 +150,29 @@ public class HeroStatusCardPresenter
             });
         }
 
-        // 6. Toggle Active Hero Highlight Style
+        // 6. Toggle Active Hero & Death Visual States
         SetCardActive(isActiveHero);
+        SetCardDeadState(isDead);
 
         // Ensure Card is visible
         SetVisible(true);
+    }
+
+    /// <summary>
+    /// Applies or removes the grayscaled/dimmed dead state styling.
+    /// </summary>
+    public void SetCardDeadState(bool isDead)
+    {
+        if (_rootElement == null) return;
+
+        if (isDead)
+        {
+            _rootElement.AddToClassList("hero-dead");
+        }
+        else
+        {
+            _rootElement.RemoveFromClassList("hero-dead");
+        }
     }
 
     /// <summary>

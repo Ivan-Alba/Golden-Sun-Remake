@@ -251,12 +251,12 @@ MonoBehaviour:
   fighterSlug: 
   fighterName: Blue Mushroom
   turnBarImage: {fileID: 21300000, guid: 57bd914e7f663824b9610f65000c6626, type: 3}
-  baseMaxHp: 18
+  baseMaxHp: 24
   baseMaxPp: 12
-  baseAttack: 11
-  baseDefense: 6
+  baseAttack: 15
+  baseDefense: 8
   baseAgility: 7
-  baseLuck: 2
+  baseLuck: 4
   basePowerVenus: 100
   basePowerMars: 100
   basePowerJupiter: 100
@@ -428,7 +428,7 @@ MonoBehaviour:
   threatDecayRate: 0.4
   suspiciousThreshold: 0.5
   followSpeed: 8
-  maxFollowDistance: 30
+  maxFollowDistance: 20
   trackingRotationSpeed: 5
 --- !u!114 &2300654810997081773
 MonoBehaviour:
@@ -468,7 +468,7 @@ MonoBehaviour:
   customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 2
+  defaultHeightOffset: 1.5
 --- !u!114 &3483327005081921651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,9 +483,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
   pointerAnchor: {fileID: 0}
   damageNumberOffset: {x: 0, y: 0.5, z: 0}
-  targetInfoOffset: {x: 0, y: 0, z: 0}
-  commandCrossOffset: {x: 0, y: 1.2, z: 0}
-  subMenuOffset: {x: 0, y: 1.5, z: 0}
+  targetInfoOffset: {x: 0, y: 1.2, z: 0}
+  commandCrossOffset: {x: 0, y: 0, z: 0}
+  subMenuOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1523180442495747819
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,11 +671,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 6377689998802943162, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalPosition.y
