@@ -1397,13 +1397,13 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 32
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 6570
+  m_ColorTemperature: 4546
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 3e-45, z: 2.6833e-41, w: 6e-44}
   m_UseBoundingSphereOverride: 0
@@ -1422,13 +1422,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1710497814}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.16172905, y: 0.8373192, z: -0.34682903, w: -0.39044845}
+  m_LocalRotation: {x: 0.019283226, y: 0.9176944, z: -0.3942726, w: 0.044882923}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 7.632, y: 211.045, z: -127.318}
+  m_LocalEulerAnglesHint: {x: 46.5, y: 174.4, z: 0}
 --- !u!114 &1710497817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1446,7 +1446,7 @@ MonoBehaviour:
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 1
+  m_SoftShadowQuality: 0
   m_RenderingLayersMask:
     serializedVersion: 0
     m_Bits: 1
@@ -1532,7 +1532,7 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1541,19 +1541,19 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  useOcclusion: 0
+  useOcclusion: 1
   useBackgroundCloudOcclusion: 0
   environmentOcclusion: 0
   useWaterOcclusion: 0
   occlusionRadius: 0.1
-  sampleCount: 32
+  sampleCount: 64
   occlusionOffset: 0.05
   scale: 10
   allowOffScreen: 1
@@ -1568,26 +1568,26 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
+        value: 1
         inSlope: 0
-        outSlope: 1
-        tangentMode: 0
+        outSlope: 0
+        tangentMode: 34
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1
+        inSlope: 0
         outSlope: 0
-        tangentMode: 0
+        tangentMode: 34
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  lightOverride: {fileID: 0}
+  lightOverride: {fileID: 1710497815}
 --- !u!4 &1733350971 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4245145517234506240, guid: a19744102be9ac7459c9135b44be0284, type: 3}

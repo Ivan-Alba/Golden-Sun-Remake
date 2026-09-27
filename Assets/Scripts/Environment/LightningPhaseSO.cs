@@ -18,7 +18,7 @@ public class LightingPhaseSO : ScriptableObject
     [Range(0f, 24f)] public float endHour = 18f;
 
     [Header("Directional Light (Sun / Moon)")]
-    [ColorUsage(false, true)]
+    [ColorUsage(showAlpha: true, hdr: true)]
     public Color lightColor = Color.white;
 
     [Tooltip("Starting and ending intensity for smooth fading between phases.")]
@@ -31,9 +31,14 @@ public class LightingPhaseSO : ScriptableObject
 
     [Header("Skybox & Ambient")]
     public Material skyboxMaterial;
+    public Cubemap skyboxCubemap;
 
     [Tooltip("Environment lighting intensity derived from Skybox (e.g. 1.2 for Day, 0.4 for Night).")]
     public float environmentIntensity = 1.2f;
+
+    [Header("Phase Transitions Curve")]
+    [Tooltip("Master curve controlling the progress of Light Color, Skybox Blend, Ambient, and Fog transitions. Defaults to linear (0 to 1).")]
+    [SerializeField] private AnimationCurve phaseTransitionCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     [Header("Fog Configuration")]
     public bool enableFog = true;
@@ -89,6 +94,14 @@ public class LightingPhaseSO : ScriptableObject
         }
 
         return Mathf.Clamp01(elapsed / duration);
+    }
+
+    /// <summary>
+    /// Evaluates master transition progress using the custom phase curve.
+    /// </summary>
+    public float EvaluateTransitionProgress(float progress)
+    {
+        return (phaseTransitionCurve != null && phaseTransitionCurve.length > 0) ? phaseTransitionCurve.Evaluate(progress) : progress;
     }
 
     #endregion

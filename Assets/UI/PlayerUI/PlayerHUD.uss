@@ -347,7 +347,7 @@
     border-width: 1.5px;
     border-radius: 12px;
     padding: 3px 14px;
-    margin-top: -12px; /* Smooth overlap with compass frame */
+    margin-top: 0px; /* Smooth overlap with compass frame */
 }
 
 .label-world-time {

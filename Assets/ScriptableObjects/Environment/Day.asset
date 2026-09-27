@@ -15,12 +15,13 @@ MonoBehaviour:
   phaseName: Day
   startHour: 10
   endHour: 18
-  lightColor: {r: 0.8679245, g: 0.68642455, b: 0.5049246, a: 1}
+  lightColor: {r: 1, g: 0.9529412, b: 0.8784314, a: 1}
   startLightIntensity: 1.1
   endLightIntensity: 1.3
-  startRotation: {x: 35, y: -50, z: 0}
-  endRotation: {x: 65, y: -10, z: 0}
+  startRotation: {x: 45, y: -90, z: 0}
+  endRotation: {x: 135, y: -90, z: 0}
   skyboxMaterial: {fileID: 2100000, guid: 9873fbde6fe03504a9da2612241c5d71, type: 2}
+  skyboxCubemap: {fileID: 8900000, guid: 0e7592508ca476c418eaa3c066a738eb, type: 3}
   environmentIntensity: 1.2
   enableFog: 1
   fogColor: {r: 0.4862745, g: 0.72156864, b: 0.7764706, a: 1}

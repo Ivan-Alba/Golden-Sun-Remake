@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 /// <summary>
 /// Central manager for the player's 2D HUD overlays using UI Toolkit.
-/// Controls layer visibility, party status cards, dialogues, stamina, minimap integration, and notification streams.
+/// Controls layer visibility, party status cards, dialogues, stamina, minimap integration, world clock, and notification streams.
 /// Listens exclusively to GameEvents for decoupled messaging.
 /// </summary>
 public class HUDController : MonoBehaviour
@@ -72,6 +72,9 @@ public class HUDController : MonoBehaviour
     private VisualElement _bottomLeftPartyContainer;
     private VisualElement _dpadWheel;
     private VisualElement _notificationsStreamContainer;
+
+    // Clock UI Element
+    private Label _labelWorldTime;
 
     // Presenters
     private readonly List<HeroStatusCardPresenter> _partyCardPresenters = new List<HeroStatusCardPresenter>();
@@ -194,6 +197,9 @@ public class HUDController : MonoBehaviour
         _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
         _dpadWheel = _root.Q<VisualElement>("dpad_hud_wheel");
 
+        // Query Clock Label
+        _labelWorldTime = _root.Q<Label>("label_world_time");
+
         // Query Notifications Stream Container & Initialize Presenter
         _notificationsStreamContainer = _root.Q<VisualElement>("notifications_stream_container");
         if (_notificationsStreamContainer != null)
@@ -253,6 +259,10 @@ public class HUDController : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
 
+        // GameEvents.Environment (Clock Updates)
+        GameEvents.Environment.OnTimeUpdated -= UpdateTimeUI;
+        GameEvents.Environment.OnTimeUpdated += UpdateTimeUI;
+
         // GameEvents.UI
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowZoneBanner += HandleShowZoneBanner;
@@ -302,6 +312,8 @@ public class HUDController : MonoBehaviour
     {
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
 
+        GameEvents.Environment.OnTimeUpdated -= UpdateTimeUI;
+
         GameEvents.UI.OnShowZoneBanner -= HandleShowZoneBanner;
         GameEvents.UI.OnShowNotification -= HandleShowNotification;
         GameEvents.UI.OnSetFirstPersonViewUIVisibleRequested -= SetFirstPersonViewUIVisible;
@@ -332,6 +344,21 @@ public class HUDController : MonoBehaviour
         else
         {
             _dialogueLayer.style.display = DisplayStyle.None;
+        }
+    }
+
+    #endregion
+
+    #region Clock UI Methods
+
+    /// <summary>
+    /// Updates the world time display label in 24h format (HH:mm).
+    /// </summary>
+    private void UpdateTimeUI(float totalHours, int hourInt, int minuteInt)
+    {
+        if (_labelWorldTime != null)
+        {
+            _labelWorldTime.text = $"{hourInt:D2}:{minuteInt:D2}";
         }
     }
 

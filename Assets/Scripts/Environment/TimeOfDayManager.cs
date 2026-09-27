@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Manages directional light, skybox, fog, and environment settings.
+/// Manages directional light, skybox blending via Cubemaps, fog, and environment settings.
 /// Fully driven by global in-game time events from GameManager (No Update loop).
+/// Performs seamless continuous blending of colors, fog, and light intensities across phases.
 /// </summary>
 public class TimeOfDayManager : MonoBehaviour
 {
@@ -17,9 +18,23 @@ public class TimeOfDayManager : MonoBehaviour
     [Header("Scene References")]
     [SerializeField] private Light mainDirectionalLight;
 
+    [Header("Skybox Blending Material")]
+    [Tooltip("Assign the material using SG_SkyboxBlend shader.")]
+    [SerializeField] private Material skyboxBlendedMaterial;
+
     [Header("Phases Configuration")]
     [Tooltip("List of ordered lighting phases matching 24h ranges.")]
     [SerializeField] private List<LightingPhaseSO> phases = new List<LightingPhaseSO>();
+
+    #endregion
+
+    #region Shader Property IDs Cache
+
+    private static readonly int CubemapCurrentID = Shader.PropertyToID("_Cubemap_Current");
+    private static readonly int CubemapNextID = Shader.PropertyToID("_Cubemap_Next");
+    private static readonly int BlendID = Shader.PropertyToID("_Blend");
+    private static readonly int SunDirectionID = Shader.PropertyToID("_SunDirection");
+    private static readonly int MoonDirectionID = Shader.PropertyToID("_MoonDirection");
 
     #endregion
 
@@ -40,9 +55,6 @@ public class TimeOfDayManager : MonoBehaviour
     public bool IsCycleActive { get => isCycleActive; set => isCycleActive = value; }
     public LightingPhaseSO CurrentPhase => (phases != null && currentPhaseIndex >= 0 && currentPhaseIndex < phases.Count) ? phases[currentPhaseIndex] : null;
 
-    /// <summary>
-    /// Lazy accessor for the main directional light to guarantee a valid reference even if missing at Awake.
-    /// </summary>
     private Light MainDirectionalLight
     {
         get
@@ -73,8 +85,12 @@ public class TimeOfDayManager : MonoBehaviour
 
     private void Awake()
     {
-        // Force initial lazy resolution during Awake
         _ = MainDirectionalLight;
+
+        if (skyboxBlendedMaterial != null)
+        {
+            RenderSettings.skybox = skyboxBlendedMaterial;
+        }
     }
 
     private void OnEnable()
@@ -121,43 +137,118 @@ public class TimeOfDayManager : MonoBehaviour
             OnPhaseChanged?.Invoke(activePhase, currentPhaseIndex);
         }
 
-        // 3. Interpolate Directional Light Rotation & Intensity continuously
-        float t = activePhase.GetNormalizedProgress(totalHours);
+        // 3. Calculate phase progress (0.0 to 1.0) and evaluate Master Transition Curve
+        float linearT = activePhase.GetNormalizedProgress(totalHours);
+        float transitionedT = activePhase.EvaluateTransitionProgress(linearT);
 
+        int nextPhaseIndex = (currentPhaseIndex + 1) % phases.Count;
+        LightingPhaseSO nextPhase = phases[nextPhaseIndex];
+
+        // 4. Directional Light Calculations
         Light dirLight = MainDirectionalLight;
         if (dirLight != null)
         {
-            Vector3 interpolatedRotation = Vector3.Lerp(activePhase.startRotation, activePhase.endRotation, t);
-            dirLight.transform.rotation = Quaternion.Euler(interpolatedRotation);
+            // Note: Rotation stays linear (linearT) so astro celestial movement remains constant and smooth
+            Vector3 currentEuler = Vector3.Lerp(activePhase.startRotation, activePhase.endRotation, linearT);
+            dirLight.transform.rotation = Quaternion.Euler(currentEuler);
 
-            dirLight.intensity = Mathf.Lerp(activePhase.startLightIntensity, activePhase.endLightIntensity, t);
+            // Light Intensity & Light Color use the Master Transition Curve (transitionedT)
+            dirLight.intensity = Mathf.Lerp(activePhase.startLightIntensity, activePhase.endLightIntensity, transitionedT);
+
+            if (nextPhase != null)
+            {
+                dirLight.color = Color.Lerp(activePhase.lightColor, nextPhase.lightColor, transitionedT);
+            }
+
+            // Update Sun and Moon vectors in Skybox Material
+            if (skyboxBlendedMaterial != null)
+            {
+                Vector3 sunDir = -dirLight.transform.forward;
+                skyboxBlendedMaterial.SetVector(SunDirectionID, sunDir);
+                skyboxBlendedMaterial.SetVector(MoonDirectionID, -sunDir);
+            }
         }
+
+        // 5. Seamless Fog Interpolation using Master Curve
+        bool isFogCurrentlyActive = activePhase.enableFog || (nextPhase != null && nextPhase.enableFog);
+        RenderSettings.fog = isFogCurrentlyActive;
+
+        if (isFogCurrentlyActive)
+        {
+            Color targetFogColor = (nextPhase != null && nextPhase.enableFog) ? nextPhase.fogColor : activePhase.fogColor;
+            float targetFogDensity = (nextPhase != null && nextPhase.enableFog) ? nextPhase.fogDensity : 0.0f;
+            float startFogDensity = activePhase.enableFog ? activePhase.fogDensity : 0.0f;
+
+            RenderSettings.fogColor = Color.Lerp(activePhase.fogColor, targetFogColor, transitionedT);
+            RenderSettings.fogDensity = Mathf.Lerp(startFogDensity, targetFogDensity, transitionedT);
+        }
+
+        // 6. Ambient Light & Skybox Blend using Master Curve
+        if (nextPhase != null)
+        {
+            RenderSettings.ambientIntensity = Mathf.Lerp(activePhase.environmentIntensity, nextPhase.environmentIntensity, transitionedT);
+        }
+
+        if (skyboxBlendedMaterial != null)
+        {
+            skyboxBlendedMaterial.SetFloat(BlendID, transitionedT);
+        }
+
+        DynamicGI.UpdateEnvironment();
     }
 
     public void ApplyPhaseEnvironment(LightingPhaseSO phase)
     {
         if (phase == null) return;
 
-        Light dirLight = MainDirectionalLight;
-        if (dirLight != null)
+        if (skyboxBlendedMaterial != null && phases.Count > 0)
         {
-            dirLight.color = phase.lightColor;
+            int nextPhaseIndex = (currentPhaseIndex + 1) % phases.Count;
+            LightingPhaseSO nextPhase = phases[nextPhaseIndex];
+
+            Texture currentTex = ExtractSkyboxTexture(phase);
+            if (currentTex != null)
+            {
+                skyboxBlendedMaterial.SetTexture(CubemapCurrentID, currentTex);
+            }
+
+            if (nextPhase != null)
+            {
+                Texture nextTex = ExtractSkyboxTexture(nextPhase);
+                if (nextTex != null)
+                {
+                    skyboxBlendedMaterial.SetTexture(CubemapNextID, nextTex);
+                }
+            }
+        }
+
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
+        RenderSettings.fogMode = phase.fogMode;
+    }
+
+    private Texture ExtractSkyboxTexture(LightingPhaseSO phase)
+    {
+        if (phase == null) return null;
+
+        if (phase.skyboxCubemap != null)
+        {
+            return phase.skyboxCubemap;
         }
 
         if (phase.skyboxMaterial != null)
         {
-            RenderSettings.skybox = phase.skyboxMaterial;
+            if (phase.skyboxMaterial.HasProperty("_Tex"))
+            {
+                return phase.skyboxMaterial.GetTexture("_Tex");
+            }
+            if (phase.skyboxMaterial.HasProperty("_FrontTex"))
+            {
+                return phase.skyboxMaterial.GetTexture("_FrontTex");
+            }
+            return phase.skyboxMaterial.mainTexture;
         }
 
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
-        RenderSettings.ambientIntensity = phase.environmentIntensity;
-
-        DynamicGI.UpdateEnvironment();
-
-        RenderSettings.fog = phase.enableFog;
-        RenderSettings.fogColor = phase.fogColor;
-        RenderSettings.fogMode = phase.fogMode;
-        RenderSettings.fogDensity = phase.fogDensity;
+        return null;
     }
 
     #endregion
