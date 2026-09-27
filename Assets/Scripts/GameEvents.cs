@@ -1194,6 +1194,30 @@ public static class GameEvents
         public static event Action<string> OnZoneEntered;
         public static void TriggerZoneEntered(string zoneID)
             => OnZoneEntered?.Invoke(zoneID);
+
+        /// <summary>
+        /// Triggered when the current time-of-day phase completes and the cinematic transition begins.
+        /// Useful for locking controls, initiating camera movements, and swapping world state elements.
+        /// </summary>
+        public static event Action<LightingPhaseSO> OnPhaseChangeTriggered;
+        public static void TriggerPhaseChangeTriggered(LightingPhaseSO nextPhase)
+            => OnPhaseChangeTriggered?.Invoke(nextPhase);
+
+        /// <summary>
+        /// Triggered when the camera transition finishes and the new lighting phase is fully active.
+        /// Used to restore player controls and resume normal gameplay exploration state.
+        /// </summary>
+        public static event Action<LightingPhaseSO> OnPhaseChangeCompleted;
+        public static void TriggerPhaseChangeCompleted(LightingPhaseSO currentPhase)
+            => OnPhaseChangeCompleted?.Invoke(currentPhase);
+
+        /// <summary>
+        /// Triggered every frame/tick when in-game time advances.
+        /// Passes total current in-game hours (0.0 to 24.0), hours int (0-23), and minutes int (0-59).
+        /// </summary>
+        public static event Action<float, int, int> OnTimeUpdated;
+        public static void TriggerTimeUpdated(float totalHours, int currentHour, int currentMinute)
+            => OnTimeUpdated?.Invoke(totalHours, currentHour, currentMinute);
     }
 
     // ==========================================

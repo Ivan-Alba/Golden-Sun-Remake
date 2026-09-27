@@ -7,7 +7,7 @@ using Unity.Cinemachine;
 
 /// <summary>
 /// Core game manager handling global game states, scene flow, party management, and persistent game metadata.
-/// Decoupled via GameEvents (GameState, Scene, SaveLoad, Party, Player, Economy).
+/// Decoupled via GameEvents (GameState, Scene, SaveLoad, Party, Player, Economy, Environment).
 /// </summary>
 public class GameManager : MonoBehaviour
 {
@@ -33,6 +33,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Game State System")]
     [SerializeField] private GameState currentState = GameState.None;
+
+    [Header("Time & Environment Settings")]
+    [Tooltip("Starting hour of the day when beginning a new game (0.0 to 24.0). Default is 8.0 (8:00 AM).")]
+    [SerializeField] private float initialGameTimeHours = 8.0f;
 
     [Header("Party Hero Database (Persistent Core)")]
     [Tooltip("Serialized references to all available hero GameObjects within [PERSISTENT_CORE].")]
@@ -61,6 +65,10 @@ public class GameManager : MonoBehaviour
     private string currentZoneName = "DESCONOCIDO";
     private string currentRegionName = "MUNDO";
 
+    // Time Management (Persistent)
+    // Range 0.0f to 24.0f (1 in-game hour = 60 real seconds => 24 min full cycle)
+    private float currentInGameTimeHours = 8.0f;
+
     // Party Info
     private readonly List<GameObject> activeParty = new List<GameObject>();
     private readonly List<GameObject> reserveParty = new List<GameObject>();
@@ -69,6 +77,12 @@ public class GameManager : MonoBehaviour
     // Game Economy & Metrics
     private int totalGold;
     private float totalPlayed;
+
+    #endregion
+
+    #region Properties
+
+    public float CurrentInGameTimeHours => currentInGameTimeHours;
 
     #endregion
 
@@ -159,6 +173,44 @@ public class GameManager : MonoBehaviour
         {
             totalPlayed += Time.deltaTime;
         }
+
+        // Advance persistent in-game time during Overworld Exploration
+        // 60 real seconds = 1 in-game hour (1/60th of an hour per second)
+        if (currentState == GameState.WorldExploration)
+        {
+            AdvanceInGameTime(Time.deltaTime / 60f);
+        }
+    }
+
+    #endregion
+
+    #region In-Game Time Logic & API
+
+    /// <summary>
+    /// Advances persistent in-game time and broadcasts events for UI/HUD update.
+    /// </summary>
+    /// <param name="hoursToAdd">Fractional hours to advance.</param>
+    public void AdvanceInGameTime(float hoursToAdd)
+    {
+        currentInGameTimeHours = (currentInGameTimeHours + hoursToAdd) % 24.0f;
+        if (currentInGameTimeHours < 0f) currentInGameTimeHours += 24.0f;
+
+        int hourInt = Mathf.FloorToInt(currentInGameTimeHours);
+        int minuteInt = Mathf.FloorToInt((currentInGameTimeHours - hourInt) * 60f);
+
+        GameEvents.Environment.TriggerTimeUpdated(currentInGameTimeHours, hourInt, minuteInt);
+    }
+
+    /// <summary>
+    /// Explicitly sets the persistent game time (e.g., when sleeping at an Inn or loading save data).
+    /// </summary>
+    public void SetInGameTime(float newTimeHours)
+    {
+        currentInGameTimeHours = Mathf.Repeat(newTimeHours, 24.0f);
+        int hourInt = Mathf.FloorToInt(currentInGameTimeHours);
+        int minuteInt = Mathf.FloorToInt((currentInGameTimeHours - hourInt) * 60f);
+
+        GameEvents.Environment.TriggerTimeUpdated(currentInGameTimeHours, hourInt, minuteInt);
     }
 
     #endregion
@@ -374,6 +426,7 @@ public class GameManager : MonoBehaviour
     {
         totalGold = 200;
         totalPlayed = 0f;
+        currentInGameTimeHours = initialGameTimeHours;
         activeParty.Clear();
         reserveParty.Clear();
 
@@ -406,6 +459,9 @@ public class GameManager : MonoBehaviour
 
         NotifyPartyChanged();
         GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
+
+        // Broadcast initial time
+        SetInGameTime(currentInGameTimeHours);
 
         HandleChangeSceneRequest(firstSceneName, initialSpawnID, GameState.WorldExploration);
     }
@@ -451,6 +507,8 @@ public class GameManager : MonoBehaviour
             CinemachineBrain brain = playerMainCamera.GetComponent<CinemachineBrain>();
             if (brain != null) brain.enabled = true;
         }
+
+        SetInGameTime(currentInGameTimeHours);
 
         // 2. Wait frames so Cinemachine and physics settle position in the dark
         yield return new WaitForEndOfFrame();
@@ -556,6 +614,9 @@ public class GameManager : MonoBehaviour
         saveData.header.totalTime = totalPlayed;
         saveData.header.locationName = currentZoneName;
 
+        // TODO: Save persistent in-game time when DTO is updated
+        // saveData.header.inGameTimeHours = currentInGameTimeHours;
+
         saveData.header.partyPreview.Clear();
         for (int i = 0; i < activeParty.Count; i++)
         {
@@ -598,6 +659,9 @@ public class GameManager : MonoBehaviour
         totalPlayed = saveData.header.totalTime;
         currentZoneName = saveData.worldState.currentZoneName;
         currentRegionName = saveData.worldState.currentRegionName;
+
+        // TODO: Restore persistent in-game time when DTO is updated
+        // SetInGameTime(saveData.header.inGameTimeHours);
 
         GameEvents.Party.TriggerGoldChanged(totalGold);
 

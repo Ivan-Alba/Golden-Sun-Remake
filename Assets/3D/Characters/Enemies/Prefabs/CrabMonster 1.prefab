@@ -1942,6 +1942,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battleVisualModel: {fileID: 0}
+  fighterAnim: {fileID: 0}
   selectionPointer: {fileID: 502050470305081035}
 --- !u!114 &5452322158733105067
 MonoBehaviour:
@@ -5117,7 +5118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7335404110028342739, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 4.5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7335404110028342739, guid: b220c2cf4f3e5a544a19bfb5038e920a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

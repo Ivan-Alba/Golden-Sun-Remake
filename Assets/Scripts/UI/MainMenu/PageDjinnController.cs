@@ -1350,11 +1350,14 @@ public class PageDjinnController : IMenuPageController
             }
         }
 
-        List<ClassPsynergyEntry> futurePsynergies = currentHeroDjinnController.CurrentClass.GetFuturePsynergies(currentHero.Level);
-        foreach (var entry in futurePsynergies)
+        if (currentHeroDjinnController != null && currentHeroDjinnController.CurrentClass != null)
         {
-            var card = CreatePsynergyCard(entry.psynergy, PsynergyCardState.Locked, entry.requiredLevel);
-            if (card != null) scrollClassPsynergies.Add(card);
+            List<ClassPsynergyEntry> futurePsynergies = currentHeroDjinnController.CurrentClass.GetFuturePsynergies(currentHero.Level);
+            foreach (var entry in futurePsynergies)
+            {
+                var card = CreatePsynergyCard(entry.psynergy, PsynergyCardState.Locked, entry.requiredLevel);
+                if (card != null) scrollClassPsynergies.Add(card);
+            }
         }
     }
 

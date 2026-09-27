@@ -84,7 +84,7 @@ MonoBehaviour:
   customEntityName: 
   entitySubTitle: 
   uiAnchor: {fileID: 0}
-  defaultHeightOffset: 1.5
+  defaultHeightOffset: 0.75
 --- !u!65 &5542975598973440525
 BoxCollider:
   m_ObjectHideFlags: 0
