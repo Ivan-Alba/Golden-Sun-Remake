@@ -60,7 +60,6 @@ public class PsynergyDatabase : MonoBehaviour
         GameEvents.Database.OnRequestPsynergyBySlug += HandleRequestPsynergyBySlug;
         GameEvents.Database.OnRequestAllPsynergies += HandleRequestAllPsynergies;
         GameEvents.Database.OnRequestElementIcon += HandleRequestElementIcon;
-        GameEvents.Database.OnRequestElementVFX += HandleRequestElementVFX;
     }
 
     private void OnDisable()
@@ -68,7 +67,6 @@ public class PsynergyDatabase : MonoBehaviour
         GameEvents.Database.OnRequestPsynergyBySlug -= HandleRequestPsynergyBySlug;
         GameEvents.Database.OnRequestAllPsynergies -= HandleRequestAllPsynergies;
         GameEvents.Database.OnRequestElementIcon -= HandleRequestElementIcon;
-        GameEvents.Database.OnRequestElementVFX -= HandleRequestElementVFX;
     }
 
 #if UNITY_EDITOR
@@ -175,12 +173,6 @@ public class PsynergyDatabase : MonoBehaviour
         onResult?.Invoke(icon);
     }
 
-    private void HandleRequestElementVFX(ElementalType element, Action<GameObject> onResult)
-    {
-        GameObject vfx = GetElementAnimation(element);
-        onResult?.Invoke(vfx);
-    }
-
     #endregion
 
     #region Public Query API
@@ -199,35 +191,6 @@ public class PsynergyDatabase : MonoBehaviour
 
         Debug.LogWarning($"[PsynergyDatabase] Could not find Psynergy with slug: '{psynergySlug}'.");
         return null;
-    }
-
-    /// <summary>
-    /// Returns the elemental circle VFX associated with a given ElementalType.
-    /// </summary>
-    public GameObject GetElementAnimation(ElementalType element)
-    {
-        switch (element)
-        {
-            case ElementalType.Venus:
-                return venusElementCircle;
-            case ElementalType.Mars:
-                return marsElementCircle;
-            case ElementalType.Jupiter:
-                return jupiterElementCircle;
-            case ElementalType.Mercury:
-                return mercuryElementCircle;
-            default:
-                return noElementalCircle;
-        }
-    }
-
-    /// <summary>
-    /// Helper overload to retrieve elemental animation directly from a PsynergySO.
-    /// </summary>
-    public GameObject GetElementAnimation(PsynergySO psynergy)
-    {
-        if (psynergy == null) return noElementalCircle;
-        return GetElementAnimation(psynergy.Element);
     }
 
     /// <summary>

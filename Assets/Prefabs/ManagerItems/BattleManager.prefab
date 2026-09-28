@@ -532,7 +532,7 @@ MonoBehaviour:
   defaultMagicalMarsHitVFX: {fileID: 0}
   defaultMagicalJupiterHitVFX: {fileID: 0}
   defaultMagicalMercuryHitVFX: {fileID: 0}
-  defaultHealingHitVFX: {fileID: 0}
+  defaultHealingHitVFX: {fileID: 1592372973558972, guid: 965ea0a00419b7f45a8b980324bc2eec, type: 3}
   fallbackHitVFX: {fileID: 1620636520166436, guid: dde07a5d119447849bb82a00dc51a6bf, type: 3}
 --- !u!1 &5989234517974781229
 GameObject:

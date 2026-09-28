@@ -114,7 +114,7 @@ public class BattleFXManager : MonoBehaviour
         GameObject selectedPrefab = ResolveHitFXPrefab(hitFXType, customHitVFX);
         if (selectedPrefab == null) return spawnedInstances;
 
-        StartCoroutine(ExecuteStaggeredHitFX(selectedPrefab, targetObjects, staggerDelay, overrideDestroyDelay, spawnedInstances));
+        StartCoroutine(ExecuteStaggeredHitFX(selectedPrefab, hitFXType, targetObjects, staggerDelay, overrideDestroyDelay, spawnedInstances));
 
         return spawnedInstances;
     }
@@ -192,6 +192,31 @@ public class BattleFXManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Resolves and triggers the associated impact SFX based on the hit FX category.
+    /// </summary>
+    private void PlayHitSFXForType(HitFXType hitFXType)
+    {
+        SFXType sfxToPlay = hitFXType switch
+        {
+            HitFXType.Slash => SFXType.Combat_HitSlash,
+            HitFXType.Blunt => SFXType.Combat_HitBlunt,
+            HitFXType.Piercing => SFXType.Combat_HitPierce,
+            HitFXType.PhysicalVenus => SFXType.Combat_HitVenus,
+            HitFXType.PhysicalMars => SFXType.Combat_HitMars,
+            HitFXType.PhysicalJupiter => SFXType.Combat_HitJupiter,
+            HitFXType.PhysicalMercury => SFXType.Combat_HitMercury,
+            HitFXType.MagicalVenus => SFXType.Combat_MagicVenus,
+            HitFXType.MagicalMars => SFXType.Combat_MagicMars,
+            HitFXType.MagicalJupiter => SFXType.Combat_MagicJupiter,
+            HitFXType.MagicalMercury => SFXType.Combat_MagicMercury,
+            HitFXType.Healing => SFXType.Combat_Heal,
+            _ => SFXType.Combat_HitBlunt
+        };
+
+        GameEvents.Audio.RequestPlaySFX(sfxToPlay);
+    }
+
     private GameObject ResolveHitFXPrefab(HitFXType hitFXType, GameObject customHitVFX)
     {
         switch (hitFXType)
@@ -249,11 +274,12 @@ public class BattleFXManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Spawns impact hit VFX at the explicit damage position defined in FighterBattleAnchors.
-    /// Render occlusion is natively bypassed by the shader's ZTest settings on the VFX prefab.
+    /// Spawns impact hit VFX at the explicit damage position defined in FighterBattleAnchors,
+    /// triggering synchronized impact SFX per target.
     /// </summary>
     private IEnumerator ExecuteStaggeredHitFX(
         GameObject vfxPrefab,
+        HitFXType hitFXType,
         List<GameObject> targetObjects,
         float staggerDelay,
         float overrideDestroyDelay,
@@ -270,6 +296,9 @@ public class BattleFXManager : MonoBehaviour
 
             GameObject instance = Instantiate(vfxPrefab, spawnPos, vfxPrefab.transform.rotation);
             spawnedInstances.Add(instance);
+
+            // Trigger synchronized impact SFX corresponding to this HitFXType
+            PlayHitSFXForType(hitFXType);
 
             float destroyDelay = overrideDestroyDelay > 0f ? overrideDestroyDelay : GetVFXDuration(instance);
             Destroy(instance, destroyDelay);

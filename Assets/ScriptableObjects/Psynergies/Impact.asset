@@ -22,10 +22,10 @@ MonoBehaviour:
   targetType: 4
   battleFXConfig:
     CasterAnimation: 2
-    CasterAuraVFX: {fileID: 0}
+    CasterAuraVFX: {fileID: 1334179685657794, guid: 47a35089950756c498a98dd59edd7ae5, type: 3}
     MainActionVFX: {fileID: 1207179939759570, guid: 81c19ec4595193b4a8ca2905f6d0ec53, type: 3}
     TargetHitFXType: 13
-    CustomTargetHitVFX: {fileID: 0}
+    CustomTargetHitVFX: {fileID: 1050029562203636, guid: b4069a656bda4d940bf63c71279f5c95, type: 3}
     DirectAudioClip: {fileID: 0}
     FallbackSFX: 0
     FallbackCastDuration: 2

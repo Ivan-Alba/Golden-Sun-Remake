@@ -474,12 +474,6 @@ public static class GameEvents
         public static void RequestElementIcon(ElementalType element, Action<Sprite> onResult)
             => OnRequestElementIcon?.Invoke(element, onResult);
 
-        /// <summary>
-        /// Request to retrieve the elemental circle VFX prefab for a given ElementalType.
-        /// </summary>
-        public static event Action<ElementalType, Action<GameObject>> OnRequestElementVFX;
-        public static void RequestElementVFX(ElementalType element, Action<GameObject> onResult)
-            => OnRequestElementVFX?.Invoke(element, onResult);
 
         // --- DJINN DATABASE QUERIES ---
 

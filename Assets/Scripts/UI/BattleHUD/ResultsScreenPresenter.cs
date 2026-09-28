@@ -245,7 +245,7 @@ public class ResultsScreenPresenter
             if (heroObj == null) continue;
 
             HeroStats heroStats = heroObj.GetComponent<HeroStats>();
-            if (heroStats != null)
+            if (heroStats != null && !heroStats.IsDead)
             {
                 int oldLevel = heroStats.Level;
 

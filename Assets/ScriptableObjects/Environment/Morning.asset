@@ -16,13 +16,37 @@ MonoBehaviour:
   startHour: 6
   endHour: 10
   lightColor: {r: 1, g: 0.7019608, b: 0.4862745, a: 1}
-  startLightIntensity: 0.2
+  startLightIntensity: 0.45
   endLightIntensity: 1.1
   startRotation: {x: 0, y: -90, z: 0}
   endRotation: {x: 45, y: -90, z: 0}
   skyboxMaterial: {fileID: 2100000, guid: 42d82a4dd81f71f4bb534641cbb934f0, type: 2}
   skyboxCubemap: {fileID: 8900000, guid: 3733afc0de4fe604089fa944b825ecf2, type: 3}
   environmentIntensity: 1.2
+  phaseTransitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   enableFog: 1
   fogColor: {r: 0.93333334, g: 0.7607843, b: 0.5294118, a: 1}
   fogMode: 3

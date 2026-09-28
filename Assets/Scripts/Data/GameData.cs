@@ -67,6 +67,7 @@ public class WorldSceneStateData
     public string currentZoneName;
     public string currentRegionName;
     public bool isAutoSave;
+    public float currentGameTimeHours = 8.0f;
 }
 
 #endregion

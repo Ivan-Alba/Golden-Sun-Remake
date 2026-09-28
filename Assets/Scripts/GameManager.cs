@@ -614,9 +614,6 @@ public class GameManager : MonoBehaviour
         saveData.header.totalTime = totalPlayed;
         saveData.header.locationName = currentZoneName;
 
-        // TODO: Save persistent in-game time when DTO is updated
-        // saveData.header.inGameTimeHours = currentInGameTimeHours;
-
         saveData.header.partyPreview.Clear();
         for (int i = 0; i < activeParty.Count; i++)
         {
@@ -626,11 +623,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 2. World & Scene State
+        // 2. World & Scene State (Persisting Local Game Time)
         saveData.worldState.currentSceneName = SceneManager.GetActiveScene().name;
         saveData.worldState.currentZoneName = currentZoneName;
         saveData.worldState.currentRegionName = currentRegionName;
         saveData.worldState.spawnPointID = currentUsedSpawnPoint != null ? currentUsedSpawnPoint.SpawnID : string.Empty;
+        saveData.worldState.currentGameTimeHours = currentInGameTimeHours;
 
         // 3. Party Progression State
         saveData.partyState.activeLeaderHeroName = activeLeaderHero != null ? activeLeaderHero.name : string.Empty;
@@ -654,14 +652,14 @@ public class GameManager : MonoBehaviour
 
         loadingData = true;
 
-        // 1. Restore Economy & Meta Metrics
+        // 1. Restore Economy, Meta Metrics & World Time
         totalGold = Mathf.Max(0, saveData.header.totalGold);
         totalPlayed = saveData.header.totalTime;
         currentZoneName = saveData.worldState.currentZoneName;
         currentRegionName = saveData.worldState.currentRegionName;
 
-        // TODO: Restore persistent in-game time when DTO is updated
-        // SetInGameTime(saveData.header.inGameTimeHours);
+        // Restore local in-game world time and notify environmental listeners
+        SetInGameTime(saveData.worldState.currentGameTimeHours);
 
         GameEvents.Party.TriggerGoldChanged(totalGold);
 

@@ -24,7 +24,7 @@ MonoBehaviour:
     CasterAnimation: 2
     CasterAuraVFX: {fileID: 1938559062727932, guid: 73dfabe99ff69c24ea921a5416a6598f, type: 3}
     MainActionVFX: {fileID: 1938559062727932, guid: 34bc647259500e34199bc1808c15ab1b, type: 3}
-    TargetHitFXType: 0
+    TargetHitFXType: 9
     CustomTargetHitVFX: {fileID: 0}
     DirectAudioClip: {fileID: 0}
     FallbackSFX: 0

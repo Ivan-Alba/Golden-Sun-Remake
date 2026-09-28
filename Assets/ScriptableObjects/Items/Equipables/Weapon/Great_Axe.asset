@@ -69,7 +69,7 @@ MonoBehaviour:
   weaponModelPrefab: {fileID: 919132149155446097, guid: a26d95a9c89155a4388ae7bede909164, type: 3}
   hitFXType: 1
   customHitVFX: {fileID: 0}
-  swingSoundEffect: {fileID: 8300000, guid: cb4ec17c0adde3542aafeaaeddef189b, type: 3}
+  swingSoundEffect: {fileID: 0}
   fallbackSwingSFX: 14
   hasUnleash: 0
   unleashProcRate: 0.35

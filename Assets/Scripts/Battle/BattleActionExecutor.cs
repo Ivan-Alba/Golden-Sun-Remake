@@ -102,9 +102,6 @@ public class BattleActionExecutor : MonoBehaviour
 
     #region Action Implementations
 
-    /// <summary>
-    /// Executes a physical basic attack sequence with movement, weapon properties, damage calculation, and animations.
-    /// </summary>
     private IEnumerator ExecuteBasicAttack(FighterController caster, GameObject target)
     {
         if (target == null || !target.TryGetComponent<FighterStats>(out var targetStats))
@@ -121,7 +118,7 @@ public class BattleActionExecutor : MonoBehaviour
         // 2. Resolve Weapon Properties & Critical Hit Probability
         ElementalType weaponElement = ElementalType.None;
         int critRateBonus = 1;
-        HitFXType weaponHitFX = HitFXType.Blunt; // Fallback por defecto si no hay arma equipada (puños/ataque desarmado)
+        HitFXType weaponHitFX = HitFXType.Blunt;
 
         if (caster.TryGetComponent<HeroEquipment>(out var heroEq))
         {
@@ -130,14 +127,15 @@ public class BattleActionExecutor : MonoBehaviour
             {
                 weaponElement = weapon.Element;
                 critRateBonus = weapon.CriticalRateBonus;
-                weaponHitFX = weapon.HitFXType; // Sobrescribe con el tipo específico del arma si existe
+                weaponHitFX = weapon.HitFXType;
             }
         }
 
         bool isCritical = BattleDamageCalculator.CheckCriticalHit(critRateBonus, casterStats.Luck);
 
-        // 3. Play Attack Animation
+        // 3. Play Attack Animation & Swing SFX
         caster.PlayAttackAnimation();
+        GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing); // Sonido de blandir el arma en el aire
         yield return new WaitForSeconds(0.4f);
 
         // 4. Calculate & Apply Physical Damage
@@ -158,14 +156,11 @@ public class BattleActionExecutor : MonoBehaviour
             GameEvents.Battle.TriggerDamageNumber(target, textDisplay, textType);
         }
 
-        // Trigger Visual Hit Effect via FXManager using the weapon's explicit HitFXType (or Blunt fallback)
+        // 5. Trigger Visual & Audio Hit FX via FXManager (Maneja tanto el VFX como el SFX de impacto adecuado)
         if (fxManager != null)
         {
             fxManager.PlayBasicAttackHitFX(target, weaponHitFX);
         }
-
-        // 5. Play Hit SFX via Event System
-        GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
 
         yield return new WaitForSeconds(0.7f);
 

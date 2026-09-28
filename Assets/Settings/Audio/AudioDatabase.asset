@@ -66,5 +66,14 @@ MonoBehaviour:
     sfxClip: {fileID: 8300000, guid: ea5d04da3186565459e0465a81a0e12d, type: 3}
     defaultVolume: 1
   - sfxType: 14
+    sfxClip: {fileID: 8300000, guid: 3b339bfd0e5761f4392809c75b3f31a5, type: 3}
+    defaultVolume: 1
+  - sfxType: 15
+    sfxClip: {fileID: 8300000, guid: f44ec8f6031c11b4dac8e73dc455a08b, type: 3}
+    defaultVolume: 1
+  - sfxType: 16
     sfxClip: {fileID: 8300000, guid: 3f8cc91c3e3f6c74385762d9de65d5cc, type: 3}
+    defaultVolume: 1
+  - sfxType: 26
+    sfxClip: {fileID: 8300000, guid: 906adc1e66317fa4095e5af893ebd582, type: 3}
     defaultVolume: 1
