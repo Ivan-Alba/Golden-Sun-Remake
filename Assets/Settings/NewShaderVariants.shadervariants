@@ -1,0 +1,185 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: NewShaderVariants
+  m_Shaders:
+  - first: {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 111, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 104, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 10490, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 13
+      - keywords: INSTANCING_ON
+        passType: 13
+  - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9001, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9002, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9003, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9004, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9007, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9100, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _UIE_FORCE_GAMMA
+        passType: 0
+  - first: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 19011, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
+    second:
+      variants:
+      - keywords: _OUTPUT_DEPTH
+        passType: 0
+  - first: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc, type: 3}
+    second:
+      variants:
+      - keywords: HDR_COLORSPACE_CONVERSION _TONEMAP_ACES
+        passType: 0
+      - keywords: _TONEMAP_ACES
+        passType: 0
+  - first: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
+    second:
+      variants:
+      - keywords: HDR_ENCODING _BLOOM_LQ _DITHERING _HDR_GRADING
+        passType: 0
+      - keywords: HDR_ENCODING _BLOOM_LQ _HDR_GRADING
+        passType: 0
+      - keywords: _BLOOM_LQ _DITHERING _HDR_GRADING
+        passType: 0
+      - keywords: _BLOOM_LQ _HDR_GRADING
+        passType: 0
+  - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: 
+        passType: 13
+      - keywords: USE_LEGACY_LIGHTMAPS _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _MAIN_LIGHT_SHADOWS_CASCADE _METALLICSPECGLOSSMAP _NORMALMAP _REFLECTION_PROBE_ATLAS
+          _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SHADOWS_SOFT
+        passType: 13
+      - keywords: USE_LEGACY_LIGHTMAPS _ADDITIONAL_LIGHT_SHADOWS _CLUSTER_LIGHT_LOOP
+          _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _REFLECTION_PROBE_ATLAS _REFLECTION_PROBE_BLENDING
+          _REFLECTION_PROBE_BOX_PROJECTION _SHADOWS_SOFT _SPECULAR_SETUP
+        passType: 13
+      - keywords: USE_LEGACY_LIGHTMAPS _CLUSTER_LIGHT_LOOP _MAIN_LIGHT_SHADOWS_CASCADE
+          _NORMALMAP
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 9ddee23d8a6472a4d9a7f654cde60fee, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: USE_LEGACY_LIGHTMAPS
+        passType: 0
+      - keywords: 
+        passType: 8
+  - first: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
+    second:
+      variants:
+      - keywords: OUTLINE_ON
+        passType: 0
+  - first: {fileID: 4800000, guid: 63eaba0ebfb82cc43bde059b4a8c65f6, type: 3}
+    second:
+      variants:
+      - keywords: _SMAA_PRESET_HIGH
+        passType: 0
+  - first: {fileID: 4800000, guid: 5f1864addb451f54bae8c86d230f736e, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 6cda457ac28612740adb23da5d39ea92, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: FLARE_HAS_OCCLUSION
+        passType: 0
+  - first: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _INTERLEAVED_GRADIENT _ORTHOGRAPHIC _SAMPLE_COUNT_HIGH _SOURCE_DEPTH_HIGH
+        passType: 0
+      - keywords: _INTERLEAVED_GRADIENT _SAMPLE_COUNT_HIGH _SOURCE_DEPTH_HIGH
+        passType: 0
+  - first: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 12dc59547ea167a4ab435097dd0f9add, type: 3}
+    second:
+      variants:
+      - keywords: DISABLE_TEXTURE2D_X_ARRAY
+        passType: 0
+  - first: {fileID: 4800000, guid: 36e335017ad71d54fbb10842863188ae, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
