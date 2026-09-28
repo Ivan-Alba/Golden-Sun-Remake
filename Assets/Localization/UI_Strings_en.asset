@@ -48,6 +48,26 @@ MonoBehaviour:
     m_Localized: Cancel
     m_Metadata:
       m_Items: []
+  - m_Id: 9387719153553408
+    m_Localized: Sunrise
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387722089566208
+    m_Localized: Day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387723532406784
+    m_Localized: Sunset
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387724652285952
+    m_Localized: Night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9388298777006080
+    m_Localized: Select a time of day to change the time
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

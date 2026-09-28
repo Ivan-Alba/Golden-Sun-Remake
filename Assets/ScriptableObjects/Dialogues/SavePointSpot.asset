@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SavePointSpot
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   dialogueId: save_point_spot
-  markAsReadOnEnd: 1
+  markAsReadOnEnd: 0
   readFlag: {fileID: 0}
   nodes:
   - localizedText:
@@ -69,6 +69,21 @@ MonoBehaviour:
       setFlagSlugOnSelect: 
       actionsOnSelect:
       - {fileID: 11400000, guid: 532bf9337721fd545a7823dff919dd30, type: 2}
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 1771853981290496
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect: []
     - localizedChoiceText:
         m_TableReference:
           m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13

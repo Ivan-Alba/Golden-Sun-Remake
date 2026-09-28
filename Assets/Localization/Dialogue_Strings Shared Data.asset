@@ -23,6 +23,10 @@ MonoBehaviour:
     m_Key: npc_name_debug_flint
     m_Metadata:
       m_Items: []
+  - m_Id: 9388138814640128
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -1212,6 +1212,12 @@ public static class GameEvents
         public static event Action<float, int, int> OnTimeUpdated;
         public static void TriggerTimeUpdated(float totalHours, int currentHour, int currentMinute)
             => OnTimeUpdated?.Invoke(totalHours, currentHour, currentMinute);
+
+        public static event Action<float> OnSetInGameTimeRequested;
+        public static void RequestSetInGameTime(float targetHours) => OnSetInGameTimeRequested?.Invoke(targetHours);
+
+        public static event Action OnTimeTransitionCompleted;
+        public static void TriggerTimeTransitionCompleted() => OnTimeTransitionCompleted?.Invoke();
     }
 
     // ==========================================

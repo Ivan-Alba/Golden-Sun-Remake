@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: DS_Flint_00
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   dialogueId: npc_flint_00
-  markAsReadOnEnd: 1
+  markAsReadOnEnd: 0
+  readFlag: {fileID: 0}
   nodes:
   - localizedText:
       m_TableReference:
@@ -36,7 +37,31 @@ MonoBehaviour:
       m_LocalVariables: []
     choiceType: 0
     choices: []
-    setFlagOnComplete: 
+    setFlagOnComplete: {fileID: 0}
+    setFlagSlugOnComplete: 
+  - localizedText:
+      m_TableReference:
+        m_TableCollectionName: GUID:35a14b5ec0594e848b9e7cfc06aefea5
+      m_TableEntryReference:
+        m_KeyId: 3710288007168
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    overridePortrait: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
+    overrideSpeakerName:
+      m_TableReference:
+        m_TableCollectionName: GUID:35a14b5ec0594e848b9e7cfc06aefea5
+      m_TableEntryReference:
+        m_KeyId: 3830870052864
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    choiceType: 0
+    choices: []
+    setFlagOnComplete: {fileID: 0}
+    setFlagSlugOnComplete: 
   references:
     version: 2
     RefIds: []

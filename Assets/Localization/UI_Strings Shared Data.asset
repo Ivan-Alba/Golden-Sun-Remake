@@ -45,6 +45,26 @@ MonoBehaviour:
     m_Key: cancel_action
     m_Metadata:
       m_Items: []
+  - m_Id: 9387719153553408
+    m_Key: sunrise_time_action
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387722089566208
+    m_Key: day_time_action
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387723532406784
+    m_Key: sunset_time_action
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9387724652285952
+    m_Key: night_time_action
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9388298777006080
+    m_Key: debug_time_change_dialogue
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

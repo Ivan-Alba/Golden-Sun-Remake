@@ -38,11 +38,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Cubemap_Current:
-        m_Texture: {fileID: 8900000, guid: 3733afc0de4fe604089fa944b825ecf2, type: 3}
+        m_Texture: {fileID: 8900000, guid: 0e7592508ca476c418eaa3c066a738eb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Cubemap_Next:
-        m_Texture: {fileID: 8900000, guid: 0e7592508ca476c418eaa3c066a738eb, type: 3}
+        m_Texture: {fileID: 8900000, guid: 3733afc0de4fe604089fa944b825ecf2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -59,18 +59,19 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Blend: 0.5672209
+    - _Blend: 0.0456208
     - _MoonExponent: 800
     - _MoonSize: 0.03
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Rotation: 24.991613
+    - _Rotation: 0
+    - _RotationSpeed: 0.5
     - _SunExponent: 500
     - _SunSize: 0.05
     m_Colors:
     - _MoonColor: {r: 1.2, g: 1.6, b: 2.2, a: 1}
-    - _MoonDirection: {r: -0.90239775, g: -0.43090403, b: 0.0000000037252903, a: 0}
+    - _MoonDirection: {r: -0.65466344, g: -0.7559207, b: -0.00000014901161, a: 0}
     - _SunColor: {r: 2.5, g: 2.2, b: 1.6, a: 1}
-    - _SunDirection: {r: 0.90239775, g: 0.43090403, b: -0.0000000037252903, a: 0}
+    - _SunDirection: {r: 0.65466344, g: 0.7559207, b: 0.00000014901161, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

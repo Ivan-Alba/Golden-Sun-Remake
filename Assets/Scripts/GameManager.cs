@@ -109,6 +109,7 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.OnChangeGameStateRequested += HandleGameStateRequest;
         GameEvents.GameState.OnRequestPlayTime += HandleRequestPlayTime;
         GameEvents.GameState.OnUpdateZoneRequested += UpdateCurrentZone;
+        GameEvents.Environment.OnSetInGameTimeRequested += HandleSetInGameTimeRequested;
 
         // Time Management Event Subscriptions
         GameEvents.GameState.OnChangeGameSpeedRequested += HandleChangeGameSpeedRequest;
@@ -142,6 +143,7 @@ public class GameManager : MonoBehaviour
         GameEvents.GameState.OnChangeGameStateRequested -= HandleGameStateRequest;
         GameEvents.GameState.OnRequestPlayTime -= HandleRequestPlayTime;
         GameEvents.GameState.OnUpdateZoneRequested -= UpdateCurrentZone;
+        GameEvents.Environment.OnSetInGameTimeRequested -= HandleSetInGameTimeRequested;
 
         // Time Management Event Unsubscriptions
         GameEvents.GameState.OnChangeGameSpeedRequested -= HandleChangeGameSpeedRequest;
@@ -220,6 +222,11 @@ public class GameManager : MonoBehaviour
     private void HandleGameStateRequest(GameState requestedState)
     {
         SetGameState(requestedState);
+    }
+
+    private void HandleSetInGameTimeRequested(float targetHours)
+    {
+        SetInGameTime(targetHours);
     }
 
     private void HandleRequestPlayTime(Action<float> callback)

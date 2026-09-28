@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36ddf626a14e6c54687ba9eb273ff627, type: 3}
+  m_Name: Debug_SetTime
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  dialogueId: debug_set_time
+  markAsReadOnEnd: 0
+  readFlag: {fileID: 0}
+  nodes:
+  - localizedText:
+      m_TableReference:
+        m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+      m_TableEntryReference:
+        m_KeyId: 9388298777006080
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    overridePortrait: {fileID: 0}
+    overrideSpeakerName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    choiceType: 0
+    choices:
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 9387719153553408
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect:
+      - {fileID: 11400000, guid: fdf41db38727d4c46894502dcd6626c5, type: 2}
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 9387722089566208
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect:
+      - {fileID: 11400000, guid: fd78eee2d8bff844486e6a2c4a5aa31a, type: 2}
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 9387723532406784
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect:
+      - {fileID: 11400000, guid: 210a0b0062d191c4fa932fb1de9a0fc1, type: 2}
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 9387724652285952
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect:
+      - {fileID: 11400000, guid: c465e1ab68964cd4c80bd83f7ca24bb7, type: 2}
+    - localizedChoiceText:
+        m_TableReference:
+          m_TableCollectionName: GUID:31ddc9679bab30a44985a82ade0cfd13
+        m_TableEntryReference:
+          m_KeyId: 1771853981290496
+          m_Key: 
+        m_FallbackState: 0
+        m_WaitForCompletion: 0
+        m_LocalVariables: []
+      nextDialogue: {fileID: 0}
+      requiredFlag: {fileID: 0}
+      requiredFlagSlug: 
+      setFlagOnSelect: {fileID: 0}
+      setFlagSlugOnSelect: 
+      actionsOnSelect: []
+    setFlagOnComplete: {fileID: 0}
+    setFlagSlugOnComplete: 
+  references:
+    version: 2
+    RefIds: []

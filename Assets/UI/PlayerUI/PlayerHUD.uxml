@@ -1,124 +1,118 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="DialogueChoiceItemTemplate" src="project://database/Assets/UI/Components/Dialogue/DialogueChoiceItemTemplate.uxml?fileID=9197481963319205126&amp;guid=56d9c601143429b4b9f836a4a903fc66&amp;type=3#DialogueChoiceItemTemplate"/>
     <ui:Template name="HeroStatusCardTemplate" src="project://database/Assets/UI/Components/HeroStatusCardTemplate.uxml?fileID=9197481963319205126&amp;guid=559dfa0c9a67e66478431b26f0540ca8&amp;type=3#HeroStatusCardTemplate"/>
-    <ui:Template name="DialogueChoiceItemTemplate" src="project://database/Assets/UI/Components/Dialogue/DialogueChoiceItemTemplate.uxml?fileID=..."/>
     <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <Style src="project://database/Assets/UI/PlayerUI/PlayerHUD.uss?fileID=7433441132597879392&amp;guid=2fd1775c5a3f56947945b46434856b8e&amp;type=3#PlayerHUD"/>
     <ui:VisualElement name="hud_root" picking-mode="Ignore" class="hud-root">
-        <ui:VisualElement name="zone_title_banner_container" class="zone-title-banner-container">
-            <ui:VisualElement name="zone_title_banner" class="zone-title-banner">
-                <ui:Label name="label_banner_zone_name" text="BOSQUE DE KOLIMA" class="label-banner-zone-name"/>
-                <ui:VisualElement class="banner-divider-container">
-                    <ui:VisualElement class="banner-divider-diamond"/>
-                    <ui:VisualElement class="banner-divider-line"/>
-                    <ui:VisualElement class="banner-divider-diamond"/>
+        <ui:VisualElement name="zone_title_banner_container" picking-mode="Ignore" class="zone-title-banner-container">
+            <ui:VisualElement name="zone_title_banner" picking-mode="Ignore" class="zone-title-banner">
+                <ui:Label name="label_banner_zone_name" picking-mode="Ignore" text="BOSQUE DE KOLIMA" class="label-banner-zone-name"/>
+                <ui:VisualElement picking-mode="Ignore" class="banner-divider-container">
+                    <ui:VisualElement picking-mode="Ignore" class="banner-divider-diamond"/>
+                    <ui:VisualElement picking-mode="Ignore" class="banner-divider-line"/>
+                    <ui:VisualElement picking-mode="Ignore" class="banner-divider-diamond"/>
                 </ui:VisualElement>
-                <ui:Label name="label_banner_region_name" text="Región de Bilibin" class="label-banner-region-name"/>
+                <ui:Label name="label_banner_region_name" picking-mode="Ignore" text="Región de Bilibin" class="label-banner-region-name"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="hud_exploration_layer" class="hud-layer exploration-layer">
-            <ui:VisualElement name="top_left_container" class="top-left-container">
-                <ui:VisualElement name="journal_medallion_prompt" class="journal-medallion-prompt">
-                    <ui:VisualElement name="journal_medallion_frame" class="journal-medallion-frame">
-                        <ui:VisualElement name="journal_icon" class="journal-icon"/>
+        <ui:VisualElement name="hud_exploration_layer" picking-mode="Ignore" class="hud-layer exploration-layer">
+            <ui:VisualElement name="top_left_container" picking-mode="Ignore" class="top-left-container">
+                <ui:VisualElement name="journal_medallion_prompt" picking-mode="Ignore" class="journal-medallion-prompt">
+                    <ui:VisualElement name="journal_medallion_frame" picking-mode="Ignore" class="journal-medallion-frame">
+                        <ui:VisualElement name="journal_icon" picking-mode="Ignore" class="journal-icon"/>
                     </ui:VisualElement>
-                    <ui:VisualElement name="journal_key_badge" class="journal-key-badge">
-                        <ui:Label name="label_menu_key" text="TAB" class="label-menu-key"/>
+                    <ui:VisualElement name="journal_key_badge" picking-mode="Ignore" class="journal-key-badge">
+                        <ui:Label name="label_menu_key" picking-mode="Ignore" text="TAB" class="label-menu-key"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="top_right_container" class="top-right-container">
-                <ui:VisualElement name="minimap_wrapper" class="minimap-wrapper">
-                    <ui:VisualElement name="minimap_frame" class="minimap-frame">
-                        <ui:VisualElement name="minimap_viewport" class="minimap-viewport">
-                            <ui:VisualElement name="minimap_player_arrow" class="minimap-player-arrow"/>
-                            <ui:VisualElement name="minimap_markers_container" class="minimap-markers-container"/>
-                            <ui:VisualElement name="minimap_vignette_overlay" class="minimap-vignette-overlay"/>
-                            <ui:VisualElement name="minimap_glass_reflection" class="minimap-glass-reflection"/>
+            <ui:VisualElement name="top_right_container" picking-mode="Ignore" class="top-right-container">
+                <ui:VisualElement name="minimap_wrapper" picking-mode="Ignore" class="minimap-wrapper">
+                    <ui:VisualElement name="minimap_frame" picking-mode="Ignore" class="minimap-frame">
+                        <ui:VisualElement name="minimap_viewport" picking-mode="Ignore" class="minimap-viewport">
+                            <ui:VisualElement name="minimap_player_arrow" picking-mode="Ignore" class="minimap-player-arrow"/>
+                            <ui:VisualElement name="minimap_markers_container" picking-mode="Ignore" class="minimap-markers-container"/>
+                            <ui:VisualElement name="minimap_vignette_overlay" picking-mode="Ignore" class="minimap-vignette-overlay"/>
+                            <ui:VisualElement name="minimap_glass_reflection" picking-mode="Ignore" class="minimap-glass-reflection"/>
                         </ui:VisualElement>
-                        <ui:VisualElement name="minimap_compass_ring" class="minimap-compass-ring">
-                            <ui:Label name="minimap_north_indicator" text="N" class="minimap-north-indicator"/>
+                        <ui:VisualElement name="minimap_compass_ring" picking-mode="Ignore" class="minimap-compass-ring">
+                            <ui:Label name="minimap_north_indicator" picking-mode="Ignore" text="N" class="minimap-north-indicator"/>
                         </ui:VisualElement>
-                        <ui:VisualElement name="day_night_orbit_ring" class="day-night-orbit-ring">
-                            <ui:VisualElement name="celestial_body_pivot" class="celestial-body-pivot">
-                                <ui:VisualElement name="sun_moon_icon" class="sun-moon-icon icon-sun"/>
+                        <ui:VisualElement name="day_night_orbit_ring" picking-mode="Ignore" class="day-night-orbit-ring">
+                            <ui:VisualElement name="celestial_body_pivot" picking-mode="Ignore" class="celestial-body-pivot">
+                                <ui:VisualElement name="sun_moon_icon" picking-mode="Ignore" class="sun-moon-icon icon-sun"/>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="time_badge_container" class="time-badge-container">
-                        <ui:Label name="label_world_time" text="14:30 - Tarde" class="label-world-time"/>
+                    <ui:VisualElement name="time_badge_container" picking-mode="Ignore" class="time-badge-container">
+                        <ui:Label name="label_world_time" picking-mode="Ignore" text="14:30 - Tarde" class="label-world-time"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement name="quest_objective_box" class="quest-objective-box">
-                    <ui:VisualElement name="quest_marker_icon" class="quest-marker-icon"/>
-                    <ui:Label name="label_quest_objective" text="Investiga el extraño árbol sabio." class="label-quest-objective"/>
+                <ui:VisualElement name="quest_objective_box" picking-mode="Ignore" class="quest-objective-box">
+                    <ui:VisualElement name="quest_marker_icon" picking-mode="Ignore" class="quest-marker-icon"/>
+                    <ui:Label name="label_quest_objective" picking-mode="Ignore" text="Investiga el extraño árbol sabio." class="label-quest-objective"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="center_aiming_container" class="center-aiming-container">
-                <ui:VisualElement name="aiming_reticle" class="aiming-reticle"/>
+            <ui:VisualElement name="center_aiming_container" picking-mode="Ignore" class="center-aiming-container">
+                <ui:VisualElement name="aiming_reticle" picking-mode="Ignore" class="aiming-reticle"/>
             </ui:VisualElement>
-            <ui:VisualElement name="bottom_center_stamina_container" class="bottom-center-stamina-container">
-                <ui:VisualElement name="stamina_bar_background" class="stamina-bar-background">
-                    <ui:VisualElement name="stamina_bar_fill" class="stamina-bar-fill"/>
+            <ui:VisualElement name="bottom_center_stamina_container" picking-mode="Ignore" class="bottom-center-stamina-container">
+                <ui:VisualElement name="stamina_bar_background" picking-mode="Ignore" class="stamina-bar-background">
+                    <ui:VisualElement name="stamina_bar_fill" picking-mode="Ignore" class="stamina-bar-fill"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="bottom_left_party_container" class="bottom-left-party-container">
-                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_0" class="active-hero"/>
-                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_1"/>
+            <ui:VisualElement name="bottom_left_party_container" picking-mode="Ignore" class="bottom-left-party-container">
+                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_0" picking-mode="Ignore" class="active-hero"/>
+                <ui:Instance template="HeroStatusCardTemplate" name="hero_status_card_1" picking-mode="Ignore"/>
             </ui:VisualElement>
-            <ui:VisualElement name="bottom_right_shortcuts_container" class="bottom-right-shortcuts-container">
-                <ui:VisualElement name="dpad_hud_wheel" class="dpad-hud-wheel">
-                    <ui:VisualElement name="hud_shortcut_up" class="hud-shortcut-slot slot-up">
-                        <ui:VisualElement name="hud_shortcut_up_icon" class="hud-shortcut-icon"/>
-                        <ui:VisualElement class="hud-shortcut-key-badge">
-                            <ui:Label text="Q" class="label-shortcut-key"/>
+            <ui:VisualElement name="bottom_right_shortcuts_container" picking-mode="Ignore" class="bottom-right-shortcuts-container">
+                <ui:VisualElement name="dpad_hud_wheel" picking-mode="Ignore" class="dpad-hud-wheel">
+                    <ui:VisualElement name="hud_shortcut_up" picking-mode="Ignore" class="hud-shortcut-slot slot-up">
+                        <ui:VisualElement name="hud_shortcut_up_icon" picking-mode="Ignore" class="hud-shortcut-icon"/>
+                        <ui:VisualElement picking-mode="Ignore" class="hud-shortcut-key-badge">
+                            <ui:Label text="Q" picking-mode="Ignore" class="label-shortcut-key"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="hud_shortcut_left" class="hud-shortcut-slot slot-left">
-                        <ui:VisualElement name="hud_shortcut_left_icon" class="hud-shortcut-icon"/>
-                        <ui:VisualElement class="hud-shortcut-key-badge">
-                            <ui:Label text="E" class="label-shortcut-key"/>
+                    <ui:VisualElement name="hud_shortcut_left" picking-mode="Ignore" class="hud-shortcut-slot slot-left">
+                        <ui:VisualElement name="hud_shortcut_left_icon" picking-mode="Ignore" class="hud-shortcut-icon"/>
+                        <ui:VisualElement picking-mode="Ignore" class="hud-shortcut-key-badge">
+                            <ui:Label text="E" picking-mode="Ignore" class="label-shortcut-key"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="hud_shortcut_right" class="hud-shortcut-slot slot-right">
-                        <ui:VisualElement name="hud_shortcut_right_icon" class="hud-shortcut-icon"/>
-                        <ui:VisualElement class="hud-shortcut-key-badge">
-                            <ui:Label text="R" class="label-shortcut-key"/>
+                    <ui:VisualElement name="hud_shortcut_right" picking-mode="Ignore" class="hud-shortcut-slot slot-right">
+                        <ui:VisualElement name="hud_shortcut_right_icon" picking-mode="Ignore" class="hud-shortcut-icon"/>
+                        <ui:VisualElement picking-mode="Ignore" class="hud-shortcut-key-badge">
+                            <ui:Label text="R" picking-mode="Ignore" class="label-shortcut-key"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="hud_shortcut_down" class="hud-shortcut-slot slot-down">
-                        <ui:VisualElement name="hud_shortcut_down_icon" class="hud-shortcut-icon"/>
-                        <ui:VisualElement class="hud-shortcut-key-badge">
-                            <ui:Label text="F" class="label-shortcut-key"/>
+                    <ui:VisualElement name="hud_shortcut_down" picking-mode="Ignore" class="hud-shortcut-slot slot-down">
+                        <ui:VisualElement name="hud_shortcut_down_icon" picking-mode="Ignore" class="hud-shortcut-icon"/>
+                        <ui:VisualElement picking-mode="Ignore" class="hud-shortcut-key-badge">
+                            <ui:Label text="F" picking-mode="Ignore" class="label-shortcut-key"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="dpad_hud_center_gem" class="dpad-hud-center-gem"/>
+                    <ui:VisualElement name="dpad_hud_center_gem" picking-mode="Ignore" class="dpad-hud-center-gem"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="world_interaction_prompts_container" class="world-interaction-prompts-container"/>
+            <ui:VisualElement name="world_interaction_prompts_container" picking-mode="Ignore" class="world-interaction-prompts-container"/>
         </ui:VisualElement>
-
-
-        <ui:VisualElement name="hud_dialogue_layer" class="hud-layer dialogue-layer">
-            <ui:VisualElement name="dialogue_box_container" class="dialogue-box-container">
-                <ui:VisualElement name="dialogue_portrait_frame" class="dialogue-portrait-frame">
-                    <ui:VisualElement name="dialogue_portrait_img" class="dialogue-portrait-img"/>
+        <ui:VisualElement name="hud_dialogue_layer" picking-mode="Ignore" class="hud-layer dialogue-layer">
+            <ui:VisualElement name="dialogue_box_container" picking-mode="Ignore" class="dialogue-box-container">
+                <ui:VisualElement name="dialogue_portrait_frame" picking-mode="Ignore" class="dialogue-portrait-frame">
+                    <ui:VisualElement name="dialogue_portrait_img" picking-mode="Ignore" class="dialogue-portrait-img"/>
                 </ui:VisualElement>
-                <ui:VisualElement name="dialogue_text_box" class="dialogue-text-box">
-                    <ui:VisualElement name="dialogue_name_badge" class="dialogue-name-badge">
-                        <ui:Label name="label_speaker_name" text="Kraden" class="label-speaker-name"/>
+                <ui:VisualElement name="dialogue_text_box" picking-mode="Ignore" class="dialogue-text-box">
+                    <ui:VisualElement name="dialogue_name_badge" picking-mode="Ignore" class="dialogue-name-badge">
+                        <ui:Label name="label_speaker_name" picking-mode="Ignore" text="Kraden" class="label-speaker-name"/>
                     </ui:VisualElement>
-                    <ui:Label name="label_dialogue_text" text="¡Increíble! La energía de la Psinergía en este santuario es mucho más densa de lo que sospechaba..." class="label-dialogue-text"/>
-                    <ui:VisualElement name="dialogue_next_prompt" class="dialogue-next-prompt"/>
-                    
-                    <ui:VisualElement name="dialogue_choices_container" class="dialogue-choices-container">
-                    </ui:VisualElement>
+                    <ui:Label name="label_dialogue_text" picking-mode="Ignore" text="¡Increíble! La energía de la Psinergía en este santuario es mucho más densa de lo que sospechaba..." class="label-dialogue-text"/>
+                    <ui:VisualElement name="dialogue_next_prompt" picking-mode="Ignore" class="dialogue-next-prompt"/>
+                    <ui:VisualElement name="dialogue_choices_container" picking-mode="Ignore" class="dialogue-choices-container"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-
-
-        <ui:VisualElement name="hud_notifications_layer" class="hud-layer notifications-layer">
-            <ui:VisualElement name="notifications_stream_container" class="notifications-stream-container"/>
+        <ui:VisualElement name="hud_notifications_layer" picking-mode="Ignore" class="hud-layer notifications-layer">
+            <ui:VisualElement name="notifications_stream_container" picking-mode="Ignore" class="notifications-stream-container"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

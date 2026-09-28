@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering; // Required for LensFlareComponentSRP
 
 /// <summary>
 /// Manages directional light, skybox blending via Cubemaps, fog, and environment settings.
@@ -17,6 +18,7 @@ public class TimeOfDayManager : MonoBehaviour
 
     [Header("Scene References")]
     [SerializeField] private Light mainDirectionalLight;
+    [SerializeField] private LensFlareComponentSRP mainLensFlareComponent;
 
     [Header("Skybox Blending Material")]
     [Tooltip("Assign the material using SG_SkyboxBlend shader.")]
@@ -79,6 +81,18 @@ public class TimeOfDayManager : MonoBehaviour
         }
     }
 
+    private LensFlareComponentSRP MainLensFlare
+    {
+        get
+        {
+            if (mainLensFlareComponent == null && MainDirectionalLight != null)
+            {
+                mainLensFlareComponent = MainDirectionalLight.GetComponent<LensFlareComponentSRP>();
+            }
+            return mainLensFlareComponent;
+        }
+    }
+
     #endregion
 
     #region Unity Lifecycle & Event Subscriptions
@@ -86,6 +100,7 @@ public class TimeOfDayManager : MonoBehaviour
     private void Awake()
     {
         _ = MainDirectionalLight;
+        _ = MainLensFlare;
 
         if (skyboxBlendedMaterial != null)
         {
@@ -167,6 +182,9 @@ public class TimeOfDayManager : MonoBehaviour
                 skyboxBlendedMaterial.SetVector(SunDirectionID, sunDir);
                 skyboxBlendedMaterial.SetVector(MoonDirectionID, -sunDir);
             }
+
+            // Update Sun Lens Flare intensity and active state based on horizon elevation
+            UpdateSunLensFlareState(dirLight);
         }
 
         // 5. Seamless Fog Interpolation using Master Curve
@@ -195,6 +213,34 @@ public class TimeOfDayManager : MonoBehaviour
         }
 
         DynamicGI.UpdateEnvironment();
+    }
+
+    /// <summary>
+    /// Evaluates Sun elevation above the horizon plane to smoothly fade out and disable Lens Flare 
+    /// at dusk, and reactivate/fade it in at dawn as it emerges from the opposite side.
+    /// </summary>
+    private void UpdateSunLensFlareState(Light dirLight)
+    {
+        LensFlareComponentSRP flareComp = MainLensFlare;
+        if (flareComp == null) return;
+
+        // Vector3.Dot between sun direction (-forward) and world UP vector.
+        // > 0 = Above horizon (Daytime / Rising / Setting)
+        // <= 0 = Below horizon (Nighttime / Underground)
+        float sunElevation = Vector3.Dot(-dirLight.transform.forward, Vector3.up);
+
+        if (sunElevation <= 0f)
+        {
+            flareComp.enabled = false;
+            flareComp.intensity = 0f;
+        }
+        else
+        {
+            flareComp.enabled = true;
+            // Smoothly scale intensity from 0.0 to 1.0 within a 0.1 elevation window above the horizon
+            float horizonFade = Mathf.Clamp01(sunElevation / 0.1f);
+            flareComp.intensity = horizonFade;
+        }
     }
 
     public void ApplyPhaseEnvironment(LightingPhaseSO phase)
