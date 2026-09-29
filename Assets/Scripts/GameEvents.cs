@@ -1114,6 +1114,21 @@ public static class GameEvents
     public static class UI
     {
         /// <summary>
+        /// Request to show the global status indicator in the bottom-right corner.
+        /// Params: message (e.g. "Cargando...", "Guardando..."), iconType (Djinn, SaveDisk, etc.)
+        /// </summary>
+        public static event Action<string, StatusIconType> OnShowStatusRequested;
+        public static void TriggerShowStatus(string message, StatusIconType iconType = StatusIconType.Djinn)
+            => OnShowStatusRequested?.Invoke(message, iconType);
+
+        /// <summary>
+        /// Request to hide the global status indicator.
+        /// </summary>
+        public static event Action OnHideStatusRequested;
+        public static void TriggerHideStatus()
+            => OnHideStatusRequested?.Invoke();
+
+        /// <summary>
         /// Triggered when a new zone or area banner should be displayed on screen.
         /// Params: zoneName, regionName, displayDuration
         /// </summary>

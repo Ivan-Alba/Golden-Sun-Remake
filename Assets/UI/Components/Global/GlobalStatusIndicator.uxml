@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" path="Assets/UI/UXML/GlobalStatusIndicator.uxml" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Components/Global/GlobalStatusIndicator.uss?fileID=7433441132597879392&amp;guid=9cb4e1b4476fd2f45ad3be869820292c&amp;type=3#GlobalStatusIndicator"/>
+    <ui:VisualElement name="status-container" picking-mode="Ignore" class="status-container status-hidden">
+        <ui:VisualElement name="status-icon" picking-mode="Ignore" class="status-icon"/>
+        <ui:Label name="status-label" text="Loading..." picking-mode="Ignore" class="status-text"/>
+    </ui:VisualElement>
+</ui:UXML>

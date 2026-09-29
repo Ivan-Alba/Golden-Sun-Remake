@@ -51,6 +51,7 @@ public class SaveManagerService : MonoBehaviour
         }
 
         Debug.Log($"<color=green>[SaveManagerService] Received OnRequestSaveGame for Slot {slotIndex}. Executing Save...</color>");
+
         SaveManager.Save(slotIndex);
     }
 
@@ -74,6 +75,7 @@ public class SaveManagerService : MonoBehaviour
         Debug.Log("<color=yellow>[SaveManagerService] Auto-save request received. Initiating auto-save sequence...</color>");
 
         // TODO (FASE 2): Trigger "Saving..." UI animation indicator (e.g., animated Djinn icon in corner)
+        GameEvents.UI.TriggerShowStatus("Cargando...", StatusIconType.Djinn);
 
         // 1. Wait until physics and Cinemachine camera settle after player relocation
         yield return new WaitForEndOfFrame();
@@ -119,6 +121,7 @@ public class SaveManagerService : MonoBehaviour
         }
 
         // TODO (FASE 2): Hide "Saving..." UI animation indicator
+        GameEvents.UI.TriggerHideStatus();
     }
 
     #endregion

@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" path="Assets/UI/UXML/SceneTransition.uxml" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Scene/SceneTransition.uss?fileID=7433441132597879392&amp;guid=fb82fe015be4a64409bdb51f9aab4200&amp;type=3#SceneTransition"/>
+    <ui:VisualElement name="transition-root" picking-mode="Ignore" class="transition-root">
+        <!-- Ambient Fade Overlay -->
+        <ui:VisualElement name="fade-overlay" picking-mode="Ignore" class="fade-overlay" />
+        
+        <!-- Doors -->
+        <ui:VisualElement name="left-door" picking-mode="Ignore" class="door door-left door-open-left" />
+        <ui:VisualElement name="right-door" picking-mode="Ignore" class="door door-right door-open-right" />
+        
+        <!-- Central Sun Emblem -->
+        <ui:VisualElement name="center-emblem" picking-mode="Ignore" class="center-emblem emblem-hidden" />
+    </ui:VisualElement>
+</ui:UXML>

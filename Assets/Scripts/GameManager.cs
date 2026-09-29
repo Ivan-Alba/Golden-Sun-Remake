@@ -127,6 +127,7 @@ public class GameManager : MonoBehaviour
         GameEvents.Scene.OnStartNewGameRequested += HandleStartNewGameRequest;
         GameEvents.Scene.OnChangeSceneRequested += HandleChangeSceneRequest;
         GameEvents.Scene.OnSetCurrentSpawnPoint += HandleSetCurrentSpawnPoint;
+        GameEvents.Scene.OnTransitionCompleted += HandleTransitionCompleted;
 
         // Save / Load Event Subscriptions
         GameEvents.SaveLoad.OnCollectSaveData += HandleCollectSaveData;
@@ -161,6 +162,7 @@ public class GameManager : MonoBehaviour
         GameEvents.Scene.OnStartNewGameRequested -= HandleStartNewGameRequest;
         GameEvents.Scene.OnChangeSceneRequested -= HandleChangeSceneRequest;
         GameEvents.Scene.OnSetCurrentSpawnPoint -= HandleSetCurrentSpawnPoint;
+        GameEvents.Scene.OnTransitionCompleted -= HandleTransitionCompleted;
 
         // Save / Load Event Unsubscriptions
         GameEvents.SaveLoad.OnCollectSaveData -= HandleCollectSaveData;
@@ -416,7 +418,6 @@ public class GameManager : MonoBehaviour
 
     private void HandleChangeSceneRequest(string sceneName, string spawnID, GameState targetStateAfterLoad = GameState.WorldExploration)
     {
-        SetGameState(GameState.Loading);
         pendingSpawnID = spawnID;
         pendingTargetState = targetStateAfterLoad;
 
@@ -484,8 +485,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        SetGameState(GameState.Loading);
-
         if (!string.IsNullOrEmpty(pendingSpawnID))
         {
             RelocatePlayerToSpawnPoint();
@@ -500,9 +499,13 @@ public class GameManager : MonoBehaviour
         StartCoroutine(Routine_HandlePostLoadSequence());
     }
 
+    /// <summary>
+    /// Pre-opening setup: Re-positions cameras, settles physics in the dark,
+    /// triggers arrival movement in the dark until active, and THEN requests opening the curtain.
+    /// </summary>
     private IEnumerator Routine_HandlePostLoadSequence()
     {
-        // 1. Trigger Hero Swap while screen is still black
+        // 1. Trigger Hero Swap while screen is still covered
         if (activeLeaderHero != null)
         {
             GameEvents.Party.TriggerActiveHeroChanged(activeLeaderHero);
@@ -521,34 +524,62 @@ public class GameManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
         yield return new WaitForFixedUpdate();
 
-        // 3. Trigger AutoSave if changing scenes during normal gameplay (not when restoring a save)
+        // 3. Trigger AutoSave if changing scenes during normal gameplay
         if (!loadingData && !SceneManager.GetActiveScene().name.Equals("Title"))
         {
             Debug.Log("<color=cyan>[GameManager] AutoSave triggered upon entering new scene.</color>");
             GameEvents.SaveLoad.TriggerRequestAutoSave();
         }
 
-        // 4. Start revealing the screen via event bus
-        GameEvents.Scene.RequestFadeInScene();
+        // 4. Initiate autowalk in the shadow (Based on IsExecutingArrival)
+        bool isGameplayTeleport = !loadingData && currentUsedSpawnPoint != null;
+        if (pendingTargetState == GameState.WorldExploration && isGameplayTeleport && currentUsedSpawnPoint.AutoWalkOnArrival)
+        {
+            StartCoroutine(currentUsedSpawnPoint.Routine_ExecuteArrivalSequence());
 
-        // 5. Handle Arrival vs Immediate Entry
+            while (!currentUsedSpawnPoint.IsExecutingArrival)
+            {
+                yield return null;
+            }
+        }
+
+        // 5. Request opening transition curtain (El personaje YA está dando pasos bajo la cortinilla)
+        GameEvents.Scene.RequestFadeInScene();
+    }
+
+    /// <summary>
+    /// Post-opening handler triggered when the transition curtain finishes revealing the scene.
+    /// Waits for arrival sequences to complete using IsExecutingArrival before enabling player control.
+    /// </summary>
+    private void HandleTransitionCompleted()
+    {
+        // Ignore transition completions if we are on the Title Screen
+        if (currentState == GameState.TitleScreen || SceneManager.GetActiveScene().name.Equals("Title")) return;
+
+        StartCoroutine(Routine_HandlePostTransitionActivation());
+    }
+
+    private IEnumerator Routine_HandlePostTransitionActivation()
+    {
         bool isGameplayTeleport = !loadingData && currentUsedSpawnPoint != null;
 
         if (pendingTargetState == GameState.WorldExploration && isGameplayTeleport && currentUsedSpawnPoint.AutoWalkOnArrival)
         {
-            SetGameState(GameState.Cutscene);
+            while (currentUsedSpawnPoint.IsExecutingArrival)
+            {
+                yield return null;
+            }
 
-            yield return new WaitForSeconds(arrivalWalkDelay);
-
-            yield return StartCoroutine(currentUsedSpawnPoint.Routine_ExecuteArrivalSequence());
+            if (arrivalWalkDelay > 0f)
+            {
+                yield return new WaitForSeconds(arrivalWalkDelay);
+            }
         }
         else if (pendingTargetState == GameState.WorldExploration)
         {
             GameEvents.UI.TriggerShowZoneBanner(currentZoneName, currentRegionName, 3.5f);
-            yield return new WaitForSeconds(transitionDuration);
         }
 
-        // 6. Activate target game state (WorldExploration)
         SetGameState(pendingTargetState);
         loadingData = false;
     }

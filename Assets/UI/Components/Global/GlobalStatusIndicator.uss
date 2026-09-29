@@ -1,0 +1,32 @@
+.status-container {
+    position: absolute;
+    bottom: 30px;
+    right: 40px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.status-hidden {
+    opacity: 0;
+}
+
+.status-icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 12px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.status-text {
+    color: #F0E6D2;
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}

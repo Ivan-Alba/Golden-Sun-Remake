@@ -197,14 +197,14 @@ MonoBehaviour:
   lampMeshRenderer: {fileID: 8298832494697813250}
   materialIndex: 0
   maxLightIntensity: 3.5
-  maxEmissionColor: {r: 2, g: 1.2, b: 0.4, a: 2}
-  turnOnStartHour: 18.5
-  turnOnEndHour: 20.5
+  maxEmissionColor: {r: 3.9999998, g: 2.3999999, b: 0.79999995, a: 2}
+  turnOnStartHour: 19
+  turnOnEndHour: 21
   turnOffStartHour: 5.5
   turnOffEndHour: 6.5
   enableFlicker: 1
   flickerSpeed: 8
-  flickerAmount: 0.15
+  flickerAmount: 0.2
 --- !u!1 &5356583664468531356
 GameObject:
   m_ObjectHideFlags: 0

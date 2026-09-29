@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Controls street lamps and lanterns, progressively turning light intensity 
 /// and material emission on/off based on the global in-game time.
+/// Highly optimized for URP / GPU Instancing / SRP Batcher using MaterialPropertyBlock.
 /// </summary>
 public class EnvironmentStreetLight : MonoBehaviour
 {
@@ -31,18 +32,15 @@ public class EnvironmentStreetLight : MonoBehaviour
     [SerializeField] private float flickerSpeed = 8.0f;
     [SerializeField] private float flickerAmount = 0.15f; // 15% intensity variation
 
-    private Material instancedMaterial;
     private float currentProgress = 0f; // 0 = off, 1 = max light
+    private MaterialPropertyBlock propertyBlock;
+    private static readonly int EmissionColorID = Shader.PropertyToID("_EmissionColor");
 
     private void Awake()
     {
         if (pointLight == null) pointLight = GetComponentInChildren<Light>();
 
-        if (lampMeshRenderer != null && materialIndex < lampMeshRenderer.materials.Length)
-        {
-            // Create a material instance so we don't modify the shared asset on disk
-            instancedMaterial = lampMeshRenderer.materials[materialIndex];
-        }
+        propertyBlock = new MaterialPropertyBlock();
     }
 
     private void OnEnable()
@@ -87,6 +85,7 @@ public class EnvironmentStreetLight : MonoBehaviour
     {
         bool shouldBeActive = currentProgress > 0.001f;
 
+        // Turn Light component strictly ON/OFF to free CPU and GPU render passes
         if (pointLight != null)
         {
             pointLight.enabled = shouldBeActive;
@@ -103,19 +102,17 @@ public class EnvironmentStreetLight : MonoBehaviour
             }
         }
 
-        if (instancedMaterial != null)
+        // Apply emission using MaterialPropertyBlock without instantiating materials
+        if (lampMeshRenderer != null)
         {
-            if (shouldBeActive)
-            {
-                instancedMaterial.EnableKeyword("_EMISSION");
-                Color targetEmission = Color.Lerp(Color.black, maxEmissionColor, currentProgress);
-                instancedMaterial.SetColor("_EmissionColor", targetEmission);
-            }
-            else
-            {
-                instancedMaterial.SetColor("_EmissionColor", Color.black);
-                instancedMaterial.DisableKeyword("_EMISSION");
-            }
+            lampMeshRenderer.GetPropertyBlock(propertyBlock, materialIndex);
+
+            Color targetEmission = shouldBeActive
+                ? Color.Lerp(Color.black, maxEmissionColor, currentProgress)
+                : Color.black;
+
+            propertyBlock.SetColor(EmissionColorID, targetEmission);
+            lampMeshRenderer.SetPropertyBlock(propertyBlock, materialIndex);
         }
     }
 }

@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1.2
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.8117648, g: 0.5568628, b: 0.26666668, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 42d82a4dd81f71f4bb534641cbb934f0, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 0bd0ae2f179e3074bae399cc714face4, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: e6b0e407686bac445ae911870e70ec51, type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 1b53f79213d59fe409aa8e95904d26a7, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -677,7 +677,7 @@ PrefabInstance:
       addedObject: {fileID: 103363249}
     - targetCorrespondingSourceObject: {fileID: 585254840559764136, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 103363251}
+      addedObject: {fileID: 103363252}
   m_SourcePrefab: {fileID: 100100000, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
 --- !u!4 &103363247 stripped
 Transform:
@@ -783,7 +783,12 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!114 &103363251
+--- !u!23 &103363251 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 585254840557771880, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
+  m_PrefabInstance: {fileID: 103363246}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &103363252
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -792,13 +797,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 103363248}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 625cb16c762a8d0448fcc6ff50462538, type: 3}
+  m_Script: {fileID: 11500000, guid: 31875ac316fe1d642b539212f07cd6b0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LampFlicker
-  baseIntensity: 1.2
-  intensityFlickerRange: 0.25
-  flickerSpeed: 15
-  enableSputterEffect: 1
+  m_EditorClassIdentifier: Assembly-CSharp::EnvironmentStreetLight
+  pointLight: {fileID: 103363250}
+  lampMeshRenderer: {fileID: 103363251}
+  materialIndex: 0
+  maxLightIntensity: 3.5
+  maxEmissionColor: {r: 2, g: 1.2, b: 0.4, a: 2}
+  turnOnStartHour: 19
+  turnOnEndHour: 21
+  turnOffStartHour: 5.5
+  turnOffEndHour: 6.5
+  enableFlicker: 1
+  flickerSpeed: 8
+  flickerAmount: 0.15
 --- !u!1 &105814374
 GameObject:
   m_ObjectHideFlags: 0
@@ -2439,7 +2452,7 @@ PrefabInstance:
       addedObject: {fileID: 290363731}
     - targetCorrespondingSourceObject: {fileID: 585254840559764136, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 290363733}
+      addedObject: {fileID: 290363734}
   m_SourcePrefab: {fileID: 100100000, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
 --- !u!4 &290363729 stripped
 Transform:
@@ -2545,7 +2558,12 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!114 &290363733
+--- !u!23 &290363733 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 585254840557771880, guid: 29895fc68bf1a914bacf5c4b16099cf0, type: 3}
+  m_PrefabInstance: {fileID: 290363728}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &290363734
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2554,13 +2572,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 290363730}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 625cb16c762a8d0448fcc6ff50462538, type: 3}
+  m_Script: {fileID: 11500000, guid: 31875ac316fe1d642b539212f07cd6b0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LampFlicker
-  baseIntensity: 1.2
-  intensityFlickerRange: 0.25
-  flickerSpeed: 15
-  enableSputterEffect: 1
+  m_EditorClassIdentifier: Assembly-CSharp::EnvironmentStreetLight
+  pointLight: {fileID: 290363732}
+  lampMeshRenderer: {fileID: 290363733}
+  materialIndex: 0
+  maxLightIntensity: 3.5
+  maxEmissionColor: {r: 2, g: 1.2, b: 0.4, a: 2}
+  turnOnStartHour: 19
+  turnOnEndHour: 21
+  turnOffStartHour: 5.5
+  turnOffEndHour: 6.5
+  enableFlicker: 1
+  flickerSpeed: 8
+  flickerAmount: 0.15
 --- !u!1001 &306720887
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4566,6 +4592,7 @@ GameObject:
   m_Component:
   - component: {fileID: 516171829}
   - component: {fileID: 516171828}
+  - component: {fileID: 516171831}
   - component: {fileID: 516171830}
   m_Layer: 0
   m_Name: Directional Light
@@ -4683,6 +4710,136 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &516171831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 516171827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc4d76f733087744991913c9d19d5274, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.LensFlareComponentSRP
+  m_LensFlareData: {fileID: 11400000, guid: bd7eaf3bd49c39f4cb77bd809459aa72, type: 2}
+  version: 0
+  intensity: 3
+  maxAttenuationDistance: 100
+  maxAttenuationScale: 100
+  distanceAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleByDistanceCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  attenuationByLightShape: 1
+  radialScreenAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useOcclusion: 1
+  useBackgroundCloudOcclusion: 0
+  environmentOcclusion: 0
+  useWaterOcclusion: 0
+  occlusionRadius: 0.1
+  sampleCount: 32
+  occlusionOffset: 0.05
+  scale: 1.5
+  allowOffScreen: 1
+  volumetricCloudOcclusion: 0
+  occlusionRemapCurve:
+    <length>k__BackingField: 2
+    m_Loop: 0
+    m_ZeroValue: 1
+    m_Range: 1
+    m_Curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  lightOverride: {fileID: 0}
 --- !u!1001 &524611518
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8106,8 +8263,9 @@ MonoBehaviour:
   regionName: Aldea de Tale
   autoWalkOnArrival: 0
   arrivalWalkTarget: {fileID: 0}
-  walkDuration: 2
+  arrivalDistanceThreshold: 0.15
   bannerDelay: 0.5
+  maxWalkTimeout: 5
 --- !u!4 &1079867977
 Transform:
   m_ObjectHideFlags: 0
@@ -10930,8 +11088,9 @@ MonoBehaviour:
   regionName: Aldea de Tale
   autoWalkOnArrival: 1
   arrivalWalkTarget: {fileID: 1482762430}
-  walkDuration: 2
+  arrivalDistanceThreshold: 0.15
   bannerDelay: 0.5
+  maxWalkTimeout: 5
 --- !u!4 &1500441368
 Transform:
   m_ObjectHideFlags: 0
@@ -13588,6 +13747,7 @@ LightProbeGroup:
   - {x: -50, y: -5.5, z: 35}
   - {x: -45, y: -5.5, z: -25}
   - {x: -45, y: -5.5, z: -20}
+  - {x: -45, y: -5.5, z: -15}
   - {x: -45, y: -5.5, z: -10}
   - {x: -45, y: -5.5, z: -5}
   - {x: -45, y: -5.5, z: 0}
@@ -13651,6 +13811,7 @@ LightProbeGroup:
   - {x: -30, y: -5.5, z: 55}
   - {x: -30, y: -5.5, z: 60}
   - {x: -25, y: -5.5, z: -20}
+  - {x: -25, y: -5.5, z: -15}
   - {x: -25, y: -5.5, z: -10}
   - {x: -25, y: -5.5, z: -5}
   - {x: -25, y: -5.5, z: 0}
@@ -13903,6 +14064,7 @@ LightProbeGroup:
   - {x: -50, y: -3.5, z: 35}
   - {x: -45, y: -3.5, z: -25}
   - {x: -45, y: -3.5, z: -20}
+  - {x: -45, y: -3.5, z: -15}
   - {x: -45, y: -3.5, z: -10}
   - {x: -45, y: -3.5, z: -5}
   - {x: -45, y: -3.5, z: 0}
@@ -13916,6 +14078,7 @@ LightProbeGroup:
   - {x: -45, y: -3.5, z: 40}
   - {x: -40, y: -3.5, z: -25}
   - {x: -40, y: -3.5, z: -20}
+  - {x: -40, y: -3.5, z: -15}
   - {x: -40, y: -3.5, z: -10}
   - {x: -40, y: -3.5, z: -5}
   - {x: -40, y: -3.5, z: 0}
@@ -19120,6 +19283,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1945270886}
   - component: {fileID: 1945270887}
+  - component: {fileID: 1945270888}
   m_Layer: 0
   m_Name: Environment
   m_TagString: Untagged
@@ -19240,12 +19404,33 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1945270885}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e39cf0563136d454ea84f41ef5acbe8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 0.7
+--- !u!114 &1945270888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945270885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10c9d5adbfe5cec4c9aa15f51b379f9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TimeOfDayManager
+  isCycleActive: 1
+  mainDirectionalLight: {fileID: 516171828}
+  mainLensFlareComponent: {fileID: 516171831}
+  skyboxBlendedMaterial: {fileID: 2100000, guid: 0bd0ae2f179e3074bae399cc714face4, type: 2}
+  phases:
+  - {fileID: 11400000, guid: 3bfcc6a0761ee914fa8674f43495d99a, type: 2}
+  - {fileID: 11400000, guid: 460d548d056eaf94586f677d0567a57e, type: 2}
+  - {fileID: 11400000, guid: a9a7960e581eef9438fc2ca67a0b4ec1, type: 2}
+  - {fileID: 11400000, guid: 1d62dc3ae9b4f4542af9fa41618083b4, type: 2}
 --- !u!1001 &1973860535
 PrefabInstance:
   m_ObjectHideFlags: 0

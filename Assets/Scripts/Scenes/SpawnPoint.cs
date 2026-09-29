@@ -30,17 +30,23 @@ public class SpawnPoint : MonoBehaviour
     [Header("Arrival Auto-Walk Settings")]
     [SerializeField] private bool autoWalkOnArrival = true;
     [SerializeField] private Transform arrivalWalkTarget;
-    [SerializeField] private float walkDuration = 2f;
-    [SerializeField] private float bannerDelay = 0.5f;
+    [SerializeField] private float arrivalDistanceThreshold = 0.15f;
+    [SerializeField] private float bannerDelay = 0.3f;
+    [SerializeField] private float maxWalkTimeout = 5.0f; // Security timeout to prevent endless locks
 
     #endregion
 
-    #region Properties
+    #region Properties & State Tracking
 
     public string SpawnID => spawnID;
     public string ZoneName => zoneName;
     public string RegionName => regionName;
     public bool AutoWalkOnArrival => autoWalkOnArrival;
+
+    /// <summary>
+    /// True while the arrival sequence (auto-walk) is actively executing.
+    /// </summary>
+    public bool IsExecutingArrival { get; private set; }
 
     #endregion
 
@@ -88,23 +94,70 @@ public class SpawnPoint : MonoBehaviour
     #region Arrival Sequence
 
     /// <summary>
-    /// Executes the smooth arrival sequence when teleporting from another scene during gameplay.
+    /// Executes the deterministic arrival sequence by ordering auto-walk and waiting
+    /// until the player physically reaches the target position.
     /// </summary>
     public IEnumerator Routine_ExecuteArrivalSequence()
     {
+        IsExecutingArrival = true;
+
         if (arrivalWalkTarget != null)
         {
+            // 1. Request player auto-walk towards arrival destination
             GameEvents.Player.RequestAutoWalk(arrivalWalkTarget.position);
+
+            // 2. Wait a brief delay before triggering the zone banner mid-walk
+            if (bannerDelay > 0f)
+            {
+                yield return new WaitForSeconds(bannerDelay);
+            }
+
+            GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, 3.5f);
+
+            // 3. Monitor physical player distance until arrival or safety timeout
+            float elapsedTime = 0f;
+            Transform playerTransform = null;
+
+            // Wait until player reference is active
+            while (playerTransform == null && elapsedTime < maxWalkTimeout)
+            {
+                GameObject leaderObj = GameObject.FindWithTag("Player");
+                if (leaderObj != null)
+                {
+                    playerTransform = leaderObj.transform;
+                }
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            // Loop until target is physically reached
+            if (playerTransform != null)
+            {
+                Vector3 targetPos = arrivalWalkTarget.position;
+                targetPos.y = 0f; // Distance calculated strictly on horizontal plane XZ
+
+                while (elapsedTime < maxWalkTimeout)
+                {
+                    Vector3 currentPos = playerTransform.position;
+                    currentPos.y = 0f;
+
+                    if (Vector3.Distance(currentPos, targetPos) <= arrivalDistanceThreshold)
+                    {
+                        break; // Destination reached!
+                    }
+
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+            }
+        }
+        else
+        {
+            // If no walk target was assigned, present banner immediately
+            GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, 3.5f);
         }
 
-        // Wait a small fraction before presenting the zone banner mid-walk
-        yield return new WaitForSeconds(bannerDelay);
-
-        GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, 3.5f);
-
-        // Wait for the remaining walk duration before restoring HUD & player control
-        float remainingWalkTime = Mathf.Max(0f, walkDuration - bannerDelay);
-        yield return new WaitForSeconds(remainingWalkTime);
+        IsExecutingArrival = false;
     }
 
     #endregion

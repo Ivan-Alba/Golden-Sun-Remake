@@ -285,6 +285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battleVisualModel: {fileID: 0}
+  fighterAnim: {fileID: 0}
   selectionPointer: {fileID: 8500765345654389310}
 --- !u!114 &4231493290008493818
 MonoBehaviour:
@@ -526,7 +527,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7401942811062319105}
-  m_Layer: 12
+  - component: {fileID: 5405519600988491183}
+  m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -550,6 +552,27 @@ Transform:
   - {fileID: 1524505738175781455}
   m_Father: {fileID: 1524594061431747233}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &5405519600988491183
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2258342882645276380}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.7642791, y: 4.103753, z: 3.6672883}
+  m_Center: {x: 0.024247527, y: 1.9398456, z: -0.024248362}
 --- !u!1 &2599429227988920095
 GameObject:
   m_ObjectHideFlags: 0

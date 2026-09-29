@@ -4,28 +4,18 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Manages scene loading transitions, logo overlays, and ambient screen fades.
-/// Decoupled from Singletons and listens exclusively to GameEvents.Scene.
+/// Manages scene loading transitions, visual split-door curtains, ambient screen fades, and async scene activation.
+/// Decoupled from Singletons, listens exclusively to GameEvents.Scene, and uses UI Toolkit via SceneTransitionUI.
 /// </summary>
 public class SceneTransitionManager : MonoBehaviour
 {
-    #region Animator Hashes (Cached for performance)
-
-    private static readonly int StartTriggerHash = Animator.StringToHash("start");
-    private static readonly int EndTriggerHash = Animator.StringToHash("end");
-
-    #endregion
-
     #region Serialized Fields
 
-    [Header("Components")]
-    [SerializeField] private Animator logoTransitionAnimator;
-
-    [Header("Ambient Fade Settings")]
-    [SerializeField] private CanvasGroup fadeOverlayCanvasGroup;
+    [Header("UI Toolkit References")]
+    [SerializeField] private SceneTransitionUI sceneTransitionUI;
 
     [Header("Settings")]
-    [SerializeField] private float transitionDuration = 1.0f;
+    [SerializeField] private float fallbackTransitionDuration = 0.8f;
     [SerializeField] private float arrivalWalkDelay = 0.2f;
 
     #endregion
@@ -33,9 +23,10 @@ public class SceneTransitionManager : MonoBehaviour
     #region Public Properties
 
     /// <summary>
-    /// Duration in seconds for the transition animation to complete opening or closing.
+    /// Duration in seconds for the transition curtain animation to complete opening or closing.
+    /// Reads directly from SceneTransitionUI if available.
     /// </summary>
-    public float TransitionDuration => transitionDuration;
+    public float TransitionDuration => sceneTransitionUI != null ? sceneTransitionUI.CurtainAnimationDuration : fallbackTransitionDuration;
 
     /// <summary>
     /// Delay after arrival for auto-walking or player positioning routines.
@@ -55,15 +46,9 @@ public class SceneTransitionManager : MonoBehaviour
 
     private void Awake()
     {
-        if (logoTransitionAnimator == null)
+        if (sceneTransitionUI == null)
         {
-            logoTransitionAnimator = GetComponentInChildren<Animator>();
-        }
-
-        if (fadeOverlayCanvasGroup != null)
-        {
-            fadeOverlayCanvasGroup.alpha = 0f;
-            fadeOverlayCanvasGroup.blocksRaycasts = false;
+            sceneTransitionUI = GetComponentInChildren<SceneTransitionUI>();
         }
     }
 
@@ -106,7 +91,7 @@ public class SceneTransitionManager : MonoBehaviour
     private void HandleRequestLoadScene(string sceneName)
     {
         if (activeTransitionCoroutine != null) StopCoroutine(activeTransitionCoroutine);
-        activeTransitionCoroutine = StartCoroutine(Routine_LoadScene(sceneName));
+        activeTransitionCoroutine = StartCoroutine(Routine_LoadSceneAsync(sceneName));
     }
 
     private void HandleRequestFullTransition(Action onScreenCovered)
@@ -132,25 +117,25 @@ public class SceneTransitionManager : MonoBehaviour
 
     #endregion
 
-    #region Ambient Screen Fade (Black Overlay)
+    #region Ambient Screen Fade Operations
 
     /// <summary>
-    /// Smoothly fades an overlay black panel to a target alpha over a specified duration.
+    /// Triggers a smooth opacity fade on the ambient UI Toolkit overlay panel.
     /// </summary>
     private void FadeToBlack(float targetAlpha = 1f, float duration = 1.0f)
     {
-        if (fadeOverlayCanvasGroup == null) return;
+        if (sceneTransitionUI == null) return;
 
         if (activeFadeCoroutine != null)
         {
             StopCoroutine(activeFadeCoroutine);
         }
 
-        activeFadeCoroutine = StartCoroutine(Routine_FadeOverlay(targetAlpha, duration));
+        activeFadeCoroutine = StartCoroutine(sceneTransitionUI.Routine_FadeToBlack(targetAlpha, duration));
     }
 
     /// <summary>
-    /// Resets the ambient fade overlay back to fully transparent.
+    /// Resets the ambient fade overlay back to fully transparent instantly.
     /// </summary>
     private void ResetFadeOverlay()
     {
@@ -160,87 +145,114 @@ public class SceneTransitionManager : MonoBehaviour
             activeFadeCoroutine = null;
         }
 
-        if (fadeOverlayCanvasGroup != null)
+        if (sceneTransitionUI != null)
         {
-            fadeOverlayCanvasGroup.alpha = 0f;
-            fadeOverlayCanvasGroup.blocksRaycasts = false;
+            sceneTransitionUI.ResetFadeOverlay();
         }
-    }
-
-    private IEnumerator Routine_FadeOverlay(float targetAlpha, float duration)
-    {
-        float startAlpha = fadeOverlayCanvasGroup.alpha;
-        float timer = 0f;
-
-        fadeOverlayCanvasGroup.blocksRaycasts = targetAlpha > 0f;
-
-        while (timer < duration)
-        {
-            timer += Time.unscaledDeltaTime;
-            fadeOverlayCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, timer / duration);
-            yield return null;
-        }
-
-        fadeOverlayCanvasGroup.alpha = targetAlpha;
-        activeFadeCoroutine = null;
     }
 
     #endregion
 
-    #region Logo Transition & Scene Loading
+    #region Async Scene Loading & Transition Routines
 
-    private IEnumerator Routine_LoadScene(string sceneName)
+    /// <summary>
+    /// Handles the full 3-phase async scene transition with controlled activation.
+    /// Locks controls to Cutscene state while closing curtain, then switches to Loading once covered.
+    /// </summary>
+    private IEnumerator Routine_LoadSceneAsync(string sceneName)
     {
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
+        // 1. FORCE CUTSCENE STATE: Lock inputs/HUD as soon as the closing sequence starts
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
 
-        // 1. Play closing transition (cover screen)
-        if (logoTransitionAnimator != null)
+        // Close curtain (World stays rendered until 100% closed)
+        if (sceneTransitionUI != null)
         {
-            logoTransitionAnimator.ResetTrigger(EndTriggerHash);
-            logoTransitionAnimator.SetTrigger(StartTriggerHash);
+            yield return StartCoroutine(sceneTransitionUI.Routine_CloseCurtain());
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(TransitionDuration);
         }
 
-        yield return new WaitForSecondsRealtime(transitionDuration);
+        // 2. SCREEN IS 100% COVERED: Now switch to Loading state safely
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
 
+        // Show global status indicator ("Cargando..." with Djinn)
+        GameEvents.UI.TriggerShowStatus("Cargando...", StatusIconType.Djinn);
         GameEvents.Scene.TriggerTransitionCovered();
 
-        // 2. Load the scene asynchronously in the background
+        // 3. PHASE 2: Controlled background loading with allowSceneActivation = false
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        asyncLoad.allowSceneActivation = false;
+
+        // Wait until assets finish loading in memory (reaches 90%)
+        while (asyncLoad.progress < 0.9f)
+        {
+            yield return null;
+        }
+
+        // 4. PHASE 3: Authorize activation & finalize
+        asyncLoad.allowSceneActivation = true;
+
         while (!asyncLoad.isDone)
         {
             yield return null;
         }
 
+        // Give 1-2 frames for VRAM, camera buffers, and Awake/Start logic to settle
+        yield return new WaitForEndOfFrame();
+
+        // Hide Djinn status indicator
+        GameEvents.UI.TriggerHideStatus();
+
+        // Reveal the newly loaded scene
+        FadeInNewScene();
+
         activeTransitionCoroutine = null;
     }
 
     /// <summary>
-    /// Plays the transition animation to reveal the new scene.
+    /// Opens the transition curtain and triggers OnTransitionCompleted ONLY after it is fully open.
     /// </summary>
     private void FadeInNewScene()
     {
-        ResetFadeOverlay();
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
+        StartCoroutine(Routine_FadeInAndNotify());
+    }
 
-        if (logoTransitionAnimator != null)
+    private IEnumerator Routine_FadeInAndNotify()
+    {
+        if (sceneTransitionUI != null)
         {
-            logoTransitionAnimator.ResetTrigger(StartTriggerHash);
-            logoTransitionAnimator.SetTrigger(EndTriggerHash);
+            yield return StartCoroutine(sceneTransitionUI.Routine_OpenCurtain());
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(TransitionDuration);
         }
 
         GameEvents.Scene.TriggerTransitionCompleted();
     }
 
+    /// <summary>
+    /// Executes a visual curtain closure and reopening without changing scenes (e.g., for teleports or cuts).
+    /// </summary>
     private IEnumerator Routine_PlayFullTransition(Action onScreenCovered = null)
     {
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
+        // 1. FORCE CUTSCENE STATE during closure
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
 
-        if (logoTransitionAnimator != null)
+        if (sceneTransitionUI != null)
         {
-            logoTransitionAnimator.ResetTrigger(EndTriggerHash);
-            logoTransitionAnimator.SetTrigger(StartTriggerHash);
+            yield return StartCoroutine(sceneTransitionUI.Routine_CloseCurtain());
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(TransitionDuration);
         }
 
-        yield return new WaitForSecondsRealtime(transitionDuration);
+        // Screen is covered, request Loading state for safety during teleport/changes
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Loading);
 
         GameEvents.Scene.TriggerTransitionCovered();
 
@@ -250,7 +262,7 @@ public class SceneTransitionManager : MonoBehaviour
 
         FadeInNewScene();
 
-        yield return new WaitForSecondsRealtime(transitionDuration);
+        yield return new WaitForSecondsRealtime(TransitionDuration);
 
         activeTransitionCoroutine = null;
     }
