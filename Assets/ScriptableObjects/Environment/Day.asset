@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Day
   m_EditorClassIdentifier: Assembly-CSharp::LightingPhaseSO
   phaseName: Day
-  startHour: 10
+  startHour: 9
   endHour: 18
   lightColor: {r: 1, g: 0.9529412, b: 0.8784314, a: 1}
   startLightIntensity: 1.1

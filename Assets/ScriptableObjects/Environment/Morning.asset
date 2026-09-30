@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LightingPhaseSO
   phaseName: Morning
   startHour: 6
-  endHour: 10
+  endHour: 9
   lightColor: {r: 1, g: 0.7019608, b: 0.4862745, a: 1}
   startLightIntensity: 0.45
   endLightIntensity: 1.1
