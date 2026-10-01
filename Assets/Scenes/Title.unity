@@ -2107,6 +2107,22 @@ PrefabInstance:
       propertyPath: Target.TrackingTarget
       value: 
       objectReference: {fileID: 1950986251}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: maxJumpTiles
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: obstacleLayer.m_Bits
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: jumpableGapLayer.m_Bits
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_IsActive
       value: 0

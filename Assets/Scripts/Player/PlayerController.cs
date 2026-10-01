@@ -21,10 +21,12 @@ public enum PlayerMovementState
 /// <summary>
 /// Central coordinator for player exploration states, input routing, stamina management, 
 /// auto-walk commands, and first-person inspection camera mode.
-/// Delegates movement physics to PlayerMovementMotor and animation handling to PlayerAnimationController.
+/// Delegates movement physics to PlayerMovementMotor, edge detection to EnvironmentEdgeDetector,
+/// and animation handling to PlayerAnimationController.
 /// </summary>
 [RequireComponent(typeof(PlayerMovementMotor))]
 [RequireComponent(typeof(PlayerAnimationController))]
+[RequireComponent(typeof(EnvironmentEdgeDetector))]
 public class PlayerController : MonoBehaviour
 {
     #region Serialized Fields
@@ -49,6 +51,7 @@ public class PlayerController : MonoBehaviour
     #region Private Fields
 
     private PlayerMovementMotor motor;
+    private EnvironmentEdgeDetector edgeDetector;
     private PlayerAnimationController animController;
     private CinemachinePanTilt firstPersonViewPanTilt;
 
@@ -84,6 +87,7 @@ public class PlayerController : MonoBehaviour
     {
         motor = GetComponent<PlayerMovementMotor>();
         animController = GetComponent<PlayerAnimationController>();
+        edgeDetector = GetComponent<EnvironmentEdgeDetector>();
 
         currentStamina = maxStamina;
     }
@@ -146,7 +150,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Apply standard gravity physics unless climbing
+        // Apply standard gravity physics unless climbing or airborne jumping
         if (currentMovementState != PlayerMovementState.Climbing && currentMovementState != PlayerMovementState.AutoJumping)
         {
             motor.HandleGravity();
@@ -374,14 +378,26 @@ public class PlayerController : MonoBehaviour
         bool isMoving = currentMoveInput.sqrMagnitude >= 0.01f;
         bool isSprinting = isRunningInput && enoughStaminaToRun;
 
+        // Calculate move direction relative to camera
+        Vector3 moveDirection = Vector3.zero;
+        if (isMoving)
+        {
+            Vector3 inputDir = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
+            float cameraAngle = mainCamera != null ? mainCamera.eulerAngles.y : 0f;
+            moveDirection = Quaternion.Euler(0f, cameraAngle, 0f) * inputDir;
+        }
+
+        // Check if an edge is ahead using the clean single-ray detector
+        bool isBlockedByEdge = edgeDetector != null && isMoving && edgeDetector.IsEdgeAhead(moveDirection);
+
         // Process locomotion through movement motor
-        float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, false);
+        float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, isBlockedByEdge);
 
         // Update locomotion Blend Trees
-        animController.UpdateLocomotion(normalizedSpeed, isMoving, isSprinting);
+        animController.UpdateLocomotion(normalizedSpeed, isMoving && !isBlockedByEdge, isSprinting);
 
         // Stamina and Idle counter management
-        if (isMoving)
+        if (isMoving && !isBlockedByEdge)
         {
             idleTimeCounter = 0f;
 
@@ -411,9 +427,6 @@ public class PlayerController : MonoBehaviour
 
     #region Golden Sun Special Locomotion States (Psynergy, Slide, Climb, Fall)
 
-    /// <summary>
-    /// Temporarily locks movement while playing the overworld Psynergy casting animation.
-    /// </summary>
     public void LockMovementForPsynergyCast(float duration)
     {
         if (psynergyCastCoroutine != null) StopCoroutine(psynergyCastCoroutine);
@@ -446,9 +459,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Triggers automatic downward falling when stepping into pitfall traps or floor holes.
-    /// </summary>
     public void StartFalling()
     {
         StopAutoWalk();
@@ -460,17 +470,17 @@ public class PlayerController : MonoBehaviour
 
     private void HandleFallingMovement()
     {
-        // TODO: Apply direct vertical downward movement through holes or trigger scene/floor transition
+        // Direct vertical downward movement or floor transition
     }
 
     private void HandleClimbingMovement()
     {
-        // TODO: Golden Sun Ladder/Vine climbing logic (move vertically along Y axis, disable gravity)
+        // Ladder/Vine climbing logic
     }
 
     private void HandleSlidingMovement()
     {
-        // TODO: Golden Sun Slope/Sand sliding logic (move downwards continuously along slope vector)
+        // Slope/Sand sliding logic
     }
 
     #endregion

@@ -173,6 +173,7 @@ MonoBehaviour:
   speakerPortrait: {fileID: 0}
   linkedSpawnPoint: {fileID: 0}
   interactionSFX: 1
+  thumbnailCamera: {fileID: 0}
 --- !u!65 &8599470018428302246
 BoxCollider:
   m_ObjectHideFlags: 0
