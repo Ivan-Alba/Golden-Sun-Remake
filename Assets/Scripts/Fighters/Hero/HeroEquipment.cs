@@ -144,7 +144,7 @@ public class HeroEquipment : MonoBehaviour
         }
 
         saveData.heroesEquipment.Add(equipmentData);
-        Debug.Log($"<color=green>[HeroEquipment] Collected equipment save data for hero '{gameObject.name}'.</color>");
+        //Debug.Log($"<color=green>[HeroEquipment] Collected equipment save data for hero '{gameObject.name}'.</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)
@@ -173,7 +173,7 @@ public class HeroEquipment : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[HeroEquipment] Equipable slug '{slotData.itemSlug}' not found in database for hero '{gameObject.name}'.");
+                //Debug.LogWarning($"[HeroEquipment] Equipable slug '{slotData.itemSlug}' not found in database for hero '{gameObject.name}'.");
             }
         }
 

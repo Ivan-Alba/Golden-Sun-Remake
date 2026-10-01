@@ -9,6 +9,8 @@ public enum PlayerMovementState
 {
     FreeExploration,  // Standard walking and running movement
     InFirstPerson,    // Inspection / First-person viewing mode
+    AutoJumping,      // Automatic tile-to-tile jumping arc
+    PushingObject,    // Pushing grid-aligned puzzle objects
     Climbing,         // Climbing ladders, vines, or ropes
     Sliding,          // Automatic sliding down slopes or sand dunes
     Falling,          // Falling down holes, dungeon pitfalls, or chasm drops
@@ -17,39 +19,20 @@ public enum PlayerMovementState
 }
 
 /// <summary>
-/// Controls player exploration movement, character physics, stamina drain/regeneration,
-/// edge detection, auto-walk cutscene commands, and first-person inspection camera mode.
-/// Fully decoupled via GameEvents (Input, Player, World, GameState).
+/// Central coordinator for player exploration states, input routing, stamina management, 
+/// auto-walk commands, and first-person inspection camera mode.
+/// Delegates movement physics to PlayerMovementMotor and animation handling to PlayerAnimationController.
 /// </summary>
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerMovementMotor))]
+[RequireComponent(typeof(PlayerAnimationController))]
 public class PlayerController : MonoBehaviour
 {
-    #region Animator Hashes (Cached for performance)
-
-    private static readonly int IsMovingHash = Animator.StringToHash("isMoving");
-    private static readonly int IsRunningHash = Animator.StringToHash("isRunning");
-    private static readonly int LongTimeHash = Animator.StringToHash("longTime");
-    private static readonly int CastPsynergyHash = Animator.StringToHash("castPsynergy");
-
-    #endregion
-
     #region Serialized Fields
-
-    [Header("Movement Settings")]
-    [SerializeField] private float speed = 4f;
-    [SerializeField] private float turnSmoothTime = 0.1f;
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private float stickToGroundForce = -2f;
 
     [Header("Stamina Settings")]
     [SerializeField] private float maxStamina = 100f;
     [SerializeField] private float staminaDrainRate = 10f;
     [SerializeField] private float staminaRegenRate = 7f;
-
-    [Header("Edge Detection Settings")]
-    [SerializeField] private float frontMargin = 0.8f;
-    [SerializeField] private float extraDropMargin = 0.2f;
-    [SerializeField] private LayerMask groundLayer;
 
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
@@ -65,9 +48,8 @@ public class PlayerController : MonoBehaviour
 
     #region Private Fields
 
-    private CharacterController controller;
-    private Animator playerAnim;
-    private FootstepAudioEmitter footstepEmitter;
+    private PlayerMovementMotor motor;
+    private PlayerAnimationController animController;
     private CinemachinePanTilt firstPersonViewPanTilt;
 
     private Interactable interactionCurrentTarget;
@@ -78,8 +60,6 @@ public class PlayerController : MonoBehaviour
     private PlayerMovementState currentMovementState = PlayerMovementState.FreeExploration;
     private GameManager.GameState currentGameState = GameManager.GameState.None;
 
-    private float verticalVelocity;
-    private float turnSmoothVelocity;
     private float currentStamina;
     private bool enoughStaminaToRun = true;
 
@@ -92,13 +72,18 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
+    #region Properties
+
+    public PlayerMovementState CurrentMovementState => currentMovementState;
+
+    #endregion
+
     #region Unity Lifecycle
 
     private void Awake()
     {
-        controller = GetComponent<CharacterController>();
-        playerAnim = GetComponent<Animator>();
-        footstepEmitter = GetComponent<FootstepAudioEmitter>();
+        motor = GetComponent<PlayerMovementMotor>();
+        animController = GetComponent<PlayerAnimationController>();
 
         currentStamina = maxStamina;
     }
@@ -156,30 +141,28 @@ public class PlayerController : MonoBehaviour
         {
             if (autoWalkCoroutine == null)
             {
-                ResetMovementAnimations();
+                animController.ResetLocomotionAnimations();
             }
             return;
         }
 
-        // Apply gravity standard physics unless climbing or falling programmatically
-        if (currentMovementState != PlayerMovementState.Climbing)
+        // Apply standard gravity physics unless climbing
+        if (currentMovementState != PlayerMovementState.Climbing && currentMovementState != PlayerMovementState.AutoJumping)
         {
-            HandleGravity();
+            motor.HandleGravity();
+            animController.UpdateAirborneState(motor.IsGrounded, motor.VerticalVelocity);
         }
 
         switch (currentMovementState)
         {
             case PlayerMovementState.FreeExploration:
-                HandleMovement();
+                HandleFreeExploration();
                 break;
 
             case PlayerMovementState.InFirstPerson:
             case PlayerMovementState.CastingPsynergy:
-                ResetMovementAnimations();
-                if (controller != null && controller.enabled)
-                {
-                    controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
-                }
+                animController.ResetLocomotionAnimations();
+                motor.StopImmediate();
                 break;
 
             case PlayerMovementState.Climbing:
@@ -194,8 +177,10 @@ public class PlayerController : MonoBehaviour
                 HandleFallingMovement();
                 break;
 
+            case PlayerMovementState.AutoJumping:
+            case PlayerMovementState.PushingObject:
             case PlayerMovementState.AutoWalking:
-                // Managed by auto-walk routine
+                // Managed by dedicated coroutines or external state modules
                 break;
         }
     }
@@ -295,7 +280,7 @@ public class PlayerController : MonoBehaviour
         bool isGameplayActive = (newState == GameManager.GameState.WorldExploration);
         bool isTitleScreen = (newState == GameManager.GameState.TitleScreen);
 
-        if (controller != null) controller.enabled = !isTitleScreen;
+        motor.SetControllerEnabled(!isTitleScreen);
 
         if (isGameplayActive)
         {
@@ -318,14 +303,14 @@ public class PlayerController : MonoBehaviour
         InterruptPsynergyCast();
         currentMovementState = PlayerMovementState.FreeExploration;
 
-        if (controller != null) controller.enabled = false;
+        motor.SetControllerEnabled(false);
 
         transform.position = position;
         transform.rotation = rotation;
 
-        if (controller != null && currentGameState != GameManager.GameState.TitleScreen)
+        if (currentGameState != GameManager.GameState.TitleScreen)
         {
-            controller.enabled = true;
+            motor.SetControllerEnabled(true);
         }
     }
 
@@ -382,130 +367,43 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Movement & Physics Logic
+    #region Movement Logic & State Handlers
 
-    private void HandleGravity()
+    private void HandleFreeExploration()
     {
-        if (controller == null || !controller.enabled) return;
+        bool isMoving = currentMoveInput.sqrMagnitude >= 0.01f;
+        bool isSprinting = isRunningInput && enoughStaminaToRun;
 
-        if (controller.isGrounded && verticalVelocity < 0)
-        {
-            verticalVelocity = stickToGroundForce;
-        }
-        else
-        {
-            verticalVelocity += gravity * Time.deltaTime;
-        }
-    }
+        // Process locomotion through movement motor
+        float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, false);
 
-    private void HandleMovement()
-    {
-        if (controller == null || !controller.enabled) return;
+        // Update locomotion Blend Trees
+        animController.UpdateLocomotion(normalizedSpeed, isMoving, isSprinting);
 
-        Vector3 direction = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
-
-        if (direction.magnitude >= 0.1f)
+        // Stamina and Idle counter management
+        if (isMoving)
         {
             idleTimeCounter = 0f;
 
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + (mainCamera != null ? mainCamera.eulerAngles.y : 0f);
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-
-            if (playerAnim != null) playerAnim.SetBool(IsMovingHash, true);
-
-            Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-
-            if (controller.isGrounded && IsEdgeAhead(moveDirection))
+            if (isSprinting)
             {
-                moveDirection = Vector3.zero;
-            }
-
-            if (isRunningInput && enoughStaminaToRun)
-            {
-                if (playerAnim != null) playerAnim.SetBool(IsRunningHash, true);
-
-                Vector3 movement = (moveDirection.normalized * (speed * 2f)) + new Vector3(0f, verticalVelocity, 0f);
-                controller.Move(movement * Time.deltaTime);
-
                 ModifyStamina(-staminaDrainRate * Time.deltaTime);
             }
             else
             {
-                if (playerAnim != null) playerAnim.SetBool(IsRunningHash, false);
-
-                Vector3 movement = (moveDirection.normalized * speed) + new Vector3(0f, verticalVelocity, 0f);
-                controller.Move(movement * Time.deltaTime);
-
                 ModifyStamina(staminaRegenRate * Time.deltaTime);
             }
         }
         else
         {
-            if (playerAnim != null) playerAnim.SetBool(IsMovingHash, false);
-
-            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
-
             idleTimeCounter += Time.deltaTime;
             if (idleTimeCounter >= secondsInIdle)
             {
-                if (playerAnim != null) playerAnim.SetTrigger(LongTimeHash);
+                animController.TriggerLongIdle();
                 idleTimeCounter = 1f;
             }
 
             ModifyStamina(staminaRegenRate * Time.deltaTime);
-        }
-    }
-
-    private bool IsEdgeAhead(Vector3 moveDirection)
-    {
-        if (controller == null) return false;
-
-        float dynamicEdgeOffset = controller.radius + frontMargin;
-        float safetyMargin = 0.2f;
-        float rayStartHeight = controller.stepOffset + safetyMargin;
-        float maxWalkableDrop = controller.stepOffset + extraDropMargin;
-        float totalRayDistance = rayStartHeight + maxWalkableDrop;
-
-        Vector3 rayOrigin = transform.position + (moveDirection.normalized * dynamicEdgeOffset) + (Vector3.up * rayStartHeight);
-
-        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, totalRayDistance, groundLayer))
-        {
-            float slopeAngle = Vector3.Angle(Vector3.up, hit.normal);
-
-            if (slopeAngle > controller.slopeLimit)
-            {
-#if UNITY_EDITOR
-                Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.red);
-#endif
-                return true;
-            }
-
-#if UNITY_EDITOR
-            Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.green);
-#endif
-            return false;
-        }
-
-#if UNITY_EDITOR
-        Debug.DrawRay(rayOrigin, Vector3.down * totalRayDistance, Color.red);
-#endif
-        return true;
-    }
-
-    private void ResetMovementAnimations()
-    {
-        if (playerAnim == null) return;
-
-        if (playerAnim.GetBool(IsMovingHash))
-        {
-            playerAnim.SetBool(IsMovingHash, false);
-        }
-
-        if (playerAnim.GetBool(IsRunningHash))
-        {
-            playerAnim.SetBool(IsRunningHash, false);
         }
     }
 
@@ -525,12 +423,8 @@ public class PlayerController : MonoBehaviour
     private IEnumerator PsynergyCastRoutine(float duration)
     {
         currentMovementState = PlayerMovementState.CastingPsynergy;
-        ResetMovementAnimations();
-
-        if (playerAnim != null)
-        {
-            playerAnim.SetTrigger(CastPsynergyHash);
-        }
+        animController.ResetLocomotionAnimations();
+        animController.TriggerCastPsynergy();
 
         yield return new WaitForSeconds(duration);
 
@@ -560,17 +454,13 @@ public class PlayerController : MonoBehaviour
         StopAutoWalk();
         InterruptPsynergyCast();
         currentMovementState = PlayerMovementState.Falling;
-        ResetMovementAnimations();
-
-        // TODO: Trigger falling animation (e.g. playerAnim.SetTrigger("fallHole"))
+        animController.ResetLocomotionAnimations();
+        animController.TriggerFall();
     }
 
     private void HandleFallingMovement()
     {
-        if (controller == null || !controller.enabled) return;
-
         // TODO: Apply direct vertical downward movement through holes or trigger scene/floor transition
-        controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
     }
 
     private void HandleClimbingMovement()
@@ -600,17 +490,11 @@ public class PlayerController : MonoBehaviour
             currentMovementState = PlayerMovementState.FreeExploration;
         }
 
-        ResetMovementAnimations();
+        animController.ResetLocomotionAnimations();
     }
 
     private IEnumerator MoveToDestinationRoutine(Vector3 targetPosition)
     {
-        if (playerAnim != null)
-        {
-            playerAnim.SetBool(IsMovingHash, true);
-            playerAnim.SetBool(IsRunningHash, false);
-        }
-
         float stopThreshold = 0.15f;
 
         while (true)
@@ -626,26 +510,14 @@ public class PlayerController : MonoBehaviour
                 break;
             }
 
-            Vector3 moveDirection = direction.normalized;
-
-            if (moveDirection.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-            }
-
-            HandleGravity();
-
-            if (controller != null && controller.enabled)
-            {
-                Vector3 movement = (moveDirection * speed) + new Vector3(0f, verticalVelocity, 0f);
-                controller.Move(movement * Time.deltaTime);
-            }
+            Vector2 autoWalkInput = new Vector2(direction.normalized.x, direction.normalized.z);
+            float normalizedSpeed = motor.ProcessLocomotion(autoWalkInput, false, false);
+            animController.UpdateLocomotion(normalizedSpeed, true, false);
 
             yield return null;
         }
 
-        ResetMovementAnimations();
+        animController.ResetLocomotionAnimations();
         currentMovementState = PlayerMovementState.FreeExploration;
         autoWalkCoroutine = null;
     }
@@ -730,7 +602,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Stamina & Audio Animation Events
+    #region Stamina Management
 
     private void ModifyStamina(float amount)
     {
@@ -747,21 +619,6 @@ public class PlayerController : MonoBehaviour
 
         GameEvents.Player.TriggerStaminaChanged(currentStamina, maxStamina);
     }
-
-    /// <summary>
-    /// Animation Event Callback triggered by the locomotion clip.
-    /// Broadcasts footstep sound triggers to the attached FootstepAudioEmitter.
-    /// </summary>
-    public void PlayFootprints()
-    {
-        if (footstepEmitter != null)
-        {
-            footstepEmitter.OnFootstep();
-        }
-    }
-
-    // Backwards compatibility for legacy animation clip events
-    public void playFootprints() => PlayFootprints();
 
     #endregion
 

@@ -162,7 +162,7 @@ public class HeroDjinnController : MonoBehaviour
             }
         }
 
-        Debug.Log($"<color=green>[HeroDjinnController] Collected save data for {assignedDjinns.Count} Djinns assigned to '{currentHeroName}'.</color>");
+        //Debug.Log($"<color=green>[HeroDjinnController] Collected save data for {assignedDjinns.Count} Djinns assigned to '{currentHeroName}'.</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

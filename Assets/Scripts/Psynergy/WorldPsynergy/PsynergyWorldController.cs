@@ -160,7 +160,7 @@ public class PsynergyWorldController : MonoBehaviour
             saveData.heroesShortcuts.Add(shortcutData);
         }
 
-        Debug.Log($"<color=green>[PsynergyWorldController] Collected shortcuts save data for {saveData.heroesShortcuts.Count} hero(es).</color>");
+        //Debug.Log($"<color=green>[PsynergyWorldController] Collected shortcuts save data for {saveData.heroesShortcuts.Count} hero(es).</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

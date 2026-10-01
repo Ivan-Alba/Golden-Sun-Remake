@@ -105,7 +105,7 @@ public class NPC : Interactable
         }
 
         // Trigger player interaction animation
-        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.InteractNPC);
+        GameEvents.Player.RequestInteractAnimation();
 
         // Evaluate and start active dialogue via decoupled event
         DialogueSO activeDialogue = EvaluateActiveDialogue();

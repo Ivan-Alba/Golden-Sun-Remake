@@ -122,7 +122,7 @@ public class EnemyDetector : MonoBehaviour
 
         // 1. Lock overworld inputs during transition
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
-        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.EnemyHitReaction);
+        GameEvents.Player.RequestEnemyHitAnimation();
 
         // 2. Determine encounter type based on impact angle
         CollisionAdvantageType encounterType = CalculateEncounterType(enemyCollider.transform);

@@ -254,7 +254,7 @@ public class HeroStats : FighterStats
         }
         saveData.heroesStats.Add(statsData);
 
-        Debug.Log($"<color=green>[HeroStats] Collected progression, vitals, and base stats save data for '{currentHeroName}'.</color>");
+        //Debug.Log($"<color=green>[HeroStats] Collected progression, vitals, and base stats save data for '{currentHeroName}'.</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

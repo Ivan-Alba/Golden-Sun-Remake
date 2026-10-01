@@ -161,7 +161,7 @@ public class WorldStateController : MonoBehaviour
             saveData.header.lastChronicleFlagSlug = targetChronicleSlug;
         }
 
-        Debug.Log($"<color=green>[WorldStateController] Collected save data for {saveData.gameFlags.Count} world flag(s). Last Chronicle Flag: '{targetChronicleSlug}'</color>");
+        //Debug.Log($"<color=green>[WorldStateController] Collected save data for {saveData.gameFlags.Count} world flag(s). Last Chronicle Flag: '{targetChronicleSlug}'</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

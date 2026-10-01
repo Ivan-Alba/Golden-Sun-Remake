@@ -1,18 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-/// <summary>
-/// Strongly-typed interaction animation requests for the player character.
-/// </summary>
-public enum PlayerInteractionAnimType
-{
-    PickChest,
-    PickFloor,
-    InteractNPC,
-    TouchObject,
-    EnemyHitReaction
-}
 
 /// <summary>
 /// Container for inspector-assigned visual, audio, dialogue framing, and 3D weapon sockets 
@@ -27,11 +16,11 @@ public class HeroVisualData
     [Tooltip("Reference to the world model GameObject inside Player/Model hierarchy.")]
     public GameObject worldModelObject;
 
-    [Tooltip("Direct reference to the world AnimatorController asset.")]
-    public RuntimeAnimatorController animatorController;
-
-    [Tooltip("Direct reference to the world Humanoid Avatar asset.")]
+    [Tooltip("Humanoid Avatar asset corresponding to this specific hero model skeleton.")]
     public Avatar avatar;
+
+    [Tooltip("Optional Animator Override Controller asset for hero-specific animation variants.")]
+    public AnimatorOverrideController overrideController;
 
     [Tooltip("Footstep audio profile assigned to this specific hero.")]
     public HeroFootstepProfileSO footstepProfile;
@@ -58,30 +47,20 @@ public class HeroVisualData
 }
 
 /// <summary>
-/// Manages player model swapping, mesh visibility, animator controller assignments,
-/// interaction animations, active footstep audio profile synchronization, 3D exploration weapon visuals,
-/// and dialogue focus provider updates.
+/// Manages hero model swapping, mesh visibility, 3D exploration weapon visuals, 
+/// active footstep audio profile synchronization, and dialogue focus provider updates.
+/// Delegates animation execution strictly to PlayerAnimationController.
 /// </summary>
 public class PlayerVisualManager : MonoBehaviour
 {
-    #region Animator Hashes (Cached for performance)
-
-    private static readonly int PickChestHash = Animator.StringToHash("pickChest");
-    private static readonly int PickFloorHash = Animator.StringToHash("pickFloor");
-    private static readonly int InteractNPCHash = Animator.StringToHash("interactNPC");
-    private static readonly int TouchObjectHash = Animator.StringToHash("touchObject");
-    private static readonly int EnemyHitReactionHash = Animator.StringToHash("attacked");
-
-    #endregion
-
     #region Serialized Fields
 
     [Header("Model Container & Components")]
     [SerializeField] private GameObject modelContainer;
-    [SerializeField] private Animator playerAnimator;
-    [SerializeField] private GameObject EyePoint;
+    [SerializeField] private GameObject eyePoint;
     [SerializeField] private FootstepAudioEmitter footstepEmitter;
     [SerializeField] private DialogueFocusProvider focusProvider;
+    [SerializeField] private PlayerAnimationController animationController;
 
     [Header("Hero Visual Configurations")]
     [SerializeField] private List<HeroVisualData> heroVisuals = new List<HeroVisualData>();
@@ -104,6 +83,11 @@ public class PlayerVisualManager : MonoBehaviour
 
     private void Awake()
     {
+        if (animationController == null)
+        {
+            animationController = GetComponent<PlayerAnimationController>();
+        }
+
         InitializeLookupDictionary();
     }
 
@@ -111,7 +95,6 @@ public class PlayerVisualManager : MonoBehaviour
     {
         GameEvents.Party.OnActiveHeroChanged += HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested += SetModelVisibility;
-        GameEvents.Player.OnPlayInteractionAnimation += HandlePlayInteractionAnimation;
 
         // Listen to equipment changes to refresh 3D weapon models in real-time
         GameEvents.Hero.OnEquipmentChanged += HandleHeroEquipmentChanged;
@@ -122,7 +105,6 @@ public class PlayerVisualManager : MonoBehaviour
     {
         GameEvents.Party.OnActiveHeroChanged -= HandleActiveHeroChanged;
         GameEvents.Player.OnSetPlayerVisibilityRequested -= SetModelVisibility;
-        GameEvents.Player.OnPlayInteractionAnimation -= HandlePlayInteractionAnimation;
 
         GameEvents.Hero.OnEquipmentChanged -= HandleHeroEquipmentChanged;
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
@@ -181,16 +163,12 @@ public class PlayerVisualManager : MonoBehaviour
 
     #region Visual & Audio Swap Logic
 
-    /// <summary>
-    /// Overload that receives the Hero GameObject directly containing the HeroEquipment component.
-    /// </summary>
     public void SwapToHero(GameObject heroObject)
     {
         if (heroObject == null) return;
 
         string heroId = heroObject.name;
 
-        // Cache or update the reference to the Hero GameObject for future equipment events
         if (!activeHeroGameObjects.ContainsKey(heroId))
         {
             activeHeroGameObjects.Add(heroId, heroObject);
@@ -203,10 +181,6 @@ public class PlayerVisualManager : MonoBehaviour
         SwapToHero(heroId, heroObject);
     }
 
-    /// <summary>
-    /// Swaps active model mesh, updates AnimatorController + Avatar, synchronizes footstep audio profile, 
-    /// attaches the active weapon to the correct socket using the provided heroObject, and updates DialogueFocusProvider offsets.
-    /// </summary>
     public void SwapToHero(string heroId, GameObject heroObject = null)
     {
         if (string.IsNullOrEmpty(heroId)) return;
@@ -219,7 +193,6 @@ public class PlayerVisualManager : MonoBehaviour
 
         currentActiveHeroId = heroId;
 
-        // If heroObject wasn't passed directly, attempt to fetch it from cached dictionary
         if (heroObject == null)
         {
             activeHeroGameObjects.TryGetValue(heroId, out heroObject);
@@ -231,7 +204,7 @@ public class PlayerVisualManager : MonoBehaviour
             modelContainer.SetActive(true);
         }
 
-        // 2. Hide all other models and show only target model
+        // 2. Toggle active world model mesh
         foreach (var kvp in visualLookup)
         {
             if (kvp.Value.worldModelObject != null)
@@ -241,17 +214,17 @@ public class PlayerVisualManager : MonoBehaviour
             }
         }
 
-        // 3. Update Animator Controller & Avatar directly
-        if (playerAnimator != null)
+        // 3. Delegate Avatar and Animator Override assignment to PlayerAnimationController
+        if (animationController != null)
         {
-            if (visualData.animatorController != null)
-            {
-                playerAnimator.runtimeAnimatorController = visualData.animatorController;
-            }
-
             if (visualData.avatar != null)
             {
-                playerAnimator.avatar = visualData.avatar;
+                animationController.SetAvatar(visualData.avatar);
+            }
+
+            if (visualData.overrideController != null)
+            {
+                animationController.ApplyAnimatorOverride(visualData.overrideController);
             }
         }
 
@@ -261,18 +234,18 @@ public class PlayerVisualManager : MonoBehaviour
             footstepEmitter.SetActiveProfile(visualData.footstepProfile);
         }
 
-        // 5. Update DialogueFocusProvider parameters dynamically based on current hero anatomy
+        // 5. Update DialogueFocusProvider parameters
         if (focusProvider != null)
         {
             focusProvider.UpdateProfile(visualData.eyeHeightOffset, visualData.framingCenterOffset, visualData.targetRadius);
         }
 
-        if (EyePoint != null)
+        if (eyePoint != null)
         {
-            EyePoint.transform.localPosition = new Vector3(0f, visualData.eyeHeightOffset, EyePoint.transform.localPosition.z);
+            eyePoint.transform.localPosition = new Vector3(0f, visualData.eyeHeightOffset, eyePoint.transform.localPosition.z);
         }
 
-        // 6. Update 3D Weapon Model for exploration passing the heroObject with HeroEquipment
+        // 6. Update 3D Weapon Model
         UpdateExplorationWeaponVisuals(visualData, heroObject);
     }
 
@@ -286,7 +259,6 @@ public class PlayerVisualManager : MonoBehaviour
     {
         if (heroObject == null || string.IsNullOrEmpty(currentActiveHeroId)) return;
 
-        // Only refresh visuals if the equipment event belongs to the currently active hero
         if (heroObject.name.Equals(currentActiveHeroId, StringComparison.OrdinalIgnoreCase))
         {
             if (visualLookup.TryGetValue(currentActiveHeroId, out HeroVisualData visualData))
@@ -296,9 +268,6 @@ public class PlayerVisualManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggles main Model container visibility and ensures active hero model state.
-    /// </summary>
     public void SetModelVisibility(bool visible)
     {
         if (modelContainer != null)
@@ -312,48 +281,16 @@ public class PlayerVisualManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Handles requests to play interaction animations directly on the active Animator.
-    /// </summary>
-    private void HandlePlayInteractionAnimation(PlayerInteractionAnimType animType)
-    {
-        if (playerAnimator == null) return;
-
-        switch (animType)
-        {
-            case PlayerInteractionAnimType.PickChest:
-                playerAnimator.SetTrigger(PickChestHash);
-                break;
-            case PlayerInteractionAnimType.PickFloor:
-                playerAnimator.SetTrigger(PickFloorHash);
-                break;
-            case PlayerInteractionAnimType.InteractNPC:
-                playerAnimator.SetTrigger(InteractNPCHash);
-                break;
-            case PlayerInteractionAnimType.TouchObject:
-                playerAnimator.SetTrigger(TouchObjectHash);
-                break;
-            case PlayerInteractionAnimType.EnemyHitReaction:
-                playerAnimator.SetTrigger(EnemyHitReactionHash);
-                break;
-        }
-    }
-
     #endregion
 
     #region Exploration Weapon Spawning & Attachment Logic
 
-    /// <summary>
-    /// Fetches the equipped weapon from the provided hero's HeroEquipment component, 
-    /// determines target socket (Back or Sheath), and instantiates the 3D model.
-    /// </summary>
     private void UpdateExplorationWeaponVisuals(HeroVisualData visualData, GameObject heroObject)
     {
         ClearExplorationWeaponVisuals();
 
         if (visualData == null || heroObject == null) return;
 
-        // Fetch HeroEquipment component directly from the passed Hero GameObject
         HeroEquipment heroEquipment = heroObject.GetComponent<HeroEquipment>();
         if (heroEquipment == null) return;
 
@@ -361,7 +298,6 @@ public class PlayerVisualManager : MonoBehaviour
 
         if (equippedWeapon == null || equippedWeapon.WeaponModelPrefab == null)
         {
-            // If no weapon equipped, disable sheath mesh if present
             if (visualData.sheathMeshObject != null)
             {
                 visualData.sheathMeshObject.SetActive(false);
@@ -369,19 +305,16 @@ public class PlayerVisualManager : MonoBehaviour
             return;
         }
 
-        // Check if weapon subtype is a sword (Longsword or LightBlade)
         bool isSwordSubtype = equippedWeapon.EquipmentSubtype == EquipmentSubtype.Longsword ||
                              equippedWeapon.EquipmentSubtype == EquipmentSubtype.LightBlade;
 
         Transform targetSocket = null;
 
-        // Case A: Sword equipped AND hero has an assigned sheath mesh
         if (isSwordSubtype && visualData.sheathMeshObject != null)
         {
             visualData.sheathMeshObject.SetActive(true);
             targetSocket = visualData.weaponSheathSocket;
         }
-        // Case B: Axes, Maces, Staffs, OR swords on heroes without sheath reference
         else
         {
             if (visualData.sheathMeshObject != null)
@@ -392,7 +325,6 @@ public class PlayerVisualManager : MonoBehaviour
             targetSocket = visualData.weaponBackSocket;
         }
 
-        // Instantiate model under target socket if valid
         if (targetSocket != null)
         {
             currentExplorationWeaponInstance = Instantiate(equippedWeapon.WeaponModelPrefab, targetSocket);
@@ -402,9 +334,6 @@ public class PlayerVisualManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Safely destroys the active 3D weapon model instance in exploration.
-    /// </summary>
     private void ClearExplorationWeaponVisuals()
     {
         if (currentExplorationWeaponInstance != null)

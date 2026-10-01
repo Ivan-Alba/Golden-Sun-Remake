@@ -54,7 +54,7 @@ public static class SaveManager
             string filePath = GetSaveFilePath(slotIndex);
             File.WriteAllText(filePath, json);
 
-            Debug.Log($"<color=green>[SaveManager] Successfully saved game to Slot {slotIndex} at path: {filePath}</color>");
+            //Debug.Log($"<color=green>[SaveManager] Successfully saved game to Slot {slotIndex} at path: {filePath}</color>");
             GameEvents.SaveLoad.TriggerSaveCompleted(slotIndex, true);
             return true;
         }

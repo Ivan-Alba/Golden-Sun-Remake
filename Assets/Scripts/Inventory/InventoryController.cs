@@ -125,7 +125,7 @@ public class InventoryController : MonoBehaviour
             saveData.heroesInventories.Add(heroInvData);
         }
 
-        Debug.Log($"<color=green>[InventoryController] Collected inventory save data for {saveData.heroesInventories.Count} hero(es).</color>");
+        //Debug.Log($"<color=green>[InventoryController] Collected inventory save data for {saveData.heroesInventories.Count} hero(es).</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

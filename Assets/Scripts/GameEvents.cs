@@ -846,12 +846,19 @@ public static class GameEvents
     // ==========================================
     public static class Player
     {
-        /// <summary>
-        /// Triggered when an object requests the player to perform an interaction animation.
-        /// </summary>
-        public static event Action<PlayerInteractionAnimType> OnPlayInteractionAnimation;
-        public static void TriggerPlayInteractionAnimation(PlayerInteractionAnimType animType)
-            => OnPlayInteractionAnimation?.Invoke(animType);
+        // Triggered when an interactable object requests the player to play an interaction animation
+        public static event Action OnRequestInteractAnimation;
+        public static void RequestInteractAnimation() => OnRequestInteractAnimation?.Invoke();
+
+        public static event Action OnRequestOpenChestAnimation;
+        public static void RequestOpenChestAnimation() => OnRequestOpenChestAnimation?.Invoke();
+
+        public static event Action OnRequestPickFloorAnimation;
+        public static void RequestPickFloorAnimation() => OnRequestPickFloorAnimation?.Invoke();
+
+        // Triggered when an enemy or hazard hits the player in the overworld
+        public static event Action OnRequestEnemyHitAnimation;
+        public static void RequestEnemyHitAnimation() => OnRequestEnemyHitAnimation?.Invoke();
 
         /// <summary>
         /// Request to relocate/teleport the player avatar to a target position and rotation safely.

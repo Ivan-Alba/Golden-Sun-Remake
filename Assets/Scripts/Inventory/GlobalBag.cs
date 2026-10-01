@@ -119,7 +119,7 @@ public class GlobalBag : MonoBehaviour
             }
         }
 
-        Debug.Log($"<color=green>[GlobalBag] Collected save data for {saveData.globalBagKeyItems.Count} key item slot(s).</color>");
+        //Debug.Log($"<color=green>[GlobalBag] Collected save data for {saveData.globalBagKeyItems.Count} key item slot(s).</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)

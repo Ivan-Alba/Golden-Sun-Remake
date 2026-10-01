@@ -107,7 +107,7 @@ public class FieldItem : Interactable
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
         // 2. Play floor picking animation on Player via decoupled event
-        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.PickFloor);
+        GameEvents.Player.RequestPickFloorAnimation();
 
         yield return new WaitForSeconds(playerPickDuration);
 

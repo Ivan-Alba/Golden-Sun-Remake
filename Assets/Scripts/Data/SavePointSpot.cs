@@ -63,7 +63,7 @@ public class SavePointSpot : Interactable
         GameEvents.Player.RequestLookAt(transform.position, 0.25f);
 
         // 3. Play player interaction animation (e.g., praying/touching altar)
-        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.InteractNPC);
+        GameEvents.Player.RequestInteractAnimation();
 
         // 4. Optional interaction SFX
         GameEvents.Audio.RequestPlaySFX(interactionSFX);

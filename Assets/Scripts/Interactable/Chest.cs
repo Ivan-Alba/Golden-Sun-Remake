@@ -25,7 +25,7 @@ public class Chest : Interactable
     [SerializeField] private float chestOpeningDuration = 2.0f;
 
     [Tooltip("Pause duration in seconds after displaying item notification before releasing game state lock.")]
-    [SerializeField] private float endSequenceDelay = 0.5f;
+    [SerializeField] private float endSequenceDelay = 1.0f;
 
     [Header("Localization Table Entries (UI_Strings Table)")]
     [Tooltip("Localized entry for full inventory warning (e.g. 'Your inventory is full').")]
@@ -130,7 +130,7 @@ public class Chest : Interactable
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
         // Decoupled event request for player animation
-        GameEvents.Player.TriggerPlayInteractionAnimation(PlayerInteractionAnimType.PickChest);
+        GameEvents.Player.RequestOpenChestAnimation();
 
         yield return new WaitForSeconds(playerPickDuration);
 
