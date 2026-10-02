@@ -22,7 +22,7 @@ public enum PlayerMovementState
 /// Central coordinator for player exploration states, input routing, stamina management, 
 /// auto-walk commands, and first-person inspection camera mode.
 /// Delegates movement physics to PlayerMovementMotor, animation handling to PlayerAnimationController,
-/// and edge sensor probing to PlayerLedgeDetector.
+/// edge sensor probing to PlayerLedgeDetector, and block push sensing to PlayerPushDetector.
 /// </summary>
 [RequireComponent(typeof(PlayerMovementMotor))]
 [RequireComponent(typeof(PlayerAnimationController))]
@@ -47,6 +47,9 @@ public class PlayerController : MonoBehaviour
     [Header("Sub-Sensor References")]
     [Tooltip("Direct reference to the active PlayerLedgeDetector child component.")]
     [SerializeField] private PlayerLedgeDetector ledgeDetector;
+
+    [Tooltip("Direct reference to the active PlayerPushDetector child component.")]
+    [SerializeField] private PlayerPushDetector pushDetector;
 
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
@@ -83,6 +86,7 @@ public class PlayerController : MonoBehaviour
     private Coroutine autoWalkCoroutine;
     private Coroutine rotateCoroutine;
     private Coroutine psynergyCastCoroutine;
+    private Coroutine pushBlockCoroutine;
 
     #endregion
 
@@ -147,6 +151,12 @@ public class PlayerController : MonoBehaviour
             StopCoroutine(rotateCoroutine);
             rotateCoroutine = null;
         }
+
+        if (pushBlockCoroutine != null)
+        {
+            StopCoroutine(pushBlockCoroutine);
+            pushBlockCoroutine = null;
+        }
     }
 
     private void Update()
@@ -160,8 +170,10 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Apply standard gravity physics unless climbing or airborne auto-jumping
-        if (currentMovementState != PlayerMovementState.Climbing && currentMovementState != PlayerMovementState.AutoJumping)
+        // Apply standard gravity physics unless climbing, airborne auto-jumping, or pushing
+        if (currentMovementState != PlayerMovementState.Climbing &&
+            currentMovementState != PlayerMovementState.AutoJumping &&
+            currentMovementState != PlayerMovementState.PushingObject)
         {
             motor.HandleGravity();
             animController.UpdateAirborneState(motor.IsGrounded, motor.VerticalVelocity);
@@ -247,7 +259,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleChangeHero(int heroIndex)
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
 
         GameEvents.Party.RequestActiveHeroIndexChange(heroIndex);
     }
@@ -264,7 +276,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleToggleFirstPersonView()
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
 
         if (currentMovementState == PlayerMovementState.InFirstPerson)
         {
@@ -278,7 +290,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleUsePsynergy(int slotIndex)
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
 
         GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
     }
@@ -394,8 +406,8 @@ public class PlayerController : MonoBehaviour
         // Update locomotion Blend Trees
         animController.UpdateLocomotion(normalizedSpeed, isMoving, isSprinting);
 
-        // --- ACTIVE LEDGE PROBING (Executed only during active movement) ---
-        if (isMoving && ledgeDetector != null)
+        // --- ACTIVE SENSOR PROBING (Executed only during active movement) ---
+        if (isMoving)
         {
             Vector3 moveDirection = Vector3.zero;
             if (mainCamera != null)
@@ -404,8 +416,17 @@ public class PlayerController : MonoBehaviour
                 moveDirection = Quaternion.Euler(0f, mainCamera.eulerAngles.y, 0f) * inputDir;
             }
 
-            // Probe using current horizontal speed scalar from motor
-            ledgeDetector.CheckForLedgeJump(moveDirection, motor.CurrentSpeed);
+            // 1. Prospección de salto automático
+            if (ledgeDetector != null)
+            {
+                ledgeDetector.CheckForLedgeJump(moveDirection, motor.CurrentSpeed);
+            }
+
+            // 2. Prospección de empuje de bloques de puzle
+            if (pushDetector != null && currentMovementState == PlayerMovementState.FreeExploration)
+            {
+                pushDetector.CheckForPushableBlock(moveDirection, motor.CurrentSpeed);
+            }
         }
 
         // Stamina and Idle counter management
@@ -491,6 +512,64 @@ public class PlayerController : MonoBehaviour
         // 5. Restore free locomotion
         animController.ResetLocomotionAnimations();
         currentMovementState = PlayerMovementState.FreeExploration;
+    }
+
+    #endregion
+
+    #region Phase 4: Pushable Objects System
+
+    /// <summary>
+    /// Initiates a grid-aligned push sequence on a target PushableBlock.
+    /// Triggered externally by PlayerPushDetector when push intention condition is met.
+    /// </summary>
+    public void ExecuteBlockPush(PushableBlock block, Vector3 pushDirection)
+    {
+        if (currentMovementState != PlayerMovementState.FreeExploration) return;
+
+        // Verify if destination grid tile is clear or leads to water/pit
+        if (!block.CanBePushed(pushDirection, out bool fallsIntoPit))
+        {
+            // Block destination is obstructed by a wall or pillar -> Push fails!
+            return;
+        }
+
+        currentMovementState = PlayerMovementState.PushingObject;
+        motor.StopImmediate();
+
+        pushBlockCoroutine = StartCoroutine(PushBlockRoutine(block, pushDirection, fallsIntoPit));
+    }
+
+    private IEnumerator PushBlockRoutine(PushableBlock block, Vector3 pushDirection, bool fallsIntoPit)
+    {
+        transform.rotation = Quaternion.LookRotation(pushDirection);
+        animController.SetPushingState(true);
+
+        Coroutine blockMoveCoroutine = StartCoroutine(block.MoveBlockRoutine(pushDirection, fallsIntoPit));
+
+        float elapsedTime = 0f;
+        float pushDuration = block.PushDuration;
+        float pushSpeed = block.TileSize / pushDuration;
+
+        CharacterController charController = GetComponent<CharacterController>();
+
+        while (elapsedTime < pushDuration)
+        {
+            if (charController != null && charController.enabled)
+            {
+                // Movemos horizontalmente a velocidad constante + gravedad para mantener pies en el suelo
+                Vector3 moveVelocity = (pushDirection.normalized * pushSpeed) + (Vector3.down * 9.81f);
+                charController.Move(moveVelocity * Time.deltaTime);
+            }
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        yield return blockMoveCoroutine;
+
+        animController.SetPushingState(false);
+        currentMovementState = PlayerMovementState.FreeExploration;
+        pushBlockCoroutine = null;
     }
 
     #endregion

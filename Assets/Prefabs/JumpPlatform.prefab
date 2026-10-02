@@ -75,6 +75,7 @@ MonoBehaviour:
   tileSize: 1.5
   maxJumpHeightDelta: 0.5
   maxPillarBoundsSize: 2
+  continuousTerrainLandingOffset: 0.4
 --- !u!1 &498775306283498739
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,6 +186,7 @@ MonoBehaviour:
   tileSize: 1.5
   maxJumpHeightDelta: 0.5
   maxPillarBoundsSize: 2
+  continuousTerrainLandingOffset: 0.4
 --- !u!1 &2022400441827000617
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,6 +262,7 @@ MonoBehaviour:
   tileSize: 1.5
   maxJumpHeightDelta: 0.5
   maxPillarBoundsSize: 2
+  continuousTerrainLandingOffset: 0.4
 --- !u!1 &2772027626688071154
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,7 +273,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8588811835621178828}
   - component: {fileID: 1081676584912471896}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: MainCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -325,7 +328,7 @@ GameObject:
   - component: {fileID: 6661841760688453850}
   - component: {fileID: 3249715597227548684}
   - component: {fileID: 900437795093296612}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: JumpPlatform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -496,3 +499,4 @@ MonoBehaviour:
   tileSize: 1.5
   maxJumpHeightDelta: 0.5
   maxPillarBoundsSize: 2
+  continuousTerrainLandingOffset: 0.4

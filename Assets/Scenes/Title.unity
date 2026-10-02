@@ -1256,6 +1256,60 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8459378967019290833, guid: a19744102be9ac7459c9135b44be0284, type: 3}
   m_PrefabInstance: {fileID: 8459378966747734655}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1383763329
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1383763330}
+  - component: {fileID: 1383763331}
+  m_Layer: 13
+  m_Name: PushDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1383763330
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383763329}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8459378966747734660}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1383763331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383763329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbccbf96493a5724493f5ce4380d24e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPushDetector
+  playerController: {fileID: 8459378966747734662}
+  characterController: {fileID: 8459378966747734661}
+  pushableLayer:
+    serializedVersion: 2
+    m_Bits: 1024
+  maxHeightDifference: 0.35
+  probeDistance: 0.5
+  pushChargeTime: 0.3
+  strictAngleThreshold: 0.85
+  showGizmos: 1
 --- !u!114 &1435026897 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 537083151118023778, guid: a19744102be9ac7459c9135b44be0284, type: 3}
@@ -3090,6 +3144,10 @@ PrefabInstance:
       value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: pushDetector
+      value: 
+      objectReference: {fileID: 1383763331}
+    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: ledgeDetector
       value: 
       objectReference: {fileID: 994645491}
@@ -3297,6 +3355,7 @@ PrefabInstance:
     - {fileID: 8459378967795981434, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     - {fileID: 8459378967795981433, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     - {fileID: 8459378967795981432, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+    - {fileID: 8459378967203041514, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     m_RemovedGameObjects:
     - {fileID: 1678474651684415602, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     - {fileID: 7476833233857088120, guid: a19744102be9ac7459c9135b44be0284, type: 3}
@@ -3309,6 +3368,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       insertIndex: -1
       addedObject: {fileID: 994645490}
+    - targetCorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1383763330}
     - targetCorrespondingSourceObject: {fileID: 8459378967019290833, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       insertIndex: -1
       addedObject: {fileID: 435865489}

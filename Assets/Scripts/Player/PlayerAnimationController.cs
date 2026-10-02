@@ -26,7 +26,7 @@ public class PlayerAnimationController : MonoBehaviour
     private static readonly int OpenChestHash = Animator.StringToHash("openChest");
     private static readonly int PickFloorHash = Animator.StringToHash("pickFloor");
     private static readonly int EnemyHitHash = Animator.StringToHash("attacked");
-    private static readonly int PushObjectHash = Animator.StringToHash("pushObject");
+    private static readonly int IsPushingHash = Animator.StringToHash("isPushing");
     private static readonly int AutoJumpHash = Animator.StringToHash("autoJump");
     private static readonly int ClimbHash = Animator.StringToHash("isClimbing");
     private static readonly int SlideHash = Animator.StringToHash("isSliding");
@@ -173,11 +173,11 @@ public class PlayerAnimationController : MonoBehaviour
         }
     }
 
-    public void TriggerPushObject()
+    public void SetPushingState(bool isPushing)
     {
         if (activeAnimator != null)
         {
-            activeAnimator.SetTrigger(PushObjectHash);
+            activeAnimator.SetBool(IsPushingHash, isPushing);
         }
     }
 
