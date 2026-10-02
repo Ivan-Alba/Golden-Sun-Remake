@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Handles environment probing and tile-aligned auto-jump target resolution.
-/// Restores the original single-raycast logic for clean, smooth slope navigation and edge stopping.
+/// Optimized for puzzle interaction without interfering with free slope locomotion.
 /// </summary>
 public class EnvironmentEdgeDetector : MonoBehaviour
 {
@@ -19,7 +19,7 @@ public class EnvironmentEdgeDetector : MonoBehaviour
     [SerializeField] private LayerMask obstacleLayer;
 
     [Header("Edge Probe Settings")]
-    [Tooltip("Forward distance offset from character radius for the single ray probe.")]
+    [Tooltip("Forward distance offset from character radius for edge probing.")]
     [SerializeField] private float frontMargin = 0.2f;
 
     [Tooltip("Raycast distance downwards to check for walkable ground.")]
@@ -67,11 +67,9 @@ public class EnvironmentEdgeDetector : MonoBehaviour
     #region Public Probe Methods
 
     /// <summary>
-    /// Evaluates if an edge or gap is directly ahead using the original single-ray logic.
-    /// Returns true if NO ground is detected ahead in the movement direction.
+    /// Basic check to determine if an edge or gap is directly ahead.
+    /// Used for puzzle detection without applying forced velocity locks during free exploration.
     /// </summary>
-    /// <param name="moveDirection">Normalized horizontal movement vector.</param>
-    /// <returns>True if movement should be blocked due to missing ground ahead.</returns>
     public bool IsEdgeAhead(Vector3 moveDirection)
     {
         if (controller == null || moveDirection.sqrMagnitude < 0.001f) return false;
@@ -82,18 +80,21 @@ public class EnvironmentEdgeDetector : MonoBehaviour
 
         Vector3 rayOrigin = transform.position + (forward * probeDistance) + (Vector3.up * rayStartHeight);
 
-        // Original logic: Single Raycast down. If hit ground, NO edge. If missed, EDGE.
         if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayStartHeight + groundCheckDistance, groundLayer))
         {
-            return false;
+            float slopeAngle = Vector3.Angle(Vector3.up, hit.normal);
+            if (slopeAngle <= controller.slopeLimit)
+            {
+                return false; // Valid walkable ground
+            }
         }
 
-        return true;
+        return true; // Edge or gap ahead
     }
 
     /// <summary>
-    /// Scans discrete tile increments ahead across crossable gaps/hazards to locate a safe, 
-    /// horizontal same-level ground target for auto-jumping.
+    /// Scans discrete tile increments ahead across crossable gaps/hazards to locate a safe landing target for auto-jumping.
+    /// Projects target probes to land at the EXACT center of the target tile (tileSize * index + halfTileSize).
     /// </summary>
     public bool TryFindJumpTarget(Vector3 moveDirection, out Vector3 outJumpTarget)
     {
@@ -119,18 +120,22 @@ public class EnvironmentEdgeDetector : MonoBehaviour
             }
         }
 
-        // 2. Scan discrete tile distances
+        // Half tile offset to hit the exact center of the destination platform
+        float halfTileSize = tileSize * 0.5f;
+
+        // 2. Scan discrete tile distances centered on target cells
         for (int tileIndex = 1; tileIndex <= maxJumpTiles; tileIndex++)
         {
-            float targetDistance = tileSize * tileIndex;
+            float targetDistance = (tileSize * tileIndex) + halfTileSize;
 
             if (Physics.Raycast(rayOrigin, forward, targetDistance, obstacleLayer))
             {
-                return false;
+                return false; // Obstacle blocking line of sight
             }
 
-            Vector3 targetProbeOrigin = rayOrigin + (forward * targetDistance) + (Vector3.up * 0.5f);
-            float probeRayLength = 1.0f + maxHorizontalJumpHeightDelta;
+            // Probe target tile center downwards
+            Vector3 targetProbeOrigin = rayOrigin + (forward * targetDistance) + (Vector3.up * 0.8f);
+            float probeRayLength = 1.2f + maxHorizontalJumpHeightDelta;
 
             if (Physics.Raycast(targetProbeOrigin, Vector3.down, out RaycastHit hit, probeRayLength, groundLayer))
             {

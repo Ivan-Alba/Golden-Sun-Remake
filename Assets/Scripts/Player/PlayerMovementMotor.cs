@@ -3,7 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Single Responsibility Component dedicated to character physics, acceleration/deceleration,
-/// slope/ground adherence, camera-relative rotation, and direct CharacterController execution.
+/// slope/ground adherence, camera-relative rotation, direct CharacterController execution,
+/// and deterministic parabolic auto-jumps with dynamic slope elevation handling.
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovementMotor : MonoBehaviour
@@ -42,6 +43,7 @@ public class PlayerMovementMotor : MonoBehaviour
     public bool IsGrounded => controller != null && controller.isGrounded;
     public float CurrentSpeed => currentSpeed;
     public float VerticalVelocity => verticalVelocity;
+    public bool IsControllerEnabled => controller != null && controller.enabled;
 
     #endregion
 
@@ -106,7 +108,6 @@ public class PlayerMovementMotor : MonoBehaviour
         controller.Move(finalVelocity * Time.deltaTime);
 
         // Returns normalized speed: 0.0 = Idle, 0.5 = Walk, 1.0 = Run
-        float maxSpeed = isSprinting ? runSpeed : walkSpeed;
         return Mathf.Clamp01(currentSpeed / runSpeed);
     }
 
@@ -136,12 +137,20 @@ public class PlayerMovementMotor : MonoBehaviour
         currentMoveDirection = Vector3.zero;
     }
 
+    /// <summary>
+    /// Resets accumulated vertical velocity to prevent ground snap glitches upon landing.
+    /// </summary>
+    public void ResetVerticalVelocity()
+    {
+        verticalVelocity = stickToGroundForce;
+    }
+
     #endregion
 
     #region Auto-Jump & Parabolic Movement Utilities
 
     /// <summary>
-    /// Temporarily disables CharacterController for controlled arc jumps/tweens between tiles.
+    /// Enables or disables the CharacterController component safely.
     /// </summary>
     public void SetControllerEnabled(bool enabledState)
     {
@@ -152,11 +161,63 @@ public class PlayerMovementMotor : MonoBehaviour
     }
 
     /// <summary>
-    /// Manual position override when CharacterController is disabled (e.g. during Auto-Jump curve).
+    /// Manual position override when CharacterController is disabled.
     /// </summary>
     public void SetPositionDirectly(Vector3 targetPosition)
     {
         transform.position = targetPosition;
+    }
+
+    /// <summary>
+    /// Executes a deterministic dynamic parabolic jump arc towards a target landing position.
+    /// Interpolates 3D position (including height deltas) while adding a parabolic arc offset relative to travel progress.
+    /// </summary>
+    /// <param name="startPosition">Starting world coordinates at edge takeoff.</param>
+    /// <param name="targetPosition">Landing world coordinates at target tile center.</param>
+    /// <param name="jumpHeight">Maximum vertical apex offset added over the 3D trajectory.</param>
+    /// <param name="duration">Total travel time in seconds for the jump animation.</param>
+    public IEnumerator PerformParabolicJump(Vector3 startPosition, Vector3 targetPosition, float jumpHeight, float duration)
+    {
+        float elapsedTime = 0f;
+
+        // Rotate character towards the landing target at takeoff
+        Vector3 jumpDirection = (targetPosition - startPosition);
+        jumpDirection.y = 0f;
+        if (jumpDirection.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(jumpDirection);
+        }
+
+        while (elapsedTime < duration)
+        {
+            float t = elapsedTime / duration;
+
+            // 1. Base 3D Linear Interpolation (handles slope/height delta continuously from start.y to target.y)
+            Vector3 currentPos = Vector3.Lerp(startPosition, targetPosition, t);
+
+            // 2. Add relative parabolic curve offset: 4 * t * (1 - t) reaches 1.0 at t = 0.5
+            float verticalArcOffset = jumpHeight * 4f * t * (1f - t);
+            currentPos.y += verticalArcOffset;
+
+            // 3. Execute frame displacement via CharacterController
+            if (controller != null && controller.enabled)
+            {
+                Vector3 moveDisplacement = currentPos - transform.position;
+                controller.Move(moveDisplacement);
+            }
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Precise final position snap
+        if (controller != null && controller.enabled)
+        {
+            Vector3 finalSnap = targetPosition - transform.position;
+            controller.Move(finalSnap);
+        }
+
+        ResetVerticalVelocity();
     }
 
     #endregion

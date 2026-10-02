@@ -21,12 +21,11 @@ public enum PlayerMovementState
 /// <summary>
 /// Central coordinator for player exploration states, input routing, stamina management, 
 /// auto-walk commands, and first-person inspection camera mode.
-/// Delegates movement physics to PlayerMovementMotor, edge detection to EnvironmentEdgeDetector,
-/// and animation handling to PlayerAnimationController.
+/// Delegates movement physics to PlayerMovementMotor, animation handling to PlayerAnimationController,
+/// and edge sensor probing to PlayerLedgeDetector.
 /// </summary>
 [RequireComponent(typeof(PlayerMovementMotor))]
 [RequireComponent(typeof(PlayerAnimationController))]
-[RequireComponent(typeof(EnvironmentEdgeDetector))]
 public class PlayerController : MonoBehaviour
 {
     #region Serialized Fields
@@ -35,6 +34,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxStamina = 100f;
     [SerializeField] private float staminaDrainRate = 10f;
     [SerializeField] private float staminaRegenRate = 7f;
+
+    [Header("Auto-Jump Parameters")]
+    [SerializeField] private float autoJumpArcHeight = 0.6f;
+    [SerializeField] private float autoJumpDuration = 0.45f;
+    [SerializeField] private float autoJumpLandingDelay = 0.15f;
+
+    [Header("Layer Settings for Auto-Jump")]
+    [SerializeField] private string playerLayerName = "Player";
+    [SerializeField] private string ledgeLayerName = "Ledge";
+
+    [Header("Sub-Sensor References")]
+    [Tooltip("Direct reference to the active PlayerLedgeDetector child component.")]
+    [SerializeField] private PlayerLedgeDetector ledgeDetector;
 
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
@@ -51,7 +63,6 @@ public class PlayerController : MonoBehaviour
     #region Private Fields
 
     private PlayerMovementMotor motor;
-    private EnvironmentEdgeDetector edgeDetector;
     private PlayerAnimationController animController;
     private CinemachinePanTilt firstPersonViewPanTilt;
 
@@ -87,7 +98,6 @@ public class PlayerController : MonoBehaviour
     {
         motor = GetComponent<PlayerMovementMotor>();
         animController = GetComponent<PlayerAnimationController>();
-        edgeDetector = GetComponent<EnvironmentEdgeDetector>();
 
         currentStamina = maxStamina;
     }
@@ -150,7 +160,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Apply standard gravity physics unless climbing or airborne jumping
+        // Apply standard gravity physics unless climbing or airborne auto-jumping
         if (currentMovementState != PlayerMovementState.Climbing && currentMovementState != PlayerMovementState.AutoJumping)
         {
             motor.HandleGravity();
@@ -378,26 +388,28 @@ public class PlayerController : MonoBehaviour
         bool isMoving = currentMoveInput.sqrMagnitude >= 0.01f;
         bool isSprinting = isRunningInput && enoughStaminaToRun;
 
-        // Calculate move direction relative to camera
-        Vector3 moveDirection = Vector3.zero;
-        if (isMoving)
-        {
-            Vector3 inputDir = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
-            float cameraAngle = mainCamera != null ? mainCamera.eulerAngles.y : 0f;
-            moveDirection = Quaternion.Euler(0f, cameraAngle, 0f) * inputDir;
-        }
-
-        // Check if an edge is ahead using the clean single-ray detector
-        bool isBlockedByEdge = edgeDetector != null && isMoving && edgeDetector.IsEdgeAhead(moveDirection);
-
-        // Process locomotion through movement motor
-        float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, isBlockedByEdge);
+        // Process locomotion directly via motor
+        float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, false);
 
         // Update locomotion Blend Trees
-        animController.UpdateLocomotion(normalizedSpeed, isMoving && !isBlockedByEdge, isSprinting);
+        animController.UpdateLocomotion(normalizedSpeed, isMoving, isSprinting);
+
+        // --- ACTIVE LEDGE PROBING (Executed only during active movement) ---
+        if (isMoving && ledgeDetector != null)
+        {
+            Vector3 moveDirection = Vector3.zero;
+            if (mainCamera != null)
+            {
+                Vector3 inputDir = new Vector3(currentMoveInput.x, 0f, currentMoveInput.y).normalized;
+                moveDirection = Quaternion.Euler(0f, mainCamera.eulerAngles.y, 0f) * inputDir;
+            }
+
+            // Probe using current horizontal speed scalar from motor
+            ledgeDetector.CheckForLedgeJump(moveDirection, motor.CurrentSpeed);
+        }
 
         // Stamina and Idle counter management
-        if (isMoving && !isBlockedByEdge)
+        if (isMoving)
         {
             idleTimeCounter = 0f;
 
@@ -421,6 +433,64 @@ public class PlayerController : MonoBehaviour
 
             ModifyStamina(staminaRegenRate * Time.deltaTime);
         }
+    }
+
+    /// <summary>
+    /// Invoked externally by PlayerLedgeDetector when a valid jump condition is detected across a gap.
+    /// Initiates a parabolic jump transition towards the exact destination point.
+    /// </summary>
+    public void ExecuteAutoJumpFromLedge(Vector3 targetLandingPosition, Vector3 jumpDirection)
+    {
+        if (currentMovementState != PlayerMovementState.FreeExploration) return;
+
+        currentMovementState = PlayerMovementState.AutoJumping;
+        motor.StopImmediate();
+
+        if (animController != null)
+        {
+            animController.TriggerAutoJump();
+        }
+
+        StartCoroutine(AutoJumpRoutine(targetLandingPosition, jumpDirection));
+    }
+
+    private IEnumerator AutoJumpRoutine(Vector3 targetLandingPosition, Vector3 jumpDirection)
+    {
+        Vector3 startPosition = transform.position;
+
+        int playerLayer = LayerMask.NameToLayer(playerLayerName);
+        int ledgeLayer = LayerMask.NameToLayer(ledgeLayerName);
+
+        // 1. Temporarily disable layer collision between Player and Ledge during flight
+        if (playerLayer != -1 && ledgeLayer != -1)
+        {
+            Physics.IgnoreLayerCollision(playerLayer, ledgeLayer, true);
+        }
+
+        // Face jump direction
+        if (jumpDirection.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(jumpDirection);
+        }
+
+        // 2. Perform physical parabolic jump trajectory
+        yield return StartCoroutine(motor.PerformParabolicJump(startPosition, targetLandingPosition, autoJumpArcHeight, autoJumpDuration));
+
+        // 3. Post-landing recovery delay (prevents instant chained jump exploits and aligns landing animation)
+        if (autoJumpLandingDelay > 0f)
+        {
+            yield return new WaitForSeconds(autoJumpLandingDelay);
+        }
+
+        // 4. RESTORE layer collisions against ledge borders upon landing
+        if (playerLayer != -1 && ledgeLayer != -1)
+        {
+            Physics.IgnoreLayerCollision(playerLayer, ledgeLayer, false);
+        }
+
+        // 5. Restore free locomotion
+        animController.ResetLocomotionAnimations();
+        currentMovementState = PlayerMovementState.FreeExploration;
     }
 
     #endregion

@@ -1117,6 +1117,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fffccc681a7ab94ebdc61444d6e52ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleSelectionPointer
+--- !u!1 &994645489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 994645490}
+  - component: {fileID: 994645491}
+  m_Layer: 13
+  m_Name: LedgeDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &994645490
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994645489}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8459378966747734660}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &994645491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994645489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65c26932992dc1e4db77fa06dca79f28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLedgeDetector
+  playerController: {fileID: 8459378966747734662}
+  characterController: {fileID: 8459378966747734661}
+  ledgeLayer:
+    serializedVersion: 2
+    m_Bits: 16384
+  probeDistance: 0.45
+  probeRadius: 0.25
+  minSpeedThreshold: 1
+  strictAngleThreshold: 0.85
+  showGizmos: 1
 --- !u!4 &1152654126 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8459378965965534309, guid: a19744102be9ac7459c9135b44be0284, type: 3}
@@ -2108,8 +2162,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1950986251}
     - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: maxJumpTiles
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: footSphereRadius
+      value: 0.18
       objectReference: {fileID: 0}
     - target: {fileID: 725046539342476947, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: groundLayer.m_Bits
@@ -3023,6 +3085,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378967203041511, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Radius
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: ledgeDetector
+      value: 
+      objectReference: {fileID: 994645491}
+    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: autoJumpArcHeight
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8459378967203041514, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8459378967306837168, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_Radius
       value: 0.30105686
@@ -3228,6 +3306,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5727421889252197966, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       insertIndex: 0
       addedObject: {fileID: 1778958636}
+    - targetCorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 994645490}
     - targetCorrespondingSourceObject: {fileID: 8459378967019290833, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       insertIndex: -1
       addedObject: {fileID: 435865489}
@@ -3271,6 +3352,27 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: a19744102be9ac7459c9135b44be0284, type: 3}
   m_PrefabInstance: {fileID: 8459378966747734655}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &8459378966747734660 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+--- !u!143 &8459378966747734661 stripped
+CharacterController:
+  m_CorrespondingSourceObject: {fileID: 8459378967203041511, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8459378966747734662 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+  m_PrefabInstance: {fileID: 8459378966747734655}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42770d2b5fadffb41b49339033d18c4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
