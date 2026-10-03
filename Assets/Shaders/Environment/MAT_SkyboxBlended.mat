@@ -70,8 +70,8 @@ Material:
     - _SunSize: 0.05
     m_Colors:
     - _MoonColor: {r: 1.2, g: 1.6, b: 2.2, a: 1}
-    - _MoonDirection: {r: -0.70195997, g: -0.71221644, b: -0.000000014901161, a: 0}
+    - _MoonDirection: {r: -0.047018915, g: -0.9988941, b: -0.00000008940697, a: 0}
     - _SunColor: {r: 2.5, g: 2.2, b: 1.6, a: 1}
-    - _SunDirection: {r: 0.70195997, g: 0.71221644, b: 0.000000014901161, a: 0}
+    - _SunDirection: {r: 0.047018915, g: 0.9988941, b: 0.00000008940697, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

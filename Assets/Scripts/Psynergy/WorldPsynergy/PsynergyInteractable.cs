@@ -159,8 +159,8 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
                 // TODO: Trigger grid-based movement logic
                 break;
 
-            case WorldActionType.Frost:
-                // TODO: Instantiate or transform into ice pillar
+            case WorldActionType.MindRead:
+                // TODO: Specific mind read dialogues
                 break;
         }
     }

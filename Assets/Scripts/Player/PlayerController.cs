@@ -1089,14 +1089,24 @@ public class PlayerController : MonoBehaviour
                 break;
             }
 
-            Vector2 autoWalkInput = new Vector2(direction.normalized.x, direction.normalized.z);
+            Vector3 normalizedDir = direction.normalized;
+
+            // Si ProcessLocomotion aplica la cámara, des-rotamos el vector previamente
+            // para contrarrestar la rotación de la cámara:
+            Vector3 unrotatedDir = normalizedDir;
+            if (mainCamera != null)
+            {
+                unrotatedDir = Quaternion.Euler(0f, -mainCamera.eulerAngles.y, 0f) * normalizedDir;
+            }
+
+            Vector2 autoWalkInput = new Vector2(unrotatedDir.x, unrotatedDir.z);
             float normalizedSpeed = motor.ProcessLocomotion(autoWalkInput, false, false);
             animController.UpdateLocomotion(normalizedSpeed, true, false);
 
             yield return null;
-
         }
 
+        motor.StopImmediate();
         animController.ResetLocomotionAnimations();
         currentMovementState = PlayerMovementState.FreeExploration;
         autoWalkCoroutine = null;
