@@ -61,45 +61,46 @@ public class PushableBlock : MonoBehaviour
     #region Public Resolution Methods
 
     /// <summary>
-    /// Checks if the volume of the block can advance 1.5m without clipping corners or walls.
+    /// Checks if the destination grid tile (1.5m ahead) is clear of obstacles or adjacent pillars.
+    /// Evaluates volume clearance up to the exact boundary of the target tile.
     /// </summary>
     public bool CanBePushed(Vector3 pushDirection, out bool willFallIntoPit)
     {
         willFallIntoPit = false;
 
         Vector3 pushDirNormalized = pushDirection.normalized;
-        float halfExtent = (tileSize * 0.5f) - 0.08f; // Margin to avoid touching parallel walls (~0.67m)
 
-        // Volume BoxCast centered at pillar midpoint (Y = 0.75m)
-        Vector3 boxHalfExtents = new Vector3(halfExtent, 0.4f, halfExtent);
+        // 1. Margen lateral para no rozar paredes paralelas (1.2m de ancho sobre 1.5m de tile)
+        float boxWidthExtent = (tileSize * 0.5f) - 0.15f;
+        Vector3 boxHalfExtents = new Vector3(boxWidthExtent, 0.4f, boxWidthExtent);
 
-        // Origin projected slightly in front of the forward face
-        Vector3 frontFaceOrigin = transform.position + Vector3.up * 0.75f + (pushDirNormalized * (tileSize * 0.5f + 0.1f));
+        // 2. Origen desde la cara frontal exacta del pilar (0.75m desde el pivote en la base)
+        Vector3 frontFaceOrigin = transform.position + Vector3.up * 0.75f + (pushDirNormalized * (tileSize * 0.5f));
 
-        // 1. BoxCast de Volumen Frontal: Detecta muros, obstáculos o elevaciones laterales del terreno
-        if (Physics.BoxCast(frontFaceOrigin, boxHalfExtents, pushDirNormalized, Quaternion.identity, tileSize - 0.2f, blockingLayers))
+        // 3. Distancia del BoxCast: Recorre los 0.75m restantes de la casilla destino con pequeña tolerancia (0.05m)
+        float castDistance = (tileSize * 0.5f) - 0.05f;
+
+        if (Physics.BoxCast(frontFaceOrigin, boxHalfExtents, pushDirNormalized, Quaternion.identity, castDistance, blockingLayers))
         {
-            return false;
+            return false; // Bloqueado si hay un pilar u obstáculo ocupando la casilla destino B
         }
 
-        // 2. Downward Probe: Valida el suelo de la casilla destino
+        // 4. Downward Probe: Valida la presencia y elevación del suelo en la casilla destino B
         Vector3 destinationCenter = transform.position + (pushDirNormalized * tileSize);
         Vector3 probeOrigin = destinationCenter + Vector3.up * 1.0f;
 
         if (Physics.Raycast(probeOrigin, Vector3.down, out RaycastHit groundHit, 2.5f, groundLayer))
         {
-            // Con pivote en la base, transform.position.y ES la cota real del suelo
             float elevationDelta = groundHit.point.y - transform.position.y;
 
-            // Bloquea si el terreno sube más allá de la tolerancia (5cm)
             if (elevationDelta > maxStepTolerance)
             {
-                return false;
+                return false; // Bloqueado por escalón superior a 5cm
             }
         }
         else
         {
-            willFallIntoPit = true; // No hay suelo -> Caerá al agua/foso
+            willFallIntoPit = true; // No hay suelo -> Caerá al foso/agua
         }
 
         return true;
@@ -111,7 +112,11 @@ public class PushableBlock : MonoBehaviour
     public IEnumerator MoveBlockRoutine(Vector3 pushDirection, bool fallsIntoPit)
     {
         Vector3 startPos = transform.position;
-        Vector3 targetPos = startPos + (pushDirection.normalized * tileSize);
+        Vector3 direction = pushDirection.normalized;
+
+        // Calculamos la posición destino exacta basada en el tile entero desde la posición inicial
+        Vector3 targetPos = startPos + (direction * tileSize);
+
         float elapsedTime = 0f;
 
         while (elapsedTime < pushDuration)
@@ -121,6 +126,7 @@ public class PushableBlock : MonoBehaviour
             yield return null;
         }
 
+        // Snap final exacto a la coordenada calculada (sin acumulación de imprecisiones de float)
         transform.position = targetPos;
 
         if (fallsIntoPit)

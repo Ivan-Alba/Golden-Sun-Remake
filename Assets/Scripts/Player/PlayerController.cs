@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 
@@ -22,7 +23,8 @@ public enum PlayerMovementState
 /// Central coordinator for player exploration states, input routing, stamina management, 
 /// auto-walk commands, and first-person inspection camera mode.
 /// Delegates movement physics to PlayerMovementMotor, animation handling to PlayerAnimationController,
-/// edge sensor probing to PlayerLedgeDetector, and block push sensing to PlayerPushDetector.
+/// edge sensor probing to PlayerLedgeDetector, block push sensing to PlayerPushDetector,
+/// and ladder/vine path sensing to PlayerClimbDetector.
 /// </summary>
 [RequireComponent(typeof(PlayerMovementMotor))]
 [RequireComponent(typeof(PlayerAnimationController))]
@@ -40,9 +42,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float autoJumpDuration = 0.45f;
     [SerializeField] private float autoJumpLandingDelay = 0.15f;
 
-    [Header("Layer Settings for Auto-Jump")]
+    [Header("Climbing Parameters")]
+    [SerializeField] private float climbSpeed = 2.0f;
+    [SerializeField] private float dismountStepDuration = 0.45f;
+    [SerializeField] private float topDismountOffset = 0.8f;
+    [SerializeField] private float bottomDismountStepDuration = 0.35f;
+    [SerializeField] private float bottomDismountOffset = 0.6f;
+    [SerializeField] private float mountLockDuration = 0.15f;
+
+    [Tooltip("Distancia hacia abajo (en Y) a la que se traslada rápidamente al personaje al colgarse desde un saliente para sumergir su torso bajo la cornisa.")]
+    [SerializeField] private float topLedgeSafetyOffset = 1.3f;
+
+    [Tooltip("Duración en segundos del movimiento rápido de colgarse/descender al entrar a la escalera desde un saliente.")]
+    [SerializeField] private float topMountDropDuration = 0.35f;
+
+    [Header("Layer Settings for Locomotion Safety")]
     [SerializeField] private string playerLayerName = "Player";
     [SerializeField] private string ledgeLayerName = "Ledge";
+    [SerializeField] private string climbableLayerName = "Climbable";
 
     [Header("Sub-Sensor References")]
     [Tooltip("Direct reference to the active PlayerLedgeDetector child component.")]
@@ -50,6 +67,9 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Direct reference to the active PlayerPushDetector child component.")]
     [SerializeField] private PlayerPushDetector pushDetector;
+
+    [Tooltip("Direct reference to the active PlayerClimbDetector child component.")]
+    [SerializeField] private PlayerClimbDetector climbDetector;
 
     [Header("References & Cinemachine")]
     [SerializeField] private Transform mainCamera;
@@ -87,6 +107,14 @@ public class PlayerController : MonoBehaviour
     private Coroutine rotateCoroutine;
     private Coroutine psynergyCastCoroutine;
     private Coroutine pushBlockCoroutine;
+    private Coroutine climbDismountCoroutine;
+    private Coroutine climbMountCoroutine;
+
+    private bool isClimbingTransitioning = false;
+
+    // Active Climbing Path Tracking Data
+    private ClimbablePath currentClimbPath;
+    private int currentClimbSegmentIndex = 0;
 
     #endregion
 
@@ -156,6 +184,18 @@ public class PlayerController : MonoBehaviour
         {
             StopCoroutine(pushBlockCoroutine);
             pushBlockCoroutine = null;
+        }
+
+        if (climbDismountCoroutine != null)
+        {
+            StopCoroutine(climbDismountCoroutine);
+            climbDismountCoroutine = null;
+        }
+
+        if (climbMountCoroutine != null)
+        {
+            StopCoroutine(climbMountCoroutine);
+            climbMountCoroutine = null;
         }
     }
 
@@ -259,7 +299,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleChangeHero(int heroIndex)
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject || currentMovementState == PlayerMovementState.Climbing) return;
 
         GameEvents.Party.RequestActiveHeroIndexChange(heroIndex);
     }
@@ -276,7 +316,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleToggleFirstPersonView()
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject || currentMovementState == PlayerMovementState.Climbing) return;
 
         if (currentMovementState == PlayerMovementState.InFirstPerson)
         {
@@ -290,7 +330,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleUsePsynergy(int slotIndex)
     {
-        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject) return;
+        if (!IsWorldExploration() || currentMovementState == PlayerMovementState.CastingPsynergy || currentMovementState == PlayerMovementState.Falling || currentMovementState == PlayerMovementState.PushingObject || currentMovementState == PlayerMovementState.Climbing) return;
 
         GameEvents.Psynergy.RequestUseShortcut(slotIndex, psynergyCurrentTarget);
     }
@@ -404,7 +444,7 @@ public class PlayerController : MonoBehaviour
         float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, false);
 
         // Update locomotion Blend Trees
-        animController.UpdateLocomotion(normalizedSpeed, isMoving, isSprinting);
+        animController.UpdateLocomotion(normalizedSpeed, isMoving, isRunningInput);
 
         // --- ACTIVE SENSOR PROBING (Executed only during active movement) ---
         if (isMoving)
@@ -416,13 +456,20 @@ public class PlayerController : MonoBehaviour
                 moveDirection = Quaternion.Euler(0f, mainCamera.eulerAngles.y, 0f) * inputDir;
             }
 
-            // 1. Prospección de salto automático
-            if (ledgeDetector != null)
+            // 1. PRIORIDAD 1: Prospección de escalada (Ladders / Vines / Rock Paths)
+            if (climbDetector != null && climbDetector.TryDetectClimbablePath(moveDirection, out ClimbablePath detectedPath, out Vector3 attachPoint, out int initialSegmentIndex, out bool isMountingFromTop))
+            {
+                StartClimbing(detectedPath, initialSegmentIndex, isMountingFromTop);
+                return;
+            }
+
+            // 2. PRIORIDAD 2: Prospección de salto automático en cornisas
+            if (ledgeDetector != null && currentMovementState == PlayerMovementState.FreeExploration)
             {
                 ledgeDetector.CheckForLedgeJump(moveDirection, motor.CurrentSpeed);
             }
 
-            // 2. Prospección de empuje de bloques de puzle
+            // 3. PRIORIDAD 3: Prospección de empuje de bloques de puzle
             if (pushDetector != null && currentMovementState == PlayerMovementState.FreeExploration)
             {
                 pushDetector.CheckForPushableBlock(moveDirection, motor.CurrentSpeed);
@@ -479,14 +526,8 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 startPosition = transform.position;
 
-        int playerLayer = LayerMask.NameToLayer(playerLayerName);
-        int ledgeLayer = LayerMask.NameToLayer(ledgeLayerName);
-
-        // 1. Temporarily disable layer collision between Player and Ledge during flight
-        if (playerLayer != -1 && ledgeLayer != -1)
-        {
-            Physics.IgnoreLayerCollision(playerLayer, ledgeLayer, true);
-        }
+        // Temporarily disable layer collisions against Ledge AND Climbable layers during flight
+        ToggleSpecialLayersCollision(true);
 
         // Face jump direction
         if (jumpDirection.sqrMagnitude > 0.001f)
@@ -494,24 +535,409 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(jumpDirection);
         }
 
-        // 2. Perform physical parabolic jump trajectory
+        // Perform physical parabolic jump trajectory
         yield return StartCoroutine(motor.PerformParabolicJump(startPosition, targetLandingPosition, autoJumpArcHeight, autoJumpDuration));
 
-        // 3. Post-landing recovery delay (prevents instant chained jump exploits and aligns landing animation)
+        // Post-landing recovery delay (prevents instant chained jump exploits and aligns landing landing animation)
         if (autoJumpLandingDelay > 0f)
         {
             yield return new WaitForSeconds(autoJumpLandingDelay);
         }
 
-        // 4. RESTORE layer collisions against ledge borders upon landing
-        if (playerLayer != -1 && ledgeLayer != -1)
-        {
-            Physics.IgnoreLayerCollision(playerLayer, ledgeLayer, false);
-        }
+        // RESTORE layer collisions upon landing
+        ToggleSpecialLayersCollision(false);
 
-        // 5. Restore free locomotion
+        // Restore free locomotion
         animController.ResetLocomotionAnimations();
         currentMovementState = PlayerMovementState.FreeExploration;
+    }
+
+    #endregion
+
+    #region Phase 3: Climbable Paths System (Vines / Ladders / Zigzag Rocks)
+
+    private void StartClimbing(ClimbablePath path, int segmentIndex, bool isMountingFromTop)
+    {
+        currentMovementState = PlayerMovementState.Climbing;
+        motor.StopImmediate();
+
+        currentClimbPath = path;
+        currentClimbSegmentIndex = segmentIndex;
+
+        // Desactivar colisiones con Ledge y Climbable durante el enganche
+        ToggleSpecialLayersCollision(true);
+
+        if (climbMountCoroutine != null) StopCoroutine(climbMountCoroutine);
+        climbMountCoroutine = StartCoroutine(MountClimbableRoutine(segmentIndex, isMountingFromTop));
+    }
+
+    private IEnumerator MountClimbableRoutine(int segmentIndex, bool isMountingFromTop)
+    {
+        isClimbingTransitioning = true;
+
+        // Asegurar que durante todo el proceso de enganche ignoramos físicamente el Ledge
+        ToggleSpecialLayersCollision(true);
+
+        List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
+
+        if (segments.Count > segmentIndex)
+        {
+            ClimbSegment currentSegment = segments[segmentIndex];
+
+            Vector3 startPosition = transform.position;
+            Quaternion startRotation = transform.rotation;
+
+            Vector3 targetAttachPoint = currentClimbPath.GetAttachPointAtPlayerHeight(transform.position, segmentIndex);
+            Quaternion targetRotation = currentClimbPath.GetSegmentRotation(segmentIndex);
+
+            if (isMountingFromTop)
+            {
+                // Entrar desde el saliente superior: sumergir la cota Y rápidamente hacia abajo para que el cuerpo quede debajo de la cornisa
+                float targetY = currentSegment.endPoint.y - topLedgeSafetyOffset;
+                float minY = Mathf.Min(currentSegment.startPoint.y, currentSegment.endPoint.y);
+                targetAttachPoint.y = Mathf.Max(targetY, minY);
+
+                // Disparamos la pose de escalada ANTES para que mezcle mientras desciende
+                if (animController != null)
+                {
+                    animController.SetClimbingState(true);
+                    animController.UpdateClimbSpeed(0f);
+                }
+
+                // Mover y rotar fluidamente al personaje hacia la posición colgada en la pared
+                float elapsed = 0f;
+                while (elapsed < topMountDropDuration)
+                {
+                    float rawT = elapsed / topMountDropDuration;
+                    float t = Mathf.SmoothStep(0f, 1f, rawT);
+
+                    transform.position = Vector3.Lerp(startPosition, targetAttachPoint, t);
+                    transform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+
+                transform.position = targetAttachPoint;
+                transform.rotation = targetRotation;
+            }
+            else
+            {
+                // Entrar desde abajo (suelo)
+                if (currentSegment.isBottomExit && motor.IsGrounded)
+                {
+                    targetAttachPoint.y = transform.position.y;
+                }
+
+                transform.position = targetAttachPoint;
+
+                // Rotación rápida hacia la inclinación del segmento
+                float elapsed = 0f;
+                float rotateDuration = 0.12f;
+
+                while (elapsed < rotateDuration)
+                {
+                    transform.rotation = Quaternion.Slerp(startRotation, targetRotation, elapsed / rotateDuration);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+
+                transform.rotation = targetRotation;
+
+                if (animController != null)
+                {
+                    animController.SetClimbingState(true);
+                    animController.UpdateClimbSpeed(0f);
+                }
+            }
+        }
+
+        if (mountLockDuration > 0f)
+        {
+            yield return new WaitForSeconds(mountLockDuration);
+        }
+
+        isClimbingTransitioning = false;
+        climbMountCoroutine = null;
+    }
+
+    private void HandleClimbingMovement()
+    {
+        if (currentClimbPath == null || isClimbingTransitioning) return;
+
+        List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
+        if (currentClimbSegmentIndex < 0 || currentClimbSegmentIndex >= segments.Count)
+        {
+            ExitClimbing();
+            return;
+        }
+
+        ClimbSegment currentSegment = segments[currentClimbSegmentIndex];
+        Vector3 segmentVector = currentSegment.endPoint - currentSegment.startPoint;
+        float segmentLength = segmentVector.magnitude;
+
+        if (segmentLength < 0.001f)
+        {
+            ExitClimbing();
+            return;
+        }
+
+        Vector3 segmentDirection = segmentVector / segmentLength;
+
+        float rawVerticalInput = currentMoveInput.y;
+        float moveMagnitude = Mathf.Abs(rawVerticalInput);
+        bool hasMovementInput = moveMagnitude > 0.05f;
+
+        if (hasMovementInput)
+        {
+            Vector3 moveDelta = segmentDirection * (Mathf.Sign(rawVerticalInput) * climbSpeed * Time.deltaTime);
+            Vector3 newPosition = transform.position + moveDelta;
+
+            Vector3 projectedPoint = currentSegment.startPoint + Vector3.Project(newPosition - currentSegment.startPoint, segmentDirection);
+
+            float progress = Vector3.Dot(projectedPoint - currentSegment.startPoint, segmentDirection) / segmentLength;
+
+            // MOVIMIENTO HACIA ARRIBA
+            if (rawVerticalInput > 0f)
+            {
+                if (progress >= 1.0f)
+                {
+                    if (currentClimbSegmentIndex < segments.Count - 1)
+                    {
+                        currentClimbSegmentIndex++;
+                        transform.position = segments[currentClimbSegmentIndex].startPoint;
+                        transform.rotation = currentClimbPath.GetSegmentRotation(currentClimbSegmentIndex);
+                    }
+                    else if (currentSegment.isTopExit)
+                    {
+                        DismountTopLedge();
+                        return;
+                    }
+                }
+                else
+                {
+                    transform.position = projectedPoint;
+                }
+            }
+            // MOVIMIENTO HACIA ABAJO
+            else if (rawVerticalInput < 0f)
+            {
+                if (progress <= 0.0f)
+                {
+                    if (currentClimbSegmentIndex > 0)
+                    {
+                        currentClimbSegmentIndex--;
+                        transform.position = segments[currentClimbSegmentIndex].endPoint;
+                        transform.rotation = currentClimbPath.GetSegmentRotation(currentClimbSegmentIndex);
+                    }
+                    else if (currentSegment.isBottomExit || motor.IsGrounded)
+                    {
+                        DismountBottomGround();
+                        return;
+                    }
+                }
+                else
+                {
+                    transform.position = projectedPoint;
+                }
+            }
+        }
+
+        // climbSpeed binario estricto: 1 si hay movimiento, 0 si está quieto
+        if (animController != null)
+        {
+            animController.UpdateClimbSpeed(hasMovementInput ? 1.0f : 0.0f);
+        }
+    }
+
+    private void DismountTopLedge()
+    {
+        if (climbDismountCoroutine != null) return;
+        climbDismountCoroutine = StartCoroutine(DismountTopLedgeRoutine());
+    }
+
+    private IEnumerator DismountTopLedgeRoutine()
+    {
+        isClimbingTransitioning = true;
+
+        // Desactivar la colisión con Ledge DURANTE todo el paso de salida para que no tropiece con el borde
+        ToggleSpecialLayersCollision(true);
+
+        List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
+        Vector3 inwardDirection = transform.forward;
+
+        if (segments.Count > 0)
+        {
+            inwardDirection = -segments[segments.Count - 1].wallNormal;
+        }
+
+        // 1. PASO 1: Recuperar animación normal de caminata mientras aún encaramos la pared
+        if (animController != null)
+        {
+            animController.SetClimbingState(false);
+            animController.UpdateLocomotion(0.5f, true, false);
+        }
+
+        yield return new WaitForSeconds(0.15f);
+
+        // 2. PASO 2: Orientar horizontalmente hacia el saliente (rotación plana en Y)
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.identity;
+        if (inwardDirection.sqrMagnitude > 0.001f)
+        {
+            targetRotation = Quaternion.LookRotation(inwardDirection);
+        }
+
+        // 3. PASO 3: Calcular el punto exacto de suelo sobre la cornisa mediante Raycast
+        float effectiveOffset = currentClimbPath != null ? currentClimbPath.GetEffectiveTopDismountOffset(topDismountOffset) : topDismountOffset;
+
+        Vector3 startPos = transform.position;
+        Vector3 projectedHorizontalTarget = startPos + (inwardDirection.normalized * effectiveOffset);
+
+        // Disparar Raycast hacia abajo para encontrar el nivel físico real del suelo
+        Vector3 targetPos = projectedHorizontalTarget;
+        Vector3 rayStart = projectedHorizontalTarget + (Vector3.up * 1.5f);
+
+        int playerLayer = LayerMask.NameToLayer(playerLayerName);
+        int layerMask = ~(1 << playerLayer); // Ignorar la capa del jugador
+
+        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 3.0f, layerMask, QueryTriggerInteraction.Ignore))
+        {
+            targetPos = hit.point;
+        }
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < dismountStepDuration)
+        {
+            float t = elapsedTime / dismountStepDuration;
+
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+
+            if (inwardDirection.sqrMagnitude > 0.001f)
+            {
+                transform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+            }
+
+            if (animController != null)
+            {
+                animController.UpdateLocomotion(0.5f, true, false);
+            }
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPos;
+        if (inwardDirection.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = targetRotation;
+        }
+
+        ExitClimbing();
+        isClimbingTransitioning = false;
+        climbDismountCoroutine = null;
+    }
+
+    private void DismountBottomGround()
+    {
+        if (climbDismountCoroutine != null) return;
+        climbDismountCoroutine = StartCoroutine(DismountBottomGroundRoutine());
+    }
+
+    private IEnumerator DismountBottomGroundRoutine()
+    {
+        isClimbingTransitioning = true;
+
+        List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
+        Vector3 outwardDirection = transform.forward;
+
+        if (segments.Count > 0)
+        {
+            outwardDirection = segments[0].wallNormal;
+        }
+
+        // 1. PASO 1: Restablecer primero la animación a caminata normal
+        if (animController != null)
+        {
+            animController.SetClimbingState(false);
+            animController.UpdateLocomotion(0.5f, true, false);
+        }
+
+        yield return new WaitForSeconds(0.15f);
+
+        // 2. PASO 2: Rotar al personaje mirando hacia afuera de la pared
+        if (outwardDirection.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(outwardDirection);
+        }
+
+        // 3. PASO 3: Dar el paso de cortesía alejándose del collider
+        Vector3 forwardStep = outwardDirection.normalized * bottomDismountOffset;
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = startPos + forwardStep;
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < bottomDismountStepDuration)
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, elapsedTime / bottomDismountStepDuration);
+
+            if (animController != null)
+            {
+                animController.UpdateLocomotion(0.5f, true, false);
+            }
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPos;
+
+        ExitClimbing();
+        isClimbingTransitioning = false;
+        climbDismountCoroutine = null;
+    }
+
+    private void ExitClimbing()
+    {
+        currentClimbPath = null;
+        currentClimbSegmentIndex = 0;
+
+        if (animController != null)
+        {
+            animController.SetClimbingState(false);
+            animController.ResetLocomotionAnimations();
+        }
+
+        // Reactivamos la colisión con la capa Ledge solo cuando la escalada ha concluido completamente
+        ToggleSpecialLayersCollision(false);
+
+        currentMovementState = PlayerMovementState.FreeExploration;
+    }
+
+    /// <summary>
+    /// Temporarily enables or disables physical layer collisions between Player and special interactive layers (Ledge, Climbable).
+    /// Prevents physics jitter or accidental triggers during automated transitions (AutoJump & Climbing).
+    /// </summary>
+    private void ToggleSpecialLayersCollision(bool ignore)
+    {
+        int playerLayer = LayerMask.NameToLayer(playerLayerName);
+        int ledgeLayer = LayerMask.NameToLayer(ledgeLayerName);
+        int climbableLayer = LayerMask.NameToLayer(climbableLayerName);
+
+        if (playerLayer != -1)
+        {
+            if (ledgeLayer != -1)
+            {
+                Physics.IgnoreLayerCollision(playerLayer, ledgeLayer, ignore);
+            }
+
+            if (climbableLayer != -1)
+            {
+                Physics.IgnoreLayerCollision(playerLayer, climbableLayer, ignore);
+            }
+        }
     }
 
     #endregion
@@ -556,7 +982,6 @@ public class PlayerController : MonoBehaviour
         {
             if (charController != null && charController.enabled)
             {
-                // Movemos horizontalmente a velocidad constante + gravedad para mantener pies en el suelo
                 Vector3 moveVelocity = (pushDirection.normalized * pushSpeed) + (Vector3.down * 9.81f);
                 charController.Move(moveVelocity * Time.deltaTime);
             }
@@ -574,7 +999,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Golden Sun Special Locomotion States (Psynergy, Slide, Climb, Fall)
+    #region Golden Sun Special Locomotion States (Psynergy, Slide, Fall)
 
     public void LockMovementForPsynergyCast(float duration)
     {
@@ -620,11 +1045,6 @@ public class PlayerController : MonoBehaviour
     private void HandleFallingMovement()
     {
         // Direct vertical downward movement or floor transition
-    }
-
-    private void HandleClimbingMovement()
-    {
-        // Ladder/Vine climbing logic
     }
 
     private void HandleSlidingMovement()
@@ -674,6 +1094,7 @@ public class PlayerController : MonoBehaviour
             animController.UpdateLocomotion(normalizedSpeed, true, false);
 
             yield return null;
+
         }
 
         animController.ResetLocomotionAnimations();

@@ -132,7 +132,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   requiredWorldAction: 2
   singleUse: 0
-  objRenderer: {fileID: 0}
+  objRenderer: {fileID: 7517184300827977824}
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   shaderColorPropertyName: _BaseColor
 --- !u!114 &1056595255742022242
@@ -167,7 +167,7 @@ MonoBehaviour:
   maxStepTolerance: 0.05
   blockingLayers:
     serializedVersion: 2
-    m_Bits: 1033
+    m_Bits: 1097
   groundLayer:
     serializedVersion: 2
     m_Bits: 8

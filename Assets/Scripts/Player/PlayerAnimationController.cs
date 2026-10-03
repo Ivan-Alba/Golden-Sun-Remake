@@ -29,6 +29,7 @@ public class PlayerAnimationController : MonoBehaviour
     private static readonly int IsPushingHash = Animator.StringToHash("isPushing");
     private static readonly int AutoJumpHash = Animator.StringToHash("autoJump");
     private static readonly int ClimbHash = Animator.StringToHash("isClimbing");
+    private static readonly int ClimbSpeedHash = Animator.StringToHash("climbSpeed");
     private static readonly int SlideHash = Animator.StringToHash("isSliding");
     private static readonly int FallHash = Animator.StringToHash("fallHole");
 
@@ -197,6 +198,13 @@ public class PlayerAnimationController : MonoBehaviour
         }
     }
 
+    public void UpdateClimbSpeed(float speed)
+    {
+        if (activeAnimator != null)
+        {
+            activeAnimator.SetFloat(ClimbSpeedHash, speed);
+        }
+    }
     public void SetSlidingState(bool isSliding)
     {
         if (activeAnimator != null)
