@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1896399fb4326194aa871b672efabb3e, type: 3}
+  m_Name: SO_Zone_TalePlains_South
+  m_EditorClassIdentifier: Assembly-CSharp::ZoneSO
+  parentRegion: {fileID: 11400000, guid: c6a870d605085bc4d8a1b09d91c19288, type: 2}
+  zoneID: tale_plains_south
+  locationName: Llanuras de Tale
+  zoneDisplayName: Bosque Sur
+  hideRegionInBanner: 0

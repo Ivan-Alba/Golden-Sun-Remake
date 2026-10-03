@@ -1,13 +1,17 @@
 using UnityEngine;
 
+/// <summary>
+/// Environmental trigger volume that updates the active player zone and fires UI banner overlays.
+/// Compares active ZoneSO references with GameManager to prevent redundant UI refreshes.
+/// </summary>
 [RequireComponent(typeof(Collider))]
 public class AreaZoneTrigger : MonoBehaviour
 {
     #region Serialized Fields
 
     [Header("Zone Identification Settings")]
-    [SerializeField] private string zoneName = "BOSQUE DE KOLIMA";
-    [SerializeField] private string regionName = "Región de Bilibin";
+    [Tooltip("Reference to the ZoneSO ScriptableObject assigned to this area.")]
+    [SerializeField] private ZoneSO zone;
     [SerializeField] private float displayDuration = 3.5f;
 
     [Header("Trigger Behavior")]
@@ -26,8 +30,7 @@ public class AreaZoneTrigger : MonoBehaviour
 
     #region Properties
 
-    public string ZoneName => zoneName;
-    public string RegionName => regionName;
+    public ZoneSO Zone => zone;
 
     #endregion
 
@@ -46,22 +49,20 @@ public class AreaZoneTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (_hasBeenTriggered && triggerOnlyOnce) return;
+        if (zone == null) return;
 
         if (other.CompareTag("Player"))
         {
             _hasBeenTriggered = true;
 
-            // 1. Request global zone tracking update via decoupled event bus
-            GameEvents.GameState.RequestUpdateZone(zoneName, regionName);
-
-            // 2. Fire decoupled UI banner event
-            GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, displayDuration);
+            // Simplemente solicitamos la actualización de zona al GameManager
+            GameEvents.GameState.RequestUpdateZone(zone);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        // Allow re-triggering when returning to this zone if not set to once
+        // Allow re-triggering when returning to this zone if not set to trigger only once
         if (other.CompareTag("Player") && !triggerOnlyOnce)
         {
             _hasBeenTriggered = false;

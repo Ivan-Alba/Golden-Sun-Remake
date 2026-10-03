@@ -216,7 +216,7 @@ public class PlayerController : MonoBehaviour
             currentMovementState != PlayerMovementState.PushingObject)
         {
             motor.HandleGravity();
-            animController.UpdateAirborneState(motor.IsGrounded, motor.VerticalVelocity);
+            //animController.UpdateAirborneState(motor.IsGrounded, motor.VerticalVelocity);
         }
 
         switch (currentMovementState)
@@ -444,7 +444,7 @@ public class PlayerController : MonoBehaviour
         float normalizedSpeed = motor.ProcessLocomotion(currentMoveInput, isSprinting, false);
 
         // Update locomotion Blend Trees
-        animController.UpdateLocomotion(normalizedSpeed, isMoving, isRunningInput);
+        animController.UpdateLocomotion(normalizedSpeed);
 
         // --- ACTIVE SENSOR PROBING (Executed only during active movement) ---
         if (isMoving)
@@ -775,7 +775,7 @@ public class PlayerController : MonoBehaviour
         if (animController != null)
         {
             animController.SetClimbingState(false);
-            animController.UpdateLocomotion(0.5f, true, false);
+            animController.UpdateLocomotion(0.5f);
         }
 
         yield return new WaitForSeconds(0.15f);
@@ -821,7 +821,7 @@ public class PlayerController : MonoBehaviour
 
             if (animController != null)
             {
-                animController.UpdateLocomotion(0.5f, true, false);
+                animController.UpdateLocomotion(0.5f);
             }
 
             elapsedTime += Time.deltaTime;
@@ -861,7 +861,7 @@ public class PlayerController : MonoBehaviour
         if (animController != null)
         {
             animController.SetClimbingState(false);
-            animController.UpdateLocomotion(0.5f, true, false);
+            animController.UpdateLocomotion(0.5f);
         }
 
         yield return new WaitForSeconds(0.15f);
@@ -885,7 +885,7 @@ public class PlayerController : MonoBehaviour
 
             if (animController != null)
             {
-                animController.UpdateLocomotion(0.5f, true, false);
+                animController.UpdateLocomotion(0.5f);
             }
 
             elapsedTime += Time.deltaTime;
@@ -1101,7 +1101,7 @@ public class PlayerController : MonoBehaviour
 
             Vector2 autoWalkInput = new Vector2(unrotatedDir.x, unrotatedDir.z);
             float normalizedSpeed = motor.ProcessLocomotion(autoWalkInput, false, false);
-            animController.UpdateLocomotion(normalizedSpeed, true, false);
+            animController.UpdateLocomotion(normalizedSpeed);
 
             yield return null;
         }

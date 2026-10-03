@@ -242,11 +242,11 @@ public static class GameEvents
         public static void RequestPlayTime(Action<float> callback) => OnRequestPlayTime?.Invoke(callback);
 
         /// <summary>
-        /// Requests an update for the player's current zone and region names. Listened by GameManager.
+        /// Requests an update for the player's current active Zone. Listened by GameManager.
         /// </summary>
-        public static event Action<string, string> OnUpdateZoneRequested;
-        public static void RequestUpdateZone(string zoneName, string regionName)
-            => OnUpdateZoneRequested?.Invoke(zoneName, regionName);
+        public static event Action<ZoneSO, float> OnUpdateZoneRequested;
+        public static void RequestUpdateZone(ZoneSO newZone, float duration = 3.5f)
+            => OnUpdateZoneRequested?.Invoke(newZone, duration);
 
         /// <summary>
         /// Request to change the global time scale (1.0f = normal, 2.0f = x2 speed, 0.0f = pause).

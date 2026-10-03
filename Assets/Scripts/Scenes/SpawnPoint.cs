@@ -24,8 +24,8 @@ public class SpawnPoint : MonoBehaviour
     [SerializeField] private string spawnID;
 
     [Header("Zone Identification Settings")]
-    [SerializeField] private string zoneName = "ENTRADA AL BOSQUE";
-    [SerializeField] private string regionName = "Región de Bilibin";
+    [Tooltip("Reference to the ZoneSO ScriptableObject associated with this spawn point location.")]
+    [SerializeField] private ZoneSO zone;
 
     [Header("Arrival Auto-Walk Settings")]
     [SerializeField] private bool autoWalkOnArrival = true;
@@ -39,8 +39,7 @@ public class SpawnPoint : MonoBehaviour
     #region Properties & State Tracking
 
     public string SpawnID => spawnID;
-    public string ZoneName => zoneName;
-    public string RegionName => regionName;
+    public ZoneSO Zone => zone;
     public bool AutoWalkOnArrival => autoWalkOnArrival;
 
     /// <summary>
@@ -101,6 +100,9 @@ public class SpawnPoint : MonoBehaviour
     {
         IsExecutingArrival = true;
 
+        string displayZone = zone != null ? zone.FullZoneDisplayName : "DESCONOCIDO";
+        string displayRegion = zone != null ? zone.RegionDisplayName : "DESCONOCIDO";
+
         if (arrivalWalkTarget != null)
         {
             // 1. Request player auto-walk towards arrival destination
@@ -112,7 +114,7 @@ public class SpawnPoint : MonoBehaviour
                 yield return new WaitForSeconds(bannerDelay);
             }
 
-            GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, 3.5f);
+            GameEvents.UI.TriggerShowZoneBanner(displayZone, displayRegion, 3.5f);
 
             // 3. Monitor physical player distance until arrival or safety timeout
             float elapsedTime = 0f;
@@ -154,7 +156,7 @@ public class SpawnPoint : MonoBehaviour
         else
         {
             // If no walk target was assigned, present banner immediately
-            GameEvents.UI.TriggerShowZoneBanner(zoneName, regionName, 3.5f);
+            GameEvents.UI.TriggerShowZoneBanner(displayZone, displayRegion, 3.5f);
         }
 
         IsExecutingArrival = false;

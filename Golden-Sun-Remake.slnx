@@ -1,6 +1,7 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
   <Project Path="Unity.RenderPipelines.GPUDriven.Runtime.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Localization.csproj" />
   <Project Path="Unity.ShaderGraph.Editor.csproj" />
   <Project Path="Unity.RenderPipelines.Core.Runtime.csproj" />
@@ -20,7 +21,6 @@
   <Project Path="Unity.Localization.Editor.csproj" />
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.Burst.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="PPv2URPConverters.csproj" />
@@ -81,6 +81,7 @@
   <Project Path="Unity.RenderPipelines.Core.ShaderLibrary.csproj" />
   <Project Path="Unity.Timeline.Player.csproj" />
   <Project Path="Unity.RenderPipelines.GPUDriven.Runtime.Player.csproj" />
+  <Project Path="Assembly-CSharp.Player.csproj" />
   <Project Path="Unity.Localization.Player.csproj" />
   <Project Path="Unity.RenderPipelines.Core.Runtime.Player.csproj" />
   <Project Path="Unity.Mathematics.Player.csproj" />
@@ -90,7 +91,6 @@
   <Project Path="Unity.Splines.Player.csproj" />
   <Project Path="UnityEngine.TestRunner.Player.csproj" />
   <Project Path="Unity.Burst.Player.csproj" />
-  <Project Path="Assembly-CSharp.Player.csproj" />
   <Project Path="Unity.InputSystem.Player.csproj" />
   <Project Path="Unity.ResourceManager.Player.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Runtime.Player.csproj" />

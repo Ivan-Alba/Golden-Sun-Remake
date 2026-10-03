@@ -61,9 +61,8 @@ public class GameManager : MonoBehaviour
     private GameState pendingTargetState = GameState.WorldExploration;
     private SpawnPoint currentUsedSpawnPoint = null;
 
-    // Zone & Area Tracking
-    private string currentZoneName = "DESCONOCIDO";
-    private string currentRegionName = "MUNDO";
+    // Zone & Area Tracking via ScriptableObject Architecture
+    private ZoneSO currentZone;
 
     // Time Management (Persistent)
     // Range 0.0f to 24.0f (1 in-game hour = 60 real seconds => 24 min full cycle)
@@ -83,6 +82,7 @@ public class GameManager : MonoBehaviour
     #region Properties
 
     public float CurrentInGameTimeHours => currentInGameTimeHours;
+    public ZoneSO CurrentZone => currentZone;
 
     #endregion
 
@@ -406,7 +406,7 @@ public class GameManager : MonoBehaviour
         if (SpawnPoint.AllSpawnPoints.TryGetValue(spawnID, out SpawnPoint sp))
         {
             currentUsedSpawnPoint = sp;
-            UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+            UpdateCurrentZone(sp.Zone);
             Debug.Log($"[GameManager] Current active SpawnPoint set to: {spawnID}");
         }
     }
@@ -424,10 +424,24 @@ public class GameManager : MonoBehaviour
         GameEvents.Scene.RequestLoadScene(sceneName);
     }
 
-    private void UpdateCurrentZone(string zoneName, string regionName)
+    private void UpdateCurrentZone(ZoneSO newZone, float duration = 3.5f)
     {
-        currentZoneName = zoneName;
-        currentRegionName = regionName;
+        if (newZone == null) return;
+
+        // Si ya estamos exactamente en esta misma zona, ignoramos la petición (sin actualizar estado ni mostrar banner)
+        if (currentZone == newZone)
+        {
+            return;
+        }
+
+        currentZone = newZone;
+        Debug.Log($"[GameManager] Active Zone updated to: {currentZone.FullZoneDisplayName} ({currentZone.RegionDisplayName})");
+
+        // Únicamente si el estado de exploración está activo, disparamos el banner de la UI
+        if (currentState == GameState.WorldExploration)
+        {
+            GameEvents.UI.TriggerShowZoneBanner(currentZone.FullZoneDisplayName, currentZone.RegionDisplayName, duration);
+        }
     }
 
     private void StartNewGame(string firstSceneName, string initialSpawnID)
@@ -543,7 +557,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 5. Request opening transition curtain (El personaje YA está dando pasos bajo la cortinilla)
+        // 5. Request opening transition curtain
         GameEvents.Scene.RequestFadeInScene();
     }
 
@@ -575,9 +589,9 @@ public class GameManager : MonoBehaviour
                 yield return new WaitForSeconds(arrivalWalkDelay);
             }
         }
-        else if (pendingTargetState == GameState.WorldExploration)
+        else if (pendingTargetState == GameState.WorldExploration && currentZone != null)
         {
-            GameEvents.UI.TriggerShowZoneBanner(currentZoneName, currentRegionName, 3.5f);
+            GameEvents.UI.TriggerShowZoneBanner(currentZone.FullZoneDisplayName, currentZone.RegionDisplayName, 3.5f);
         }
 
         SetGameState(pendingTargetState);
@@ -650,7 +664,7 @@ public class GameManager : MonoBehaviour
         // 1. Save Header Meta Info
         saveData.header.totalGold = totalGold;
         saveData.header.totalTime = totalPlayed;
-        saveData.header.locationName = currentZoneName;
+        saveData.header.locationName = currentZone != null ? currentZone.FullZoneDisplayName : "DESCONOCIDO";
 
         saveData.header.partyPreview.Clear();
         for (int i = 0; i < activeParty.Count; i++)
@@ -661,10 +675,10 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 2. World & Scene State (Persisting Local Game Time)
+        // 2. World & Scene State (Persisting Local Game Time & Zone ScriptableObject Keys)
         saveData.worldState.currentSceneName = SceneManager.GetActiveScene().name;
-        saveData.worldState.currentZoneName = currentZoneName;
-        saveData.worldState.currentRegionName = currentRegionName;
+        saveData.worldState.currentZoneName = currentZone != null ? currentZone.ZoneID : string.Empty;
+        saveData.worldState.currentRegionName = (currentZone != null && currentZone.ParentRegion != null) ? currentZone.ParentRegion.RegionID : string.Empty;
         saveData.worldState.spawnPointID = currentUsedSpawnPoint != null ? currentUsedSpawnPoint.SpawnID : string.Empty;
         saveData.worldState.currentGameTimeHours = currentInGameTimeHours;
 
@@ -693,8 +707,6 @@ public class GameManager : MonoBehaviour
         // 1. Restore Economy, Meta Metrics & World Time
         totalGold = Mathf.Max(0, saveData.header.totalGold);
         totalPlayed = saveData.header.totalTime;
-        currentZoneName = saveData.worldState.currentZoneName;
-        currentRegionName = saveData.worldState.currentRegionName;
 
         // Restore local in-game world time and notify environmental listeners
         SetInGameTime(saveData.worldState.currentGameTimeHours);
@@ -762,7 +774,7 @@ public class GameManager : MonoBehaviour
                 if (!string.IsNullOrEmpty(savedSpawnID) && SpawnPoint.AllSpawnPoints.TryGetValue(savedSpawnID, out SpawnPoint sp))
                 {
                     currentUsedSpawnPoint = sp;
-                    UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+                    UpdateCurrentZone(sp.Zone);
 
                     targetPos = sp.transform.position;
                     targetRot = sp.transform.rotation;
@@ -843,7 +855,7 @@ public class GameManager : MonoBehaviour
         if (SpawnPoint.AllSpawnPoints.TryGetValue(pendingSpawnID, out SpawnPoint sp))
         {
             currentUsedSpawnPoint = sp;
-            UpdateCurrentZone(sp.ZoneName, sp.RegionName);
+            UpdateCurrentZone(sp.Zone);
 
             Vector3 spawnPos = sp.transform.position;
             if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))

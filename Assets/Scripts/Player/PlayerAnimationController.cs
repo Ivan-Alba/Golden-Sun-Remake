@@ -12,10 +12,8 @@ public class PlayerAnimationController : MonoBehaviour
 
     // Locomotion & Physics Hashes
     private static readonly int SpeedHash = Animator.StringToHash("speed");
-    private static readonly int IsMovingHash = Animator.StringToHash("isMoving");
-    private static readonly int IsRunningHash = Animator.StringToHash("isRunning");
-    private static readonly int IsGroundedHash = Animator.StringToHash("isGrounded");
-    private static readonly int VerticalVelocityHash = Animator.StringToHash("verticalVelocity");
+    //private static readonly int IsGroundedHash = Animator.StringToHash("isGrounded");
+    //private static readonly int VerticalVelocityHash = Animator.StringToHash("verticalVelocity");
 
     // Idle & Emotion Hashes
     private static readonly int LongTimeIdleHash = Animator.StringToHash("longTime");
@@ -96,30 +94,26 @@ public class PlayerAnimationController : MonoBehaviour
 
     #region Locomotion & Movement Animations
 
-    public void UpdateLocomotion(float normalizedSpeed, bool isMoving, bool isRunning)
+    public void UpdateLocomotion(float normalizedSpeed)
     {
         if (activeAnimator == null) return;
 
         activeAnimator.SetFloat(SpeedHash, normalizedSpeed);
-        activeAnimator.SetBool(IsMovingHash, isMoving);
-        activeAnimator.SetBool(IsRunningHash, isRunning);
     }
 
-    public void UpdateAirborneState(bool isGrounded, float verticalVelocity)
+    /*public void UpdateAirborneState(bool isGrounded, float verticalVelocity)
     {
         if (activeAnimator == null) return;
 
         activeAnimator.SetBool(IsGroundedHash, isGrounded);
         activeAnimator.SetFloat(VerticalVelocityHash, verticalVelocity);
-    }
+    }*/
 
     public void ResetLocomotionAnimations()
     {
         if (activeAnimator == null) return;
 
         activeAnimator.SetFloat(SpeedHash, 0f);
-        if (activeAnimator.GetBool(IsMovingHash)) activeAnimator.SetBool(IsMovingHash, false);
-        if (activeAnimator.GetBool(IsRunningHash)) activeAnimator.SetBool(IsRunningHash, false);
     }
 
     public void TriggerLongIdle()

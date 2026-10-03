@@ -8259,8 +8259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnID: crystal_zone
-  zoneName: "Cristal Psin\xE9rgico"
-  regionName: Aldea de Tale
+  zone: {fileID: 11400000, guid: e7027b73d0b342c4692e1d394dd6f12d, type: 2}
   autoWalkOnArrival: 0
   arrivalWalkTarget: {fileID: 0}
   arrivalDistanceThreshold: 0.15
@@ -11084,8 +11083,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnID: tale_entrance_from_tale_plains
-  zoneName: Entrada Llanura
-  regionName: Aldea de Tale
+  zone: {fileID: 11400000, guid: e7027b73d0b342c4692e1d394dd6f12d, type: 2}
   autoWalkOnArrival: 1
   arrivalWalkTarget: {fileID: 1482762430}
   arrivalDistanceThreshold: 0.15
