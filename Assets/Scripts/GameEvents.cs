@@ -1259,9 +1259,9 @@ public static class GameEvents
         /// Triggered when the player casts a Psynergy ability in the world.
         /// Params: psynergySlug, casterTransform
         /// </summary>
-        public static event Action<string, Transform> OnWorldPsynergyCast;
-        public static void TriggerWorldPsynergyCast(string psynergySlug, Transform caster)
-            => OnWorldPsynergyCast?.Invoke(psynergySlug, caster);
+        public static event Action OnWorldPsynergyCast;
+        public static void TriggerWorldPsynergyCast()
+            => OnWorldPsynergyCast?.Invoke();
 
         /// <summary>
         /// Request to assign or clear a Psynergy shortcut slot for a specific hero.

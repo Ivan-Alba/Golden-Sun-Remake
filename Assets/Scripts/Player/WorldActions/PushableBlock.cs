@@ -1,14 +1,16 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 /// <summary>
 /// Attached to the root of puzzle pillars or moveable blocks with pivot aligned at base floor (Y = 0).
+/// Inherits from PsynergyInteractable to support both manual physical pushing and Psynergy Move abilities.
 /// Validates destination grid tiles (1.5m) using volume BoxCasts to prevent corner clipping,
 /// strictly enforces flat step tolerance to trap blocks in valleys/grooves,
 /// and manages deterministic physics transitions when falling into water or chasms.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class PushableBlock : MonoBehaviour
+public class PushableBlock : PsynergyInteractable
 {
     #region Serialized Fields
 
@@ -37,17 +39,30 @@ public class PushableBlock : MonoBehaviour
 
     #endregion
 
+    #region Private Runtime State
+
+    private bool isMoving;
+
+    #endregion
+
     #region Properties
 
     public float TileSize => tileSize;
     public float PushDuration => pushDuration;
+    public bool IsMoving => isMoving;
 
     #endregion
 
     #region Unity Lifecycle
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
+        // Enforce Move settings for PsynergyInteractable base
+        requiredWorldAction = WorldActionType.Move;
+        singleUse = false; // Block can be pushed multiple times until puzzle logic explicitly locks it
+
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -58,80 +73,273 @@ public class PushableBlock : MonoBehaviour
 
     #endregion
 
-    #region Public Resolution Methods
+    #region IPsynergyTargetable Overrides
+
+    public override bool CanBeTargeted()
+    {
+        // Block cannot be targeted while actively executing a displacement routine
+        return base.CanBeTargeted() && !isMoving;
+    }
+
+    protected override void OnPsynergyTriggered(PsynergySO psynergy, GameObject player)
+    {
+        if (player == null)
+        {
+            CompleteInteraction();
+            return;
+        }
+
+        Vector3 pullDirection = CalculatePullDirection(player.transform.position);
+
+        EvaluateDirectionChoice(
+            pullDirection,
+            onSuccess: () =>
+            {
+                // Transición completada con éxito -> llamamos al cierre de interacción en la base
+                CompleteInteraction();
+            },
+            onBlocked: () =>
+            {
+                // Movimiento bloqueado -> devolvemos el control inmediatamente mediante la base
+                CompleteInteraction();
+            }
+        );
+    }
+
+    #endregion
+
+    #region Public Resolution Methods (Manual & Psynergy Pushing)
 
     /// <summary>
-    /// Checks if the destination grid tile (1.5m ahead) is clear of obstacles or adjacent pillars.
-    /// Evaluates volume clearance up to the exact boundary of the target tile.
+    /// Checks whether the block can be moved in any of the 4 cardinal directions.
+    /// Useful for UI/Controller to determine if the block is completely trapped before presenting prompts.
     /// </summary>
-    public bool CanBePushed(Vector3 pushDirection, out bool willFallIntoPit)
+    public bool HasAnyValidPushDirection()
     {
-        willFallIntoPit = false;
+        if (isMoving) return false;
 
-        Vector3 pushDirNormalized = pushDirection.normalized;
-
-        // 1. Margen lateral para no rozar paredes paralelas (1.2m de ancho sobre 1.5m de tile)
-        float boxWidthExtent = (tileSize * 0.5f) - 0.15f;
-        Vector3 boxHalfExtents = new Vector3(boxWidthExtent, 0.4f, boxWidthExtent);
-
-        // 2. Origen desde la cara frontal exacta del pilar (0.75m desde el pivote en la base)
-        Vector3 frontFaceOrigin = transform.position + Vector3.up * 0.75f + (pushDirNormalized * (tileSize * 0.5f));
-
-        // 3. Distancia del BoxCast: Recorre los 0.75m restantes de la casilla destino con pequeña tolerancia (0.05m)
-        float castDistance = (tileSize * 0.5f) - 0.05f;
-
-        if (Physics.BoxCast(frontFaceOrigin, boxHalfExtents, pushDirNormalized, Quaternion.identity, castDistance, blockingLayers))
+        Vector3[] cardinalDirections = { Vector3.forward, Vector3.back, Vector3.left, Vector3.right };
+        for (int i = 0; i < cardinalDirections.Length; i++)
         {
-            return false; // Bloqueado si hay un pilar u obstáculo ocupando la casilla destino B
-        }
-
-        // 4. Downward Probe: Valida la presencia y elevación del suelo en la casilla destino B
-        Vector3 destinationCenter = transform.position + (pushDirNormalized * tileSize);
-        Vector3 probeOrigin = destinationCenter + Vector3.up * 1.0f;
-
-        if (Physics.Raycast(probeOrigin, Vector3.down, out RaycastHit groundHit, 2.5f, groundLayer))
-        {
-            float elevationDelta = groundHit.point.y - transform.position.y;
-
-            if (elevationDelta > maxStepTolerance)
+            if (CanBePushed(cardinalDirections[i], out _))
             {
-                return false; // Bloqueado por escalón superior a 5cm
+                return true;
             }
         }
-        else
-        {
-            willFallIntoPit = true; // No hay suelo -> Caerá al foso/agua
-        }
 
-        return true;
+        return false;
     }
 
     /// <summary>
-    /// Executes a smooth grid-aligned displacement routine for the block.
+    /// Evaluates a directional input from Psynergy UI prompt or automated pull calculation.
+    /// Triggers movement if valid, or fires error feedback and invokes onBlocked if the path is obstructed.
+    /// Guaranteed to call either onSuccess or onBlocked in all execution branches.
+    /// </summary>
+    /// <param name="pushDirection">Normalized target direction vector.</param>
+    /// <param name="onSuccess">Callback invoked when the valid push routine finishes moving.</param>
+    /// <param name="onBlocked">Callback invoked when the push in this direction is physically blocked.</param>
+    public void EvaluateDirectionChoice(Vector3 pushDirection, Action onSuccess, Action onBlocked)
+    {
+        if (isMoving)
+        {
+            onBlocked?.Invoke();
+            return;
+        }
+
+        if (CanBePushed(pushDirection, out bool willFallIntoPit))
+        {
+            StartCoroutine(Routine_ExecutePush(pushDirection, willFallIntoPit, onSuccess));
+        }
+        else
+        {
+            // Play negative error SFX via decoupled event bus
+            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+            Debug.Log($"[PushableBlock] Direction {pushDirection} is blocked on {gameObject.name}.");
+            onBlocked?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Attempts to push the block in a specific cardinal direction (Direct/Manual entry point).
+    /// Used by physical collision pushes.
+    /// </summary>
+    public bool TryPushDirection(Vector3 pushDirection, Action onComplete = null)
+    {
+        if (isMoving) return false;
+
+        if (CanBePushed(pushDirection, out bool willFallIntoPit))
+        {
+            StartCoroutine(Routine_ExecutePush(pushDirection, willFallIntoPit, onComplete));
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+/// Checks if the destination grid tile (1.5m ahead) and the path towards it are clear of obstacles, walls, or fences.
+/// Uses a combination of BoxCast for the transitional volume and OverlapBox for target tile occupancy.
+/// </summary>
+public bool CanBePushed(Vector3 pushDirection, out bool willFallIntoPit)
+{
+    willFallIntoPit = false;
+
+    if (isMoving) return false;
+
+    Vector3 pushDirNormalized = pushDirection.normalized;
+    Collider selfCollider = GetComponent<Collider>();
+
+    // --- 1. COMPROBACIÓN DE BARRIDO/CAMINO (Evita atravesar vallas, rejas o paredes delgadas en la frontera) ---
+    // El origen parte desde el centro del bloque actual + un pequeño offset frontal
+    Vector3 castOrigin = transform.position + (Vector3.up * 0.75f) + (pushDirNormalized * 0.1f);
+    
+    // Extensión del volumen de barrido (un poco menor que 1.5m para no rozar paredes laterales paralelas)
+    float boxWidthExtent = (tileSize * 0.5f) - 0.12f;
+    Vector3 sweepHalfExtents = new Vector3(boxWidthExtent, 0.5f, boxWidthExtent);
+    
+    // Distancia exacta del recorrido (1.5m)
+    float sweepDistance = tileSize - 0.15f;
+
+    RaycastHit[] sweepHits = Physics.BoxCastAll(
+        castOrigin, 
+        sweepHalfExtents, 
+        pushDirNormalized, 
+        Quaternion.identity, 
+        sweepDistance, 
+        blockingLayers, 
+        QueryTriggerInteraction.Ignore
+    );
+
+    for (int i = 0; i < sweepHits.Length; i++)
+    {
+        Collider hitCol = sweepHits[i].collider;
+
+        // Ignorar el propio collider o hijos del bloque
+        if (hitCol == selfCollider || hitCol.transform.IsChildOf(transform))
+        {
+            continue;
+        }
+
+        // ¡Atención! Se ha encontrado una valla, pared u objeto en el camino directo de desplazamiento
+        Debug.Log($"[PushableBlock] Push blocked by obstacle in path: {hitCol.name}");
+        return false;
+    }
+
+    // --- 2. COMPROBACIÓN DE OCUPACIÓN DEL DESTINO (Evita solaparse con cubos u objetos centrados en Tile B) ---
+    Vector3 destinationCenter = transform.position + (pushDirNormalized * tileSize) + (Vector3.up * 0.75f);
+    Vector3 overlapHalfExtents = new Vector3(boxWidthExtent, 0.5f, boxWidthExtent);
+
+    Collider[] hitColliders = Physics.OverlapBox(
+        destinationCenter, 
+        overlapHalfExtents, 
+        Quaternion.identity, 
+        blockingLayers, 
+        QueryTriggerInteraction.Ignore
+    );
+
+    for (int i = 0; i < hitColliders.Length; i++)
+    {
+        if (hitColliders[i] == selfCollider || hitColliders[i].transform.IsChildOf(transform))
+        {
+            continue;
+        }
+
+        Debug.Log($"[PushableBlock] Push blocked on {gameObject.name}. Destination occupied by: {hitColliders[i].name}");
+        return false;
+    }
+
+    // --- 3. PROSPECCIÓN DE SUELO / FOSO (Raycast hacia abajo en Tile B) ---
+    Vector3 destinationFloorCenter = transform.position + (pushDirNormalized * tileSize);
+    Vector3 probeOrigin = destinationFloorCenter + Vector3.up * 1.0f;
+
+    if (Physics.Raycast(probeOrigin, Vector3.down, out RaycastHit groundHit, 2.5f, groundLayer))
+    {
+        float elevationDelta = groundHit.point.y - transform.position.y;
+
+        if (elevationDelta > maxStepTolerance)
+        {
+            return false; // Bloqueado por escalón superior a la tolerancia (5cm)
+        }
+    }
+    else
+    {
+        willFallIntoPit = true; // No hay suelo debajo -> El bloque caerá al agua o foso
+    }
+
+    return true;
+}
+
+    /// <summary>
+    /// Legacy/Direct entry point for smooth grid-aligned displacement routine.
+    /// Wrapper maintained for full compatibility with manual push systems.
     /// </summary>
     public IEnumerator MoveBlockRoutine(Vector3 pushDirection, bool fallsIntoPit)
     {
-        Vector3 startPos = transform.position;
-        Vector3 direction = pushDirection.normalized;
+        yield return StartCoroutine(Routine_ExecutePush(pushDirection, fallsIntoPit, null));
+    }
 
-        // Calculamos la posición destino exacta basada en el tile entero desde la posición inicial
-        Vector3 targetPos = startPos + (direction * tileSize);
+    #endregion
 
-        float elapsedTime = 0f;
+    #region Private Internal Routines
 
-        while (elapsedTime < pushDuration)
+    /// <summary>
+    /// Calculates the primary cardinal direction (+X, -X, +Z, -Z) to pull the block toward the caster position.
+    /// </summary>
+    private Vector3 CalculatePullDirection(Vector3 casterPosition)
+    {
+        Vector3 toCaster = casterPosition - transform.position;
+        toCaster.y = 0f; // Constrain strictly to horizontal plane
+
+        if (Mathf.Abs(toCaster.x) > Mathf.Abs(toCaster.z))
         {
-            transform.position = Vector3.Lerp(startPos, targetPos, elapsedTime / pushDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            return new Vector3(Mathf.Sign(toCaster.x), 0f, 0f);
         }
-
-        // Snap final exacto a la coordenada calculada (sin acumulación de imprecisiones de float)
-        transform.position = targetPos;
-
-        if (fallsIntoPit)
+        else
         {
-            yield return StartCoroutine(FallIntoPitRoutine());
+            return new Vector3(0f, 0f, Mathf.Sign(toCaster.z));
+        }
+    }
+
+    private IEnumerator Routine_ExecutePush(Vector3 pushDirection, bool fallsIntoPit, Action onComplete)
+    {
+        isMoving = true;
+
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
+
+        try
+        {
+            Vector3 startPos = transform.position;
+            Vector3 direction = pushDirection.normalized;
+
+            // Calculate exact target position based on full tile displacement
+            Vector3 targetPos = startPos + (direction * tileSize);
+
+            float elapsedTime = 0f;
+
+            while (elapsedTime < pushDuration)
+            {
+                transform.position = Vector3.Lerp(startPos, targetPos, elapsedTime / pushDuration);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            // Exact snap to target coordinate to prevent float precision drift
+            transform.position = targetPos;
+
+            if (fallsIntoPit)
+            {
+                yield return StartCoroutine(FallIntoPitRoutine());
+            }
+        }
+        finally
+        {
+            isMoving = false;
+
+            // Callback to release player input lock in Controller / Manager once movement fully settles
+            onComplete?.Invoke();
+
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+
         }
     }
 

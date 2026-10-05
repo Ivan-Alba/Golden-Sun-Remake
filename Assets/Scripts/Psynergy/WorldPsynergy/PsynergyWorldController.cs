@@ -1,13 +1,20 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Manages assigned Psynergy shortcuts for each hero and handles execution of world Psynergies.
+/// Validates PP costs, manages state transitions to Interacting during casts, and triggers visual execution events.
 /// Reacts to requests via GameEvents.Psynergy, GameEvents.Party, and handles persistence via GameEvents.SaveLoad.
 /// </summary>
 public class PsynergyWorldController : MonoBehaviour
 {
+
+    [Header("Overworld Player Reference")]
+    [Tooltip("Reference to the active physical Player root object in the world.")]
+    [SerializeField] private GameObject playerWorldObject;
+
     #region Private Fields
 
     // Stores up to 4 shortcut slots per hero (0: Up, 1: Down, 2: Left, 3: Right)
@@ -159,8 +166,6 @@ public class PsynergyWorldController : MonoBehaviour
 
             saveData.heroesShortcuts.Add(shortcutData);
         }
-
-        //Debug.Log($"<color=green>[PsynergyWorldController] Collected shortcuts save data for {saveData.heroesShortcuts.Count} hero(es).</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)
@@ -279,6 +284,7 @@ public class PsynergyWorldController : MonoBehaviour
 
     /// <summary>
     /// Executes the Psynergy assigned to the active hero's shortcut slot.
+    /// Validates PP requirements, deducts cost, freezes game world state, and broadcasts execution events.
     /// </summary>
     private void UsePsynergy(int slotIndex, IPsynergyTargetable target)
     {
@@ -290,26 +296,50 @@ public class PsynergyWorldController : MonoBehaviour
 
         if (usedPsynergy == null) return;
 
-        if (target != null)
+        // 1. PP Cost Validation
+        if (_currentActiveHero.TryGetComponent<HeroStats>(out var heroStats))
         {
-            Debug.Log($"[PsynergyWorldController] Attempting to use {usedPsynergy.PsynergySlug} on target.");
+            if (heroStats.CurrPp < usedPsynergy.PpCost)
+            {
+                Debug.LogWarning($"[PsynergyWorldController] Not enough PP to cast '{usedPsynergy.PsynergyName}'. Required: {usedPsynergy.PpCost}, Current: {heroStats.CurrPp}");
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                return;
+            }
 
-            bool success = target.ExecutePsynergy(usedPsynergy, _currentActiveHero);
-            if (success)
-            {
-                Debug.Log($"[PsynergyWorldController] {usedPsynergy.PsynergySlug} executed successfully!");
-                GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.PsynergySlug, _currentActiveHero.transform);
-            }
-            else
-            {
-                Debug.Log($"[PsynergyWorldController] {usedPsynergy.PsynergySlug} failed or target is not compatible.");
-            }
+            // Deduct PP cost
+            heroStats.ConsumePP(usedPsynergy.PpCost);
+        }
+
+        // 2. Lock game state to Interacting to prevent world interference during cast
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
+
+        // 3. Process Execution & Broadcast Events
+        if (target != null && target.IsCompatibleWith(usedPsynergy))
+        {
+            Debug.Log($"[PsynergyWorldController] Executing '{usedPsynergy.PsynergySlug}' on target object.");
+
+            // Broadcast hero cast event for animations/VFX
+            GameEvents.Psynergy.TriggerWorldPsynergyCast();
+
+            // Execute target logic (target responsible for unlocking GameState upon sequence completion)
+            target.ExecutePsynergy(usedPsynergy, playerWorldObject);
         }
         else
         {
-            Debug.Log($"[PsynergyWorldController] Used {usedPsynergy.PsynergySlug} without an active target.");
-            GameEvents.Psynergy.TriggerWorldPsynergyCast(usedPsynergy.PsynergySlug, _currentActiveHero.transform);
+            Debug.Log($"[PsynergyWorldController] Casting '{usedPsynergy.PsynergySlug}' into empty space (No compatible target).");
+
+            // Broadcast hero cast event for animations/VFX
+            GameEvents.Psynergy.TriggerWorldPsynergyCast();
+
+            // Targetless cast: trigger timer to automatically restore WorldExploration state
+            StartCoroutine(Routine_HandleTargetlessCastRecovery(1.4f));
         }
+    }
+
+    private IEnumerator Routine_HandleTargetlessCastRecovery(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 
     #endregion

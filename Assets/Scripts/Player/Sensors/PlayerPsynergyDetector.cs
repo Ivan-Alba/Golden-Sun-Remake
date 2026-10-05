@@ -24,6 +24,9 @@ public class PlayerPsynergyDetector : MonoBehaviour
     [Header("Re-evaluation Settings")]
     [SerializeField] private int maxReevaluationColliders = 16;
 
+    [Tooltip("Layer mask that blocks Line of Sight between player and target (e.g., Default, Environment, Obstacles).")]
+    [SerializeField] private LayerMask losBlockingLayers;
+
     #endregion
 
     #region Private Runtime State

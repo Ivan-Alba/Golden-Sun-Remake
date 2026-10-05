@@ -10,8 +10,8 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 
     [Header("Psynergy Configuration")]
     [Tooltip("The WorldAction required for this object to react to cast Psynergy.")]
-    [SerializeField] private WorldActionType requiredWorldAction = WorldActionType.Catch;
-    [SerializeField] private bool singleUse = true;
+    [SerializeField] protected WorldActionType requiredWorldAction = WorldActionType.Catch;
+    [SerializeField] protected bool singleUse = true;
 
     [Header("Visual Feedback Settings")]
     [SerializeField] private Renderer objRenderer;
@@ -65,12 +65,12 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 
     #region IPsynergyTargetable Implementation
 
-    public bool CanBeTargeted()
+    public virtual bool CanBeTargeted()
     {
         return !hasBeenUsed;
     }
 
-    public bool IsCompatibleWith(PsynergySO psynergy)
+    public virtual bool IsCompatibleWith(PsynergySO psynergy)
     {
         if (hasBeenUsed || psynergy == null) return false;
 
@@ -78,7 +78,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
                psynergy.WorldData.WorldAction == requiredWorldAction;
     }
 
-    public bool ExecutePsynergy(PsynergySO psynergy, GameObject caster)
+    public virtual bool ExecutePsynergy(PsynergySO psynergy, GameObject player)
     {
         if (!IsCompatibleWith(psynergy))
         {
@@ -86,7 +86,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
             return false;
         }
 
-        OnPsynergyTriggered(psynergy, caster);
+        OnPsynergyTriggered(psynergy, player);
 
         if (singleUse)
         {
@@ -102,7 +102,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 
     #region Proximity & Visual Feedback (Shader Highlights)
 
-    public void OnProximityEntered()
+    public virtual void OnProximityEntered()
     {
         if (hasBeenUsed || isProximityActive) return;
 
@@ -110,7 +110,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
         ApplyColorProperty(highlightColor);
     }
 
-    public void OnProximityExited()
+    public virtual void OnProximityExited()
     {
         if (!isProximityActive) return;
 
@@ -122,7 +122,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 
     #region Aiming & Lock-On States
 
-    public void OnTargetGained()
+    public virtual void OnTargetGained()
     {
         if (hasBeenUsed) return;
 
@@ -130,7 +130,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
         ApplyColorProperty(highlightColor * 1.25f);
     }
 
-    public void OnTargetLost()
+    public virtual void OnTargetLost()
     {
         // Revert to proximity color if player is still nearby, otherwise restore original
         ApplyColorProperty(isProximityActive ? highlightColor : originalColor);
@@ -138,31 +138,24 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
 
     #endregion
 
-    #region Protected Interaction Methods
+    #region Protected Interaction Methods & Lifecycle Templates
 
     /// <summary>
-    /// Executes the specific action logic when a compatible Psynergy is applied.
-    /// Override this method in child classes for custom puzzle mechanics (e.g., PushBlock, FreezeWater).
+    /// Override this method in derived classes to define specific puzzle behavior upon casting Psynergy.
     /// </summary>
     protected virtual void OnPsynergyTriggered(PsynergySO psynergy, GameObject caster)
     {
-        Debug.Log($"[PsynergyInteractable] Applied {psynergy.PsynergyName} on {gameObject.name}.");
+        ;
+    }
 
-        switch (psynergy.WorldData.WorldAction)
-        {
-            case WorldActionType.Catch:
-                // TODO: Play flying item animation towards player and add to inventory
-                gameObject.SetActive(false);
-                break;
-
-            case WorldActionType.Move:
-                // TODO: Trigger grid-based movement logic
-                break;
-
-            case WorldActionType.MindRead:
-                // TODO: Specific mind read dialogues
-                break;
-        }
+    /// <summary>
+    /// Must be invoked by derived classes when their visual/physics animation finishes completely.
+    /// Restores the game state back to WorldExploration.
+    /// </summary>
+    protected virtual void CompleteInteraction()
+    {
+        Debug.Log($"[PsynergyInteractable] Interaction sequence completed on {gameObject.name}. Restoring WorldExploration state.");
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 
     #endregion

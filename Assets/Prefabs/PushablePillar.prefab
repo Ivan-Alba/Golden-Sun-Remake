@@ -63,7 +63,6 @@ GameObject:
   m_Component:
   - component: {fileID: 9037008445597588137}
   - component: {fileID: 7040616743323885545}
-  - component: {fileID: 6764491699009514643}
   - component: {fileID: 1056595255742022242}
   - component: {fileID: 2776727180509504542}
   m_Layer: 10
@@ -118,23 +117,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &6764491699009514643
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6617425233038716398}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b668eeb1b498e594196692af5943640b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  requiredWorldAction: 2
-  singleUse: 0
-  objRenderer: {fileID: 7517184300827977824}
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  shaderColorPropertyName: _BaseColor
 --- !u!114 &1056595255742022242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,6 +144,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6af0a08d5424d664daad978098ef849b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PushableBlock
+  requiredWorldAction: 2
+  singleUse: 0
+  objRenderer: {fileID: 7517184300827977824}
+  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  shaderColorPropertyName: _BaseColor
   tileSize: 1.5
   pushDuration: 2
   maxStepTolerance: 0.05
@@ -171,7 +158,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  fallDistance: 1.3
+  fallDistance: 3
   fallDuration: 0.35
 --- !u!1 &8081685715311589602
 GameObject:

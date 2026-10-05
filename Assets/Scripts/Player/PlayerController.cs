@@ -157,6 +157,7 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.OnRequestStopAutoWalk += HandleRequestStopAutoWalk;
         GameEvents.World.OnInteractableTargetChanged += HandleInteractableTargetChanged;
         GameEvents.World.OnPsynergyTargetChanged += HandlePsynergyTargetChanged;
+        GameEvents.Psynergy.OnWorldPsynergyCast += HandleWorldPsynergyCast;
     }
 
     private void OnDisable()
@@ -170,6 +171,7 @@ public class PlayerController : MonoBehaviour
         GameEvents.Player.OnRequestStopAutoWalk -= HandleRequestStopAutoWalk;
         GameEvents.World.OnInteractableTargetChanged -= HandleInteractableTargetChanged;
         GameEvents.World.OnPsynergyTargetChanged -= HandlePsynergyTargetChanged;
+        GameEvents.Psynergy.OnWorldPsynergyCast -= HandleWorldPsynergyCast;
 
         StopAutoWalk();
         InterruptPsynergyCast();
@@ -201,7 +203,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!IsWorldExploration())
+        if (!IsWorldExploration() && currentMovementState != PlayerMovementState.CastingPsynergy)
         {
             if (autoWalkCoroutine == null)
             {
@@ -213,10 +215,10 @@ public class PlayerController : MonoBehaviour
         // Apply standard gravity physics unless climbing, airborne auto-jumping, or pushing
         if (currentMovementState != PlayerMovementState.Climbing &&
             currentMovementState != PlayerMovementState.AutoJumping &&
-            currentMovementState != PlayerMovementState.PushingObject)
+            currentMovementState != PlayerMovementState.PushingObject &&
+            currentMovementState != PlayerMovementState.CastingPsynergy)
         {
             motor.HandleGravity();
-            //animController.UpdateAirborneState(motor.IsGrounded, motor.VerticalVelocity);
         }
 
         switch (currentMovementState)
@@ -351,11 +353,15 @@ public class PlayerController : MonoBehaviour
         if (isGameplayActive)
         {
             StopAutoWalk();
+
+            // Restore movement state when exiting Interacting/Casting states
+            if (currentMovementState == PlayerMovementState.CastingPsynergy)
+            {
+                currentMovementState = PlayerMovementState.FreeExploration;
+            }
         }
         else
         {
-            InterruptPsynergyCast();
-
             if (currentMovementState == PlayerMovementState.InFirstPerson)
             {
                 StopFirstPersonView();
@@ -429,6 +435,32 @@ public class PlayerController : MonoBehaviour
     private void HandlePsynergyTargetChanged(IPsynergyTargetable target)
     {
         psynergyCurrentTarget = target;
+    }
+
+    private void HandleWorldPsynergyCast()
+    {
+        currentMovementState = PlayerMovementState.CastingPsynergy;
+        motor.StopImmediate();
+        animController.ResetLocomotionAnimations();
+
+        // 1. Orientar hacia el objetivo enfocado o hacia donde mira la cámara
+        if (psynergyCurrentTarget != null)
+        {
+            Vector3 targetPos = psynergyCurrentTarget.Transform.position;
+            HandleRequestLookAt(targetPos, 0.15f);
+        }
+        else if (mainCamera != null)
+        {
+            Vector3 cameraForward = Vector3.Scale(mainCamera.forward, new Vector3(1, 0, 1)).normalized;
+            if (cameraForward.sqrMagnitude > 0.001f)
+            {
+                Vector3 lookTarget = transform.position + cameraForward * 5f;
+                HandleRequestLookAt(lookTarget, 0.15f);
+            }
+        }
+
+        // 2. Ejecutar la animación de brazo extendido / casteo
+        animController.TriggerCastPsynergy();
     }
 
     #endregion
@@ -538,7 +570,7 @@ public class PlayerController : MonoBehaviour
         // Perform physical parabolic jump trajectory
         yield return StartCoroutine(motor.PerformParabolicJump(startPosition, targetLandingPosition, autoJumpArcHeight, autoJumpDuration));
 
-        // Post-landing recovery delay (prevents instant chained jump exploits and aligns landing landing animation)
+        // Post-landing recovery delay
         if (autoJumpLandingDelay > 0f)
         {
             yield return new WaitForSeconds(autoJumpLandingDelay);
@@ -564,7 +596,6 @@ public class PlayerController : MonoBehaviour
         currentClimbPath = path;
         currentClimbSegmentIndex = segmentIndex;
 
-        // Desactivar colisiones con Ledge y Climbable durante el enganche
         ToggleSpecialLayersCollision(true);
 
         if (climbMountCoroutine != null) StopCoroutine(climbMountCoroutine);
@@ -575,7 +606,6 @@ public class PlayerController : MonoBehaviour
     {
         isClimbingTransitioning = true;
 
-        // Asegurar que durante todo el proceso de enganche ignoramos físicamente el Ledge
         ToggleSpecialLayersCollision(true);
 
         List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
@@ -592,19 +622,16 @@ public class PlayerController : MonoBehaviour
 
             if (isMountingFromTop)
             {
-                // Entrar desde el saliente superior: sumergir la cota Y rápidamente hacia abajo para que el cuerpo quede debajo de la cornisa
                 float targetY = currentSegment.endPoint.y - topLedgeSafetyOffset;
                 float minY = Mathf.Min(currentSegment.startPoint.y, currentSegment.endPoint.y);
                 targetAttachPoint.y = Mathf.Max(targetY, minY);
 
-                // Disparamos la pose de escalada ANTES para que mezcle mientras desciende
                 if (animController != null)
                 {
                     animController.SetClimbingState(true);
                     animController.UpdateClimbSpeed(0f);
                 }
 
-                // Mover y rotar fluidamente al personaje hacia la posición colgada en la pared
                 float elapsed = 0f;
                 while (elapsed < topMountDropDuration)
                 {
@@ -623,7 +650,6 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // Entrar desde abajo (suelo)
                 if (currentSegment.isBottomExit && motor.IsGrounded)
                 {
                     targetAttachPoint.y = transform.position.y;
@@ -631,7 +657,6 @@ public class PlayerController : MonoBehaviour
 
                 transform.position = targetAttachPoint;
 
-                // Rotación rápida hacia la inclinación del segmento
                 float elapsed = 0f;
                 float rotateDuration = 0.12f;
 
@@ -697,7 +722,6 @@ public class PlayerController : MonoBehaviour
 
             float progress = Vector3.Dot(projectedPoint - currentSegment.startPoint, segmentDirection) / segmentLength;
 
-            // MOVIMIENTO HACIA ARRIBA
             if (rawVerticalInput > 0f)
             {
                 if (progress >= 1.0f)
@@ -719,7 +743,6 @@ public class PlayerController : MonoBehaviour
                     transform.position = projectedPoint;
                 }
             }
-            // MOVIMIENTO HACIA ABAJO
             else if (rawVerticalInput < 0f)
             {
                 if (progress <= 0.0f)
@@ -743,7 +766,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // climbSpeed binario estricto: 1 si hay movimiento, 0 si está quieto
         if (animController != null)
         {
             animController.UpdateClimbSpeed(hasMovementInput ? 1.0f : 0.0f);
@@ -760,7 +782,6 @@ public class PlayerController : MonoBehaviour
     {
         isClimbingTransitioning = true;
 
-        // Desactivar la colisión con Ledge DURANTE todo el paso de salida para que no tropiece con el borde
         ToggleSpecialLayersCollision(true);
 
         List<ClimbSegment> segments = currentClimbPath.GetWorldSegments();
@@ -771,7 +792,6 @@ public class PlayerController : MonoBehaviour
             inwardDirection = -segments[segments.Count - 1].wallNormal;
         }
 
-        // 1. PASO 1: Recuperar animación normal de caminata mientras aún encaramos la pared
         if (animController != null)
         {
             animController.SetClimbingState(false);
@@ -780,7 +800,6 @@ public class PlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(0.15f);
 
-        // 2. PASO 2: Orientar horizontalmente hacia el saliente (rotación plana en Y)
         Quaternion startRotation = transform.rotation;
         Quaternion targetRotation = Quaternion.identity;
         if (inwardDirection.sqrMagnitude > 0.001f)
@@ -788,18 +807,16 @@ public class PlayerController : MonoBehaviour
             targetRotation = Quaternion.LookRotation(inwardDirection);
         }
 
-        // 3. PASO 3: Calcular el punto exacto de suelo sobre la cornisa mediante Raycast
         float effectiveOffset = currentClimbPath != null ? currentClimbPath.GetEffectiveTopDismountOffset(topDismountOffset) : topDismountOffset;
 
         Vector3 startPos = transform.position;
         Vector3 projectedHorizontalTarget = startPos + (inwardDirection.normalized * effectiveOffset);
 
-        // Disparar Raycast hacia abajo para encontrar el nivel físico real del suelo
         Vector3 targetPos = projectedHorizontalTarget;
         Vector3 rayStart = projectedHorizontalTarget + (Vector3.up * 1.5f);
 
         int playerLayer = LayerMask.NameToLayer(playerLayerName);
-        int layerMask = ~(1 << playerLayer); // Ignorar la capa del jugador
+        int layerMask = ~(1 << playerLayer);
 
         if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 3.0f, layerMask, QueryTriggerInteraction.Ignore))
         {
@@ -857,7 +874,6 @@ public class PlayerController : MonoBehaviour
             outwardDirection = segments[0].wallNormal;
         }
 
-        // 1. PASO 1: Restablecer primero la animación a caminata normal
         if (animController != null)
         {
             animController.SetClimbingState(false);
@@ -866,13 +882,11 @@ public class PlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(0.15f);
 
-        // 2. PASO 2: Rotar al personaje mirando hacia afuera de la pared
         if (outwardDirection.sqrMagnitude > 0.001f)
         {
             transform.rotation = Quaternion.LookRotation(outwardDirection);
         }
 
-        // 3. PASO 3: Dar el paso de cortesía alejándose del collider
         Vector3 forwardStep = outwardDirection.normalized * bottomDismountOffset;
         Vector3 startPos = transform.position;
         Vector3 targetPos = startPos + forwardStep;
@@ -910,16 +924,11 @@ public class PlayerController : MonoBehaviour
             animController.ResetLocomotionAnimations();
         }
 
-        // Reactivamos la colisión con la capa Ledge solo cuando la escalada ha concluido completamente
         ToggleSpecialLayersCollision(false);
 
         currentMovementState = PlayerMovementState.FreeExploration;
     }
 
-    /// <summary>
-    /// Temporarily enables or disables physical layer collisions between Player and special interactive layers (Ledge, Climbable).
-    /// Prevents physics jitter or accidental triggers during automated transitions (AutoJump & Climbing).
-    /// </summary>
     private void ToggleSpecialLayersCollision(bool ignore)
     {
         int playerLayer = LayerMask.NameToLayer(playerLayerName);
@@ -944,18 +953,12 @@ public class PlayerController : MonoBehaviour
 
     #region Phase 4: Pushable Objects System
 
-    /// <summary>
-    /// Initiates a grid-aligned push sequence on a target PushableBlock.
-    /// Triggered externally by PlayerPushDetector when push intention condition is met.
-    /// </summary>
     public void ExecuteBlockPush(PushableBlock block, Vector3 pushDirection)
     {
         if (currentMovementState != PlayerMovementState.FreeExploration) return;
 
-        // Verify if destination grid tile is clear or leads to water/pit
         if (!block.CanBePushed(pushDirection, out bool fallsIntoPit))
         {
-            // Block destination is obstructed by a wall or pillar -> Push fails!
             return;
         }
 
@@ -1001,32 +1004,8 @@ public class PlayerController : MonoBehaviour
 
     #region Golden Sun Special Locomotion States (Psynergy, Slide, Fall)
 
-    public void LockMovementForPsynergyCast(float duration)
-    {
-        if (psynergyCastCoroutine != null) StopCoroutine(psynergyCastCoroutine);
-        psynergyCastCoroutine = StartCoroutine(PsynergyCastRoutine(duration));
-    }
-
-    private IEnumerator PsynergyCastRoutine(float duration)
-    {
-        currentMovementState = PlayerMovementState.CastingPsynergy;
-        animController.ResetLocomotionAnimations();
-        animController.TriggerCastPsynergy();
-
-        yield return new WaitForSeconds(duration);
-
-        currentMovementState = PlayerMovementState.FreeExploration;
-        psynergyCastCoroutine = null;
-    }
-
     private void InterruptPsynergyCast()
     {
-        if (psynergyCastCoroutine != null)
-        {
-            StopCoroutine(psynergyCastCoroutine);
-            psynergyCastCoroutine = null;
-        }
-
         if (currentMovementState == PlayerMovementState.CastingPsynergy)
         {
             currentMovementState = PlayerMovementState.FreeExploration;
@@ -1091,8 +1070,6 @@ public class PlayerController : MonoBehaviour
 
             Vector3 normalizedDir = direction.normalized;
 
-            // Si ProcessLocomotion aplica la cámara, des-rotamos el vector previamente
-            // para contrarrestar la rotación de la cámara:
             Vector3 unrotatedDir = normalizedDir;
             if (mainCamera != null)
             {
