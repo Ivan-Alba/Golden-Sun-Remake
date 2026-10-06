@@ -1428,7 +1428,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &543450653699958763
 Transform:
   m_ObjectHideFlags: 0
@@ -9927,6 +9927,7 @@ Transform:
   - {fileID: 8459378967602400865}
   - {fileID: 8459378966237344272}
   - {fileID: 8459378965952849276}
+  - {fileID: 5384326699041562516}
   m_Father: {fileID: 8459378967151069452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4747108845631082599
@@ -12096,7 +12097,7 @@ MonoBehaviour:
   pushableLayer:
     serializedVersion: 2
     m_Bits: 1024
-  maxHeightDifference: 0.35
+  maxHeightDifference: 0.45
   probeDistance: 0.5
   pushChargeTime: 0.3
   strictAngleThreshold: 0.85
@@ -14300,6 +14301,51 @@ Transform:
   - {fileID: 8888506343947024960}
   m_Father: {fileID: 5563040947787153309}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7266162212680596757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5384326699041562516}
+  - component: {fileID: 3116717600446207884}
+  m_Layer: 0
+  m_Name: PsynergyWorldControler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5384326699041562516
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7266162212680596757}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 199472027117118478}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3116717600446207884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7266162212680596757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a49422c54f965504ab98906d15700345, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PsynergyWorldController
+  playerWorldObject: {fileID: 8459378967203041518}
 --- !u!1 &7286610326205522658
 GameObject:
   m_ObjectHideFlags: 0
@@ -14958,6 +15004,7 @@ Transform:
   - {fileID: 8459378967306837171}
   - {fileID: 1183092265462673974}
   - {fileID: 3751060842806611113}
+  - {fileID: 1482000114358803433}
   m_Father: {fileID: 8459378967203041517}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &5388470505944884901
@@ -15698,6 +15745,9 @@ MonoBehaviour:
   maxCastDistance: 8
   maxFocusAngle: 60
   maxReevaluationColliders: 16
+  losBlockingLayers:
+    serializedVersion: 2
+    m_Bits: 9
 --- !u!1 &7908419588982916516
 GameObject:
   m_ObjectHideFlags: 0
@@ -16352,6 +16402,60 @@ Transform:
   - {fileID: 1750136869707713147}
   m_Father: {fileID: 531004041959788098}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8231626600543541163
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1482000114358803433}
+  - component: {fileID: 1386463429817698407}
+  m_Layer: 13
+  m_Name: ClimbDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1482000114358803433
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8231626600543541163}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8037381580445055636}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1386463429817698407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8231626600543541163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ba9e28cb9ba0184bba5aaa6e8e87776, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerClimbDetector
+  playerController: {fileID: 8459378967203041512}
+  characterController: {fileID: 8459378967203041511}
+  climbableLayer:
+    serializedVersion: 2
+    m_Bits: 32768
+  probeDistance: 0.5
+  topLedgeForwardOffset: 0.75
+  topLedgeProbeDistance: 1
+  maxAttachDistance: 0.8
+  showGizmos: 1
 --- !u!1 &8239063670192181297
 GameObject:
   m_ObjectHideFlags: 0
@@ -18038,7 +18142,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8459378966118849752}
   - component: {fileID: 8459378966118849749}
-  - component: {fileID: 8459378966118849750}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -18084,18 +18187,6 @@ MonoBehaviour:
   freeLookCamera: {fileID: 3100800592091049275}
   transitionDuration: 1
   arrivalWalkDelay: 0.2
---- !u!114 &8459378966118849750
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8459378966118849753}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a49422c54f965504ab98906d15700345, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &8459378966195427849
 GameObject:
   m_ObjectHideFlags: 0
@@ -18512,7 +18603,7 @@ Transform:
   m_GameObject: {fileID: 8459378966427559358}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 29.7, y: -2.7000003, z: -26.91}
+  m_LocalPosition: {x: 29.7, y: -3.4500003, z: -26.91}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18538,7 +18629,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 3623956689727485949}
+    TrackingTarget: {fileID: 3791319071773773611}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 1
   Lens:
@@ -19586,10 +19677,20 @@ MonoBehaviour:
   autoJumpArcHeight: 0.7
   autoJumpDuration: 0.45
   autoJumpLandingDelay: 0.15
+  climbSpeed: 2
+  dismountStepDuration: 0.45
+  topDismountOffset: 1.5
+  bottomDismountStepDuration: 0.35
+  bottomDismountOffset: 1
+  mountLockDuration: 0.15
+  topLedgeSafetyOffset: 1.3
+  topMountDropDuration: 0.35
   playerLayerName: Player
   ledgeLayerName: Ledge
+  climbableLayerName: Climbable
   ledgeDetector: {fileID: 8092274429775095480}
   pushDetector: {fileID: 7093700303734884496}
+  climbDetector: {fileID: 1386463429817698407}
   mainCamera: {fileID: 8459378965900201018}
   freeLookCamera: {fileID: 3100800592091049275}
   firstPersonCamera: {fileID: 575090345836108460}
@@ -19644,7 +19745,7 @@ MonoBehaviour:
     weaponBackSocket: {fileID: 5111677286922430025}
     weaponSheathSocket: {fileID: 7585514513137542936}
     sheathMeshObject: {fileID: 3555061799773962936}
-    eyeHeightOffset: 1.6
+    eyeHeightOffset: 1.55
     framingCenterOffset: 0.85
     targetRadius: 1
   - heroId: Garet
@@ -19655,7 +19756,7 @@ MonoBehaviour:
     weaponBackSocket: {fileID: 903524478551740979}
     weaponSheathSocket: {fileID: 6169980606380393882}
     sheathMeshObject: {fileID: 1411319325534739550}
-    eyeHeightOffset: 1.7
+    eyeHeightOffset: 1.65
     framingCenterOffset: 0.95
     targetRadius: 1
   - heroId: Ivan
@@ -19666,7 +19767,7 @@ MonoBehaviour:
     weaponBackSocket: {fileID: 3493928657765955043}
     weaponSheathSocket: {fileID: 0}
     sheathMeshObject: {fileID: 0}
-    eyeHeightOffset: 1.45
+    eyeHeightOffset: 1.4
     framingCenterOffset: 0.8
     targetRadius: 1
   - heroId: Mia
@@ -19677,7 +19778,7 @@ MonoBehaviour:
     weaponBackSocket: {fileID: 3041337503429649808}
     weaponSheathSocket: {fileID: 0}
     sheathMeshObject: {fileID: 0}
-    eyeHeightOffset: 1.62
+    eyeHeightOffset: 1.57
     framingCenterOffset: 0.9
     targetRadius: 1
 --- !u!114 &4133397475642961524
@@ -19810,10 +19911,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.30105686
+  m_Radius: 0.38033628
   m_Height: 2.039875
   m_Direction: 1
-  m_Center: {x: 0.005458832, y: 0.14865494, z: -0.000002861023}
+  m_Center: {x: -0.012373924, y: 0.14865494, z: 0.020095348}
 --- !u!114 &8459378967306837169
 MonoBehaviour:
   m_ObjectHideFlags: 0

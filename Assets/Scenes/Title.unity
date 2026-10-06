@@ -119,27 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1186322 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8459378967203041518, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
---- !u!143 &46155707 stripped
-CharacterController:
-  m_CorrespondingSourceObject: {fileID: 8459378967203041511, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &46155708 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1186322}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42770d2b5fadffb41b49339033d18c4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &46399039
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,11 +296,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &240842929 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &251371545
 GameObject:
   m_ObjectHideFlags: 0
@@ -455,56 +429,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 251371545}
   m_CullTransparentMesh: 1
---- !u!1 &254377352
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 254377353}
-  - component: {fileID: 254377354}
-  m_Layer: 0
-  m_Name: PsynergyWorldControler
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &254377353
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 254377352}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1582988970}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &254377354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 254377352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a49422c54f965504ab98906d15700345, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PsynergyWorldController
-  playerWorldObject: {fileID: 1186322}
---- !u!4 &255484070 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3791319071773773611, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &587115684
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,60 +661,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &682931062
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 682931063}
-  - component: {fileID: 682931064}
-  m_Layer: 13
-  m_Name: ClimbDetector
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &682931063
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 682931062}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 240842929}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &682931064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 682931062}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ba9e28cb9ba0184bba5aaa6e8e87776, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerClimbDetector
-  playerController: {fileID: 46155708}
-  characterController: {fileID: 46155707}
-  climbableLayer:
-    serializedVersion: 2
-    m_Bits: 32768
-  probeDistance: 0.5
-  topLedgeForwardOffset: 0.75
-  topLedgeProbeDistance: 1
-  maxAttachDistance: 0.8
-  showGizmos: 1
 --- !u!1 &722975092
 GameObject:
   m_ObjectHideFlags: 0
@@ -1054,11 +924,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254954233}
   m_CullTransparentMesh: 1
---- !u!4 &1582988970 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 199472027117118478, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-  m_PrefabInstance: {fileID: 8459378966747734655}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1710497814
 GameObject:
   m_ObjectHideFlags: 0
@@ -1507,26 +1372,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 575090345836108460, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: Target.TrackingTarget
-      value: 
-      objectReference: {fileID: 255484070}
-    - target: {fileID: 7093700303734884496, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: maxHeightDifference
-      value: 0.45
-      objectReference: {fileID: 0}
-    - target: {fileID: 8134876767287680010, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: eyePoint
-      value: 
-      objectReference: {fileID: 255484070}
-    - target: {fileID: 8134876767287680010, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: losBlockingLayers.m_Bits
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 8459378966427559356, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -3.4500003
-      objectReference: {fileID: 0}
     - target: {fileID: 8459378967151069452, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1571,44 +1416,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
-    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: climbDetector
-      value: 
-      objectReference: {fileID: 682931064}
-    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: topDismountOffset
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8459378967203041512, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: bottomDismountOffset
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8944529262397290032, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: heroVisuals.Array.data[0].eyeHeightOffset
-      value: 1.55
-      objectReference: {fileID: 0}
-    - target: {fileID: 8944529262397290032, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: heroVisuals.Array.data[1].eyeHeightOffset
-      value: 1.65
-      objectReference: {fileID: 0}
-    - target: {fileID: 8944529262397290032, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: heroVisuals.Array.data[2].eyeHeightOffset
-      value: 1.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 8944529262397290032, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      propertyPath: heroVisuals.Array.data[3].eyeHeightOffset
-      value: 1.57
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 8459378966118849750, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 199472027117118478, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 254377353}
-    - targetCorrespondingSourceObject: {fileID: 8037381580445055636, guid: a19744102be9ac7459c9135b44be0284, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 682931063}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a19744102be9ac7459c9135b44be0284, type: 3}
 --- !u!1660057539 &9223372036854775807
