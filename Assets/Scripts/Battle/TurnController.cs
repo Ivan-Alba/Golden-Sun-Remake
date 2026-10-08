@@ -46,9 +46,23 @@ public class TurnController : MonoBehaviour
     #region Public Turn API
 
     /// <summary>
+    /// Explicitly sets the current active fighter for round-based selection modes (e.g., Golden Sun Classic).
+    /// </summary>
+    public void SetManualCurrentFighter(FighterController fighter)
+    {
+        CurrentFighter = fighter;
+
+        // Optionally build a simple turn projection or notify queue
+        if (fighter != null)
+        {
+            List<GameObject> singleQueue = new List<GameObject> { fighter.gameObject };
+            GameEvents.Battle.TriggerTurnQueueUpdated(singleQueue);
+        }
+    }
+
+    /// <summary>
     /// Registers the action cost to be applied to the current active fighter upon turn completion.
     /// </summary>
-    /// <param name="cost">Action delay cost resolved from BattleActionExecutor or ActionPayload.</param>
     public void SetNextActionCost(int cost)
     {
         _pendingActionCost = Mathf.Max(1, cost);
@@ -57,14 +71,11 @@ public class TurnController : MonoBehaviour
     /// <summary>
     /// Initializes initial turn delays based on combatant agility at battle start.
     /// </summary>
-    /// <param name="fighters">List of active combatant GameObjects in battle.</param>
-    /// <returns>A projected list of turn order KeyValuePairs for UI binding.</returns>
     public List<KeyValuePair<GameObject, int>> InitializeTurnSystem(List<GameObject> fighters)
     {
         activeFighters = new List<GameObject>(fighters ?? new List<GameObject>());
         _pendingActionCost = DEFAULT_ACTION_COST;
 
-        // Calculate initial turn delays for all fighters based on damped agility
         for (int i = 0; i < activeFighters.Count; i++)
         {
             GameObject fighterObj = activeFighters[i];
@@ -85,21 +96,16 @@ public class TurnController : MonoBehaviour
     /// <summary>
     /// Advances the CTB timeline using the pre-registered action cost (_pendingActionCost).
     /// </summary>
-    /// <param name="executedFighter">The fighter GameObject that completed its action.</param>
-    /// <returns>Updated projected list of turn order KeyValuePairs.</returns>
     public List<KeyValuePair<GameObject, int>> AdvanceTurn(GameObject executedFighter)
     {
         List<KeyValuePair<GameObject, int>> result = AdvanceTurn(executedFighter, _pendingActionCost);
-        _pendingActionCost = DEFAULT_ACTION_COST; // Reset to default after advancing
+        _pendingActionCost = DEFAULT_ACTION_COST;
         return result;
     }
 
     /// <summary>
     /// Advances the CTB timeline by applying calculated action delay to the active fighter.
     /// </summary>
-    /// <param name="executedFighter">The fighter GameObject that completed its action.</param>
-    /// <param name="baseActionCost">Base delay cost of the performed action.</param>
-    /// <returns>Updated projected list of turn order KeyValuePairs.</returns>
     public List<KeyValuePair<GameObject, int>> AdvanceTurn(GameObject executedFighter, int baseActionCost)
     {
         if (executedFighter != null)
@@ -111,7 +117,6 @@ public class TurnController : MonoBehaviour
             }
         }
 
-        // Remove defeated or destroyed combatants efficiently
         for (int i = activeFighters.Count - 1; i >= 0; i--)
         {
             GameObject f = activeFighters[i];
@@ -125,12 +130,8 @@ public class TurnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates action delay using Damped CTB Formula:
-    /// Delay = Max(1, Round((BaseCost * K) / (Agility + BaseAgilityBias)))
+    /// Calculates action delay using Damped CTB Formula.
     /// </summary>
-    /// <param name="fighterObj">Target fighter GameObject.</param>
-    /// <param name="baseActionCost">Base action delay cost (e.g. 50 for Attack, 30 for Defend).</param>
-    /// <returns>Final calculated delay integer value.</returns>
     public int CalculateDelay(GameObject fighterObj, int baseActionCost)
     {
         if (fighterObj == null) return baseActionCost;
@@ -148,9 +149,8 @@ public class TurnController : MonoBehaviour
     }
 
     /// <summary>
-    /// Simulates future turn order up to maxTurnBoxes for timeline UI presentation without modifying real combatant state.
+    /// Simulates future turn order up to maxTurnBoxes for timeline UI presentation.
     /// </summary>
-    /// <returns>List of projected combatant KeyValuePairs containing virtual delays.</returns>
     public List<KeyValuePair<GameObject, int>> BuildTurnProjection()
     {
         List<KeyValuePair<GameObject, int>> projection = new List<KeyValuePair<GameObject, int>>();
@@ -182,9 +182,6 @@ public class TurnController : MonoBehaviour
 
     #region Internal State Refresh Pipeline
 
-    /// <summary>
-    /// Executes normalization, current fighter recalculation, and broadcasts turn queue events.
-    /// </summary>
     private List<KeyValuePair<GameObject, int>> RefreshTurnState()
     {
         NormalizeCooldowns();
@@ -196,16 +193,12 @@ public class TurnController : MonoBehaviour
         return turnProjection;
     }
 
-    /// <summary>
-    /// Subtracts the lowest NextTurnCD from all active fighters to keep turn values normalized near zero.
-    /// </summary>
     private void NormalizeCooldowns()
     {
         if (activeFighters.Count == 0) return;
 
         int minCD = int.MaxValue;
 
-        // Efficient loop without LINQ allocation
         for (int i = 0; i < activeFighters.Count; i++)
         {
             GameObject f = activeFighters[i];
@@ -230,9 +223,6 @@ public class TurnController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Determines and assigns the active fighter with the lowest NextTurnCD.
-    /// </summary>
     private void UpdateCurrentFighter()
     {
         if (activeFighters.Count == 0)
@@ -244,7 +234,6 @@ public class TurnController : MonoBehaviour
         GameObject leadFighter = null;
         int lowestCD = int.MaxValue;
 
-        // Direct allocation-free iteration
         for (int i = 0; i < activeFighters.Count; i++)
         {
             GameObject f = activeFighters[i];
@@ -261,9 +250,6 @@ public class TurnController : MonoBehaviour
         CurrentFighter = leadFighter != null ? leadFighter.GetComponent<FighterController>() : null;
     }
 
-    /// <summary>
-    /// Extracts game objects from projection list and dispatches global turn queue updated event.
-    /// </summary>
     private void NotifyTurnQueueUpdated(List<KeyValuePair<GameObject, int>> projection)
     {
         List<GameObject> turnQueue = new List<GameObject>(projection.Count);

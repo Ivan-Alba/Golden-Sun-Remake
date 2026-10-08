@@ -1087,6 +1087,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bd64f1ce3581ce468423bc73b7e659a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentBattleMode: 1
   audioCenter: {fileID: 2426736156265556455}
   battleCameraController: {fileID: 5408302400829323935}
   targetSelectionController: {fileID: 4932946225680775267}
