@@ -174,7 +174,7 @@ public class FighterController : MonoBehaviour
 
         if (stats != null)
         {
-            stats.CurrHp -= damageAmount;
+            stats.CurrHp = Mathf.Max(0, stats.CurrHp - damageAmount);
         }
 
         // Trigger floating number UI Event

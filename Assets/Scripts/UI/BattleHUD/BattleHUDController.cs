@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 /// action submenus, top action banners, layer visibility, results sequences, and projects floating menus over active heroes in 3D world space.
 /// Enforces complete pointer-transparency as all battle HUD elements ignore raycasts declaratively.
 /// Uses FighterBattleAnchors for precise 3D spatial position calculations.
+/// Dynamically queries Camera.main for seamless Cinemachine integration.
 /// </summary>
 public class BattleHUDController : MonoBehaviour
 {
@@ -39,9 +40,6 @@ public class BattleHUDController : MonoBehaviour
     [Header("Sub-Presenters")]
     [SerializeField] private DamageNumbersPresenter damageNumbersPresenter;
 
-    [Header("3D Scene Setup")]
-    [SerializeField] private Camera mainBattleCamera;
-
     [Header("Close-Up Viewport Setup")]
     [SerializeField] private RenderTexture heroPortraitRenderTexture;
     [SerializeField] private Material heroPortraitMaterial;
@@ -52,10 +50,16 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Private Local Cache State
+    #region Private Local Cache State & Dynamic Helpers
 
     private GameObject _currentActiveFighter;
     private IReadOnlyList<GameObject> _cachedParty;
+
+    /// <summary>
+    /// Dynamic accessor for the currently active main rendering camera.
+    /// Eliminates static inspector bindings and guarantees alignment with CinemachineBrain output.
+    /// </summary>
+    private Camera ActiveCamera => Camera.main;
 
     // 2D Screen Space Offset for SubMenu positioning relative to Command Cross
     private readonly Vector2 _subMenuScreenOffset = new Vector2(180f, 0f);
@@ -136,12 +140,15 @@ public class BattleHUDController : MonoBehaviour
             battleManager = GetComponent<BattleManager>() ?? GetComponentInParent<BattleManager>();
         }
 
+        InitializeUIElements();
+    }
+
+    private void Start()
+    {
         if (damageNumbersPresenter != null)
         {
-            damageNumbersPresenter.Initialize(uiDocument, mainBattleCamera);
+            damageNumbersPresenter.Initialize(uiDocument, ActiveCamera);
         }
-
-        InitializeUIElements();
     }
 
     private void OnEnable()
@@ -198,11 +205,6 @@ public class BattleHUDController : MonoBehaviour
         if (_root == null) return;
 
         _root.pickingMode = PickingMode.Ignore;
-
-        if (mainBattleCamera == null)
-        {
-            mainBattleCamera = Camera.main;
-        }
 
         // --- LAYER RESOLUTION ---
         _layerGameplay = _root.Q<VisualElement>("layer_gameplay_hud");
@@ -364,6 +366,9 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
 
+        GameEvents.Camera.OnActiveCameraChanged -= HandleActiveCameraChanged;
+        GameEvents.Camera.OnActiveCameraChanged += HandleActiveCameraChanged;
+
         GameEvents.Battle.OnTurnQueueUpdated -= HandleTurnQueueUpdated;
         GameEvents.Battle.OnTurnQueueUpdated += HandleTurnQueueUpdated;
 
@@ -372,6 +377,9 @@ public class BattleHUDController : MonoBehaviour
 
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
         GameEvents.Input.OnBattleConfirmPressed += HandleConfirmPressed;
+
+        GameEvents.Input.OnBattleCancelPressed -= HandleCancelPressed;
+        GameEvents.Input.OnBattleCancelPressed += HandleCancelPressed;
 
         GameEvents.Input.OnBattleCommandUpPressed += HandleHotkeyAttack;
         GameEvents.Input.OnBattleCommandLeftPressed += HandleHotkeyPsynergy;
@@ -413,10 +421,12 @@ public class BattleHUDController : MonoBehaviour
         GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
         GameEvents.Hero.OnHeroStatusChanged -= HandleHeroStatusChanged;
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+        GameEvents.Camera.OnActiveCameraChanged -= HandleActiveCameraChanged;
         GameEvents.Battle.OnTurnQueueUpdated -= HandleTurnQueueUpdated;
         GameEvents.Battle.OnRequestActionBanner -= HandleRequestActionBanner;
 
         GameEvents.Input.OnBattleConfirmPressed -= HandleConfirmPressed;
+        GameEvents.Input.OnBattleCancelPressed -= HandleCancelPressed;
 
         GameEvents.Input.OnBattleCommandUpPressed -= HandleHotkeyAttack;
         GameEvents.Input.OnBattleCommandLeftPressed -= HandleHotkeyPsynergy;
@@ -442,6 +452,17 @@ public class BattleHUDController : MonoBehaviour
         {
             targetSelectionController.OnTargetSelectionChanged -= HandleTargetSelectionChanged;
         }
+    }
+
+    private void HandleActiveCameraChanged(Camera newCamera)
+    {
+        if (damageNumbersPresenter != null && newCamera != null)
+        {
+            damageNumbersPresenter.Initialize(uiDocument, newCamera);
+        }
+
+        UpdateFloatingUIElementsPosition();
+        UpdateTargetOverlaysPosition();
     }
 
     private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
@@ -497,6 +518,20 @@ public class BattleHUDController : MonoBehaviour
         }
     }
 
+    private void HandleCancelPressed(InputEventArgs args)
+    {
+        if (args.Handled) return;
+
+        if (battleManager != null)
+        {
+            if (battleManager.CurrentBattleState == BattleState.CommandSelection)
+            {
+                args.Use();
+                battleManager.HandleCancelCommandSelection();
+            }
+        }
+    }
+
     private void HandleCommandTypeSelected(BattleCommandType commandType)
     {
         _currentSelectedCommand = commandType;
@@ -539,7 +574,7 @@ public class BattleHUDController : MonoBehaviour
                 SetHUDVisible(true);
                 SetResultsLayerVisible(false);
                 SetGameOverLayerVisible(false);
-
+                ClearTargetOverlays();
                 SetSubMenuVisible(false);
                 HideActionBannerInternal(immediate: true);
 
@@ -567,6 +602,7 @@ public class BattleHUDController : MonoBehaviour
 
             case BattleState.SubMenuSelection:
                 _commandCrossPresenter?.Hide();
+                ClearTargetOverlays();
                 OpenSubMenuForActiveHero();
                 break;
 
@@ -820,15 +856,16 @@ public class BattleHUDController : MonoBehaviour
     {
         panelPosition = Vector2.zero;
 
-        if (mainBattleCamera == null || _root == null || _root.panel == null)
+        Camera currentCam = ActiveCamera;
+        if (currentCam == null || _root == null || _root.panel == null)
             return false;
 
         Vector3 targetWorldPos = worldPosition + worldOffset;
-        Vector3 screenPoint = mainBattleCamera.WorldToScreenPoint(targetWorldPos);
+        Vector3 screenPoint = currentCam.WorldToScreenPoint(targetWorldPos);
 
         if (screenPoint.z < 0) return false;
 
-        panelPosition = RuntimePanelUtils.CameraTransformWorldToPanel(_root.panel, targetWorldPos, mainBattleCamera);
+        panelPosition = RuntimePanelUtils.CameraTransformWorldToPanel(_root.panel, targetWorldPos, currentCam);
         return true;
     }
 
@@ -836,7 +873,6 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_currentActiveFighter == null) return;
 
-        // Fetch command cross position from FighterBattleAnchors if available
         Vector3 crossWorldPos = _currentActiveFighter.TryGetComponent<FighterBattleAnchors>(out var anchors)
             ? anchors.GetCommandCrossWorldPosition()
             : _currentActiveFighter.transform.position;
@@ -856,7 +892,6 @@ public class BattleHUDController : MonoBehaviour
 
         if (_floatingSubMenuContainer != null && _floatingSubMenuContainer.style.visibility == Visibility.Visible)
         {
-            // Fetch sub menu specific position if anchored separately
             Vector3 subMenuWorldPos = anchors != null
                 ? anchors.GetSubMenuWorldPosition()
                 : crossWorldPos;
@@ -898,9 +933,12 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_targetPresenters.Count == 0) return;
 
+        Camera currentCam = ActiveCamera;
+        if (currentCam == null) return;
+
         for (int i = 0; i < _targetPresenters.Count; i++)
         {
-            _targetPresenters[i].UpdatePanelPosition(_root.panel, mainBattleCamera, Vector3.zero);
+            _targetPresenters[i].UpdatePanelPosition(_root.panel, currentCam, Vector3.zero);
         }
     }
 

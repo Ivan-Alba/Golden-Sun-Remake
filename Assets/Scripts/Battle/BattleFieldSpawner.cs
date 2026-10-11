@@ -243,7 +243,10 @@ public class BattleFieldSpawner : MonoBehaviour
     {
         for (int i = 0; i < activeEnemiesSlots.Count; i++)
         {
-            if (activeEnemiesSlots[i] != null) return false;
+            if (activeEnemiesSlots[i] != null && activeEnemiesSlots[i].TryGetComponent<FighterStats>(out var stats))
+            {
+                if (stats.CurrHp > 0) return false;
+            }
         }
         return true;
     }

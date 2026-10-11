@@ -36,6 +36,17 @@ public class TargetSelectionController : MonoBehaviour
     // Direct local reference to BattleManager on the same GameObject
     private BattleManager _battleManager;
 
+    #region Properties
+
+    /// <summary>
+    /// Indicates whether the active targeting selection is currently focused on allies or self.
+    /// </summary>
+    public bool IsTargetingAllies => IsAllyTarget(_currentTargetType);
+
+    public int PrimaryTargetIndex => _primaryTargetIndex;
+
+    #endregion
+
     #region Local C# Events
 
     /// <summary>
@@ -66,8 +77,6 @@ public class TargetSelectionController : MonoBehaviour
     {
         return new List<GameObject>(_lastAffectedTargets);
     }
-
-    public int PrimaryTargetIndex => _primaryTargetIndex;
 
     private void Awake()
     {
@@ -199,7 +208,7 @@ public class TargetSelectionController : MonoBehaviour
         _heroList = heroList;
         _enemyList = enemyList;
 
-        _primaryTargetIndex = NormalizeInitialIndex(defaultIndex, IsAllyTarget(_currentTargetType));
+        _primaryTargetIndex = NormalizeInitialIndex(defaultIndex, IsTargetingAllies);
         EvaluateAndDispatchTargets();
     }
 
@@ -290,7 +299,7 @@ public class TargetSelectionController : MonoBehaviour
 
     public void SelectNextTarget()
     {
-        if (IsAllyTarget(_currentTargetType))
+        if (IsTargetingAllies)
         {
             if (_heroList == null || _heroList.Count <= 1) return;
             _primaryTargetIndex = (_primaryTargetIndex + 1) % _heroList.Count;
@@ -316,7 +325,7 @@ public class TargetSelectionController : MonoBehaviour
 
     public void SelectPreviousTarget()
     {
-        if (IsAllyTarget(_currentTargetType))
+        if (IsTargetingAllies)
         {
             if (_heroList == null || _heroList.Count <= 1) return;
             _primaryTargetIndex = (_primaryTargetIndex - 1 + _heroList.Count) % _heroList.Count;
@@ -353,7 +362,7 @@ public class TargetSelectionController : MonoBehaviour
         List<GameObject> affectedTargets = new List<GameObject>();
         GameObject primaryTargetObject = null;
 
-        bool isAlly = IsAllyTarget(_currentTargetType);
+        bool isAlly = IsTargetingAllies;
 
         if (isAlly)
         {

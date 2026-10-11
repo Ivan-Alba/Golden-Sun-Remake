@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Domain executor component responsible for orchestrating combat action sequences:
 /// physical movement, damage and healing calculations, status effects,
-/// and delegating visual and audio FX playback to BattleFXManager.
+/// camera presentation triggers, and delegating visual and audio FX playback to BattleFXManager.
 /// </summary>
 public class BattleActionExecutor : MonoBehaviour
 {
@@ -13,12 +13,18 @@ public class BattleActionExecutor : MonoBehaviour
 
     [Header("Optional Dependencies")]
     [SerializeField] private BattleFXManager fxManager;
+    [SerializeField] private BattleCameraController battleCameraController;
 
     private void Awake()
     {
         if (fxManager == null)
         {
             fxManager = GetComponent<BattleFXManager>() ?? GetComponentInParent<BattleFXManager>();
+        }
+
+        if (battleCameraController == null)
+        {
+            battleCameraController = GetComponent<BattleCameraController>() ?? GetComponentInParent<BattleCameraController>();
         }
     }
 
@@ -74,6 +80,7 @@ public class BattleActionExecutor : MonoBehaviour
                 break;
 
             case BattleCommandType.Defend:
+                GameEvents.Battle.RequestActionBanner($"{caster.name} is defending.");
                 caster.SetUpDefense();
                 yield return new WaitForSeconds(1.0f);
                 break;
@@ -112,10 +119,16 @@ public class BattleActionExecutor : MonoBehaviour
         FighterStats casterStats = caster.GetComponent<FighterStats>();
         if (casterStats == null) yield break;
 
-        // 1. Move Caster to Target
-        yield return caster.MoveToTargetCoroutine(target.transform.position, stopDistance: 2.5f);
+        // -------------------------------------------------------------------------
+        // TODO: WEAPON UNLEASH EVALUATION (PRE-MOVEMENT)
+        // 1. Resolve weapon and check if a Weapon Unleash triggers (Hero only).
+        // 2. If Unleash triggers:
+        //    a. Switch camera to Hero Focus / Unleash Intro Camera.
+        //    b. Play Unleash Aura VFX & SFX while stationary.
+        //    c. Execute specialized Unleash Coroutine instead of Basic Attack flow.
+        // -------------------------------------------------------------------------
 
-        // 2. Resolve Weapon Properties & Critical Hit Probability
+        // 1. Resolve Weapon Properties & Critical Hit Probability EARLY
         ElementalType weaponElement = ElementalType.None;
         int critRateBonus = 1;
         HitFXType weaponHitFX = HitFXType.Blunt;
@@ -133,12 +146,46 @@ public class BattleActionExecutor : MonoBehaviour
 
         bool isCritical = BattleDamageCalculator.CheckCriticalHit(critRateBonus, casterStats.Luck);
 
-        // 3. Play Attack Animation & Swing SFX
-        caster.PlayAttackAnimation();
-        GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing); // Sonido de blandir el arma en el aire
-        yield return new WaitForSeconds(0.4f);
+        // 2. Move Caster to Target
+        yield return caster.MoveToTargetCoroutine(target.transform.position, stopDistance: 2.5f);
 
-        // 4. Calculate & Apply Physical Damage
+        // 3. Cinematic Camera & Animation Setup (POST-MOVEMENT)
+        if (isCritical)
+        {
+            // Activate dramatic close-up camera for Critical Hit
+            if (battleCameraController != null)
+            {
+                battleCameraController.SetCriticalImpactCamera(caster.gameObject, target);
+            }
+
+            // Optional: Trigger specific critical attack animation if available in controller
+            caster.PlayAttackAnimation(); // e.g., caster.PlayCriticalAttackAnimation();
+        }
+        else
+        {
+            caster.PlayAttackAnimation();
+        }
+
+
+        // 4. Calculate & Apply Physical Damage (with Hit-Stop / Slow-Motion for Criticals)
+        if (isCritical)
+        {
+            Time.timeScale = 0.3f; // Dramatic Slow-Motion frame rate punch
+            yield return new WaitForSecondsRealtime(1.5f); // Realtime wait unaffected by timeScale
+            Time.timeScale = 0.1f;
+            yield return new WaitForSecondsRealtime(0.4f); // Realtime wait unaffected by timeScale
+            Time.timeScale = 1.0f;
+            List<GameObject> singleTargetList = new List<GameObject> { target };
+            battleCameraController.SetActionCamera(caster.gameObject, singleTargetList);
+        }
+        else
+        {
+            // Wait for animation impact frame
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
+
         int damage = BattleDamageCalculator.CalculatePhysicalDamage(casterStats, targetStats, weaponElement, isCritical);
 
         if (target.TryGetComponent<FighterController>(out var targetController))
@@ -147,7 +194,7 @@ public class BattleActionExecutor : MonoBehaviour
         }
         else
         {
-            targetStats.CurrHp -= damage;
+            targetStats.CurrHp = Mathf.Max(0, targetStats.CurrHp - damage);
             string textDisplay = isCritical ? $"CRITICAL!\n{damage}" : damage.ToString();
             var textType = isCritical
                 ? DamageNumbersPresenter.DamageTextType.CriticalDamage
@@ -156,13 +203,13 @@ public class BattleActionExecutor : MonoBehaviour
             GameEvents.Battle.TriggerDamageNumber(target, textDisplay, textType);
         }
 
-        // 5. Trigger Visual & Audio Hit FX via FXManager (Maneja tanto el VFX como el SFX de impacto adecuado)
+        // 5. Trigger Visual & Audio Hit FX
         if (fxManager != null)
         {
             fxManager.PlayBasicAttackHitFX(target, weaponHitFX);
         }
 
-        yield return new WaitForSeconds(0.7f);
+        yield return new WaitForSeconds(0.5f);
 
         // 6. Return Caster to Start Position
         yield return caster.ReturnToOriginCoroutine();
@@ -241,7 +288,7 @@ public class BattleActionExecutor : MonoBehaviour
                 }
                 else
                 {
-                    targetStats.CurrHp -= damage;
+                    targetStats.CurrHp = Mathf.Max(0, targetStats.CurrHp - damage);
                     GameEvents.Battle.TriggerDamageNumber(
                         targetObj,
                         damage.ToString(),

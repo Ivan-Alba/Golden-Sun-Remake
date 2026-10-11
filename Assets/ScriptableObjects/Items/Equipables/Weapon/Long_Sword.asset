@@ -71,7 +71,7 @@ MonoBehaviour:
   hasUnleash: 0
   unleashProcRate: 0.2
   unleashEffect: {fileID: 11400000, guid: 7788fd845d44cc142b7eda6a979792af, type: 2}
-  criticalRateBonus: 4
+  criticalRateBonus: 100
   references:
     version: 2
     RefIds: []

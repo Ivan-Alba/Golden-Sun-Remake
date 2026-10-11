@@ -35,10 +35,10 @@ public class DamageNumbersPresenter : MonoBehaviour
         GameEvents.Battle.OnDamageNumberRequested -= SpawnFloatingNumber;
     }
 
-    public void Initialize(UIDocument document, Camera battleCamera)
+    public void Initialize(UIDocument document, Camera camera)
     {
         uiDocument = document;
-        mainCamera = battleCamera != null ? battleCamera : Camera.main;
+        mainCamera = camera != null ? camera : Camera.main;
 
         if (uiDocument != null)
         {
