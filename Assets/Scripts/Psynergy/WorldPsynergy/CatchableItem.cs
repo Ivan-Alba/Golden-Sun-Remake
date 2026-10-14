@@ -1,11 +1,10 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Localization;
 
 /// <summary>
 /// Attached to world items that can be collected from a distance using the Catch Psynergy ability.
-/// Validates inventory capacity prior to triggering flight animation, executes parabolic flight toward the hero,
-/// fires localization-aware notification events, and deactivates itself upon collection.
+/// Validates inventory capacity upon hand grasp, hides world mesh during hand return travel,
+/// fires localization-aware notification events upon sequence completion, and deactivates itself.
 /// </summary>
 public class CatchableItem : PsynergyInteractable
 {
@@ -22,21 +21,11 @@ public class CatchableItem : PsynergyInteractable
     [Tooltip("Localized entry for full inventory warning (e.g. 'Your inventory is full').")]
     [SerializeField] private LocalizedString inventoryFullMessage;
 
-    [Header("Catch Flight Animation Parameters")]
-    [Tooltip("Duration in seconds for the item to fly from its initial position to the player.")]
-    [SerializeField] private float flightDuration = 0.65f;
-
-    [Tooltip("Maximum arc elevation height added to the flight trajectory.")]
-    [SerializeField] private float arcHeight = 1.2f;
-
-    [Tooltip("Height offset relative to the player position where the item finishes its flight (e.g. 1.0m = chest height).")]
-    [SerializeField] private float playerReceiveHeightOffset = 1.0f;
-
     #endregion
 
     #region Private Runtime State
 
-    private bool isFlying;
+    private bool isBeingCaught;
 
     #endregion
 
@@ -57,29 +46,23 @@ public class CatchableItem : PsynergyInteractable
 
     public override bool CanBeTargeted()
     {
-        // Item cannot be targeted if already executing flight or collected
-        return base.CanBeTargeted() && !isFlying;
+        // Item cannot be targeted if already being processed/caught or used
+        return base.CanBeTargeted() && !isBeingCaught;
     }
 
+    /// <summary>
+    /// Phase 1: Fired at the keyframe of hand impact/grasp (AE_OnImpactOrGrasp).
+    /// Performs transactional inventory check and hides physical visuals while held by the hand.
+    /// </summary>
     protected override void OnPsynergyTriggered(PsynergySO psynergy, GameObject player)
     {
         if (player == null || itemData == null)
         {
             Debug.LogWarning($"[CatchableItem] Unable to execute Catch on {gameObject.name}. Missing player or ItemSO reference.");
-            CompleteInteraction();
             return;
         }
 
-        StartCoroutine(Routine_ExecuteCatchFlight(player));
-    }
-
-    #endregion
-
-    #region Private Execution Routines
-
-    private IEnumerator Routine_ExecuteCatchFlight(GameObject player)
-    {
-        // 1. Transactional Inventory Check: Attempt to add items before moving the physical object
+        // 1. Transactional Inventory Check: Attempt to add items before moving/hiding the object
         int remaining = -1;
         GameEvents.Inventory.RequestAddItem(itemData, quantity, (result, recipientHeroName) =>
         {
@@ -91,8 +74,7 @@ public class CatchableItem : PsynergyInteractable
         {
             Debug.LogError($"[CatchableItem] Transaction failed for item '{itemData.ItemSlug}'. No inventory handler responded.", this);
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
-            CompleteInteraction();
-            yield break;
+            return;
         }
 
         // FALLBACK CASE B: Backpacks/Inventory Full (Overflow scenario)
@@ -103,42 +85,23 @@ public class CatchableItem : PsynergyInteractable
             GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
 
             Debug.Log($"[CatchableItem] Could not catch '{itemData.ItemName}'. Inventory is full (Remaining overflow: {remaining}).");
-
-            // Abort flight and restore exploration state
-            CompleteInteraction();
-            yield break;
+            return;
         }
 
-        // 2. Transaction successful: Execute parabolic flight animation toward player
-        isFlying = true;
-        Vector3 startPosition = transform.position;
-        float elapsedTime = 0f;
+        // 2. Transaction successful: Hide world visuals (object is now held inside the Psynergy hand)
+        isBeingCaught = true;
+        SetItemVisualsVisible(false);
+    }
 
-        while (elapsedTime < flightDuration)
-        {
-            float t = elapsedTime / flightDuration;
+    /// <summary>
+    /// Phase 2: Fired when the visual sequence (hand return flight and despawn) finishes completely.
+    /// Broadcasts localized acquisition UI notifications, plays audio, and deactivates the object.
+    /// </summary>
+    public override void OnPsynergySequenceFinished(PsynergySO psynergy, GameObject caster)
+    {
+        if (!isBeingCaught) return;
 
-            // Target position follows player in real-time up to chest height
-            Vector3 targetPosition = player.transform.position + Vector3.up * playerReceiveHeightOffset;
-
-            // Parabolic flight math
-            Vector3 currentPos = Vector3.Lerp(startPosition, targetPosition, t);
-            currentPos.y += Mathf.Sin(t * Mathf.PI) * arcHeight;
-
-            transform.position = currentPos;
-
-            // Aesthetic Y-axis spin during flight
-            transform.Rotate(Vector3.up, 360f * Time.deltaTime, Space.World);
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // Snap to exact final target position at chest level
-        Vector3 finalPlayerPos = player.transform.position + Vector3.up * playerReceiveHeightOffset;
-        transform.position = finalPlayerPos;
-
-        // 3. Format localized message and broadcast UI notification
+        // 1. Format localized message and broadcast UI notification
         string localizedItemName = itemData.ItemNameLocalizedString != null
             ? itemData.ItemNameLocalizedString.GetLocalizedString()
             : itemData.ItemName;
@@ -156,16 +119,32 @@ public class CatchableItem : PsynergyInteractable
             GameEvents.UI.TriggerShowNotification(NotificationType.ItemObtained, notificationMessage, itemData.Icon);
         }
 
-        // 4. Play item obtained SFX
+        // 2. Play item obtained SFX
         GameEvents.Audio.RequestPlaySFX(SFXType.UI_ItemFound);
 
         Debug.Log($"[CatchableItem] Successfully caught {quantity}x '{itemData.ItemName}'. Added to inventory.");
 
-        isFlying = false;
-
-        // 5. Release game state lock and deactivate object
-        CompleteInteraction();
+        // 3. Deactivate world object
         gameObject.SetActive(false);
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    private void SetItemVisualsVisible(bool visible)
+    {
+        var renderers = GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = visible;
+        }
+
+        var colliders = GetComponentsInChildren<Collider>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = visible;
+        }
     }
 
     #endregion

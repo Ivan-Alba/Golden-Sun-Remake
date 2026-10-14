@@ -98,6 +98,17 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
         return true;
     }
 
+    /// <summary>
+    /// Default virtual implementation fired when the visual sequence (hand travel, return flight, despawn) finishes.
+    /// Override in derived classes (e.g., CatchableItem) to handle post-sequence logic like notifications or destruction.
+    /// </summary>
+    /// <param name="psynergy">The PsynergySO asset used for interaction.</param>
+    /// <param name="caster">The GameObject casting the Psynergy (usually the Player).</param>
+    public virtual void OnPsynergySequenceFinished(PsynergySO psynergy, GameObject caster)
+    {
+        // Optional default lifecycle hook for derived classes.
+    }
+
     #endregion
 
     #region Proximity & Visual Feedback (Shader Highlights)
@@ -145,7 +156,7 @@ public class PsynergyInteractable : MonoBehaviour, IPsynergyTargetable
     /// </summary>
     protected virtual void OnPsynergyTriggered(PsynergySO psynergy, GameObject caster)
     {
-        ;
+        // Template method to be overridden by derived classes.
     }
 
     /// <summary>

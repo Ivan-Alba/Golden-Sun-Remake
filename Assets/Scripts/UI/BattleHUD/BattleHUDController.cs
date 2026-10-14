@@ -114,6 +114,8 @@ public class BattleHUDController : MonoBehaviour
     private Label _labelActionBannerSubtext;
 
     // 3. Turn Timeline
+
+    private VisualElement _timelineContainer;
     private VisualElement _turnLeaderSlot;
     private VisualElement _turnQueueList;
 
@@ -240,6 +242,7 @@ public class BattleHUDController : MonoBehaviour
         SetupPortraitMaskedRenderTexture();
 
         // Turn Timeline
+        _timelineContainer = _root.Q<VisualElement>("turn_timeline_container");
         _turnLeaderSlot = _root.Q<VisualElement>("turn_leader_slot");
         _turnQueueList = _root.Q<VisualElement>("turn_queue_list");
 
@@ -945,6 +948,21 @@ public class BattleHUDController : MonoBehaviour
     private void PopulateTurnTimeline(IReadOnlyList<GameObject> turnQueue)
     {
         if (_turnLeaderSlot == null || _turnQueueList == null) return;
+
+        // Golden Sun Classic mode does not use the turn timeline, so we hide.
+        if (battleManager != null && battleManager.CurrentBattleMode == BattleSystemMode.GoldenSunClassic)
+        {
+            if (_timelineContainer != null)
+            {
+                _timelineContainer.style.display = DisplayStyle.None;
+            }
+            return;
+        }
+
+        if (_timelineContainer != null)
+        {
+            _timelineContainer.style.display = DisplayStyle.Flex;
+        }
 
         _turnLeaderSlot.Clear();
         _turnQueueList.Clear();

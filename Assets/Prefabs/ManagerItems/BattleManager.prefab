@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
-    BindingMode: 4
+    BindingMode: 1
     PositionDamping: {x: 1, y: 1, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
@@ -188,7 +188,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineGroupFraming
   FramingMode: 2
-  FramingSize: 0.9
+  FramingSize: 0.85
   CenterOffset: {x: 0, y: -1}
   Damping: 2
   SizeAdjustment: 2
@@ -1853,7 +1853,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineSplineDolly
   m_SplineSettings:
     Spline: {fileID: 428507801603218532}
-    Position: 1.0104867
+    Position: 1
     Units: 1
   SplineOffset: {x: 0, y: 0, z: 0}
   CameraRotation: 0
@@ -2977,7 +2977,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bd64f1ce3581ce468423bc73b7e659a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentBattleMode: 0
   audioCenter: {fileID: 2426736156265556455}
   battleCameraController: {fileID: 8210338647794690017}
   targetSelectionController: {fileID: 4932946225680775267}

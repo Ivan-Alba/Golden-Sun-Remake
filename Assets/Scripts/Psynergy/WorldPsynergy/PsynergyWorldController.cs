@@ -10,10 +10,13 @@ using UnityEngine;
 /// </summary>
 public class PsynergyWorldController : MonoBehaviour
 {
-
     [Header("Overworld Player Reference")]
     [Tooltip("Reference to the active physical Player root object in the world.")]
     [SerializeField] private GameObject playerWorldObject;
+
+    [Header("Visual View Manager Reference")]
+    [Tooltip("Reference to the manager orchestrating field Psynergy visual views (Hand 3D, Area VFX, etc.).")]
+    [SerializeField] private WorldPsynergyViewManager viewManager;
 
     #region Private Fields
 
@@ -27,6 +30,12 @@ public class PsynergyWorldController : MonoBehaviour
     #endregion
 
     #region Unity Lifecycle & Initialization
+
+    private void Awake()
+    {
+        if (viewManager == null)
+            viewManager = GetComponent<WorldPsynergyViewManager>() ?? GetComponentInChildren<WorldPsynergyViewManager>();
+    }
 
     private void OnEnable()
     {
@@ -105,10 +114,6 @@ public class PsynergyWorldController : MonoBehaviour
         UsePsynergy(slotIndex, target);
     }
 
-    /// <summary>
-    /// Handles automated removal of assigned shortcuts when a hero loses access to a Psynergy.
-    /// Filters early if the lost psynergy is not usable in the world.
-    /// </summary>
     private void HandleHeroLostPsynergy(GameObject hero, PsynergySO lostPsynergy)
     {
         if (hero == null || lostPsynergy == null) return;
@@ -174,7 +179,6 @@ public class PsynergyWorldController : MonoBehaviour
 
         heroShortcuts.Clear();
 
-        // Re-initialize containers for cached active party
         if (_cachedActiveParty != null)
         {
             for (int i = 0; i < _cachedActiveParty.Count; i++)
@@ -192,7 +196,6 @@ public class PsynergyWorldController : MonoBehaviour
             HeroShortcutData shortcutData = saveData.heroesShortcuts[i];
             if (shortcutData == null || string.IsNullOrEmpty(shortcutData.heroName)) continue;
 
-            // Find matching hero GameObject reference
             GameObject matchedHero = null;
             if (_cachedActiveParty != null)
             {
@@ -247,9 +250,6 @@ public class PsynergyWorldController : MonoBehaviour
 
     #region Shortcut Data Access & Internal Mutators
 
-    /// <summary>
-    /// Gets the current array of 4 Psynergy shortcuts for the given hero.
-    /// </summary>
     private PsynergySO[] GetShortcuts(GameObject hero)
     {
         if (hero == null) return new PsynergySO[4];
@@ -264,10 +264,6 @@ public class PsynergyWorldController : MonoBehaviour
         return newShortcuts;
     }
 
-    /// <summary>
-    /// Assigns a Psynergy to a specific shortcut slot (0..3) for a hero.
-    /// Pass null as psynergy to clear the slot.
-    /// </summary>
     private void SetShortcut(GameObject hero, PsynergySO psynergy, int slotIndex)
     {
         if (hero == null || slotIndex < 0 || slotIndex >= 4) return;
@@ -284,7 +280,7 @@ public class PsynergyWorldController : MonoBehaviour
 
     /// <summary>
     /// Executes the Psynergy assigned to the active hero's shortcut slot.
-    /// Validates PP requirements, deducts cost, freezes game world state, and broadcasts execution events.
+    /// Validates PP requirements, deducts cost, freezes game world state, and delegates visual/logical sequence.
     /// </summary>
     private void UsePsynergy(int slotIndex, IPsynergyTargetable target)
     {
@@ -310,36 +306,61 @@ public class PsynergyWorldController : MonoBehaviour
             heroStats.ConsumePP(usedPsynergy.PpCost);
         }
 
-        // 2. Lock game state to Interacting to prevent world interference during cast
+        // 2. Lock game state to Interacting during the cast sequence
         GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Interacting);
 
-        // 3. Process Execution & Broadcast Events
-        if (target != null && target.IsCompatibleWith(usedPsynergy))
+        // Broadcast player hero animation event
+        GameEvents.Audio.RequestPlaySFX(SFXType.World_PsynergyCast);
+        GameEvents.Psynergy.TriggerWorldPsynergyCast();
+
+        Transform casterTransform = playerWorldObject != null ? playerWorldObject.transform : transform;
+
+        // 3. Delegate execution sequence to View Manager
+        bool isCompatibleTarget = target != null && target.IsCompatibleWith(usedPsynergy);
+
+        if (viewManager != null)
         {
-            Debug.Log($"[PsynergyWorldController] Executing '{usedPsynergy.PsynergySlug}' on target object.");
+            viewManager.PlayPsynergyVisuals(
+                usedPsynergy,
+                casterTransform,
+                isCompatibleTarget ? target : null,
+                onImpactOrGrasp: () =>
+                {
+                    // Phase 1: Keyframe moment (fist closes or push impacts)
+                    if (isCompatibleTarget)
+                    {
+                        Debug.Log($"[PsynergyWorldController] Executing '{usedPsynergy.PsynergySlug}' impact logic on target object.");
+                        target.ExecutePsynergy(usedPsynergy, playerWorldObject);
+                    }
+                    else
+                    {
+                        Debug.Log($"[PsynergyWorldController] Executing '{usedPsynergy.PsynergySlug}' impact into empty space.");
+                        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                    }
+                },
+                onFinished: () =>
+                {
+                    // Phase 2: Visual presentation fully completed (e.g., hand returned to caster)
+                    if (isCompatibleTarget)
+                    {
+                        target.OnPsynergySequenceFinished(usedPsynergy, playerWorldObject);
+                    }
 
-            // Broadcast hero cast event for animations/VFX
-            GameEvents.Psynergy.TriggerWorldPsynergyCast();
-
-            // Execute target logic (target responsible for unlocking GameState upon sequence completion)
-            target.ExecutePsynergy(usedPsynergy, playerWorldObject);
+                    // Restore free world exploration state
+                    GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
+                }
+            );
         }
         else
         {
-            Debug.Log($"[PsynergyWorldController] Casting '{usedPsynergy.PsynergySlug}' into empty space (No compatible target).");
-
-            // Broadcast hero cast event for animations/VFX
-            GameEvents.Psynergy.TriggerWorldPsynergyCast();
-
-            // Targetless cast: trigger timer to automatically restore WorldExploration state
-            StartCoroutine(Routine_HandleTargetlessCastRecovery(1.4f));
+            // Fallback direct execution if ViewManager is missing
+            if (isCompatibleTarget)
+            {
+                target.ExecutePsynergy(usedPsynergy, playerWorldObject);
+                target.OnPsynergySequenceFinished(usedPsynergy, playerWorldObject);
+            }
+            GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
         }
-    }
-
-    private IEnumerator Routine_HandleTargetlessCastRecovery(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.WorldExploration);
     }
 
     #endregion

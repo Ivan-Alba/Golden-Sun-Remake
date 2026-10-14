@@ -266,6 +266,66 @@ public static class GameEvents
     }
 
     // ==========================================
+    // GAME SETTINGS & OPTIONS EVENTS
+    // ==========================================
+    public static class Settings
+    {
+        /// <summary>
+        /// Request to query the current active <see cref="GameSettingsData"/> state via callback.
+        /// Listened exclusively by GameSettingsManager to support late-spawning scene components.
+        /// </summary>
+        public static event Action<Action<GameSettingsData>> OnRequestCurrentSettings;
+        public static void RequestCurrentSettings(Action<GameSettingsData> callback)
+            => OnRequestCurrentSettings?.Invoke(callback);
+
+        /// <summary>
+        /// Broadcasted whenever persistent settings are loaded or fully reapplied across the game.
+        /// Passes the complete updated <see cref="GameSettingsData"/> DTO.
+        /// </summary>
+        public static event Action<GameSettingsData> OnSettingsLoaded;
+        public static void TriggerSettingsLoaded(GameSettingsData settings)
+            => OnSettingsLoaded?.Invoke(settings);
+
+        /// <summary>
+        /// Broadcasted whenever the active battle system mode changes (GoldenSunClassic vs FFX_CTB).
+        /// Listened by BattleManager and BattleHUDController.
+        /// </summary>
+        public static event Action<BattleSystemMode> OnBattleModeChanged;
+        public static void TriggerBattleModeChanged(BattleSystemMode mode)
+            => OnBattleModeChanged?.Invoke(mode);
+
+        /// <summary>
+        /// Broadcasted whenever the global active localization language changes (e.g., "es", "en").
+        /// </summary>
+        public static event Action<string> OnLanguageChanged;
+        public static void TriggerLanguageChanged(string languageCode)
+            => OnLanguageChanged?.Invoke(languageCode);
+
+        /// <summary>
+        /// Broadcasted whenever the global dialogue text scrolling speed option is updated.
+        /// </summary>
+        public static event Action<TextSpeed> OnTextSpeedChanged;
+        public static void TriggerTextSpeedChanged(TextSpeed textSpeed)
+            => OnTextSpeedChanged?.Invoke(textSpeed);
+
+        /// <summary>
+        /// Request sent by Options UI to validate, persist, and apply a modified <see cref="GameSettingsData"/> DTO.
+        /// Listened exclusively by GameSettingsManager.
+        /// </summary>
+        public static event Action<GameSettingsData> RequestApplySettings;
+        public static void RequestApply(GameSettingsData settingsData)
+            => RequestApplySettings?.Invoke(settingsData);
+
+        /// <summary>
+        /// Request sent to force reloading settings data from local disk storage.
+        /// Listened exclusively by GameSettingsManager.
+        /// </summary>
+        public static event Action RequestLoadSettings;
+        public static void RequestLoad()
+            => RequestLoadSettings?.Invoke();
+    }
+
+    // ==========================================
     // PARTY & GROUP MANAGEMENT EVENTS
     // ==========================================
     public static class Party
@@ -474,7 +534,6 @@ public static class GameEvents
         public static void RequestElementIcon(ElementalType element, Action<Sprite> onResult)
             => OnRequestElementIcon?.Invoke(element, onResult);
 
-
         // --- DJINN DATABASE QUERIES ---
 
         /// <summary>
@@ -525,7 +584,6 @@ public static class GameEvents
     // ==========================================
     public static class Scene
     {
-
         /// <summary>
         /// Sets the currently active spawn point ID in GameManager for save state tracking.
         /// </summary>
@@ -669,6 +727,9 @@ public static class GameEvents
             => OnLoadCompleted?.Invoke(slotIndex, success);
     }
 
+    // ==========================================
+    // BATTLE SYSTEM EVENTS
+    // ==========================================
     public static class Battle
     {
         #region Global Triggers (External Scene -> Battle System)
@@ -698,7 +759,6 @@ public static class GameEvents
         /// Used by animations, Psynergy execution, items, or Djinn unleash steps.
         /// </summary>
         public static event Action<string, string, long?> OnRequestActionBanner;
-
         public static void RequestActionBanner(string title, string subtext = "", long? customDurationMs = null)
             => OnRequestActionBanner?.Invoke(title, subtext, customDurationMs);
 
@@ -706,11 +766,8 @@ public static class GameEvents
         /// Triggered whenever a combatant receives damage, healing, or status popups in 3D space.
         /// </summary>
         public static event Action<GameObject, string, DamageNumbersPresenter.DamageTextType> OnDamageNumberRequested;
-
         public static void TriggerDamageNumber(GameObject target, string text, DamageNumbersPresenter.DamageTextType textType)
-        {
-            OnDamageNumberRequested?.Invoke(target, text, textType);
-        }
+            => OnDamageNumberRequested?.Invoke(target, text, textType);
 
         #endregion
 

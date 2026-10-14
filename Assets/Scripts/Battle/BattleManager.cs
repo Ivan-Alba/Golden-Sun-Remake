@@ -20,7 +20,7 @@ public enum BattleState
 public struct BattleActionRequest
 {
     public FighterController Caster;          // Fighter executing the action
-    public BattleCommandType CommandType;     // Attack, Psynergy, Item, Djinn, Defend, etc.
+    public BattleCommandType CommandType;     // Attack, Psynergy, Item, Defend, etc.
     public object ActionPayload;              // PsynergySO, ItemSO, DjinnInstance, etc.
     public GameObject PrimaryTarget;          // Main target (or null if massive/global AOE)
     public List<GameObject> AffectedTargets;  // Full list of impacted target GameObjects
@@ -37,9 +37,6 @@ public class BattleManager : MonoBehaviour
 
     #region Serialized Fields & Config
 
-    [Header("Battle System Mode")]
-    [SerializeField] private BattleSystemMode currentBattleMode = BattleSystemMode.GoldenSunClassic;
-
     [Header("Internal Prefab References")]
     [SerializeField] private Transform audioCenter;
     [SerializeField] private BattleCameraController battleCameraController;
@@ -52,6 +49,8 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     #region Private State & Buffers
+
+    private BattleSystemMode currentBattleMode = BattleSystemMode.GoldenSunClassic;
 
     private IReadOnlyList<GameObject> _cachedParty;
     private GameManager.GameState _cachedGameState;
@@ -124,6 +123,12 @@ public class BattleManager : MonoBehaviour
         ResetBattleVariables();
     }
 
+    private void Start()
+    {
+        // Query current game settings upon spawning in scene via Callback
+        GameEvents.Settings.RequestCurrentSettings(HandleSettingsLoaded);
+    }
+
     private void OnEnable()
     {
         SubscribeToGameEvents();
@@ -158,7 +163,7 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region Event Subscriptions
+    #region Event Subscriptions & Handlers
 
     private void SubscribeToGameEvents()
     {
@@ -169,6 +174,10 @@ public class BattleManager : MonoBehaviour
 
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
+
+        // Dynamic Settings Subscriptions
+        GameEvents.Settings.OnBattleModeChanged -= HandleBattleModeChanged;
+        GameEvents.Settings.OnBattleModeChanged += HandleBattleModeChanged;
     }
 
     private void UnsubscribeFromGameEvents()
@@ -176,6 +185,8 @@ public class BattleManager : MonoBehaviour
         GameEvents.Battle.OnRequestCollisionBattle -= InitializeCollisionBattle;
         GameEvents.Party.OnPartyChanged -= HandlePartyChanged;
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
+
+        GameEvents.Settings.OnBattleModeChanged -= HandleBattleModeChanged;
     }
 
     private void HandlePartyChanged(IReadOnlyList<GameObject> activeParty)
@@ -188,6 +199,21 @@ public class BattleManager : MonoBehaviour
     {
         _cachedGameState = newState;
         Debug.Log($"[BattleManager] GameState Changed to: {newState}");
+    }
+
+    private void HandleSettingsLoaded(GameSettingsData settings)
+    {
+        if (settings != null)
+        {
+            currentBattleMode = settings.BattleMode;
+            Debug.Log($"[BattleManager] BattleSystemMode queried on awake: {currentBattleMode}");
+        }
+    }
+
+    private void HandleBattleModeChanged(BattleSystemMode newMode)
+    {
+        currentBattleMode = newMode;
+        Debug.Log($"[BattleManager] BattleSystemMode updated dynamically from settings: {currentBattleMode}");
     }
 
     #endregion
@@ -384,7 +410,6 @@ public class BattleManager : MonoBehaviour
         {
             CurrentBattleState = BattleState.WaitingTurnExecution;
 
-            // Activate ExecutionBase camera upon finishing command selection
             if (battleCameraController != null)
             {
                 battleCameraController.SetExecutionBaseCamera();
@@ -457,7 +482,6 @@ public class BattleManager : MonoBehaviour
 
             targetList = command.Request.AffectedTargets ?? new List<GameObject>();
 
-            // Apply Action weights (Caster = 2.0, Targets = 1.5, Others = 1.0) and switch to vCamActionMelee
             if (battleCameraController != null && command.Caster != null)
             {
                 battleCameraController.SetActionCamera(command.Caster.gameObject, targetList, command.Request.CommandType);
@@ -469,7 +493,6 @@ public class BattleManager : MonoBehaviour
                 yield return actionExecutor.ExecuteActionSequence(command.Request);
             }
 
-            // Reset action weights back to 1.0 and return to ExecutionBase camera
             if (battleCameraController != null)
             {
                 battleCameraController.ResetActionTargetGroup();

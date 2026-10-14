@@ -59,7 +59,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Blend: 0.78542393
+    - _Blend: 0.72497016
     - _MoonExponent: 800
     - _MoonSize: 0.03
     - _QueueControl: 0
@@ -70,8 +70,8 @@ Material:
     - _SunSize: 0.05
     m_Colors:
     - _MoonColor: {r: 1.2, g: 1.6, b: 2.2, a: 1}
-    - _MoonDirection: {r: -0.81569284, g: -0.5784853, b: -0.000000052154064, a: 0}
+    - _MoonDirection: {r: -0.84222996, g: -0.53911865, b: -0.00000011920929, a: 0}
     - _SunColor: {r: 2.5, g: 2.2, b: 1.6, a: 1}
-    - _SunDirection: {r: 0.81569284, g: 0.5784853, b: 0.000000052154064, a: 0}
+    - _SunDirection: {r: 0.84222996, g: 0.53911865, b: 0.00000011920929, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

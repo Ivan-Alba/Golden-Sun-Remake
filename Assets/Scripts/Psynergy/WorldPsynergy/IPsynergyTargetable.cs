@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Interface implemented by any overworld object that can be detected by proximity,
-/// targeted by the aiming reticle, or interacted with using Psynergy abilities (e.g., Move, Frost, Growth).
+/// targeted by the aiming reticle, or interacted with using Psynergy abilities (e.g., Move, Catch, Frost).
 /// </summary>
 public interface IPsynergyTargetable
 {
@@ -25,12 +25,20 @@ public interface IPsynergyTargetable
     bool IsCompatibleWith(PsynergySO psynergy);
 
     /// <summary>
-    /// Executes the puzzle or world interaction logic if the cast Psynergy matches object requirements.
+    /// Executes the puzzle or world interaction logic at the key frame of impact/grasp (e.g., AE_OnImpactOrGrasp).
     /// </summary>
     /// <param name="psynergy">The PsynergySO asset used for interaction.</param>
     /// <param name="caster">The GameObject casting the Psynergy (usually the Player).</param>
     /// <returns>True if the interaction was successfully executed; otherwise, false.</returns>
     bool ExecutePsynergy(PsynergySO psynergy, GameObject caster);
+
+    /// <summary>
+    /// Fired when the entire visual sequence (hand travel, return flight, despawn) has fully completed.
+    /// Useful for objects that defer notifications, destruction, or state changes to the end of the sequence (e.g., CatchableItem).
+    /// </summary>
+    /// <param name="psynergy">The PsynergySO asset used for interaction.</param>
+    /// <param name="caster">The GameObject casting the Psynergy (usually the Player).</param>
+    void OnPsynergySequenceFinished(PsynergySO psynergy, GameObject caster);
 
     #region Proximity & Visual Feedback (Shader Highlights)
 
