@@ -22,7 +22,7 @@ MonoBehaviour:
   endRotation: {x: 360, y: -90, z: 0}
   skyboxMaterial: {fileID: 2100000, guid: 93b728e0b006d684783b38f2502714ca, type: 2}
   skyboxCubemap: {fileID: 8900000, guid: 53ce286d08e67a14fa5882bc60dc845a, type: 3}
-  environmentIntensity: 1.7
+  environmentIntensity: 2
   phaseTransitionCurve:
     serializedVersion: 2
     m_Curve:

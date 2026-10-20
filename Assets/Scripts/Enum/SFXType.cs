@@ -21,6 +21,8 @@ public enum SFXType
     World_PsynergySuccess,
     World_PsynergyFail,
 
+    World_Jump,
+
     // Combat Sound Effects
     Combat_AttackSwing,
 

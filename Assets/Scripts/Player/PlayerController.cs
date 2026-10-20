@@ -568,6 +568,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Perform physical parabolic jump trajectory
+        GameEvents.Audio.RequestPlaySFX(SFXType.World_Jump);
         yield return StartCoroutine(motor.PerformParabolicJump(startPosition, targetLandingPosition, autoJumpArcHeight, autoJumpDuration));
 
         // Post-landing recovery delay
