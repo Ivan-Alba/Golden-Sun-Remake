@@ -664,7 +664,7 @@ public class GameManager : MonoBehaviour
         // 1. Save Header Meta Info
         saveData.header.totalGold = totalGold;
         saveData.header.totalTime = totalPlayed;
-        saveData.header.locationName = currentZone != null ? currentZone.FullZoneDisplayName : "DESCONOCIDO";
+        saveData.header.locationName = currentZone != null ? currentZone.LocationName : "UNKNOWN";
 
         saveData.header.partyPreview.Clear();
         for (int i = 0; i < activeParty.Count; i++)
@@ -860,7 +860,7 @@ public class GameManager : MonoBehaviour
             Vector3 spawnPos = sp.transform.position;
             if (Physics.Raycast(spawnPos + Vector3.up * 1.5f, Vector3.down, out RaycastHit hit, 5f))
             {
-                spawnPos.y = hit.point.y;
+                spawnPos.y = hit.point.y + 0.05f;
             }
 
             GameEvents.Player.RequestTeleport(spawnPos, sp.transform.rotation);

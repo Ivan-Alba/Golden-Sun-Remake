@@ -86,39 +86,94 @@ public class SceneTransitionUI : MonoBehaviour
     #region Curtain Routines
 
     /// <summary>
-    /// Closes the split doors and shows the center emblem (Covers the screen).
+    /// Closes the split doors and waits deterministically for both doors and center emblem 
+    /// USS transitions to fully complete using native UI Toolkit TransitionEndEvent.
     /// </summary>
     public IEnumerator Routine_CloseCurtain()
     {
+        // 1. Iniciar cierre de las puertas laterales
         if (leftDoor != null) leftDoor.RemoveFromClassList("door-open-left");
         if (rightDoor != null) rightDoor.RemoveFromClassList("door-open-right");
 
-        // Wait slightly for doors to start closing before popping the emblem
-        yield return new WaitForSecondsRealtime(curtainAnimationDuration * 0.4f);
-        if (centerEmblem != null) centerEmblem.RemoveFromClassList("emblem-hidden");
+        // Esperar a que la transición USS de la puerta izquierda termine
+        yield return StartCoroutine(Routine_WaitForUSSTransition(leftDoor, curtainAnimationDuration + 0.2f));
 
-        // Wait for full curtain close animation to complete
-        yield return new WaitForSecondsRealtime(curtainAnimationDuration * 0.6f);
+        // 2. Mostrar y animar el emblema central (rotación/escala)
+        if (centerEmblem != null)
+        {
+            centerEmblem.RemoveFromClassList("emblem-hidden");
+
+            // Esperar a que la transición USS del emblema termine 100%
+            yield return StartCoroutine(Routine_WaitForUSSTransition(centerEmblem, 1.0f));
+        }
+    }
+
+    /// <summary>
+    /// Helper coroutine that pauses execution until a VisualElement fires its native TransitionEndEvent.
+    /// Includes a safety timeout fallback to prevent infinite loops.
+    /// </summary>
+    private IEnumerator Routine_WaitForUSSTransition(VisualElement element, float maxTimeout)
+    {
+        if (element == null) yield break;
+
+        bool transitionFinished = false;
+
+        // Escuchador del evento nativo de UI Toolkit
+        EventCallback<TransitionEndEvent> onTransitionEnd = null;
+        onTransitionEnd = (evt) =>
+        {
+            transitionFinished = true;
+        };
+
+        element.RegisterCallback(onTransitionEnd);
+
+        float elapsedTime = 0f;
+
+        // Espera activa hasta recibir el evento o superar el tiempo límite de seguridad
+        while (!transitionFinished && elapsedTime < maxTimeout)
+        {
+            elapsedTime += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        // Limpieza del callback para evitar fugas de memoria
+        element.UnregisterCallback(onTransitionEnd);
     }
 
     /// <summary>
     /// Opens the split doors and hides the center emblem (Reveals the scene).
-    /// Also resets ambient fade overlay.
+    /// Uses native UI Toolkit TransitionEndEvent for deterministic frame synchronization.
+    /// Also resets ambient fade overlay upon completion.
     /// </summary>
     public IEnumerator Routine_OpenCurtain()
     {
-        if (centerEmblem != null) centerEmblem.AddToClassList("emblem-hidden");
+        // 1. Ocultar el emblema central (escalado/animación de salida)
+        if (centerEmblem != null)
+        {
+            centerEmblem.AddToClassList("emblem-hidden");
 
-        yield return new WaitForSecondsRealtime(0.1f);
+            // Esperar a que la animación de salida del emblema termine
+            yield return StartCoroutine(Routine_WaitForUSSTransition(centerEmblem, 0.5f));
+        }
 
+        // 2. Abrir las puertas laterales
         if (leftDoor != null) leftDoor.AddToClassList("door-open-left");
         if (rightDoor != null) rightDoor.AddToClassList("door-open-right");
 
+        // Disparar el aclarado del fade ambiental en paralelo
         StartCoroutine(Routine_FadeToBlack(0f, 1.5f));
 
-        yield return new WaitForSecondsRealtime(curtainAnimationDuration);
+        // Esperar a que la transición USS de las puertas de abrir finalice
+        if (leftDoor != null)
+        {
+            yield return StartCoroutine(Routine_WaitForUSSTransition(leftDoor, curtainAnimationDuration + 0.2f));
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(curtainAnimationDuration);
+        }
 
-        // Clear ambient fade overlay when scene is fully revealed
+        // 3. Limpiar overlay cuando la escena está revelada del todo
         ResetFadeOverlay();
     }
 

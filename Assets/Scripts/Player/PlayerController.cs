@@ -203,11 +203,21 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // Si NO estamos en exploración libre
         if (!IsWorldExploration() && currentMovementState != PlayerMovementState.CastingPsynergy)
         {
+            // Si NO hay una caminata automática activa, asentamos en el suelo sin tocar nada más
             if (autoWalkCoroutine == null)
             {
                 animController.ResetLocomotionAnimations();
+
+                if (currentMovementState != PlayerMovementState.Climbing &&
+                    currentMovementState != PlayerMovementState.AutoJumping &&
+                    currentMovementState != PlayerMovementState.PushingObject)
+                {
+                    // Asienta verticalmente al CharacterController sin interferir con la aceleración
+                    motor.ApplyVerticalSettlement();
+                }
             }
             return;
         }

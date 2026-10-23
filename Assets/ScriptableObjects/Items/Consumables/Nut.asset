@@ -40,7 +40,7 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  icon: {fileID: 21300000, guid: 78e7f184325ea164fae38f624ff12e66, type: 3}
+  icon: {fileID: 21300000, guid: 8e279a45f22742a40a160c8657f473f2, type: 3}
   itemType: 0
   isQuestDeliverable: 0
   buyPrice: 200
@@ -50,7 +50,7 @@ MonoBehaviour:
   useInMenu: 1
   useInBattle: 1
   battleFXConfig:
-    CasterAnimationTrigger: use_item
+    CasterAnimation: 0
     CasterAuraVFX: {fileID: 0}
     MainActionVFX: {fileID: 1592372973558972, guid: 965ea0a00419b7f45a8b980324bc2eec, type: 3}
     TargetHitFXType: 0

@@ -129,6 +129,21 @@ public class PlayerMovementMotor : MonoBehaviour
     }
 
     /// <summary>
+    /// Applies vertical gravity settlement and resolves CharacterController ground snapping 
+    /// without modifying horizontal momentum or interrupting auto-walk routines.
+    /// </summary>
+    public void ApplyVerticalSettlement()
+    {
+        if (controller == null || !controller.enabled) return;
+
+        HandleGravity();
+
+        // Movemos ÚNICAMENTE en el eje Y para posar la cápsula en el suelo
+        Vector3 verticalDisplacement = new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime;
+        controller.Move(verticalDisplacement);
+    }
+
+    /// <summary>
     /// Instantly stops horizontal momentum (useful for cutscenes, UI, or edge halts).
     /// </summary>
     public void StopImmediate()

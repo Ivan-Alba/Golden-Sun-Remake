@@ -34,14 +34,16 @@ public class ZoneSO : ScriptableObject
     /// <summary>
     /// Returns the formatted full name for the UI banner (e.g., 'Pueblo de Tale - Plaza del Cristal' or just 'Plaza del Cristal').
     /// </summary>
-    public string FullZoneDisplayName => string.IsNullOrEmpty(locationName)
+    public string FullZoneDisplayName => string.IsNullOrEmpty(LocationName)
         ? zoneDisplayName
-        : $"{locationName} - {zoneDisplayName}";
+        : $"{LocationName} - {zoneDisplayName}";
 
     /// <summary>
     /// Helper property to safely fetch the parent region display name even if parentRegion is null.
     /// </summary>
-    public string RegionDisplayName => parentRegion != null ? parentRegion.RegionDisplayName : "DESCONOCIDO";
+    public string RegionDisplayName => parentRegion != null ? parentRegion.RegionDisplayName : "UNKNOWN";
+
+    public string LocationName => string.IsNullOrEmpty(locationName) ? "UNKNOWN" : locationName;
 
     #endregion
 

@@ -233,7 +233,7 @@ MonoBehaviour:
   maxPitch: 1.05
   baseVolume: 0.8
   volumeVariance: 0.05
-  defaultProfile: {fileID: 0}
+  defaultProfile: {fileID: 11400000, guid: 18278ff9a85916f4895af0641c6542cb, type: 2}
 --- !u!4 &5299407463060466529 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 384b1b374cc76b742ae02e81c4fdfc89, type: 3}

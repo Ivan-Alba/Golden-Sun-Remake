@@ -205,7 +205,7 @@ public class SaveSlotPresenter
         rootElement.RemoveFromClassList(CLASS_FILLED_SLOT);
         rootElement.AddToClassList(CLASS_EMPTY_SLOT);
 
-        if (chapterTitleLabel != null) chapterTitleLabel.text = "--- RANURA VACÍA ---";
+        if (chapterTitleLabel != null) chapterTitleLabel.text = "--- EMPTY SLOT ---";
         if (locationNameLabel != null) locationNameLabel.text = string.Empty;
         if (dateLabel != null) dateLabel.text = string.Empty;
         if (timeLabel != null) timeLabel.text = string.Empty;
@@ -304,7 +304,7 @@ public class SaveSlotPresenter
             }
             else
             {
-                chapterTitleLabel.text = "Prólogo";
+                chapterTitleLabel.text = "Prologue";
             }
         });
     }

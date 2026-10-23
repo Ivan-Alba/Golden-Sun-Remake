@@ -199,6 +199,8 @@ public class SceneTransitionManager : MonoBehaviour
             yield return null;
         }
 
+        yield return null;
+
         // Give 1-2 frames for VRAM, camera buffers, and Awake/Start logic to settle
         yield return new WaitForEndOfFrame();
 

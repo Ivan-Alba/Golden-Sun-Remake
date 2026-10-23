@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d5246d146a910348b5cf60814204484, type: 3}
+  m_Name: Cookie
+  m_EditorClassIdentifier: 
+  itemSlug: cookie
+  itemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660225
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  itemDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660226
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  flavorText:
+    m_TableReference:
+      m_TableCollectionName: GUID:d00ab532958a15840a37f8ccd752f912
+    m_TableEntryReference:
+      m_KeyId: 24916660227
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  icon: {fileID: 21300000, guid: 3dfc312015678a34796bdd2890eb49ac, type: 3}
+  itemType: 0
+  isQuestDeliverable: 0
+  buyPrice: 0
+  sellPrice: 500
+  canSell: 1
+  maxStack: 1
+  useInMenu: 1
+  useInBattle: 0
+  battleFXConfig:
+    CasterAnimation: 0
+    CasterAuraVFX: {fileID: 0}
+    MainActionVFX: {fileID: 0}
+    TargetHitFXType: 0
+    CustomTargetHitVFX: {fileID: 0}
+    DirectAudioClip: {fileID: 0}
+    FallbackSFX: 0
+    FallbackCastDuration: 0
+    FallbackImpactDelay: 0
+  restoresHp: 0
+  hpAmount: 50
+  isHpPercentage: 0
+  restoresPp: 0
+  ppAmount: 20
+  isPpPercentage: 0
+  canRevive: 0
+  reviveHpAmount: 100
+  isRevivePercentage: 1
+  cureAllStatusEffects: 0
+  categoriesToCure: 
+  specificStatusToCure: []
+  statusEffectsToApply: []
+  isPermanentStatBoost: 1
+  statToBonus: 2
+  statBonusAmount: 3
+  customUseSFX: {fileID: 0}
+  fallbackUseSFX: 5
+  references:
+    version: 2
+    RefIds: []

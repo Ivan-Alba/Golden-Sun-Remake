@@ -40,14 +40,25 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  icon: {fileID: 21300000, guid: dfbd1296b76bf0143904f04dabf8c232, type: 3}
+  icon: {fileID: 21300000, guid: 55e0f55efa9d1f946b40ee0b37c383c7, type: 3}
   itemType: 0
+  isQuestDeliverable: 0
   buyPrice: 0
   sellPrice: 500
   canSell: 1
   maxStack: 1
   useInMenu: 1
   useInBattle: 0
+  battleFXConfig:
+    CasterAnimation: 0
+    CasterAuraVFX: {fileID: 0}
+    MainActionVFX: {fileID: 0}
+    TargetHitFXType: 0
+    CustomTargetHitVFX: {fileID: 0}
+    DirectAudioClip: {fileID: 0}
+    FallbackSFX: 0
+    FallbackCastDuration: 0
+    FallbackImpactDelay: 0
   restoresHp: 0
   hpAmount: 50
   isHpPercentage: 0

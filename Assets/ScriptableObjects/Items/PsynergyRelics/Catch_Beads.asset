@@ -40,7 +40,7 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  icon: {fileID: 21300000, guid: b3ee1577533e62c4f8a6d669102dca03, type: 3}
+  icon: {fileID: 21300000, guid: 1a8a0ffe0f84c8042b9868224cb0330a, type: 3}
   itemType: 2
   isQuestDeliverable: 0
   buyPrice: 0
