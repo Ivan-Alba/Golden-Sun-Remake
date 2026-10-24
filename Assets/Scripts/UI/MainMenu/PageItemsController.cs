@@ -1783,7 +1783,19 @@ public class PageItemsController : IMenuPageController
         }
 
         if (labelItemName != null) labelItemName.text = item.ItemName;
-        if (labelItemType != null) labelItemType.text = item.ItemType.ToString();
+
+        if (item is EquipableSO equipable)
+        {
+            if (labelItemType != null) labelItemType.text = equipable.EquipmentSubtype.ToString();
+        }
+        else if (item is WeaponSO weapon)
+        {
+            if (labelItemType != null) labelItemType.text = weapon.EquipmentSubtype.ToString();
+        }
+        else
+        {
+            if (labelItemType != null) labelItemType.text = item.ItemType.ToString();
+        }
 
         if (labelItemSellPrice != null)
         {
@@ -1886,7 +1898,11 @@ public class PageItemsController : IMenuPageController
             }
 
             RenderEquipableStatModifiers(instance, weapon);
-            PopulateStatDeltaComparison(instance, weapon);
+
+            if (currentHero.HeroProfile.CanEquipItem(weapon))
+            {
+                PopulateStatDeltaComparison(instance, weapon);
+            }
 
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = weapon.FlavorText;
@@ -1991,7 +2007,10 @@ public class PageItemsController : IMenuPageController
             }
 
             RenderEquipableStatModifiers(instance, equipable);
-            PopulateStatDeltaComparison(instance, equipable);
+            if (currentHero.HeroProfile.CanEquipItem(equipable))
+            {
+                PopulateStatDeltaComparison(instance, equipable);
+            }
 
             Label labelFlavor = instance.Q<Label>("label_flavor_text");
             if (labelFlavor != null) labelFlavor.text = equipable.FlavorText;

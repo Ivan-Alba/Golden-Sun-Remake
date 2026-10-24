@@ -3855,6 +3855,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1312060461723433332, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Radius
+      value: 0.75
+      objectReference: {fileID: 0}
     - target: {fileID: 3979706008573969900, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_Enabled
       value: 1

@@ -68,7 +68,7 @@ MonoBehaviour:
   element: 3
   elementalPowerBonus: 0
   isCursed: 0
-  useInBattle: 1
+  useInBattle: 0
   battleUseEffect: {fileID: 11400000, guid: 615502d3ba148144fae4149b7cb8ff4c, type: 2}
   equipSFX: {fileID: 0}
   fallbackEquipSFX: 7

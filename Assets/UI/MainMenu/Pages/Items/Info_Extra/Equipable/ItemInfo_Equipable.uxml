@@ -1,37 +1,37 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
-    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/Equipable/ItemInfo_Equipable.uss?fileID=7433441132597879392&amp;guid=121ef9d7908581e4e83846bab7938eb4&amp;type=3#ItemInfo_Equipable" />
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts"/>
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Info_Extra/Equipable/ItemInfo_Equipable.uss?fileID=7433441132597879392&amp;guid=121ef9d7908581e4e83846bab7938eb4&amp;type=3#ItemInfo_Equipable"/>
     <ui:VisualElement name="equipment_info_root" class="extra-info-card-root">
         <ui:VisualElement name="equip_meta_container" class="badge-row-container">
             <ui:VisualElement name="badge_element" class="item-badge badge-element-venus">
-                <ui:VisualElement name="element_icon" class="pip-icon icon-venus equip-pip-override" />
-                <ui:Label text="VENUS" name="label_element_name" class="badge-label" />
+                <ui:VisualElement name="element_icon" class="pip-icon icon-venus equip-pip-override"/>
+                <ui:Label text="VENUS" name="label_element_name" class="badge-label"/>
             </ui:VisualElement>
             <ui:VisualElement name="badge_battle_use" class="item-badge badge-inactive">
-                <ui:VisualElement class="badge-dot" />
-                <ui:Label text="USO EN BATALLA" name="label_battle_use" class="badge-label" />
+                <ui:VisualElement class="badge-dot"/>
+                <ui:Label text="USO EN BATALLA" name="label_battle_use" class="badge-label"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="battle_effect_info_box" class="battle-effect-info-box">
-            <ui:Label text="EFECTO AL USAR:" class="sub-header-title" />
-            <ui:Label text="---" name="label_battle_effect_name" class="battle-effect-text" />
+            <ui:Label text="EFECTO AL USAR:" class="sub-header-title"/>
+            <ui:Label text="---" name="label_battle_effect_name" class="battle-effect-text"/>
         </ui:VisualElement>
-        <ui:VisualElement class="info-divider" />
+        <ui:VisualElement class="info-divider"/>
         <ui:VisualElement name="item_stats_box" class="item-stats-box">
-            <ui:Label text="ATRIBUTOS DEL OBJETO" class="section-header-title" />
-            <ui:VisualElement name="stats_grid" class="item-stats-grid" />
+            <ui:Label text="ATRIBUTOS DEL OBJETO" class="section-header-title"/>
+            <ui:VisualElement name="stats_grid" class="item-stats-grid"/>
         </ui:VisualElement>
-        <ui:VisualElement class="info-divider" />
+        <ui:VisualElement class="info-divider"/>
         <ui:VisualElement name="comparison_box" class="item-comparison-box">
-            <ui:Label text="COMPARATIVA (EQUIPADO)" class="section-header-title" />
-            <ui:VisualElement name="comparison_rows_container" class="item-comparison-container" />
+            <ui:Label text="COMPARATIVA (EQUIPADO)" name="comparison_title_label" class="section-header-title"/>
+            <ui:VisualElement name="comparison_rows_container" class="item-comparison-container"/>
         </ui:VisualElement>
-        <ui:VisualElement class="info-divider" />
+        <ui:VisualElement class="info-divider"/>
         <ui:VisualElement name="lore_box" class="lore-box">
-            <ui:VisualElement class="quote-mark quote-open" />
-            <ui:Label name="label_flavor_text" class="lore-text" />
-            <ui:VisualElement class="quote-mark quote-close" />
+            <ui:VisualElement class="quote-mark quote-open"/>
+            <ui:Label name="label_flavor_text" class="lore-text"/>
+            <ui:VisualElement class="quote-mark quote-close"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

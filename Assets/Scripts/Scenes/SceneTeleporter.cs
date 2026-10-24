@@ -79,14 +79,14 @@ public class SceneTeleporter : MonoBehaviour
 
     private IEnumerator Routine_TeleportSequence()
     {
-        // 1. Lock controls and set state to Cutscene/Transition
-        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
-
         // 2. Order player to walk towards the target point if assigned
         if (walkTarget != null)
         {
             GameEvents.Player.RequestAutoWalk(walkTarget.position);
         }
+
+        // 1. Lock controls and set state to Cutscene/Transition
+        GameEvents.GameState.RequestGameStateChange(GameManager.GameState.Cutscene);
 
         // 3. Start progressive ambient fade to dark via event
         GameEvents.Scene.RequestFadeToBlack(targetOverlayAlpha, fadeDuration);

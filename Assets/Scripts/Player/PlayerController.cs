@@ -364,6 +364,8 @@ public class PlayerController : MonoBehaviour
         {
             StopAutoWalk();
 
+            ResetInputAndMomentum();
+
             // Restore movement state when exiting Interacting/Casting states
             if (currentMovementState == PlayerMovementState.CastingPsynergy)
             {
@@ -372,6 +374,8 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            ResetInputAndMomentum();
+
             if (currentMovementState == PlayerMovementState.InFirstPerson)
             {
                 StopFirstPersonView();
@@ -383,6 +387,8 @@ public class PlayerController : MonoBehaviour
     {
         StopAutoWalk();
         InterruptPsynergyCast();
+        ResetInputAndMomentum();
+
         currentMovementState = PlayerMovementState.FreeExploration;
 
         motor.SetControllerEnabled(false);
@@ -398,7 +404,12 @@ public class PlayerController : MonoBehaviour
 
     private void HandleRequestAutoWalk(Vector3 destination)
     {
-        StopAutoWalk();
+        if (autoWalkCoroutine != null)
+        {
+            StopCoroutine(autoWalkCoroutine);
+            autoWalkCoroutine = null;
+        }
+
         InterruptPsynergyCast();
         currentMovementState = PlayerMovementState.AutoWalking;
         autoWalkCoroutine = StartCoroutine(MoveToDestinationRoutine(destination));
@@ -1203,6 +1214,30 @@ public class PlayerController : MonoBehaviour
     #region Utilities & State Checks
 
     private bool IsWorldExploration() => currentGameState == GameManager.GameState.WorldExploration;
+
+    /// <summary>
+    /// Clears active movement inputs and halts motor momentum to prevent inertia leaks across state transitions.
+    /// </summary>
+    private void ResetInputAndMomentum()
+    {
+        currentMoveInput = Vector2.zero;
+        isRunningInput = false;
+
+        if (currentMovementState == PlayerMovementState.AutoWalking)
+        {
+            return;
+        }
+
+        if (motor != null)
+        {
+            motor.StopImmediate();
+        }
+
+        if (animController != null)
+        {
+            animController.ResetLocomotionAnimations();
+        }
+    }
 
     #endregion
 }
