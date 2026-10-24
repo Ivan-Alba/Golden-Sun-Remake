@@ -48,7 +48,7 @@ MonoBehaviour:
   canSell: 1
   maxStack: 1
   equipmentSlot: 7
-  equipmentSubtype: 11
+  equipmentSubtype: 18
   statModifiers:
   - statType: 1
     modifierType: 0

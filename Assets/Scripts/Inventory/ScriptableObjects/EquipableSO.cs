@@ -3,40 +3,41 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Subtype categorization defining exact equipment nature (e.g. Heavy Armor, Robe, Circlet, Heavy Helm, Shield, Glove).
-/// Used by HeroEquipment to validate character equipment restrictions.
+/// Subtype categorization defining exact equipment nature derived from original Golden Sun ROM data structure.
+/// Used by HeroProfileSO and HeroEquipment to validate character equipment restrictions.
 /// </summary>
 public enum EquipmentSubtype
 {
-    // Body Armor Subtypes
-    HeavyArmor,
-    LightClothing,
-    Robe,
-
-    // Headgear Subtypes
-    HeavyHelm,
-    Hat,
-    Circlet,
-    Crown,
-
-    // Arm/Hand Subtypes
-    HeavyShield,
-    Glove,
-    Armlet,
-
-    // Footwear & Accessories
-    Boots,
-    Ring,
-    UnderShirt,
-
-    // Weapon Subtypes (Extended in WeaponSO)
+    // --- WEAPONS ---
     Longsword,
     LightBlade,
     Axe,
     Mace,
     Staff,
 
-    // Psynergy Relic default subtype (for PsynergyRelicSO)
+    // --- BODYWEAR ---
+    Armor,
+    Clothing,
+    Robe,
+
+    // --- HEADGEAR ---
+    Helmet,
+    Hat,
+    Circlet,
+    Crown,
+    OtherHat,
+
+    // --- ARMWEAR ---
+    Shield,
+    Bracelet,
+    Glove,
+
+    // --- SUPPLEMENTAL ACCESSORIES ---
+    UnderShirt,
+    Boots,
+    Ring,
+
+    // --- SPECIAL ---
     Relic
 }
 
@@ -52,10 +53,10 @@ public class EquipableSO : ItemSO
 
     [Header("Equipment Slot & Subtype")]
     [Tooltip("Target body slot where this item is equipped.")]
-    [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.Armor;
+    [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.Body;
 
     [Tooltip("Specific subtype used for hero equipment compatibility checks (e.g. HeavyArmor vs Robe).")]
-    [SerializeField] private EquipmentSubtype equipmentSubtype = EquipmentSubtype.HeavyArmor;
+    [SerializeField] private EquipmentSubtype equipmentSubtype = EquipmentSubtype.Armor;
 
     [Tooltip("Unified list of fixed or percentage stat modifiers applied when equipped.")]
     [SerializeField] private List<StatBonus> statModifiers = new List<StatBonus>();

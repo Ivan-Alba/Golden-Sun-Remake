@@ -254,7 +254,7 @@ public class ResultsScreenPresenter
 
                 if (heroStats.Level > oldLevel)
                 {
-                    HeroBaseProgressionSO progression = heroStats.BaseProgression;
+                    HeroProfileSO progression = heroStats.HeroProfile;
                     LevelStatGrowth statGrowth = (progression != null)
                         ? progression.GetStatGrowthDelta(oldLevel, heroStats.Level)
                         : new LevelStatGrowth();

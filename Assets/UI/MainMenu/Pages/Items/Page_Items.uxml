@@ -1,74 +1,74 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Page_Items.uss?fileID=7433441132597879392&amp;guid=581e09ee37e14ba418794ae98f9a5a7f&amp;type=3#Page_Items" />
-    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts" />
-    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme" />
+    <Style src="project://database/Assets/UI/MainMenu/Pages/Items/Page_Items.uss?fileID=7433441132597879392&amp;guid=581e09ee37e14ba418794ae98f9a5a7f&amp;type=3#Page_Items"/>
+    <Style src="project://database/Assets/UI/Common_Layouts.uss?fileID=7433441132597879392&amp;guid=cf4db7a79be5e6c4489c6d3eabef35df&amp;type=3#Common_Layouts"/>
+    <Style src="project://database/Assets/UI/Global_Theme.uss?fileID=7433441132597879392&amp;guid=13e1da8cbe0216544974bb0aa6894e81&amp;type=3#Global_Theme"/>
     <ui:VisualElement name="page_items_container" class="page-three-columns-container">
         <ui:VisualElement name="equipment_section" class="panel-column-left">
-            <ui:Label text="EQUIPAMIENTO" name="label_gear_title" class="info-title-label" />
+            <ui:Label text="EQUIPAMIENTO" name="label_gear_title" class="info-title-label"/>
             <ui:VisualElement name="paperdoll_container" class="paperdoll-container">
                 <ui:VisualElement name="gear_col_left" class="gear-column">
-                    <ui:VisualElement name="slot_weapon" class="gear-slot slot-box" />
-                    <ui:VisualElement name="slot_armor" class="gear-slot slot-box" />
-                    <ui:VisualElement name="slot_boots" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_weapon" class="gear-slot slot-box"/>
+                    <ui:VisualElement name="slot_armor" class="gear-slot slot-box"/>
+                    <ui:VisualElement name="slot_acc" class="gear-slot slot-box"/>
                 </ui:VisualElement>
-                <ui:VisualElement name="character_preview_space" class="character-preview-space" />
+                <ui:VisualElement name="character_preview_space" class="character-preview-space"/>
                 <ui:VisualElement name="gear_col_right" class="gear-column">
-                    <ui:VisualElement name="slot_helm" class="gear-slot slot-box" />
-                    <ui:VisualElement name="slot_shield" class="gear-slot slot-box" />
-                    <ui:VisualElement name="slot_hands" class="gear-slot slot-box" />
-                    <ui:VisualElement name="slot_acc" class="gear-slot slot-box" />
+                    <ui:VisualElement name="slot_helm" class="gear-slot slot-box"/>
+                    <ui:VisualElement name="slot_hands" class="gear-slot slot-box"/>
+                    <ui:VisualElement name="slot_undershirt" class="gear-slot slot-box"/>
+                    <ui:VisualElement name="slot_boots" class="gear-slot slot-box"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="relics_container" class="relics-container">
-                <ui:Label text="RELIQUIAS PSINÉRGICAS" name="label_relics_header" class="info-title-label" />
+                <ui:Label text="RELIQUIAS PSINÉRGICAS" name="label_relics_header" class="info-title-label"/>
                 <ui:VisualElement name="relic_slots_wrapper" class="slots-row">
-                    <ui:VisualElement name="slot_relic_0" class="relic-slot slot-box" />
-                    <ui:VisualElement name="slot_relic_1" class="relic-slot slot-box" />
-                    <ui:VisualElement name="slot_relic_2" class="relic-slot slot-box" />
-                    <ui:VisualElement name="slot_relic_3" class="relic-slot slot-box" />
+                    <ui:VisualElement name="slot_relic_0" class="relic-slot slot-box"/>
+                    <ui:VisualElement name="slot_relic_1" class="relic-slot slot-box"/>
+                    <ui:VisualElement name="slot_relic_2" class="relic-slot slot-box"/>
+                    <ui:VisualElement name="slot_relic_3" class="relic-slot slot-box"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="inventory_section" class="panel-column-center">
-            <ui:Label text="INVENTARIO DE HANS" name="label_inventory_title" class="info-title-label" />
-            <ui:VisualElement name="inventory_grid" class="inventory-grid" />
+            <ui:Label text="INVENTARIO DE HANS" name="label_inventory_title" class="info-title-label"/>
+            <ui:VisualElement name="inventory_grid" class="inventory-grid"/>
             <ui:VisualElement name="global_bag_container" class="global-bag-container">
-                <ui:Label text="OBJETOS CLAVE" name="label_global_bag_title" class="info-title-label" />
-                <ui:VisualElement name="global_bag_grid" class="inventory-grid global-bag-grid" />
+                <ui:Label text="OBJETOS CLAVE" name="label_global_bag_title" class="info-title-label"/>
+                <ui:VisualElement name="global_bag_grid" class="inventory-grid global-bag-grid"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="item_info_panel" class="panel-column-right">
-            <ui:Label text="INFORMACIÓN OBJETO" name="label_info_title" class="info-title-label" />
+            <ui:Label text="INFORMACIÓN OBJETO" name="label_info_title" class="info-title-label"/>
             <ui:VisualElement name="item_preview_container" class="detail-preview-container">
-                <ui:VisualElement name="item_icon_preview" class="detail-preview-icon" />
+                <ui:VisualElement name="item_icon_preview" class="detail-preview-icon"/>
             </ui:VisualElement>
-            <ui:Label text="Espada Larga" name="label_item_name" class="detail-name-label" />
-            <ui:Label text="Equipable - Arma" name="label_item_type" class="detail-type-label" />
+            <ui:Label text="Espada Larga" name="label_item_name" class="detail-name-label"/>
+            <ui:Label text="Equipable - Arma" name="label_item_type" class="detail-type-label"/>
             <ui:VisualElement name="item_meta_row" class="detail-meta-row">
-                <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="text-muted detail-meta-label" />
-                <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="text-muted detail-meta-label" />
+                <ui:Label text="Se vende por: --- monedas" name="label_item_sell_price" class="text-muted detail-meta-label"/>
+                <ui:Label text="Máx. stack: ---" name="label_item_max_stack" class="text-muted detail-meta-label"/>
             </ui:VisualElement>
             <ui:VisualElement name="item_desc_container" class="detail-desc-container">
-                <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="detail-desc-label" />
+                <ui:Label text="Una espada de acero bien forjada." name="label_item_desc" class="detail-desc-label"/>
             </ui:VisualElement>
-            <ui:ScrollView name="extra_info_container" class="extra-info-container" />
+            <ui:ScrollView name="extra_info_container" class="extra-info-container"/>
         </ui:VisualElement>
         <ui:VisualElement name="split_popup_overlay" class="split-popup-overlay">
             <ui:VisualElement name="split_popup_dialog" class="split-popup-dialog">
-                <ui:Label text="SEPARAR CANTIDAD" name="label_split_title" class="info-title-label" />
+                <ui:Label text="SEPARAR CANTIDAD" name="label_split_title" class="info-title-label"/>
                 <ui:VisualElement name="split_item_preview_box" class="split-item-preview-box">
-                    <ui:VisualElement name="split_item_icon" class="split-item-icon" />
-                    <ui:Label text="Poción de Cura" name="label_split_item_name" class="detail-name-label" />
+                    <ui:VisualElement name="split_item_icon" class="split-item-icon"/>
+                    <ui:Label text="Poción de Cura" name="label_split_item_name" class="detail-name-label"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="split_controls_row" class="split-controls-row">
-                    <ui:Button text="-" name="btn_split_minus" class="split-step-btn" />
-                    <ui:SliderInt low-value="1" high-value="10" value="1" name="slider_split_amount" class="split-slider" />
-                    <ui:Button text="+" name="btn_split_plus" class="split-step-btn" />
-                    <ui:Label text="1" name="label_split_amount" class="split-amount-label" />
+                    <ui:Button text="-" name="btn_split_minus" class="split-step-btn"/>
+                    <ui:SliderInt low-value="1" high-value="10" value="1" name="slider_split_amount" class="split-slider"/>
+                    <ui:Button text="+" name="btn_split_plus" class="split-step-btn"/>
+                    <ui:Label text="1" name="label_split_amount" class="split-amount-label"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="split_buttons_row" class="split-buttons-row">
-                    <ui:Button text="ACEPTAR" name="btn_split_confirm" class="split-action-btn" />
-                    <ui:Button text="CANCELAR" name="btn_split_cancel" class="split-action-btn" />
+                    <ui:Button text="ACEPTAR" name="btn_split_confirm" class="split-action-btn"/>
+                    <ui:Button text="CANCELAR" name="btn_split_cancel" class="split-action-btn"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

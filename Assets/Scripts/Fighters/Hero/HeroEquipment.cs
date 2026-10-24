@@ -5,8 +5,8 @@ using UnityEngine;
 /// <summary>
 /// Manages standard equipment slots and dedicated Psynergy Relic slots for a hero.
 /// Applies stat modifiers to FighterStats, notifies system events upon equipment changes,
-/// spawns 3D weapon models in hand sockets, toggles sheath visibility based on weapon subtype,
-/// and handles self-contained save data serialization via GameEvents.SaveLoad.
+/// validates subtype compatibility via HeroProfileSO, spawns 3D weapon models in hand sockets,
+/// toggles sheath visibility based on weapon subtype, and handles save data serialization.
 /// </summary>
 public class HeroEquipment : MonoBehaviour
 {
@@ -30,7 +30,7 @@ public class HeroEquipment : MonoBehaviour
     [SerializeField] private GameObject sheathSocket = null;
 
     [Header("Component References")]
-    [SerializeField] private FighterStats fighterStats;
+    [SerializeField] private HeroStats heroStats;
     [SerializeField] private HeroInventory heroInventory;
 
     #endregion
@@ -60,7 +60,7 @@ public class HeroEquipment : MonoBehaviour
 
     private void Awake()
     {
-        if (fighterStats == null) fighterStats = GetComponent<FighterStats>();
+        if (heroStats == null) heroStats = GetComponent<HeroStats>();
         if (heroInventory == null) heroInventory = GetComponent<HeroInventory>();
 
         InitializeEquipmentSlots();
@@ -88,17 +88,51 @@ public class HeroEquipment : MonoBehaviour
     {
         equippedItems.Clear();
 
-        // Initialize standard slots
+        // Initialize standard 7 slots
         equippedItems.Add(EquipmentSlot.Weapon, null);
-        equippedItems.Add(EquipmentSlot.Shield, null);
-        equippedItems.Add(EquipmentSlot.Helmet, null);
-        equippedItems.Add(EquipmentSlot.Armor, null);
+        equippedItems.Add(EquipmentSlot.Head, null);
+        equippedItems.Add(EquipmentSlot.Body, null);
+        equippedItems.Add(EquipmentSlot.UnderShirt, null);
         equippedItems.Add(EquipmentSlot.Hands, null);
         equippedItems.Add(EquipmentSlot.Boots, null);
-        equippedItems.Add(EquipmentSlot.Accessory, null);
+        equippedItems.Add(EquipmentSlot.Ring, null);
 
         // Initialize dedicated relic slots
         equippedRelics = new PsynergyRelicSO[maxRelicSlots];
+    }
+
+    #endregion
+
+    #region Subtype Validation
+
+    /// <summary>
+    /// Checks if this hero instance can equip a specific item based on their HeroProfileSO rules.
+    /// </summary>
+    public bool CanEquip(EquipableSO item)
+    {
+        if (item == null) return false;
+
+        // Fetch HeroProfile via FighterStats reference
+        if (heroStats != null && heroStats.HeroProfile != null)
+        {
+            return heroStats.HeroProfile.CanEquipItem(item);
+        }
+
+        // Fallback: If no profile is assigned, allow equipping by default
+        return true;
+    }
+
+    /// <summary>
+    /// Checks compatibility directly using the EquipmentSubtype enum.
+    /// </summary>
+    public bool CanEquipSubtype(EquipmentSubtype subtype)
+    {
+        if (heroStats != null && heroStats.HeroProfile != null)
+        {
+            return heroStats.HeroProfile.CanEquipSubtype(subtype);
+        }
+
+        return true;
     }
 
     #endregion
@@ -144,14 +178,12 @@ public class HeroEquipment : MonoBehaviour
         }
 
         saveData.heroesEquipment.Add(equipmentData);
-        //Debug.Log($"<color=green>[HeroEquipment] Collected equipment save data for hero '{gameObject.name}'.</color>");
     }
 
     private void HandleRestoreSaveData(GameData saveData)
     {
         if (saveData == null || saveData.heroesEquipment == null) return;
 
-        // Find this specific hero's equipment DTO by GameObject name
         HeroEquipmentData equipmentData = saveData.heroesEquipment.Find(e => e != null && e.heroName.Equals(gameObject.name));
         if (equipmentData == null) return;
 
@@ -170,10 +202,6 @@ public class HeroEquipment : MonoBehaviour
             if (itemAsset is EquipableSO equipable)
             {
                 LoadEquippedItem(equipable, notifyEvent: false);
-            }
-            else
-            {
-                //Debug.LogWarning($"[HeroEquipment] Equipable slug '{slotData.itemSlug}' not found in database for hero '{gameObject.name}'.");
             }
         }
 
@@ -256,6 +284,13 @@ public class HeroEquipment : MonoBehaviour
         // 2. Handle Standard Equipment SECOND
         else if (itemToEquip is EquipableSO equipable)
         {
+            // Subtype Validation: Ensure the hero is allowed to equip this weapon/armor type
+            if (!CanEquip(equipable))
+            {
+                Debug.LogWarning($"[HeroEquipment] '{gameObject.name}' cannot equip '{equipable.ItemName}' ({equipable.EquipmentSubtype}).");
+                return false;
+            }
+
             return EquipStandardItem(equipable, backpackSlotIndex);
         }
 
@@ -282,7 +317,7 @@ public class HeroEquipment : MonoBehaviour
         }
 
         // 2. Apply stat bonuses of the new item
-        if (fighterStats != null)
+        if (heroStats != null)
         {
             ApplyItemModifiers(newEquipable);
         }
@@ -404,10 +439,6 @@ public class HeroEquipment : MonoBehaviour
 
     #region 3D Model Spawning & Visual Logic
 
-    /// <summary>
-    /// Destroys the current weapon mesh instance and spawns the newly equipped weapon prefab.
-    /// Manages sheath socket visibility depending on weapon subtype (e.g., Swords vs Axes/Staffs).
-    /// </summary>
     private void UpdateWeaponVisuals()
     {
         ClearWeaponVisuals();
@@ -416,7 +447,6 @@ public class HeroEquipment : MonoBehaviour
 
         if (equippedWeapon == null || equippedWeapon.WeaponModelPrefab == null)
         {
-            // If no weapon or model assigned, hide sheath
             if (sheathSocket != null) sheathSocket.SetActive(false);
             return;
         }
@@ -444,9 +474,6 @@ public class HeroEquipment : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Safely destroys the instantiated 3D weapon model gameobject.
-    /// </summary>
     private void ClearWeaponVisuals()
     {
         if (currentWeaponInstance != null)
@@ -462,7 +489,7 @@ public class HeroEquipment : MonoBehaviour
 
     private void ApplyItemModifiers(ItemSO item)
     {
-        if (fighterStats == null || item == null) return;
+        if (heroStats == null || item == null) return;
 
         if (item is EquipableSO equipable)
         {
@@ -470,26 +497,22 @@ public class HeroEquipment : MonoBehaviour
             int count = modifiers.Count;
             for (int i = 0; i < count; i++)
             {
-                fighterStats.AddStatModifier(modifiers[i].statType, modifiers[i].modifier);
+                heroStats.AddStatModifier(modifiers[i].statType, modifiers[i].modifier);
             }
         }
     }
 
     private void RemoveItemModifiers(ItemSO item)
     {
-        if (fighterStats == null || item == null) return;
+        if (heroStats == null || item == null) return;
 
-        fighterStats.RemoveModifiersFromSource(item);
+        heroStats.RemoveModifiersFromSource(item);
     }
 
     #endregion
 
     #region Public Queries & Load Helpers
 
-    /// <summary>
-    /// Equips default starting items defined in the Inspector.
-    /// Used when starting a new game or recruiting a new party member.
-    /// </summary>
     public void InitializeStartingEquipment()
     {
         // 1. Clear current slots to avoid residual items

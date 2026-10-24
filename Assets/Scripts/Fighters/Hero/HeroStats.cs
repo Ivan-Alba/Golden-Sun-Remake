@@ -15,7 +15,7 @@ public class HeroStats : FighterStats
     [SerializeField] private ElementalType baseElement = ElementalType.Venus;
 
     [Header("Hero Progression Assets")]
-    [SerializeField] private HeroBaseProgressionSO baseProgression;
+    [SerializeField] private HeroProfileSO heroProfile;
 
     [Header("Hero Progression Data")]
     [SerializeField] private int level = 1;
@@ -50,7 +50,7 @@ public class HeroStats : FighterStats
     public int Level { get => level; private set => level = value; }
     public int CurrentXp { get => currentXp; private set => currentXp = value; }
     public int NextLevelXp { get => nextLevelXp; private set => nextLevelXp = value; }
-    public HeroBaseProgressionSO BaseProgression => baseProgression;
+    public HeroProfileSO HeroProfile => heroProfile;
     public IReadOnlyList<PsynergySO> UnlockedStoryPsynergies => unlockedStoryPsynergies;
     public HeroEquipment HeroEquipment => heroEquipment;
     public HeroInventory HeroInventory => heroInventory;
@@ -367,7 +367,7 @@ public class HeroStats : FighterStats
     /// </summary>
     private void CalculateNextLevelXp()
     {
-        if (level >= baseProgression.MaxLevel)
+        if (level >= heroProfile.MaxLevel)
         {
             nextLevelXp = int.MaxValue;
             return;
@@ -444,9 +444,9 @@ public class HeroStats : FighterStats
     {
         List<PsynergySO> consolidatedInnate = new List<PsynergySO>();
 
-        if (baseProgression != null)
+        if (heroProfile != null)
         {
-            List<PsynergySO> levelPsynergies = baseProgression.GetInnatePsynergiesForLevel(level);
+            List<PsynergySO> levelPsynergies = heroProfile.GetInnatePsynergiesForLevel(level);
             foreach (var p in levelPsynergies)
             {
                 if (!consolidatedInnate.Contains(p)) consolidatedInnate.Add(p);
@@ -467,9 +467,9 @@ public class HeroStats : FighterStats
     private List<PsynergySO> GetNewInnatePsynergiesForCurrentLevel()
     {
         List<PsynergySO> newEntries = new List<PsynergySO>();
-        if (baseProgression == null || baseProgression.LearnablePsynergies == null) return newEntries;
+        if (heroProfile == null || heroProfile.LearnablePsynergies == null) return newEntries;
 
-        foreach (var entry in baseProgression.LearnablePsynergies)
+        foreach (var entry in heroProfile.LearnablePsynergies)
         {
             if (entry != null && entry.psynergy != null && entry.levelRequirement == level)
             {

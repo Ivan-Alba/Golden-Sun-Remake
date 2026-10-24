@@ -960,7 +960,7 @@
 .notification-icon-frame {
     width: 46px;
     height: 46px;
-    border-radius: 8px;
+    border-radius: 6px;
     border-width: 2px;
     border-color: var(--color-gold-sun);
     background-color: var(--color-subbox-bg);
@@ -969,6 +969,7 @@
     margin-left: 6px;
     margin-right: 14px;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .notification-icon-img {

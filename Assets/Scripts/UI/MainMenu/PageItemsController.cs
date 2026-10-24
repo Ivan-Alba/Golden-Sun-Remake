@@ -200,12 +200,12 @@ public class PageItemsController : IMenuPageController
     private readonly EquipmentSlot[] gearSlotTypes = new EquipmentSlot[]
     {
         EquipmentSlot.Weapon,
-        EquipmentSlot.Shield,
-        EquipmentSlot.Armor,
-        EquipmentSlot.Helmet,
+        EquipmentSlot.Body,
+        EquipmentSlot.UnderShirt,
+        EquipmentSlot.Head,
         EquipmentSlot.Hands,
         EquipmentSlot.Boots,
-        EquipmentSlot.Accessory
+        EquipmentSlot.Ring
     };
 
     // Slot Dimension Constants for Layout Calculations
@@ -398,8 +398,8 @@ public class PageItemsController : IMenuPageController
         }
 
         gearSlots[0] = rootElement.Q<VisualElement>("slot_weapon");
-        gearSlots[1] = rootElement.Q<VisualElement>("slot_shield");
-        gearSlots[2] = rootElement.Q<VisualElement>("slot_armor");
+        gearSlots[1] = rootElement.Q<VisualElement>("slot_armor");
+        gearSlots[2] = rootElement.Q<VisualElement>("slot_undershirt");
         gearSlots[3] = rootElement.Q<VisualElement>("slot_helm");
         gearSlots[4] = rootElement.Q<VisualElement>("slot_hands");
         gearSlots[5] = rootElement.Q<VisualElement>("slot_boots");
@@ -883,27 +883,49 @@ public class PageItemsController : IMenuPageController
                         int emptyRelicIndex = GetFirstEmptyRelicIndex();
                         int targetRelicIndex = (emptyRelicIndex != -1) ? emptyRelicIndex : 0;
 
-                        currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex);
-                        RefreshAllData();
-
-                        if (targetRelicIndex >= 0 && targetRelicIndex < relicSlots.Length && relicSlots[targetRelicIndex] != null)
+                        if (currentEquipment.EquipFromBackpack(slotIndex, targetRelicIndex))
                         {
-                            SetSelectedSlotUI(relicSlots[targetRelicIndex]);
+                            // Play equip sound effect
+                            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                            RefreshAllData();
+
+                            if (targetRelicIndex >= 0 && targetRelicIndex < relicSlots.Length && relicSlots[targetRelicIndex] != null)
+                            {
+                                SetSelectedSlotUI(relicSlots[targetRelicIndex]);
+                            }
+                        }
+                        else
+                        {
+                            // Feedback on failed equip attempt (e.g., slot locked, requirements not met, etc.)
+                            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
                         }
                     }
                 }
                 else
                 {
-                    currentEquipment?.EquipFromBackpack(slotIndex);
-                    RefreshAllData();
-
-                    for (int i = 0; i < gearSlotTypes.Length; i++)
+                    if (currentEquipment != null)
                     {
-                        if (gearSlotTypes[i] == equipable.EquipmentSlot && gearSlots[i] != null)
+                        if (currentEquipment.EquipFromBackpack(slotIndex))
                         {
-                            SetSelectedSlotUI(gearSlots[i]);
-                            break;
+                            // Play equip sound effect
+                            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                            RefreshAllData();
+
+                            for (int i = 0; i < gearSlotTypes.Length; i++)
+                            {
+                                if (gearSlotTypes[i] == equipable.EquipmentSlot && gearSlots[i] != null)
+                                {
+                                    SetSelectedSlotUI(gearSlots[i]);
+                                    break;
+                                }
+                            }
                         }
+                        else
+                        {
+                            // Feedback on failed equip attempt (e.g., slot locked, requirements not met, etc.)
+                            GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                        }
+
                     }
                 }
             }
@@ -920,12 +942,16 @@ public class PageItemsController : IMenuPageController
             int targetInvIndex = GetFirstEmptyInventoryIndex();
             if (targetInvIndex == -1)
             {
+                // Feedback on failed unequip attempt (inventory full)
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
                 return;
             }
 
             EquipmentSlot slotType = gearSlotTypes[slotIndex];
             if (currentEquipment.UnequipStandardSlot(slotType))
             {
+                // Play unequip sound effect
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
                 RefreshAllData();
 
                 if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
@@ -941,11 +967,15 @@ public class PageItemsController : IMenuPageController
             int targetInvIndex = GetFirstEmptyInventoryIndex();
             if (targetInvIndex == -1)
             {
+                // Feedback on failed unequip attempt (inventory full)
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
                 return;
             }
 
             if (currentEquipment.UnequipRelicSlot(slotIndex))
             {
+                // Play unequip sound effect
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
                 RefreshAllData();
 
                 if (targetInvIndex >= 0 && targetInvIndex < spawnedInventorySlots.Count)
@@ -1321,10 +1351,20 @@ public class PageItemsController : IMenuPageController
 
             if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == targetSlotType)
             {
-                currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex);
-                if (gearSlots[targetIndex] != null)
+                if (currentEquipment != null)
                 {
-                    SetSelectedSlotUI(gearSlots[targetIndex]);
+                    if (currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex))
+                    {
+                        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                        if (gearSlots[targetIndex] != null)
+                        {
+                            SetSelectedSlotUI(gearSlots[targetIndex]);
+                        }
+                    }
+                    else
+                    {
+                        GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                    }
                 }
             }
         }
@@ -1337,6 +1377,7 @@ public class PageItemsController : IMenuPageController
             if (currentDragContext.Item is EquipableSO equipable && equipable.EquipmentSlot == EquipmentSlot.PsynergyRelic)
             {
                 currentEquipment.EquipFromBackpack(currentDragContext.SourceIndex, targetIndex);
+                GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
                 if (targetIndex >= 0 && targetIndex < relicSlots.Length && relicSlots[targetIndex] != null)
                 {
                     SetSelectedSlotUI(relicSlots[targetIndex]);
@@ -1369,13 +1410,25 @@ public class PageItemsController : IMenuPageController
         {
             if (currentDragContext.SourceType == DragSourceType.Equipment)
             {
-                currentEquipment.EquipFromBackpack(targetInventoryIndex);
-                SetSelectedSlotUI(gearSlots[currentDragContext.SourceIndex]);
+                if (currentEquipment.EquipFromBackpack(targetInventoryIndex))
+                {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                    SetSelectedSlotUI(gearSlots[currentDragContext.SourceIndex]);
+                }
+                else
+                {
+                    // Feedback on failed unequip attempt
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                }
+
             }
             else if (currentDragContext.SourceType == DragSourceType.Relic)
             {
-                currentEquipment.EquipFromBackpack(targetInventoryIndex, currentDragContext.SourceIndex);
-                SetSelectedSlotUI(relicSlots[currentDragContext.SourceIndex]);
+                if (currentEquipment.EquipFromBackpack(targetInventoryIndex, currentDragContext.SourceIndex))
+                {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                    SetSelectedSlotUI(relicSlots[currentDragContext.SourceIndex]);
+                }
             }
         }
         else if (targetSlot != null && targetSlot.IsEmpty)
@@ -1386,20 +1439,31 @@ public class PageItemsController : IMenuPageController
             {
                 if (currentEquipment.UnequipStandardSlot(sourceGearSlot))
                 {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
                     if (firstEmpty != -1 && firstEmpty != targetInventoryIndex)
                     {
                         currentInventory.SwapOrMergeSlots(firstEmpty, targetInventoryIndex);
                     }
+                }
+                else
+                {
+                    // Feedback on failed unequip attempt
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
                 }
             }
             else if (currentDragContext.SourceType == DragSourceType.Relic)
             {
                 if (currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex))
                 {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
                     if (firstEmpty != -1 && firstEmpty != targetInventoryIndex)
                     {
                         currentInventory.SwapOrMergeSlots(firstEmpty, targetInventoryIndex);
                     }
+                }
+                else
+                {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
                 }
             }
 
@@ -1410,19 +1474,35 @@ public class PageItemsController : IMenuPageController
         }
         else
         {
-            if (currentDragContext.SourceType == DragSourceType.Equipment)
-            {
-                currentEquipment.UnequipStandardSlot(sourceGearSlot);
-            }
-            else if (currentDragContext.SourceType == DragSourceType.Relic)
-            {
-                currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex);
-            }
-
             int emptyIndex = GetFirstEmptyInventoryIndex();
             if (emptyIndex != -1 && emptyIndex < spawnedInventorySlots.Count)
             {
                 SetSelectedSlotUI(spawnedInventorySlots[emptyIndex]);
+            }
+
+            if (currentDragContext.SourceType == DragSourceType.Equipment)
+            {
+                if (currentEquipment.UnequipStandardSlot(sourceGearSlot))
+                {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                }
+                else
+                {
+                    // Feedback on failed unequip attempt
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                }
+            }
+            else if (currentDragContext.SourceType == DragSourceType.Relic)
+            {
+                if (currentEquipment.UnequipRelicSlot(currentDragContext.SourceIndex))
+                {
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Equip);
+                }
+                else
+                {
+                    // Feedback on failed unequip attempt
+                    GameEvents.Audio.RequestPlaySFX(SFXType.UI_Error);
+                }
             }
         }
     }

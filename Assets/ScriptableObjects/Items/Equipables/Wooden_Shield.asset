@@ -47,8 +47,8 @@ MonoBehaviour:
   sellPrice: 175
   canSell: 1
   maxStack: 1
-  equipmentSlot: 2
-  equipmentSubtype: 7
+  equipmentSlot: 4
+  equipmentSubtype: 13
   statModifiers:
   - statType: 3
     modifierType: 0

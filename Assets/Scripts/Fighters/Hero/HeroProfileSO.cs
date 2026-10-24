@@ -65,16 +65,24 @@ public class StatCurveConfig
 #endregion
 
 /// <summary>
-/// ScriptableObject defining the innate progression tree (psynergies and continuous stat growth curves) for a specific hero.
+/// ScriptableObject representing the canonical data definition for a hero.
+/// Encapsulates allowed equipment subtypes, level cap, innate psynergy progression, and base stat growth curves.
 /// </summary>
-[CreateAssetMenu(fileName = "HeroBaseProgression_", menuName = "GoldenSun/Hero/Base Progression")]
-public class HeroBaseProgressionSO : ScriptableObject
+[CreateAssetMenu(fileName = "HeroProfile_", menuName = "GoldenSun/Hero/Hero Profile")]
+public class HeroProfileSO : ScriptableObject
 {
     #region Serialized Fields
 
-    [Header("Level Cap Config")]
-    [Tooltip("Maximum achievable level for this hero progression tree.")]
+    [Header("Hero Profile Config")]
+    [Tooltip("Display name identifier for this hero profile.")]
+    [SerializeField] private string heroName = "New Hero";
+
+    [Tooltip("Maximum achievable level for this hero.")]
     [SerializeField] private int maxLevel = 99;
+
+    [Header("Equipment Compatibility")]
+    [Tooltip("List of equipment subtypes this hero can equip (e.g., LightBlade, Longsword, Robe, Shield...).")]
+    [SerializeField] private List<EquipmentSubtype> allowedEquipmentSubtypes = new List<EquipmentSubtype>();
 
     [Header("Stat Growth Curves")]
     [SerializeField] private StatCurveConfig hpCurve = new StatCurveConfig { baseValueAtLevel1 = 32, targetValueAtMaxLevel = 820 };
@@ -92,8 +100,37 @@ public class HeroBaseProgressionSO : ScriptableObject
 
     #region Properties
 
+    public string HeroName => heroName;
     public int MaxLevel => maxLevel;
+    public IReadOnlyList<EquipmentSubtype> AllowedEquipmentSubtypes => allowedEquipmentSubtypes;
     public IReadOnlyList<PsynergyLearnEntry> LearnablePsynergies => learnablePsynergies;
+
+    #endregion
+
+    #region Equipment Rules Validation
+
+    /// <summary>
+    /// Validates if this hero can equip a specific item based on its EquipmentSubtype.
+    /// </summary>
+    public bool CanEquipSubtype(EquipmentSubtype subtype)
+    {
+        // Items without restriction (None) or relics are allowed by default
+        if (subtype == EquipmentSubtype.Relic) return true;
+
+        // If no restrictions are configured, allow everything as fallback
+        if (allowedEquipmentSubtypes == null || allowedEquipmentSubtypes.Count == 0) return true;
+
+        return allowedEquipmentSubtypes.Contains(subtype);
+    }
+
+    /// <summary>
+    /// Overload helper checking directly against an EquipableSO asset.
+    /// </summary>
+    public bool CanEquipItem(EquipableSO item)
+    {
+        if (item == null) return false;
+        return CanEquipSubtype(item.EquipmentSubtype);
+    }
 
     #endregion
 
@@ -118,7 +155,7 @@ public class HeroBaseProgressionSO : ScriptableObject
 
     /// <summary>
     /// Calculates exact stat delta gains earned when transitioning from oldLevel to newLevel.
-    /// Perfect for Level-Up UI popups (e.g. ResultsScreenPresenter).
+    /// Perfect for Level-Up UI popups.
     /// </summary>
     public LevelStatGrowth GetStatGrowthDelta(int oldLevel, int newLevel)
     {

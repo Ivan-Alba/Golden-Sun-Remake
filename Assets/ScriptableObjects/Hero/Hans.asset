@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb83f54dbe06fd542b4283ecf0c6f867, type: 3}
   m_Name: Hans
   m_EditorClassIdentifier: 
+  heroName: New Hero
   maxLevel: 99
+  allowedEquipmentSubtypes: 00000000010000000200000003000000050000000600000008000000090000000d0000000f00000010000000110000001200000013000000
   hpCurve:
     baseValueAtLevel1: 32
     targetValueAtMaxLevel: 820
