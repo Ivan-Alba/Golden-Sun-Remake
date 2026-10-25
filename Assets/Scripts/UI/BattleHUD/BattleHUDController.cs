@@ -7,10 +7,11 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Controller for the Battle HUD overlay using UI Toolkit.
 /// Orchestrates viewport transitions, turn timeline updates, floating target overlays,
-/// action submenus, top action banners, layer visibility, results sequences, and projects floating menus over active heroes in 3D world space.
+/// action submenus, top action banners, layer visibility, results sequences, and projects 
+/// floating menus over active heroes in 3D world space seamlessly across camera blends.
 /// Enforces complete pointer-transparency as all battle HUD elements ignore raycasts declaratively.
 /// Uses FighterBattleAnchors for precise 3D spatial position calculations.
-/// Dynamically queries Camera.main for seamless Cinemachine integration.
+/// Dynamically queries Camera.main for Cinemachine alignment.
 /// </summary>
 public class BattleHUDController : MonoBehaviour
 {
@@ -50,33 +51,21 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Private Local Cache State & Dynamic Helpers
+    #region Private Fields
 
     private GameObject _currentActiveFighter;
     private IReadOnlyList<GameObject> _cachedParty;
 
-    /// <summary>
-    /// Dynamic accessor for the currently active main rendering camera.
-    /// Eliminates static inspector bindings and guarantees alignment with CinemachineBrain output.
-    /// </summary>
-    private Camera ActiveCamera => Camera.main;
-
-    // 2D Screen Space Offset for SubMenu positioning relative to Command Cross
     private readonly Vector2 _subMenuScreenOffset = new Vector2(180f, 0f);
 
-    // Presenter instances
     private CommandCrossPresenter _commandCrossPresenter;
     private BattleSubMenuPresenter _subMenuPresenter;
 
-    // Floating Target Overlay Presenters
     private readonly List<TargetInfoPresenter> _targetPresenters = new List<TargetInfoPresenter>();
-
-    // Cache mapping fighters in current timeline to their UI target indicator elements
     private readonly List<KeyValuePair<GameObject, VisualElement>> _timelineTargetIndicators = new List<KeyValuePair<GameObject, VisualElement>>();
 
     private BattleCommandType _currentSelectedCommand = BattleCommandType.Attack;
 
-    // Schedules for animations and auto-hide logic
     private IVisualElementScheduledItem _bannerAutoCloseSchedule;
     private IVisualElementScheduledItem _bannerHideTransitionSchedule;
 
@@ -84,10 +73,15 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Properties & Presenters
+    #region Properties
 
     /// <summary>
-    /// Presenter managing sequential Dragon Quest / Golden Sun victory results flow.
+    /// Dynamic accessor for the currently active main rendering camera aligned with Cinemachine.
+    /// </summary>
+    private Camera ActiveCamera => Camera.main;
+
+    /// <summary>
+    /// Presenter managing sequential victory results flow.
     /// </summary>
     public ResultsScreenPresenter ResultsPresenter { get; private set; }
 
@@ -97,43 +91,42 @@ public class BattleHUDController : MonoBehaviour
 
     private VisualElement _root;
 
-    // --- HUD LAYERS ---
+    // HUD Layers
     private VisualElement _layerGameplay;
     private VisualElement _layerResults;
     private VisualElement _layerGameOver;
 
-    // 1. Active Hero Close-up Viewport
+    // Active Hero Close-up Viewport
     private VisualElement _portraitViewportFrame;
     private VisualElement _portraitRenderElement;
     private RenderTexture _maskedRenderTexture;
     private Label _labelActiveHeroName;
 
-    // 2. Top-Center Active Action Banner
+    // Top-Center Active Action Banner
     private VisualElement _actionBannerContainer;
     private Label _labelActionBannerTitle;
     private Label _labelActionBannerSubtext;
 
-    // 3. Turn Timeline
-
+    // Turn Timeline
     private VisualElement _timelineContainer;
     private VisualElement _turnLeaderSlot;
     private VisualElement _turnQueueList;
 
-    // 4. Floating Command Cross Container & Overlay Instance
+    // Floating Command Cross Container & Overlay Instance
     private VisualElement _floatingCommandMenuContainer;
     private VisualElement _commandCrossOverlayInstance;
 
-    // 5. Floating Action SubMenu Container & Instance
+    // Floating Action SubMenu Container & Instance
     private VisualElement _floatingSubMenuContainer;
     private VisualElement _subMenuInstance;
 
-    // 6. Party Status Cards Container
+    // Party Status Cards Container
     private VisualElement _bottomLeftPartyContainer;
     private readonly List<HeroStatusCardPresenter> _partyCardPresenters = new List<HeroStatusCardPresenter>();
 
     #endregion
 
-    #region Unity Lifecycle & Updates
+    #region Unity Lifecycle
 
     private void Awake()
     {
@@ -190,6 +183,9 @@ public class BattleHUDController : MonoBehaviour
 
     #region Initialization Methods
 
+    /// <summary>
+    /// Binds UI Toolkit document elements and instantiates initial presenter layers.
+    /// </summary>
     private void InitializeUIElements()
     {
         if (uiDocument == null)
@@ -208,7 +204,6 @@ public class BattleHUDController : MonoBehaviour
 
         _root.pickingMode = PickingMode.Ignore;
 
-        // --- LAYER RESOLUTION ---
         _layerGameplay = _root.Q<VisualElement>("layer_gameplay_hud");
         _layerResults = _root.Q<VisualElement>("layer_results_hud");
         _layerGameOver = _root.Q<VisualElement>("layer_gameover_hud");
@@ -218,7 +213,6 @@ public class BattleHUDController : MonoBehaviour
             ResultsPresenter = new ResultsScreenPresenter(_layerResults);
         }
 
-        // Viewport Elements
         _portraitViewportFrame = _root.Q<VisualElement>("portrait_viewport_frame");
         _labelActiveHeroName = _root.Q<Label>("label_active_hero_name");
         _portraitRenderElement = _root.Q<VisualElement>("portrait_viewport_render");
@@ -228,7 +222,6 @@ public class BattleHUDController : MonoBehaviour
             _portraitViewportFrame.AddToClassList(PORTRAIT_HIDDEN_CLASS);
         }
 
-        // Action Banner Elements
         _actionBannerContainer = _root.Q<VisualElement>("action_banner_container");
         _labelActionBannerTitle = _root.Q<Label>("label_action_banner_title");
         _labelActionBannerSubtext = _root.Q<Label>("label_action_banner_subtext");
@@ -241,12 +234,10 @@ public class BattleHUDController : MonoBehaviour
 
         SetupPortraitMaskedRenderTexture();
 
-        // Turn Timeline
         _timelineContainer = _root.Q<VisualElement>("turn_timeline_container");
         _turnLeaderSlot = _root.Q<VisualElement>("turn_leader_slot");
         _turnQueueList = _root.Q<VisualElement>("turn_queue_list");
 
-        // Floating Command Cross Container Setup
         _floatingCommandMenuContainer = _root.Q<VisualElement>("floating_command_menu_container");
         _commandCrossOverlayInstance = _root.Q<VisualElement>("command_cross_overlay");
 
@@ -258,7 +249,6 @@ public class BattleHUDController : MonoBehaviour
 
         InitializeCommandCrossPresenter();
 
-        // Floating Action SubMenu Container Setup
         _floatingSubMenuContainer = _root.Q<VisualElement>("floating_submenu_container");
         _subMenuInstance = _root.Q<VisualElement>("battle_submenu_instance");
 
@@ -270,10 +260,8 @@ public class BattleHUDController : MonoBehaviour
 
         InitializeSubMenuPresenter();
 
-        // Party Cards Container
         _bottomLeftPartyContainer = _root.Q<VisualElement>("bottom_left_party_container");
 
-        // Initial Visibility Reset
         SetHUDVisible(false);
         SetResultsLayerVisible(false);
         SetGameOverLayerVisible(false);
@@ -312,7 +300,7 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Close-Up Viewport Mask Processing
+    #region Close-Up Viewport Processing
 
     private void SetupPortraitMaskedRenderTexture()
     {
@@ -356,7 +344,7 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Event Subscriptions & Handlers
+    #region Event Subscriptions & System Handlers
 
     private void SubscribeEvents()
     {
@@ -763,7 +751,7 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Command Cross Hotkey & Action Processing
+    #region Command Input Handlers
 
     private void HandleHotkeyAttack() => TryTriggerCommand(BattleCommandType.Attack);
     private void HandleHotkeyPsynergy() => TryTriggerCommand(BattleCommandType.Psynergy);
@@ -815,7 +803,7 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region SubMenu Population Logic
+    #region SubMenu Management
 
     private void OpenSubMenuForActiveHero()
     {
@@ -853,8 +841,11 @@ public class BattleHUDController : MonoBehaviour
 
     #endregion
 
-    #region Universal Projection Helper (3D World -> 2D Panel)
+    #region Spatial Projections & Floating UI
 
+    /// <summary>
+    /// Projects a 3D world position to a 2D UI Toolkit panel space position.
+    /// </summary>
     public bool TryProjectWorldToPanel(Vector3 worldPosition, Vector3 worldOffset, out Vector2 panelPosition)
     {
         panelPosition = Vector2.zero;
@@ -872,45 +863,69 @@ public class BattleHUDController : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Updates screen-space positions for 3D anchored floating elements (Command Cross and SubMenu).
+    /// Dynamically syncs visibility with current BattleState to remain robust during camera blends.
+    /// </summary>
     private void UpdateFloatingUIElementsPosition()
     {
-        if (_currentActiveFighter == null) return;
+        if (_currentActiveFighter == null || battleManager == null) return;
+
+        bool shouldCommandCrossBeVisible = (battleManager.CurrentBattleState == BattleState.CommandSelection);
+        bool shouldSubMenuBeVisible = (battleManager.CurrentBattleState == BattleState.SubMenuSelection);
 
         Vector3 crossWorldPos = _currentActiveFighter.TryGetComponent<FighterBattleAnchors>(out var anchors)
             ? anchors.GetCommandCrossWorldPosition()
             : _currentActiveFighter.transform.position;
 
-        if (!TryProjectWorldToPanel(crossWorldPos, Vector3.zero, out Vector2 basePanelPos))
-        {
-            if (_floatingCommandMenuContainer != null) _floatingCommandMenuContainer.style.visibility = Visibility.Hidden;
-            if (_floatingSubMenuContainer != null) _floatingSubMenuContainer.style.visibility = Visibility.Hidden;
-            return;
-        }
+        bool isProjectedOnScreen = TryProjectWorldToPanel(crossWorldPos, Vector3.zero, out Vector2 basePanelPos);
 
-        if (_floatingCommandMenuContainer != null && _floatingCommandMenuContainer.style.visibility == Visibility.Visible)
+        // 1. Command Cross Floating Anchor Management
+        if (_floatingCommandMenuContainer != null)
         {
-            _floatingCommandMenuContainer.style.left = basePanelPos.x;
-            _floatingCommandMenuContainer.style.top = basePanelPos.y;
-        }
-
-        if (_floatingSubMenuContainer != null && _floatingSubMenuContainer.style.visibility == Visibility.Visible)
-        {
-            Vector3 subMenuWorldPos = anchors != null
-                ? anchors.GetSubMenuWorldPosition()
-                : crossWorldPos;
-
-            if (TryProjectWorldToPanel(subMenuWorldPos, Vector3.zero, out Vector2 subMenuPanelPos))
+            if (shouldCommandCrossBeVisible && isProjectedOnScreen)
             {
-                float panelWidth = _root.panel.visualTree.layout.width;
-                float offsetX = _subMenuScreenOffset.x;
+                _floatingCommandMenuContainer.style.left = basePanelPos.x;
+                _floatingCommandMenuContainer.style.top = basePanelPos.y;
+                _floatingCommandMenuContainer.style.visibility = Visibility.Visible;
+            }
+            else
+            {
+                _floatingCommandMenuContainer.style.visibility = Visibility.Hidden;
+            }
+        }
 
-                if (subMenuPanelPos.x + offsetX + 210f > panelWidth)
+        // 2. SubMenu Floating Anchor Management
+        if (_floatingSubMenuContainer != null)
+        {
+            if (shouldSubMenuBeVisible && isProjectedOnScreen)
+            {
+                Vector3 subMenuWorldPos = anchors != null
+                    ? anchors.GetSubMenuWorldPosition()
+                    : crossWorldPos;
+
+                if (TryProjectWorldToPanel(subMenuWorldPos, Vector3.zero, out Vector2 subMenuPanelPos))
                 {
-                    offsetX = -offsetX;
-                }
+                    float panelWidth = _root.panel.visualTree.layout.width;
+                    float offsetX = _subMenuScreenOffset.x;
 
-                _floatingSubMenuContainer.style.left = subMenuPanelPos.x + offsetX;
-                _floatingSubMenuContainer.style.top = subMenuPanelPos.y + _subMenuScreenOffset.y;
+                    if (subMenuPanelPos.x + offsetX + 210f > panelWidth)
+                    {
+                        offsetX = -offsetX;
+                    }
+
+                    _floatingSubMenuContainer.style.left = subMenuPanelPos.x + offsetX;
+                    _floatingSubMenuContainer.style.top = subMenuPanelPos.y + _subMenuScreenOffset.y;
+                    _floatingSubMenuContainer.style.visibility = Visibility.Visible;
+                }
+                else
+                {
+                    _floatingSubMenuContainer.style.visibility = Visibility.Hidden;
+                }
+            }
+            else
+            {
+                _floatingSubMenuContainer.style.visibility = Visibility.Hidden;
             }
         }
     }
@@ -949,7 +964,6 @@ public class BattleHUDController : MonoBehaviour
     {
         if (_turnLeaderSlot == null || _turnQueueList == null) return;
 
-        // Golden Sun Classic mode does not use the turn timeline, so we hide.
         if (battleManager != null && battleManager.CurrentBattleMode == BattleSystemMode.GoldenSunClassic)
         {
             if (_timelineContainer != null)

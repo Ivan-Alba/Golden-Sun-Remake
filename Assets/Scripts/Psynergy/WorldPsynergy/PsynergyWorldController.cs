@@ -340,7 +340,7 @@ public class PsynergyWorldController : MonoBehaviour
                 },
                 onFinished: () =>
                 {
-                    // Phase 2: Visual presentation fully completed (e.g., hand returned to caster)
+                    // Phase 2: Visual presentation fully completed
                     if (isCompatibleTarget)
                     {
                         target.OnPsynergySequenceFinished(usedPsynergy, playerWorldObject);

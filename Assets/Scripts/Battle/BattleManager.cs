@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Possible battle execution states orchestrating combat flow.
+/// </summary>
 public enum BattleState
 {
     None,
@@ -17,6 +19,9 @@ public enum BattleState
     GameOverScreen        // Defeat screen
 }
 
+/// <summary>
+/// Container struct encapsulating an action execution payload.
+/// </summary>
 public struct BattleActionRequest
 {
     public FighterController Caster;          // Fighter executing the action
@@ -26,6 +31,10 @@ public struct BattleActionRequest
     public List<GameObject> AffectedTargets;  // Full list of impacted target GameObjects
 }
 
+/// <summary>
+/// Main orchestrator component managing battle states, combatant turn queues,
+/// round resolution in Classic/CTB modes, and reward sequences with zero GC allocations in loop.
+/// </summary>
 public class BattleManager : MonoBehaviour
 {
     private enum ActionOutcomeState
@@ -48,7 +57,7 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region Private State & Buffers
+    #region Private State & Reusable GC Buffers
 
     private BattleSystemMode currentBattleMode = BattleSystemMode.GoldenSunClassic;
 
@@ -57,23 +66,27 @@ public class BattleManager : MonoBehaviour
 
     // Active Selection State
     private BattleCommandType _selectedCommandType = BattleCommandType.Attack;
-    private List<GameObject> targetList = new List<GameObject>();
+    private readonly List<GameObject> targetList = new List<GameObject>();
 
     // Combatant Lists
-    private List<GameObject> enemiesList = new List<GameObject>();
-    private List<GameObject> heroList = new List<GameObject>();
-    private List<GameObject> fighters = new List<GameObject>();
+    private readonly List<GameObject> enemiesList = new List<GameObject>();
+    private readonly List<GameObject> heroList = new List<GameObject>();
+    private readonly List<GameObject> fighters = new List<GameObject>();
+
+    // Reusable GC Buffers
+    private readonly List<GameObject> _cachedActiveEnemiesBuffer = new List<GameObject>();
+    private readonly List<GameObject> _singleTargetBuffer = new List<GameObject>();
 
     // Local Controllers
     private TurnController turnController;
 
     // Golden Sun Classic Round Queue State
-    private List<CombatCommand> pendingRoundCommands = new List<CombatCommand>();
+    private readonly List<CombatCommand> pendingRoundCommands = new List<CombatCommand>();
     private int currentHeroSelectionIndex = 0;
 
     #endregion
 
-    #region Local C# Events for Local HUD & Components
+    #region Events
 
     public event Action<BattleState> OnBattleStateChanged;
     public event Action<BattleCommandType> OnCommandTypeSelected;
@@ -84,9 +97,16 @@ public class BattleManager : MonoBehaviour
 
     #region Properties
 
+    /// <summary>
+    /// Current active battle system ruleset (Golden Sun Classic vs FFX CTB).
+    /// </summary>
     public BattleSystemMode CurrentBattleMode => currentBattleMode;
 
     private BattleState _currentBattleState = BattleState.None;
+
+    /// <summary>
+    /// Current operational state of the battle flow.
+    /// </summary>
     public BattleState CurrentBattleState
     {
         get => _currentBattleState;
@@ -125,7 +145,6 @@ public class BattleManager : MonoBehaviour
 
     private void Start()
     {
-        // Query current game settings upon spawning in scene via Callback
         GameEvents.Settings.RequestCurrentSettings(HandleSettingsLoaded);
     }
 
@@ -175,7 +194,6 @@ public class BattleManager : MonoBehaviour
         GameEvents.GameState.OnGameStateChanged -= HandleGameStateChanged;
         GameEvents.GameState.OnGameStateChanged += HandleGameStateChanged;
 
-        // Dynamic Settings Subscriptions
         GameEvents.Settings.OnBattleModeChanged -= HandleBattleModeChanged;
         GameEvents.Settings.OnBattleModeChanged += HandleBattleModeChanged;
     }
@@ -218,8 +236,11 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region Direct Command Cross Triggers (Exposed to BattleHUDController)
+    #region Direct Command Cross Triggers
 
+    /// <summary>
+    /// Receives command triggers directly from UI HUD selection.
+    /// </summary>
     public void ExecuteCommandFromUI(BattleCommandType commandType)
     {
         Debug.Log($"[BattleManager] ExecuteCommandFromUI: {commandType} | GameState: {_cachedGameState} | BattleState: {CurrentBattleState}");
@@ -250,13 +271,19 @@ public class BattleManager : MonoBehaviour
                 FighterController caster = GetActiveSelectionCaster();
                 GameObject casterObj = caster != null ? caster.gameObject : null;
 
+                _singleTargetBuffer.Clear();
+                if (casterObj != null)
+                {
+                    _singleTargetBuffer.Add(casterObj);
+                }
+
                 BattleActionRequest defendRequest = new BattleActionRequest
                 {
                     Caster = caster,
                     CommandType = BattleCommandType.Defend,
                     ActionPayload = null,
                     PrimaryTarget = casterObj,
-                    AffectedTargets = casterObj != null ? new List<GameObject> { casterObj } : new List<GameObject>()
+                    AffectedTargets = _singleTargetBuffer
                 };
 
                 HandleTargetSelectionConfirmed(defendRequest);
@@ -268,6 +295,9 @@ public class BattleManager : MonoBehaviour
 
     #region SubMenu Action Selection Handlers
 
+    /// <summary>
+    /// Processes action card selection from Psynergy, Item, or Djinn submenus.
+    /// </summary>
     public void HandleSubMenuActionSelected(BattleCommandType commandType, object actionPayload)
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
@@ -283,6 +313,9 @@ public class BattleManager : MonoBehaviour
         CurrentBattleState = BattleState.TargetSelection;
     }
 
+    /// <summary>
+    /// Handles cancellation from SubMenu back to main Command Cross.
+    /// </summary>
     public void HandleSubMenuCancelled()
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.SubMenuSelection)
@@ -291,6 +324,9 @@ public class BattleManager : MonoBehaviour
         CurrentBattleState = BattleState.CommandSelection;
     }
 
+    /// <summary>
+    /// Cancels previous hero command selection in Classic Golden Sun round setup.
+    /// </summary>
     public void HandleCancelCommandSelection()
     {
         if (_cachedGameState != GameManager.GameState.InBattle || CurrentBattleState != BattleState.CommandSelection)
@@ -322,7 +358,16 @@ public class BattleManager : MonoBehaviour
             currentHeroSelectionIndex = previousIndex;
 
             GameObject previousHeroObj = heroList[currentHeroSelectionIndex];
-            pendingRoundCommands.RemoveAll(cmd => cmd.Caster != null && cmd.Caster.gameObject == previousHeroObj);
+
+            // Manual zero-allocation removal loop replacing Lambda closure
+            for (int i = pendingRoundCommands.Count - 1; i >= 0; i--)
+            {
+                CombatCommand cmd = pendingRoundCommands[i];
+                if (cmd.Caster != null && cmd.Caster.gameObject == previousHeroObj)
+                {
+                    pendingRoundCommands.RemoveAt(i);
+                }
+            }
 
             PromptNextHeroOrExecuteRound();
         }
@@ -343,7 +388,7 @@ public class BattleManager : MonoBehaviour
             CurrentBattleState = BattleState.WaitingTurnExecution;
             StartCoroutine(ExecuteConfirmedActionSequence(request));
         }
-        else // GoldenSunClassic Mode Behavior
+        else
         {
             FighterController caster = request.Caster ?? GetActiveSelectionCaster();
             int agility = caster != null && caster.TryGetComponent<FighterStats>(out var stats) ? stats.Agility : 10;
@@ -443,6 +488,9 @@ public class BattleManager : MonoBehaviour
 
     #region Action Execution Routines (CTB & Round Execution)
 
+    /// <summary>
+    /// Zero-GC allocation coroutine executing round commands sequentially based on priority.
+    /// </summary>
     private IEnumerator ExecuteGoldenSunRoundRoutine()
     {
         Debug.Log($"[BattleManager] Starting ExecuteGoldenSunRoundRoutine with {pendingRoundCommands.Count} total commands.");
@@ -451,13 +499,12 @@ public class BattleManager : MonoBehaviour
 
         ActivatePreDeclaredDefenses();
 
-        List<CombatCommand> orderedCommands = pendingRoundCommands
-            .OrderByDescending(c => c.RoundPriority)
-            .ToList();
+        // Zero-allocation in-place sorting
+        pendingRoundCommands.Sort((a, b) => b.RoundPriority.CompareTo(a.RoundPriority));
 
-        for (int i = 0; i < orderedCommands.Count; i++)
+        for (int i = 0; i < pendingRoundCommands.Count; i++)
         {
-            CombatCommand command = orderedCommands[i];
+            CombatCommand command = pendingRoundCommands[i];
             if (command == null || command.Caster == null) continue;
 
             ActivatePendingFallbackDefenses();
@@ -480,7 +527,11 @@ public class BattleManager : MonoBehaviour
                 }
             }
 
-            targetList = command.Request.AffectedTargets ?? new List<GameObject>();
+            targetList.Clear();
+            if (command.Request.AffectedTargets != null)
+            {
+                targetList.AddRange(command.Request.AffectedTargets);
+            }
 
             if (battleCameraController != null && command.Caster != null)
             {
@@ -592,7 +643,11 @@ public class BattleManager : MonoBehaviour
         FighterController casterController = request.Caster ?? (turnController != null ? turnController.CurrentFighter : null);
         GameObject activeFighterObj = casterController != null ? casterController.gameObject : null;
 
-        targetList = request.AffectedTargets ?? new List<GameObject>();
+        targetList.Clear();
+        if (request.AffectedTargets != null)
+        {
+            targetList.AddRange(request.AffectedTargets);
+        }
 
         int cost = actionExecutor != null ? actionExecutor.GetActionCost(request) : 50;
         if (turnController != null)
@@ -668,6 +723,9 @@ public class BattleManager : MonoBehaviour
 
     #region Battle Lifecycle & Setup
 
+    /// <summary>
+    /// Entry point for overworld encounter triggers.
+    /// </summary>
     public void InitializeCollisionBattle(GameObject enemyInitiator, GameObject spawnZone, CollisionAdvantageType advantageType)
     {
         Debug.Log($"[BattleManager] InitializeCollisionBattle triggered by overworld collision.");
@@ -703,16 +761,30 @@ public class BattleManager : MonoBehaviour
         {
             BattleSpawnResult spawnResult = fieldSpawner.SpawnBattleField(initData, _cachedParty);
 
-            heroList = spawnResult.HeroList;
-            enemiesList = spawnResult.EnemiesList;
-            fighters = spawnResult.AllActiveFighters;
+            heroList.Clear();
+            if (spawnResult.HeroList != null) heroList.AddRange(spawnResult.HeroList);
+
+            enemiesList.Clear();
+            if (spawnResult.EnemiesList != null) enemiesList.AddRange(spawnResult.EnemiesList);
+
+            fighters.Clear();
+            if (spawnResult.AllActiveFighters != null) fighters.AddRange(spawnResult.AllActiveFighters);
 
             Debug.Log($"[BattleManager] Spawner Result: Heroes={heroList.Count}, Enemies={enemiesList.Count}, Total={fighters.Count}");
 
             if (battleCameraController != null)
             {
-                List<GameObject> activeEnemiesOnly = enemiesList.Where(e => e != null).ToList();
-                battleCameraController.SetupTargetGroups(heroList, activeEnemiesOnly);
+                // Manual zero-allocation list filtering
+                _cachedActiveEnemiesBuffer.Clear();
+                for (int i = 0; i < enemiesList.Count; i++)
+                {
+                    if (enemiesList[i] != null)
+                    {
+                        _cachedActiveEnemiesBuffer.Add(enemiesList[i]);
+                    }
+                }
+
+                battleCameraController.SetupTargetGroups(heroList, _cachedActiveEnemiesBuffer);
             }
 
             if (targetSelectionController != null)
@@ -802,7 +874,7 @@ public class BattleManager : MonoBehaviour
                 }
             }
         }
-        else // GoldenSunClassic
+        else
         {
             currentHeroSelectionIndex = 0;
             pendingRoundCommands.Clear();
@@ -903,6 +975,8 @@ public class BattleManager : MonoBehaviour
         heroList.Clear();
         enemiesList.Clear();
         targetList.Clear();
+        _cachedActiveEnemiesBuffer.Clear();
+        _singleTargetBuffer.Clear();
 
         pendingRoundCommands.Clear();
         currentHeroSelectionIndex = 0;
