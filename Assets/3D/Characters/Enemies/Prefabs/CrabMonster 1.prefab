@@ -1868,6 +1868,8 @@ GameObject:
   - component: {fileID: 8113470619396800847}
   - component: {fileID: 989648652199702810}
   - component: {fileID: 2811295925720095527}
+  - component: {fileID: 2355593669052065716}
+  - component: {fileID: 7850099048164447106}
   m_Layer: 12
   m_Name: CrabMonster 1
   m_TagString: Untagged
@@ -1943,7 +1945,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   battleVisualModel: {fileID: 0}
   fighterAnim: {fileID: 0}
+  animationEvents: {fileID: 2355593669052065716}
   selectionPointer: {fileID: 502050470305081035}
+  approachSpeed: 7
+  returnSpeed: 8
+  rotationSpeed: 10
 --- !u!114 &5452322158733105067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2133,6 +2139,38 @@ MonoBehaviour:
   entitySubTitle: 
   uiAnchor: {fileID: 0}
   defaultHeightOffset: 2
+--- !u!114 &2355593669052065716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6772812994726536540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08176112f98cd447ae3cec7b039f459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterAnimationEvents
+  footstepEmitter: {fileID: 989648652199702810}
+--- !u!114 &7850099048164447106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6772812994726536540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ff4869265619f74b869bc2ce0ced9c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
+  pointerAnchor: {fileID: 0}
+  meleeAttackAnchor: {fileID: 0}
+  meleeAttackOffset: {x: 0, y: 0, z: 2.2}
+  damageNumberOffset: {x: 0, y: 1, z: 0}
+  targetInfoOffset: {x: 0, y: 3, z: 0}
+  commandCrossOffset: {x: 0, y: 0, z: 0}
+  subMenuOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &6772819039177238622
 GameObject:
   m_ObjectHideFlags: 0

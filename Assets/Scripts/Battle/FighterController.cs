@@ -3,11 +3,11 @@ using UnityEngine;
 
 /// <summary>
 /// 3D View/Controller component responsible exclusively for spatial movement, 
-/// animation triggers, and receiving impact states.
+/// smooth Melee dash/return routines, animation triggers, and receiving impact states.
 /// </summary>
 public class FighterController : MonoBehaviour
 {
-    #region Private Fields & References
+    #region Serialized Fields & References
 
     [Header("Visual Representation")]
     [Tooltip("Reference to the 3D model GameObject (with Animator/Renderers) to toggle visibility in Overworld vs Battle.")]
@@ -16,12 +16,30 @@ public class FighterController : MonoBehaviour
     [Tooltip("Direct reference to the fighter's Animator component (works even if the visual model starts inactive).")]
     [SerializeField] private Animator fighterAnim;
 
+    [Header("Visual & Animation Setup")]
+    [SerializeField] private FighterAnimationEvents animationEvents;
+
     [SerializeField] private BattleSelectionPointer selectionPointer;
+
+    [Header("Movement Settings")]
+    [Tooltip("Speed multiplier for Melee approach dash.")]
+    [SerializeField] private float approachSpeed = 12f;
+
+    [Tooltip("Speed multiplier for returning back to home slot position.")]
+    [SerializeField] private float returnSpeed = 10f;
+
+    [Tooltip("Rotation interpolation speed during movement transitions.")]
+    [SerializeField] private float rotationSpeed = 12f;
+
+    #endregion
+
+    #region Private Fields
 
     private FighterStats stats;
 
-    private Vector3 startPosition;
-    private Quaternion startRotation;
+    private Vector3 homePosition;
+    private Quaternion homeRotation;
+    private bool hasStoredHomeTransform;
 
     private bool isDefending;
     private bool actionFinished;
@@ -47,15 +65,24 @@ public class FighterController : MonoBehaviour
 
     #region Properties
 
+    /// <summary>
+    /// Flag set to true by FighterAnimationEvents when the active clip finishes playing.
+    /// </summary>
     public bool ActionFinished { get => actionFinished; set => actionFinished = value; }
+
+    /// <summary>
+    /// Indicates whether the fighter is currently holding a defensive stance.
+    /// </summary>
     public bool IsDefending => isDefending;
 
-    // Cooldown accumulated value managed by TurnController
+    /// <summary>
+    /// Cooldown accumulated value managed by TurnController.
+    /// </summary>
     public int NextTurnCD { get; set; }
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Unity Lifecycle & Initialization
 
     private void Awake()
     {
@@ -64,7 +91,68 @@ public class FighterController : MonoBehaviour
             fighterAnim = GetComponentInChildren<Animator>(true);
         }
 
+        if (animationEvents == null)
+        {
+            animationEvents = GetComponentInChildren<FighterAnimationEvents>(true);
+        }
+
+        SubscribeAnimationEvents();
         stats = GetComponent<FighterStats>();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeAnimationEvents();
+    }
+
+    /// <summary>
+    /// Explicitly registers the fighter's designated battle slot position and rotation.
+    /// Called directly by BattleFieldSpawner upon arena layout calculation.
+    /// </summary>
+    public void SetHomeTransform(Vector3 position, Quaternion rotation)
+    {
+        homePosition = position;
+        homeRotation = rotation;
+        hasStoredHomeTransform = true;
+    }
+
+    #endregion
+
+    #region Animation Events Subscriptions
+
+    private void SubscribeAnimationEvents()
+    {
+        if (animationEvents == null) return;
+
+        animationEvents.OnHitImpact += HandleHitImpact;
+        animationEvents.OnCastRelease += HandleCastRelease;
+        animationEvents.OnAnimationCompleted += HandleAnimationCompleted;
+        animationEvents.OnDeathAnimationFinished += OnDeathAnimationFinished;
+    }
+
+    private void UnsubscribeAnimationEvents()
+    {
+        if (animationEvents == null) return;
+
+        animationEvents.OnHitImpact -= HandleHitImpact;
+        animationEvents.OnCastRelease -= HandleCastRelease;
+        animationEvents.OnAnimationCompleted -= HandleAnimationCompleted;
+        animationEvents.OnDeathAnimationFinished -= OnDeathAnimationFinished;
+    }
+
+    private void HandleHitImpact()
+    {
+        // Reserved hook for local hit feedback / particles
+    }
+
+    private void HandleCastRelease()
+    {
+        // Reserved hook for local magic cast feedback / particles
+    }
+
+    private void HandleAnimationCompleted()
+    {
+        actionFinished = true;
     }
 
     #endregion
@@ -78,15 +166,9 @@ public class FighterController : MonoBehaviour
             SetOffDefense();
         }
 
-        // Decrement active turn modifiers on stats
         stats?.TickTurnModifiers();
     }
 
-    #endregion
-
-    /// <summary>
-    /// Shows or hides the fighter's 3D visual model (used for heroes transitioning between Overworld and Battle).
-    /// </summary>
     public void SetBattleVisualsActive(bool active)
     {
         if (battleVisualModel != null)
@@ -95,18 +177,21 @@ public class FighterController : MonoBehaviour
         }
         else
         {
-            // Fallback por si acaso es un enemigo o un prefab simple sin modelo hijo asignado
             gameObject.SetActive(active);
         }
     }
 
-    #region Caster Animation API (FX Config Synchronization)
+    #endregion
+
+    #region Caster & Attack Animation API
 
     /// <summary>
-    /// Executes the caster's preparation/cast animation based on the CasterAnimationType enum.
+    /// Prepares and triggers the corresponding spell or item cast animation clip.
+    /// Resets action completion flag.
     /// </summary>
     public void PlayCasterAnimation(CasterAnimationType animType)
     {
+        actionFinished = false;
         if (fighterAnim == null || animType == CasterAnimationType.None) return;
 
         switch (animType)
@@ -128,37 +213,31 @@ public class FighterController : MonoBehaviour
                 break;
 
             case CasterAnimationType.AttackPreparation:
-                // Reservoir hook: Reserved for future pre-attack stance/dash animations.
                 break;
         }
     }
 
-    #endregion
-
-    #region Animation Triggers API (Exposed to BattleActionExecutor & BattleManager)
-
+    /// <summary>
+    /// Triggers physical attack animation clip. Resets action completion flag.
+    /// </summary>
     public void PlayAttackAnimation()
     {
+        actionFinished = false;
         if (fighterAnim != null) fighterAnim.SetTrigger(HashAttack);
     }
 
     public void PlayCastAnimation()
     {
+        actionFinished = false;
         if (fighterAnim != null) fighterAnim.SetTrigger(HashUsePsynergy);
     }
 
-    /// <summary>
-    /// Triggers victory animation pose if the fighter is currently alive.
-    /// </summary>
     public void PlayVictoryPose()
     {
         if (stats != null && stats.CurrHp <= 0) return;
         if (fighterAnim != null) fighterAnim.SetBool(HashVictoryPose, true);
     }
 
-    /// <summary>
-    /// Stops the victory animation pose.
-    /// </summary>
     public void StopVictoryPose()
     {
         if (fighterAnim != null) fighterAnim.SetBool(HashVictoryPose, false);
@@ -177,7 +256,6 @@ public class FighterController : MonoBehaviour
             stats.CurrHp = Mathf.Max(0, stats.CurrHp - damageAmount);
         }
 
-        // Trigger floating number UI Event
         string textDisplay = isCritical ? $"CRITICAL!\n{damageAmount}" : damageAmount.ToString();
         var textType = isCritical
             ? DamageNumbersPresenter.DamageTextType.CriticalDamage
@@ -205,87 +283,147 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
-    #region Movement Helpers & Coroutines (Exposed)
+    #region Movement Routines (Smooth Melee Dash & Backwards Return)
 
     /// <summary>
-    /// Coroutine wrapper to move towards a target 3D point.
+    /// Calculates the optimal Melee stopping position in front of a target GameObject.
     /// </summary>
-    public IEnumerator MoveToTargetCoroutine(Vector3 destinationPoint, float stopDistance = 2.5f)
+    public Vector3 CalculateMeleeStoppingPosition(GameObject targetObj, float fallbackOffset = 2.2f)
     {
-        startPosition = transform.position;
-        startRotation = transform.rotation;
+        if (targetObj == null) return transform.position;
 
-        Vector3 targetPosHorizontal = new Vector3(destinationPoint.x, transform.position.y, destinationPoint.z);
-
-        while (Vector3.Distance(transform.position, targetPosHorizontal) > stopDistance)
+        if (targetObj.TryGetComponent<FighterBattleAnchors>(out var anchors))
         {
-            transform.LookAt(targetPosHorizontal);
-            transform.position = Vector3.MoveTowards(transform.position, targetPosHorizontal, 8f * Time.deltaTime);
+            return anchors.GetMeleeAttackWorldPosition();
+        }
 
-            if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 6f);
+        Vector3 targetPos = targetObj.transform.position;
+        Vector3 directionFromTarget = (transform.position - targetPos).normalized;
+        directionFromTarget.y = 0;
+
+        float offsetDistance = fallbackOffset;
+        if (targetObj.TryGetComponent<Collider>(out var col))
+        {
+            offsetDistance = Mathf.Max(fallbackOffset, col.bounds.extents.magnitude * 0.9f);
+        }
+
+        return targetPos + (directionFromTarget * offsetDistance);
+    }
+
+    /// <summary>
+    /// Smooth coroutine moving the fighter towards a target Melee position using smooth lerp and progressive rotation.
+    /// </summary>
+    public IEnumerator MoveToTargetCoroutine(GameObject targetObj, float stopDistanceOffset = 2.2f)
+    {
+        if (!hasStoredHomeTransform)
+        {
+            SetHomeTransform(transform.position, transform.rotation);
+        }
+
+        Vector3 destinationPoint = CalculateMeleeStoppingPosition(targetObj, stopDistanceOffset);
+        destinationPoint.y = transform.position.y;
+
+        Vector3 startPos = transform.position;
+        float totalDistance = Vector3.Distance(startPos, destinationPoint);
+
+        if (totalDistance < 0.1f) yield break;
+
+        float travelTime = totalDistance / approachSpeed;
+        float elapsedTime = 0f;
+
+        // Positive move value triggers Forward Run in Blend Tree
+        if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 6f);
+
+        while (elapsedTime < travelTime)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / travelTime;
+            float smoothT = Mathf.SmoothStep(0f, 1f, t);
+
+            transform.position = Vector3.Lerp(startPos, destinationPoint, smoothT);
+
+            Vector3 lookDir = (destinationPoint - transform.position).normalized;
+            if (lookDir != Vector3.zero)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(lookDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            }
+
             yield return null;
+        }
+
+        transform.position = destinationPoint;
+
+        Vector3 finalLookDir = (targetObj.transform.position - transform.position).normalized;
+        finalLookDir.y = 0;
+        if (finalLookDir != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(finalLookDir);
         }
 
         if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 0f);
     }
 
     /// <summary>
-    /// Coroutine wrapper to return to original spatial slot anchor position.
+    /// Smooth coroutine returning the fighter back to home slot position moving BACKWARDS (facing the arena).
     /// </summary>
     public IEnumerator ReturnToOriginCoroutine()
     {
         isReturning = true;
 
-        while (Vector3.Distance(transform.position, startPosition) > 0.05f)
+        Vector3 startPos = transform.position;
+        float totalDistance = Vector3.Distance(startPos, homePosition);
+
+        if (totalDistance > 0.1f)
         {
-            transform.position = Vector3.MoveTowards(transform.position, startPosition, 8.5f * Time.deltaTime);
-            if (fighterAnim != null) fighterAnim.SetFloat(HashMove, -8.5f);
+            float travelTime = totalDistance / returnSpeed;
+            float elapsedTime = 0f;
+
+            // Negative move value (-6f) triggers RunBack clip in Blend Tree
+            if (fighterAnim != null) fighterAnim.SetFloat(HashMove, -6f);
+
+            while (elapsedTime < travelTime)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = elapsedTime / travelTime;
+                float smoothT = Mathf.SmoothStep(0f, 1f, t);
+
+                // Move position towards home anchor without rotating transform 180 degrees
+                transform.position = Vector3.Lerp(startPos, homePosition, smoothT);
+
+                yield return null;
+            }
+        }
+
+        transform.position = homePosition;
+
+        // Smooth realignment to exact home slot rotation if slightly offset
+        while (Quaternion.Angle(transform.rotation, homeRotation) > 0.5f)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, homeRotation, rotationSpeed * Time.deltaTime);
             yield return null;
         }
 
-        transform.position = startPosition;
+        transform.rotation = homeRotation;
 
-        // Smoothly return to start rotation
-        while (Quaternion.Angle(transform.rotation, startRotation) > 1f)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, startRotation, 10f * Time.deltaTime);
-            yield return null;
-        }
-
-        transform.rotation = startRotation;
+        // Return Blend Tree parameter back to Idle (0)
         if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 0f);
 
         isReturning = false;
     }
 
-    public void AttackDone() // Animation Event Hook
-    {
-        // Reserved for animation sync frame if needed
-    }
-
     #endregion
 
-    #region Animation Event Hooks & Death Dissolve Logic
+    #region Death Dissolve Logic
 
-    /// <summary>
-    /// Animation Event Hook: Triggered at the final frame of the enemy's death animation.
-    /// Initiates a two-phase defeat effect (Red Tint Flash + Fade) and cleans up non-hero entities.
-    /// </summary>
     public void OnDeathAnimationFinished()
     {
-        // Only enemies should dissolve and destroy their GameObjects upon death.
-        // Heroes remain down on the battle grid to allow revive items/Psynergy.
         if (stats != null && !stats.IsHero)
         {
             StartCoroutine(FFVIIDeathEffectCoroutine(1.2f));
         }
     }
 
-    /// <summary>
-    /// Replicates the classic FFVII/Golden Sun enemy defeat effect:
-    /// Phase 1: Sudden red/emissive flash on the mesh.
-    /// Phase 2: Switches URP material surface to Transparent and performs smooth alpha fadeout.
-    /// </summary>
     private IEnumerator FFVIIDeathEffectCoroutine(float duration)
     {
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
@@ -295,7 +433,6 @@ public class FighterController : MonoBehaviour
             yield break;
         }
 
-        // Cache material instances to avoid modifying project source assets
         Material[] materials = new Material[renderers.Length];
         Color[] originalColors = new Color[renderers.Length];
 
@@ -318,10 +455,9 @@ public class FighterController : MonoBehaviour
         }
 
         float elapsedTime = 0f;
-        float flashDuration = duration * 0.3f; // First 30% of time: Red Tint
-        float fadeDuration = duration * 0.7f;  // Remaining 70%: Fade out
+        float flashDuration = duration * 0.3f;
+        float fadeDuration = duration * 0.7f;
 
-        // PHASE 1: Red Tint Flash (FFVII Style)
         while (elapsedTime < flashDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -331,7 +467,6 @@ public class FighterController : MonoBehaviour
             {
                 if (materials[i] == null) continue;
 
-                // Interpolate from original color to intense Red
                 Color targetRed = Color.Lerp(originalColors[i], new Color(1f, 0.1f, 0.1f, originalColors[i].a), t);
                 SetMaterialColor(materials[i], targetRed);
             }
@@ -339,14 +474,12 @@ public class FighterController : MonoBehaviour
             yield return null;
         }
 
-        // TRANSITION: Force URP materials to Transparent surface type
         for (int i = 0; i < materials.Length; i++)
         {
             if (materials[i] == null) continue;
             EnableURPTransparency(materials[i]);
         }
 
-        // PHASE 2: Fade Out to Transparent
         elapsedTime = 0f;
         while (elapsedTime < fadeDuration)
         {
@@ -364,31 +497,24 @@ public class FighterController : MonoBehaviour
             yield return null;
         }
 
-        // Clean up entity
         gameObject.SetActive(false);
         Destroy(gameObject, 0.2f);
     }
 
-    /// <summary>
-    /// Configures URP Lit/Unlit materials at runtime to render as Transparent with Alpha Blending.
-    /// </summary>
     private void EnableURPTransparency(Material mat)
     {
         if (mat == null) return;
 
-        // URP Surface Type property (0 = Opaque, 1 = Transparent)
         if (mat.HasProperty("_Surface"))
         {
             mat.SetFloat("_Surface", 1f);
         }
 
-        // Enable Alpha Blending modes on URP Pipeline
-        mat.SetFloat("_Blend", 0f); // 0 = Alpha, 1 = Premultiply, 2 = Additive, 3 = Multiply
+        mat.SetFloat("_Blend", 0f);
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        mat.SetInt("_ZWrite", 0); // Disable Depth Write for transparent sorting
+        mat.SetInt("_ZWrite", 0);
 
-        // Enable Shader Keywords
         mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
         mat.EnableKeyword("_ALPHABLEND_ON");
         mat.DisableKeyword("_ALPHATEST_ON");
@@ -397,9 +523,6 @@ public class FighterController : MonoBehaviour
         mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
     }
 
-    /// <summary>
-    /// Helper method to safely assign colors across URP and Legacy Shader properties.
-    /// </summary>
     private void SetMaterialColor(Material mat, Color color)
     {
         if (mat.HasProperty("_BaseColor"))
@@ -414,9 +537,8 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
-    /// <summary>
-    /// Controls 3D target selection pointer visibility, dynamic scale, and animation synchronization.
-    /// </summary>
+    #region Selection Pointer API & Cleanup
+
     public void SetSelectionPointerVisible(bool visible, bool isPrimary = false, float primaryScale = 1.0f, float secondaryScale = 0.7f)
     {
         if (selectionPointer == null) return;
@@ -434,16 +556,14 @@ public class FighterController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Resets fighter battle state (defense status, turn CDs, animators) and hides its battle visual model when combat ends.
-    /// </summary>
     public void OnBattleEnded()
     {
         NextTurnCD = 0;
         SetOffDefense();
         StopVictoryPose();
 
-        // Ocultar el modelo de batalla al terminar el combate
         SetBattleVisualsActive(false);
     }
+
+    #endregion
 }

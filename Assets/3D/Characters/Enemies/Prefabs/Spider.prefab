@@ -2437,6 +2437,7 @@ GameObject:
   - component: {fileID: -308459226668599625}
   - component: {fileID: -8791449935576081130}
   - component: {fileID: -587749026876092104}
+  - component: {fileID: 7243405103843848301}
   m_Layer: 12
   m_Name: Spider
   m_TagString: Untagged
@@ -2519,7 +2520,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   battleVisualModel: {fileID: 0}
   fighterAnim: {fileID: 0}
+  animationEvents: {fileID: 7243405103843848301}
   selectionPointer: {fileID: 1287344450842927719}
+  approachSpeed: 7
+  returnSpeed: 8
+  rotationSpeed: 10
 --- !u!114 &8123735994906478773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2716,10 +2721,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
   pointerAnchor: {fileID: 0}
+  meleeAttackAnchor: {fileID: 0}
+  meleeAttackOffset: {x: 0, y: 0, z: 3}
   damageNumberOffset: {x: 0, y: 0.3, z: 0}
   targetInfoOffset: {x: 0, y: 1, z: 0}
   commandCrossOffset: {x: 0, y: 0, z: 0}
   subMenuOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &7243405103843848301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684153269823024792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08176112f98cd447ae3cec7b039f459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterAnimationEvents
+  footstepEmitter: {fileID: -308459226668599625}
 --- !u!1001 &6457902438153903016
 PrefabInstance:
   m_ObjectHideFlags: 0

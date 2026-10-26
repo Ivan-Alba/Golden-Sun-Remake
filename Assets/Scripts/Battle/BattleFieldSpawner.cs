@@ -89,6 +89,7 @@ public class BattleFieldSpawner : MonoBehaviour
 
     /// <summary>
     /// Spawns combatants and sets up the 3D arena based on the initialization payload and party data.
+    /// Calculates spatial positions first before applying transforms and home anchors.
     /// </summary>
     public BattleSpawnResult SpawnBattleField(BattleInitializationData data, IReadOnlyList<GameObject> activeParty)
     {
@@ -113,21 +114,24 @@ public class BattleFieldSpawner : MonoBehaviour
                 GameObject hero = activeParty[i];
                 if (hero == null) continue;
 
-                // Activar el modelo visual de batalla al aparecer en el campo
+                // First: Calculate ground snap position and rotation
+                Vector3 targetWorldPos = SnapToGround(heroPositions[i]);
+                Quaternion targetRotation = ResolveFighterRotation(heroCenterAnchor, targetWorldPos, enemyCenterAnchor);
+
+                // Second: Apply transforms
+                hero.transform.position = targetWorldPos;
+                hero.transform.rotation = targetRotation;
+
+                // Third: Activate visuals and register home anchor in FighterController
                 if (hero.TryGetComponent<FighterController>(out var fighterCtrl))
                 {
                     fighterCtrl.SetBattleVisualsActive(true);
+                    fighterCtrl.SetHomeTransform(targetWorldPos, targetRotation);
                 }
                 else
                 {
                     hero.SetActive(true);
                 }
-
-                Vector3 targetWorldPos = SnapToGround(heroPositions[i]);
-                Quaternion targetRotation = ResolveFighterRotation(heroCenterAnchor, targetWorldPos, enemyCenterAnchor);
-
-                hero.transform.position = targetWorldPos;
-                hero.transform.rotation = targetRotation;
 
                 if (hero.TryGetComponent<FighterStats>(out var stats) && stats.CurrHp > 0)
                 {
@@ -191,6 +195,11 @@ public class BattleFieldSpawner : MonoBehaviour
                 Quaternion targetRotation = ResolveFighterRotation(enemyCenterAnchor, targetWorldPos, heroCenterAnchor);
 
                 GameObject spawnedEnemy = Instantiate(orderedPrefabs[i], targetWorldPos, targetRotation);
+
+                if (spawnedEnemy.TryGetComponent<FighterController>(out var enemyFighterCtrl))
+                {
+                    enemyFighterCtrl.SetHomeTransform(targetWorldPos, targetRotation);
+                }
 
                 activeEnemiesSlots[targetSlotIndex] = spawnedEnemy;
                 activeFighters.Add(spawnedEnemy);

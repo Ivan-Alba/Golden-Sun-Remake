@@ -2,13 +2,21 @@ using UnityEngine;
 
 /// <summary>
 /// Component attached to Hero and Enemy prefabs to explicitly define 3D spatial anchors 
-/// for UI presentation (names, damage numbers, command menus) and in-world visual elements (3D selection pointers).
+/// for UI presentation (names, damage numbers, command menus), in-world visual elements (3D selection pointers),
+/// and Melee attack stopping positions.
 /// </summary>
 public class FighterBattleAnchors : MonoBehaviour
 {
     [Header("3D Selection Pointer Anchor")]
     [Tooltip("Target transform where the 3D Pointer is attached/positioned.")]
     [SerializeField] private Transform pointerAnchor;
+
+    [Header("Melee Combat Stopping Point")]
+    [Tooltip("Optional explicit Transform defining where Melee attackers should stop in front of this target.")]
+    [SerializeField] private Transform meleeAttackAnchor;
+
+    [Tooltip("Fallback offset relative to this target's position and forward direction if no explicit Transform is assigned.")]
+    [SerializeField] private Vector3 meleeAttackOffset = new Vector3(0f, 0f, 2.2f);
 
     [Header("UI Floating Text Offsets")]
     [Tooltip("World space offset from target base used for Damage Numbers.")]
@@ -27,6 +35,8 @@ public class FighterBattleAnchors : MonoBehaviour
     #region Public Properties
 
     public Transform PointerAnchor => pointerAnchor != null ? pointerAnchor : transform;
+    public Transform MeleeAttackAnchor => meleeAttackAnchor;
+    public Vector3 MeleeAttackOffset => meleeAttackOffset;
     public Vector3 DamageNumberOffset => damageNumberOffset;
     public Vector3 TargetInfoOffset => targetInfoOffset;
     public Vector3 CommandCrossOffset => commandCrossOffset;
@@ -35,6 +45,21 @@ public class FighterBattleAnchors : MonoBehaviour
     #endregion
 
     #region Public Helper API
+
+    /// <summary>
+    /// Calculates absolute world position where a Melee attacker should stop in front of this entity.
+    /// Prioritizes explicit transform anchor if assigned; otherwise calculates forward offset based on entity orientation.
+    /// </summary>
+    public Vector3 GetMeleeAttackWorldPosition()
+    {
+        if (meleeAttackAnchor != null)
+        {
+            return meleeAttackAnchor.position;
+        }
+
+        // Fallback: Calculates stopping point in front of the target based on its forward direction and offset
+        return transform.position + transform.TransformDirection(meleeAttackOffset);
+    }
 
     /// <summary>
     /// Calculates absolute world position for floating damage text.
@@ -74,6 +99,11 @@ public class FighterBattleAnchors : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        // Color rojo para la posición del ataque Melee
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(GetMeleeAttackWorldPosition(), 0.12f);
+        Gizmos.DrawWireCube(GetMeleeAttackWorldPosition(), new Vector3(0.3f, 0.05f, 0.3f));
+
         // Color verde para números de daño
         Gizmos.color = Color.green;
         Gizmos.DrawSphere(transform.position + damageNumberOffset, 0.08f);

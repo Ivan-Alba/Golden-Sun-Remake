@@ -1,15 +1,44 @@
+using System;
 using UnityEngine;
 
 /// <summary>
-/// Bridge component attached to the visual model containing the Animator.
-/// Relays Animation Events (attack completion, footsteps) to parent combat and audio controllers.
+/// Bridge component attached directly to the 3D model with the Animator.
+/// Captures Unity Animation Events and converts them into C# delegates for FighterController, 
+/// action executors, and audio emitters.
 /// </summary>
-public class AnimationController : MonoBehaviour
+public class FighterAnimationEvents : MonoBehaviour
 {
-    #region Private Fields
+    #region Events
 
-    private FighterController fighterController;
-    private FootstepAudioEmitter footstepEmitter;
+    /// <summary>
+    /// Triggered at the exact frame of Melee physical impact (applies damage, target hit animation, and impact SFX).
+    /// </summary>
+    public event Action OnHitImpact;
+
+    /// <summary>
+    /// Triggered at the exact frame when casting a Psynergy, Item, Djinn, or Summon 
+    /// (instantiates magic projectiles/VFX at the hand or anchor).
+    /// </summary>
+    public event Action OnCastRelease;
+
+    /// <summary>
+    /// Triggered at the final frame of active action clips (Attack, Cast, Item Use) 
+    /// signaling completion of the animation sequence.
+    /// </summary>
+    public event Action OnAnimationCompleted;
+
+    /// <summary>
+    /// Triggered at the final frame of the defeat/death animation (initiates URP dissolve effect on enemies).
+    /// </summary>
+    public event Action OnDeathAnimationFinished;
+
+    #endregion
+
+    #region Private References
+
+    [Header("Optional Component Integrations")]
+    [Tooltip("Reference to the footstep audio emitter for movement animation sync.")]
+    [SerializeField] private FootstepAudioEmitter footstepEmitter;
 
     #endregion
 
@@ -17,37 +46,52 @@ public class AnimationController : MonoBehaviour
 
     private void Awake()
     {
-        // Safely retrieve references from this GameObject or parent hierarchy
-        fighterController = GetComponentInParent<FighterController>();
-        footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
-
-        if (fighterController == null)
+        if (footstepEmitter == null)
         {
-            Debug.LogWarning($"[AnimationController] No FighterController found in hierarchy for {gameObject.name}.", this);
+            footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
         }
     }
 
     #endregion
 
-    #region Animation Event Callbacks
+    #region Unity Mecanim Animation Event Hooks
 
     /// <summary>
-    /// Invoked by Animation Events at the end of an attack animation sequence.
-    /// Signals the FighterController to complete the current combat turn action.
+    /// Animation Event Hook: Add to the exact frame where a physical Melee attack makes contact with the target.
     /// </summary>
-    public void AttackAnimationDone()
+    public void AnimationEvent_OnHitImpact()
     {
-        if (fighterController != null)
-        {
-            fighterController.AttackDone();
-        }
+        OnHitImpact?.Invoke();
     }
 
     /// <summary>
-    /// Invoked directly by Unity Animation Events on character walk/run animations.
-    /// Delegates footstep audio detection and execution to FootstepAudioEmitter.
+    /// Animation Event Hook: Add to the exact frame where a spell/item/summon is released (e.g., hand extended forward).
     /// </summary>
-    public void playFootprints()
+    public void AnimationEvent_OnCastRelease()
+    {
+        OnCastRelease?.Invoke();
+    }
+
+    /// <summary>
+    /// Animation Event Hook: Add to the end of attack, cast, or item use animations.
+    /// </summary>
+    public void AnimationEvent_OnAnimationCompleted()
+    {
+        OnAnimationCompleted?.Invoke();
+    }
+
+    /// <summary>
+    /// Animation Event Hook: Add to the final frame of the defeat/death animation sequence.
+    /// </summary>
+    public void AnimationEvent_OnDeathAnimationFinished()
+    {
+        OnDeathAnimationFinished?.Invoke();
+    }
+
+    /// <summary>
+    /// Animation Event Hook: Add to walk/run animation clip frames to trigger surface footstep audio.
+    /// </summary>
+    public void AnimationEvent_OnFootstep()
     {
         if (footstepEmitter != null)
         {

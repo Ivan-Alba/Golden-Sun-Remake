@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: -6718966050791801454}
   - component: {fileID: 584891849020649373}
   - component: {fileID: 6711734652318432190}
+  - component: {fileID: 2269558898037511358}
   m_Layer: 12
   m_Name: Mushroom Red
   m_TagString: Untagged
@@ -93,7 +94,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   battleVisualModel: {fileID: 0}
   fighterAnim: {fileID: 0}
+  animationEvents: {fileID: 2269558898037511358}
   selectionPointer: {fileID: 5279751067446717490}
+  approachSpeed: 7
+  returnSpeed: 8
+  rotationSpeed: 10
 --- !u!114 &8747760129151678943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -290,10 +295,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FighterBattleAnchors
   pointerAnchor: {fileID: 0}
+  meleeAttackAnchor: {fileID: 0}
+  meleeAttackOffset: {x: 0, y: 0, z: 1.4}
   damageNumberOffset: {x: 0, y: 0.5, z: 0}
   targetInfoOffset: {x: 0, y: 1.2, z: 0}
   commandCrossOffset: {x: 0, y: 0, z: 0}
   subMenuOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &2269558898037511358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2963383437357418999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c08176112f98cd447ae3cec7b039f459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterAnimationEvents
+  footstepEmitter: {fileID: -6718966050791801454}
 --- !u!1 &2963706915915002197
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ using UnityEngine;
 /// Domain executor component responsible for orchestrating combat action sequences:
 /// physical movement, damage and healing calculations, status effects,
 /// camera presentation triggers, and delegating visual and audio FX playback to BattleFXManager.
+/// Fully synchronized with FighterAnimationEvents.
 /// </summary>
 public class BattleActionExecutor : MonoBehaviour
 {
@@ -109,6 +110,11 @@ public class BattleActionExecutor : MonoBehaviour
 
     #region Action Implementations
 
+    /// <summary>
+    /// Executes physical Melee basic attack sequence: smooth dash approach, camera setup,
+    /// triggering physical attack animation, executing impact logic on FighterAnimationEvents callback,
+    /// and returning home upon animation completion.
+    /// </summary>
     private IEnumerator ExecuteBasicAttack(FighterController caster, GameObject target)
     {
         if (target == null || !target.TryGetComponent<FighterStats>(out var targetStats))
@@ -119,16 +125,7 @@ public class BattleActionExecutor : MonoBehaviour
         FighterStats casterStats = caster.GetComponent<FighterStats>();
         if (casterStats == null) yield break;
 
-        // -------------------------------------------------------------------------
-        // TODO: WEAPON UNLEASH EVALUATION (PRE-MOVEMENT)
-        // 1. Resolve weapon and check if a Weapon Unleash triggers (Hero only).
-        // 2. If Unleash triggers:
-        //    a. Switch camera to Hero Focus / Unleash Intro Camera.
-        //    b. Play Unleash Aura VFX & SFX while stationary.
-        //    c. Execute specialized Unleash Coroutine instead of Basic Attack flow.
-        // -------------------------------------------------------------------------
-
-        // 1. Resolve Weapon Properties & Critical Hit Probability EARLY
+        // 1. Resolve Weapon Properties & Critical Hit Probability
         ElementalType weaponElement = ElementalType.None;
         int critRateBonus = 1;
         HitFXType weaponHitFX = HitFXType.Blunt;
@@ -146,72 +143,73 @@ public class BattleActionExecutor : MonoBehaviour
 
         bool isCritical = BattleDamageCalculator.CheckCriticalHit(critRateBonus, casterStats.Luck);
 
-        // 2. Move Caster to Target
-        yield return caster.MoveToTargetCoroutine(target.transform.position, stopDistance: 2.5f);
+        // 2. Move Caster smoothly to Target stopping position
+        yield return caster.MoveToTargetCoroutine(target);
 
-        // 3. Cinematic Camera & Animation Setup (POST-MOVEMENT)
-        if (isCritical)
+        // 3. Setup Impact Event Callback
+        FighterAnimationEvents animEvents = caster.GetComponentInChildren<FighterAnimationEvents>();
+
+        void HandleImpactFrame()
         {
-            // Activate dramatic close-up camera for Critical Hit
-            if (battleCameraController != null)
+            // Executed at the precise frame Mecanim fires OnHitImpact
+            GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
+
+            int damage = BattleDamageCalculator.CalculatePhysicalDamage(casterStats, targetStats, weaponElement, isCritical);
+
+            if (isCritical)
             {
-                battleCameraController.SetCriticalImpactCamera(caster.gameObject, target);
+                // Dynamic Hit-Stop & Camera Trigger directly bound to impact frame
+                if (battleCameraController != null)
+                {
+                    battleCameraController.SetCriticalImpactCamera(caster.gameObject, target);
+                }
             }
 
-            // Optional: Trigger specific critical attack animation if available in controller
-            caster.PlayAttackAnimation(); // e.g., caster.PlayCriticalAttackAnimation();
+            if (target.TryGetComponent<FighterController>(out var targetCtrl))
+            {
+                targetCtrl.ReceiveDamage(damage, isCritical);
+            }
+            else
+            {
+                targetStats.CurrHp = Mathf.Max(0, targetStats.CurrHp - damage);
+                string textDisplay = isCritical ? $"CRITICAL!\n{damage}" : damage.ToString();
+                var textType = isCritical
+                    ? DamageNumbersPresenter.DamageTextType.CriticalDamage
+                    : DamageNumbersPresenter.DamageTextType.NormalDamage;
+
+                GameEvents.Battle.TriggerDamageNumber(target, textDisplay, textType);
+            }
+
+            if (fxManager != null)
+            {
+                fxManager.PlayBasicAttackHitFX(target, weaponHitFX);
+            }
         }
-        else
+
+        // 4. Subscribe to Event & Play Animation
+        if (animEvents != null)
         {
-            caster.PlayAttackAnimation();
+            animEvents.OnHitImpact += HandleImpactFrame;
         }
 
+        caster.PlayAttackAnimation();
 
-        // 4. Calculate & Apply Physical Damage (with Hit-Stop / Slow-Motion for Criticals)
-        if (isCritical)
+        // 5. Wait until Animation completes naturally via OnAnimationCompleted event
+        yield return new WaitUntil(() => caster.ActionFinished);
+
+        // 6. Cleanup Event Subscription
+        if (animEvents != null)
         {
-            Time.timeScale = 0.3f; // Dramatic Slow-Motion frame rate punch
-            yield return new WaitForSecondsRealtime(1.5f); // Realtime wait unaffected by timeScale
-            Time.timeScale = 0.1f;
-            yield return new WaitForSecondsRealtime(0.4f); // Realtime wait unaffected by timeScale
-            Time.timeScale = 1.0f;
-            List<GameObject> singleTargetList = new List<GameObject> { target };
-            battleCameraController.SetActionCamera(caster.gameObject, singleTargetList);
+            animEvents.OnHitImpact -= HandleImpactFrame;
         }
-        else
+
+        // Reset camera if critical frame altered target perspective
+        if (isCritical && battleCameraController != null)
         {
-            // Wait for animation impact frame
-            yield return new WaitForSeconds(0.5f);
+            battleCameraController.SetActionCamera(caster.gameObject, new List<GameObject> { target });
         }
 
-        GameEvents.Audio.RequestPlaySFX(SFXType.Combat_AttackSwing);
-
-        int damage = BattleDamageCalculator.CalculatePhysicalDamage(casterStats, targetStats, weaponElement, isCritical);
-
-        if (target.TryGetComponent<FighterController>(out var targetController))
-        {
-            targetController.ReceiveDamage(damage, isCritical);
-        }
-        else
-        {
-            targetStats.CurrHp = Mathf.Max(0, targetStats.CurrHp - damage);
-            string textDisplay = isCritical ? $"CRITICAL!\n{damage}" : damage.ToString();
-            var textType = isCritical
-                ? DamageNumbersPresenter.DamageTextType.CriticalDamage
-                : DamageNumbersPresenter.DamageTextType.NormalDamage;
-
-            GameEvents.Battle.TriggerDamageNumber(target, textDisplay, textType);
-        }
-
-        // 5. Trigger Visual & Audio Hit FX
-        if (fxManager != null)
-        {
-            fxManager.PlayBasicAttackHitFX(target, weaponHitFX);
-        }
-
-        yield return new WaitForSeconds(0.5f);
-
-        // 6. Return Caster to Start Position
+        // 7. Return Caster smoothly back to slot home anchor
         yield return caster.ReturnToOriginCoroutine();
     }
 
@@ -252,11 +250,11 @@ public class BattleActionExecutor : MonoBehaviour
         {
             // Fallback timing if fxManager is missing in scene
             caster.PlayCasterAnimation(CasterAnimationType.UsePsynergy);
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitUntil(() => caster.ActionFinished);
             ApplyPsynergyDomainEffects(casterStats, psynergy, primaryTargetPosition, areaTargets);
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.3f);
     }
 
     /// <summary>
@@ -319,32 +317,29 @@ public class BattleActionExecutor : MonoBehaviour
 
     private IEnumerator ExecuteItemAction(FighterController caster, ItemSO item, List<GameObject> targets)
     {
-        // Safe stub: triggers item preparation animation and passes turn safely
         if (caster != null)
         {
             caster.PlayCasterAnimation(CasterAnimationType.UseItem);
+            yield return new WaitUntil(() => caster.ActionFinished);
         }
-        yield return new WaitForSeconds(1.0f);
     }
 
     private IEnumerator ExecuteDjinnUnleashAction(FighterController caster, DjinnInstance djinn, List<GameObject> targets)
     {
-        // Safe stub: triggers Djinn unleash animation and passes turn safely
         if (caster != null)
         {
             caster.PlayCasterAnimation(CasterAnimationType.UseDjinn);
+            yield return new WaitUntil(() => caster.ActionFinished);
         }
-        yield return new WaitForSeconds(1.0f);
     }
 
     private IEnumerator ExecuteSummonAction(FighterController caster, object summonData, List<GameObject> targets)
     {
-        // Safe stub: triggers Summon animation and passes turn safely
         if (caster != null)
         {
             caster.PlayCasterAnimation(CasterAnimationType.UseSummon);
+            yield return new WaitUntil(() => caster.ActionFinished);
         }
-        yield return new WaitForSeconds(1.0f);
     }
 
     #endregion
