@@ -23,7 +23,7 @@ MonoBehaviour:
     m_LocalVariables: []
   djinnSlug: sleet
   element: 3
-  icon: {fileID: 21300000, guid: e45c3409db645454eb9516f68cb8ed31, type: 3}
+  icon: {fileID: 21300000, guid: 7aaf9c6c3628cdb48b7f49550bdd8dc9, type: 3}
   description:
     m_TableReference:
       m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3

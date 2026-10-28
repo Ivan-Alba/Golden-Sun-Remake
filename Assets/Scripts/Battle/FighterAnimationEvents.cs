@@ -48,7 +48,10 @@ public class FighterAnimationEvents : MonoBehaviour
     {
         if (footstepEmitter == null)
         {
-            footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
+            footstepEmitter = GetComponent<FootstepAudioEmitter>();
+
+            if (footstepEmitter == null)
+                footstepEmitter = GetComponentInParent<FootstepAudioEmitter>();
         }
     }
 

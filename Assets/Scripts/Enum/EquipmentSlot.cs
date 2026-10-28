@@ -1,3 +1,6 @@
+using UnityEngine;
+using System;
+
 /// <summary>
 /// Defines the 7 standard physical equipment slots corresponding to Golden Sun mechanics.
 /// </summary>
@@ -12,4 +15,11 @@ public enum EquipmentSlot
     Boots,
     Ring,
     PsynergyRelic
+}
+
+[Serializable]
+public class EquipmentSlotSpritePair
+{
+    public EquipmentSlot slotType;
+    public Sprite slotSprite;
 }

@@ -44,6 +44,7 @@ public class FighterController : MonoBehaviour
     private bool isDefending;
     private bool actionFinished;
     private bool isReturning;
+    private bool isInHitReaction;
 
     #endregion
 
@@ -69,6 +70,11 @@ public class FighterController : MonoBehaviour
     /// Flag set to true by FighterAnimationEvents when the active clip finishes playing.
     /// </summary>
     public bool ActionFinished { get => actionFinished; set => actionFinished = value; }
+
+    /// <summary>
+    /// Indicates whether the fighter is currently playing a hit reaction/damage animation.
+    /// </summary>
+    public bool IsInHitReaction => isInHitReaction;
 
     /// <summary>
     /// Indicates whether the fighter is currently holding a defensive stance.
@@ -153,6 +159,7 @@ public class FighterController : MonoBehaviour
     private void HandleAnimationCompleted()
     {
         actionFinished = true;
+        isInHitReaction = false;
     }
 
     #endregion
@@ -249,7 +256,12 @@ public class FighterController : MonoBehaviour
 
     public void ReceiveDamage(int damageAmount, bool isCritical = false)
     {
-        if (fighterAnim != null) fighterAnim.SetTrigger(HashReceiveHit);
+        if (fighterAnim != null)
+        {
+            isInHitReaction = true;
+            actionFinished = false;
+            fighterAnim.SetTrigger(HashReceiveHit);
+        }
 
         if (stats != null)
         {
@@ -331,7 +343,6 @@ public class FighterController : MonoBehaviour
         float travelTime = totalDistance / approachSpeed;
         float elapsedTime = 0f;
 
-        // Positive move value triggers Forward Run in Blend Tree
         if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 6f);
 
         while (elapsedTime < travelTime)
@@ -379,7 +390,6 @@ public class FighterController : MonoBehaviour
             float travelTime = totalDistance / returnSpeed;
             float elapsedTime = 0f;
 
-            // Negative move value (-6f) triggers RunBack clip in Blend Tree
             if (fighterAnim != null) fighterAnim.SetFloat(HashMove, -6f);
 
             while (elapsedTime < travelTime)
@@ -388,7 +398,6 @@ public class FighterController : MonoBehaviour
                 float t = elapsedTime / travelTime;
                 float smoothT = Mathf.SmoothStep(0f, 1f, t);
 
-                // Move position towards home anchor without rotating transform 180 degrees
                 transform.position = Vector3.Lerp(startPos, homePosition, smoothT);
 
                 yield return null;
@@ -397,7 +406,6 @@ public class FighterController : MonoBehaviour
 
         transform.position = homePosition;
 
-        // Smooth realignment to exact home slot rotation if slightly offset
         while (Quaternion.Angle(transform.rotation, homeRotation) > 0.5f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, homeRotation, rotationSpeed * Time.deltaTime);
@@ -406,7 +414,6 @@ public class FighterController : MonoBehaviour
 
         transform.rotation = homeRotation;
 
-        // Return Blend Tree parameter back to Idle (0)
         if (fighterAnim != null) fighterAnim.SetFloat(HashMove, 0f);
 
         isReturning = false;

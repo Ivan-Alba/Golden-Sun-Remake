@@ -122,6 +122,9 @@ public class PageItemsController : IMenuPageController
     private Label labelItemMaxStack;
     private Label labelItemDesc;
 
+    //Slot Placeholder Elements
+    private List<EquipmentSlotSpritePair> slotPlaceholders;
+
     // Dynamic Extra Info Container
     private VisualElement extraInfoContainer;
 
@@ -336,6 +339,25 @@ public class PageItemsController : IMenuPageController
     public void SetItemSlotAsset(VisualTreeAsset slotAsset)
     {
         itemSlotAssetTemplate = slotAsset;
+    }
+
+    public void SetEquipmentSlotAssets(List<EquipmentSlotSpritePair> slotAssets)
+    {
+        slotPlaceholders = slotAssets;
+    }
+
+    private void GetSlotPlaceholderSprite(EquipmentSlot slotType, out Sprite placeholderSprite)
+    {
+        placeholderSprite = null;
+        if (slotPlaceholders == null) return;
+        foreach (var pair in slotPlaceholders)
+        {
+            if (pair.slotType == slotType)
+            {
+                placeholderSprite = pair.slotSprite;
+                return;
+            }
+        }
     }
 
     private VisualElement GetTopRootElement()
@@ -619,7 +641,8 @@ public class PageItemsController : IMenuPageController
             }
             else
             {
-                slotUI.style.backgroundImage = null;
+                GetSlotPlaceholderSprite(slotType, out Sprite placeholderSprite);
+                slotUI.style.backgroundImage = new StyleBackground(placeholderSprite);
             }
         }
 
@@ -640,7 +663,8 @@ public class PageItemsController : IMenuPageController
             }
             else
             {
-                slotUI.style.backgroundImage = null;
+                GetSlotPlaceholderSprite(EquipmentSlot.PsynergyRelic, out Sprite placeholderSprite);
+                slotUI.style.backgroundImage = new StyleBackground(placeholderSprite);
             }
         }
     }

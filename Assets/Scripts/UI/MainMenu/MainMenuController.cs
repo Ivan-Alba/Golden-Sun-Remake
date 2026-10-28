@@ -58,6 +58,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private VisualTreeAsset templateInfoPsynergyRelic;
     [SerializeField] private VisualTreeAsset templateInfoKeyItem;
     [SerializeField] private VisualTreeAsset itemSlotAsset;
+    [SerializeField] private List<EquipmentSlotSpritePair> slotAssetsMap;
 
     [Header("Djinn Page Templates")]
     [SerializeField] private VisualTreeAsset globalViewAsset;
@@ -571,6 +572,7 @@ public class MainMenuController : MonoBehaviour
 
         var pageController = new PageItemsController(itemsInstance);
         pageController.SetItemSlotAsset(itemSlotAsset);
+        pageController.SetEquipmentSlotAssets(slotAssetsMap);
         pageController.SetExtraInfoTemplates(templateInfoConsumable, templateInfoEquipable, templateInfoWeapon, templateInfoPsynergyRelic, templateInfoKeyItem);
         pageController.OnItemUsedOnHero += RefreshHeaderHeroCards;
 

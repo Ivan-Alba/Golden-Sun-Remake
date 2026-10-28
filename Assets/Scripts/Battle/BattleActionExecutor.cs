@@ -6,7 +6,7 @@ using UnityEngine;
 /// Domain executor component responsible for orchestrating combat action sequences:
 /// physical movement, damage and healing calculations, status effects,
 /// camera presentation triggers, and delegating visual and audio FX playback to BattleFXManager.
-/// Fully synchronized with FighterAnimationEvents.
+/// Fully synchronized with FighterAnimationEvents and target hit reaction states.
 /// </summary>
 public class BattleActionExecutor : MonoBehaviour
 {
@@ -52,6 +52,7 @@ public class BattleActionExecutor : MonoBehaviour
 
     /// <summary>
     /// Executes a selected battle action sequence using the unified BattleActionRequest DTO.
+    /// Ensures target hit reaction animations fully settle before concluding turn.
     /// </summary>
     public IEnumerator ExecuteActionSequence(BattleActionRequest request)
     {
@@ -104,6 +105,9 @@ public class BattleActionExecutor : MonoBehaviour
                 yield return ExecuteSummonAction(caster, request.ActionPayload, targetList);
                 break;
         }
+
+        // TURN SETTLING GUARDIAN: Ensure all affected targets finished their ReceiveHit animation before changing turns
+        yield return WaitForTargetsHitReaction(targetList);
     }
 
     #endregion
@@ -113,7 +117,7 @@ public class BattleActionExecutor : MonoBehaviour
     /// <summary>
     /// Executes physical Melee basic attack sequence: smooth dash approach, camera setup,
     /// triggering physical attack animation, executing impact logic on FighterAnimationEvents callback,
-    /// and returning home upon animation completion.
+    /// and returning home asynchronously while target processes hit reaction.
     /// </summary>
     private IEnumerator ExecuteBasicAttack(FighterController caster, GameObject target)
     {
@@ -254,7 +258,9 @@ public class BattleActionExecutor : MonoBehaviour
             ApplyPsynergyDomainEffects(casterStats, psynergy, primaryTargetPosition, areaTargets);
         }
 
-        yield return new WaitForSeconds(0.3f);
+        // 3. Wait for all targets to finish hit reaction + settling buffer
+        yield return WaitForTargetsHitReaction(areaTargets);
+        yield return new WaitForSeconds(0.2f);
     }
 
     /// <summary>
@@ -322,6 +328,7 @@ public class BattleActionExecutor : MonoBehaviour
             caster.PlayCasterAnimation(CasterAnimationType.UseItem);
             yield return new WaitUntil(() => caster.ActionFinished);
         }
+        yield return WaitForTargetsHitReaction(targets);
     }
 
     private IEnumerator ExecuteDjinnUnleashAction(FighterController caster, DjinnInstance djinn, List<GameObject> targets)
@@ -331,6 +338,7 @@ public class BattleActionExecutor : MonoBehaviour
             caster.PlayCasterAnimation(CasterAnimationType.UseDjinn);
             yield return new WaitUntil(() => caster.ActionFinished);
         }
+        yield return WaitForTargetsHitReaction(targets);
     }
 
     private IEnumerator ExecuteSummonAction(FighterController caster, object summonData, List<GameObject> targets)
@@ -340,11 +348,36 @@ public class BattleActionExecutor : MonoBehaviour
             caster.PlayCasterAnimation(CasterAnimationType.UseSummon);
             yield return new WaitUntil(() => caster.ActionFinished);
         }
+        yield return WaitForTargetsHitReaction(targets);
     }
 
     #endregion
 
     #region Helper Utility Methods
+
+    /// <summary>
+    /// Synchronously waits until all combatants in the target list finish playing their ReceiveHit reaction animations.
+    /// Includes safety timeout to prevent softlocks if an animation event is missing.
+    /// </summary>
+    private IEnumerator WaitForTargetsHitReaction(List<GameObject> targets)
+    {
+        if (targets == null || targets.Count == 0) yield break;
+
+        foreach (GameObject targetObj in targets)
+        {
+            if (targetObj != null && targetObj.TryGetComponent<FighterController>(out var targetCtrl))
+            {
+                float timeout = 1.2f;
+                float elapsed = 0f;
+
+                while (targetCtrl.IsInHitReaction && elapsed < timeout)
+                {
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+            }
+        }
+    }
 
     private List<FighterStats> ExtractFighterStatsList(List<GameObject> gameObjects)
     {

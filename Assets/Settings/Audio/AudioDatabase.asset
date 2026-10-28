@@ -42,14 +42,14 @@ MonoBehaviour:
     defaultVolume: 1
   sfxList:
   - sfxType: 1
-    sfxClip: {fileID: 8300000, guid: d1b86caf6c3bb404aa8da97d9ac4f24d, type: 3}
-    defaultVolume: 1
+    sfxClip: {fileID: 8300000, guid: 707ecf0bb60d3974c8600b84cfc4f2af, type: 3}
+    defaultVolume: 0.5
   - sfxType: 2
     sfxClip: {fileID: 8300000, guid: 700c7e472b5cb6b41bea9a992dbb803c, type: 3}
     defaultVolume: 1
   - sfxType: 3
-    sfxClip: {fileID: 8300000, guid: 42d97baaffa20574ea4db8c2bd12bd1f, type: 3}
-    defaultVolume: 1
+    sfxClip: {fileID: 8300000, guid: 956ca5f2d701d53428d29d31482e3fd7, type: 3}
+    defaultVolume: 0.5
   - sfxType: 5
     sfxClip: {fileID: 8300000, guid: 906adc1e66317fa4095e5af893ebd582, type: 3}
     defaultVolume: 1
@@ -67,7 +67,7 @@ MonoBehaviour:
     defaultVolume: 1
   - sfxType: 14
     sfxClip: {fileID: 8300000, guid: 151608b4c5585ca46941b979be05209d, type: 3}
-    defaultVolume: 1
+    defaultVolume: 0.6
   - sfxType: 15
     sfxClip: {fileID: 8300000, guid: 3b339bfd0e5761f4392809c75b3f31a5, type: 3}
     defaultVolume: 1

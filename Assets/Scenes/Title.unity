@@ -1532,10 +1532,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 298822035824675383, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: turnBarImage
+      value: 
+      objectReference: {fileID: 21300000, guid: 32e0f327fa3bd9a468a71b5662d770f4, type: 3}
     - target: {fileID: 319124788171271290, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 469738700233229083, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: turnBarImage
+      value: 
+      objectReference: {fileID: 21300000, guid: 67c8332788b87e641a462cf76d062073, type: 3}
     - target: {fileID: 1546148122193012417, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: meleeAttackOffset.z
       value: 1.2
@@ -1552,6 +1560,10 @@ PrefabInstance:
       propertyPath: rotationSpeed
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 2162322314548242408, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: turnBarImage
+      value: 
+      objectReference: {fileID: 21300000, guid: a0ce4f8711085d148bcd8f02a0fa2b84, type: 3}
     - target: {fileID: 2190505917880476204, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: returnSpeed
       value: 8
@@ -1584,6 +1596,74 @@ PrefabInstance:
       propertyPath: meleeAttackOffset.z
       value: 1.2
       objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.size
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[0].slotType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[1].slotType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[2].slotType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[3].slotType
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[4].slotType
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[5].slotType
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[6].slotType
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[7].slotType
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[0].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 10530d0540e6f38438d754f11caca75c, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[1].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 8ad5b49cc0996234bab7e2ffaf4aeecf, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[2].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: ce43b123ce0ba334bad2db7fde6677ea, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[3].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 9e6e27ab7759c024d973c69726fbece9, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[4].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 884cbb09162d7de47b825624177da6ed, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[5].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0afdbbf31f215094fa19ac90ae2a8d58, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[6].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 3ee35c95ef52b5b40b82bf1c9e552262, type: 3}
+    - target: {fileID: 7974975595606190983, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: slotAssetsMap.Array.data[7].slotSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 2b2f851ef78d6af4785513e10e957307, type: 3}
     - target: {fileID: 8153276935175336749, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: meleeAttackOffset.z
       value: 1.2
@@ -1632,6 +1712,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[PERSISTENT_CORE]'
       objectReference: {fileID: 0}
+    - target: {fileID: 8459378967203041515, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 253f46db2389ea049b1306009ede0b28, type: 2}
+    - target: {fileID: 8459378967306837169, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: audioCollision
+      value: 
+      objectReference: {fileID: 8300000, guid: f929559fc1581a84b9084cea93a13f47, type: 3}
     - target: {fileID: 8685260533460292844, guid: a19744102be9ac7459c9135b44be0284, type: 3}
       propertyPath: returnSpeed
       value: 8
@@ -1644,6 +1732,10 @@ PrefabInstance:
       propertyPath: rotationSpeed
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 8867069913956111151, guid: a19744102be9ac7459c9135b44be0284, type: 3}
+      propertyPath: turnBarImage
+      value: 
+      objectReference: {fileID: 21300000, guid: 70778e207ebccba44a5db8889d66454d, type: 3}
     m_RemovedComponents:
     - {fileID: 7743099714177111068, guid: a19744102be9ac7459c9135b44be0284, type: 3}
     - {fileID: 3497430430994819664, guid: a19744102be9ac7459c9135b44be0284, type: 3}

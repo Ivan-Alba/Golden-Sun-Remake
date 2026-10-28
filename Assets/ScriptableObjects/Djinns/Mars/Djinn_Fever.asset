@@ -23,7 +23,7 @@ MonoBehaviour:
     m_LocalVariables: []
   djinnSlug: fever
   element: 1
-  icon: {fileID: 21300000, guid: b412287db8e3e374da751c63fc800a67, type: 3}
+  icon: {fileID: 21300000, guid: 52548db3f69bd2b47ac2f3763c433ff3, type: 3}
   description:
     m_TableReference:
       m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3

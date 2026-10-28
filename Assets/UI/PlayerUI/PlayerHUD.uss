@@ -620,7 +620,7 @@
     -unity-font-style: bold;
     color: var(--color-text-white);
     width: 60px; /* Extended width to ensure rich text styling fits */
-    -unity-text-align: middle-right;
+    -unity-text-align: middle-left;
     padding: 0;
 }
 

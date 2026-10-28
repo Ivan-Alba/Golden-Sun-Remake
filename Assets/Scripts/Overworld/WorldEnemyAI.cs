@@ -104,6 +104,11 @@ public class OverworldEnemyAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
 
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+
         if (agent == null)
         {
             Debug.LogError($"[OverworldEnemyAI] '{name}' lacks a NavMeshAgent component!", this);

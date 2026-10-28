@@ -23,7 +23,7 @@ MonoBehaviour:
     m_LocalVariables: []
   djinnSlug: granite
   element: 0
-  icon: {fileID: 21300000, guid: c97bb90fb8356b04a961e2abb02999fe, type: 3}
+  icon: {fileID: 21300000, guid: f4b8e6c50ac8af44395990f37d24962e, type: 3}
   description:
     m_TableReference:
       m_TableCollectionName: GUID:256fecfc61d85cd4e94a3914e7f223c3
