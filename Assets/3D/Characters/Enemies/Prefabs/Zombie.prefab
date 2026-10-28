@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 1085921028334350315}
   - component: {fileID: 584891849020649373}
   - component: {fileID: 6711734652318432190}
+  - component: {fileID: -661400752699383424}
   m_Layer: 12
   m_Name: Zombie
   m_TagString: Untagged
@@ -92,6 +93,7 @@ MonoBehaviour:
   battleVisualModel: {fileID: 0}
   fighterAnim: {fileID: 0}
   animationEvents: {fileID: 4033556596421971959}
+  enemyDeathEffect: {fileID: -661400752699383424}
   selectionPointer: {fileID: 5279751067446717490}
   approachSpeed: 7
   returnSpeed: 8
@@ -121,7 +123,16 @@ MonoBehaviour:
     Condition: 0
     HpThresholdPercent: 0
     SelectionWeight: 50
-  itemStock: []
+  - CommandType: 4
+    Psynergy: {fileID: 0}
+    Item: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
+    Condition: 1
+    HpThresholdPercent: 25
+    SelectionWeight: 80
+  itemStock:
+  - Item: {fileID: 11400000, guid: 13cf09ed775bbc04396737a8ac2a64c0, type: 2}
+    MaxUses: 1
+    RemainingUses: 0
 --- !u!65 &2964745836458141157
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -254,6 +265,20 @@ MonoBehaviour:
   targetInfoOffset: {x: 0, y: 1.9, z: 0}
   commandCrossOffset: {x: 0, y: 0, z: 0}
   subMenuOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &-661400752699383424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2963383437357418999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 666377dbfe0a83f47b1c9efa5f81ce24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathEffect
+  defaultDuration: 1.2
+  flashRatio: 0.3
 --- !u!1 &7695734132498139848
 GameObject:
   m_ObjectHideFlags: 0

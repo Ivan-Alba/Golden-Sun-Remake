@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 3D View/Controller component responsible exclusively for spatial movement, 
 /// smooth Melee dash/return routines, animation triggers, and receiving impact states.
+/// Delegates enemy death visual effects to EnemyDeathEffect.
 /// </summary>
 public class FighterController : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class FighterController : MonoBehaviour
 
     [Header("Visual & Animation Setup")]
     [SerializeField] private FighterAnimationEvents animationEvents;
+
+    [Tooltip("Optional reference for non-hero combatants. Auto-fetched or added dynamically if missing on enemies.")]
+    [SerializeField] private EnemyDeathEffect enemyDeathEffect;
 
     [SerializeField] private BattleSelectionPointer selectionPointer;
 
@@ -100,6 +104,11 @@ public class FighterController : MonoBehaviour
         if (animationEvents == null)
         {
             animationEvents = GetComponentInChildren<FighterAnimationEvents>(true);
+        }
+
+        if (enemyDeathEffect == null)
+        {
+            enemyDeathEffect = GetComponent<EnemyDeathEffect>();
         }
 
         SubscribeAnimationEvents();
@@ -421,124 +430,18 @@ public class FighterController : MonoBehaviour
 
     #endregion
 
-    #region Death Dissolve Logic
+    #region Death Logic
 
     public void OnDeathAnimationFinished()
     {
         if (stats != null && !stats.IsHero)
         {
-            StartCoroutine(FFVIIDeathEffectCoroutine(1.2f));
-        }
-    }
-
-    private IEnumerator FFVIIDeathEffectCoroutine(float duration)
-    {
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        if (renderers.Length == 0)
-        {
-            Destroy(gameObject);
-            yield break;
-        }
-
-        Material[] materials = new Material[renderers.Length];
-        Color[] originalColors = new Color[renderers.Length];
-
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            materials[i] = renderers[i].material;
-
-            if (materials[i].HasProperty("_BaseColor"))
+            if (enemyDeathEffect == null)
             {
-                originalColors[i] = materials[i].GetColor("_BaseColor");
-            }
-            else if (materials[i].HasProperty("_Color"))
-            {
-                originalColors[i] = materials[i].GetColor("_Color");
-            }
-            else
-            {
-                originalColors[i] = Color.white;
-            }
-        }
-
-        float elapsedTime = 0f;
-        float flashDuration = duration * 0.3f;
-        float fadeDuration = duration * 0.7f;
-
-        while (elapsedTime < flashDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float t = elapsedTime / flashDuration;
-
-            for (int i = 0; i < materials.Length; i++)
-            {
-                if (materials[i] == null) continue;
-
-                Color targetRed = Color.Lerp(originalColors[i], new Color(1f, 0.1f, 0.1f, originalColors[i].a), t);
-                SetMaterialColor(materials[i], targetRed);
+                enemyDeathEffect = gameObject.AddComponent<EnemyDeathEffect>();
             }
 
-            yield return null;
-        }
-
-        for (int i = 0; i < materials.Length; i++)
-        {
-            if (materials[i] == null) continue;
-            EnableURPTransparency(materials[i]);
-        }
-
-        elapsedTime = 0f;
-        while (elapsedTime < fadeDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / fadeDuration);
-
-            for (int i = 0; i < materials.Length; i++)
-            {
-                if (materials[i] == null) continue;
-
-                Color currentColor = new Color(1f, 0.1f, 0.1f, alpha);
-                SetMaterialColor(materials[i], currentColor);
-            }
-
-            yield return null;
-        }
-
-        gameObject.SetActive(false);
-        Destroy(gameObject, 0.2f);
-    }
-
-    private void EnableURPTransparency(Material mat)
-    {
-        if (mat == null) return;
-
-        if (mat.HasProperty("_Surface"))
-        {
-            mat.SetFloat("_Surface", 1f);
-        }
-
-        mat.SetFloat("_Blend", 0f);
-        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        mat.SetInt("_ZWrite", 0);
-
-        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-        mat.EnableKeyword("_ALPHABLEND_ON");
-        mat.DisableKeyword("_ALPHATEST_ON");
-        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-
-        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-    }
-
-    private void SetMaterialColor(Material mat, Color color)
-    {
-        if (mat.HasProperty("_BaseColor"))
-        {
-            mat.SetColor("_BaseColor", color);
-        }
-        else if (mat.HasProperty("_Color"))
-        {
-            mat.SetColor("_Color", color);
+            enemyDeathEffect.PlayDeathEffect();
         }
     }
 
